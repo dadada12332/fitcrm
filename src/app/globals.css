@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ─── Sky-glass design system ─── */
+:root {
+  /* Sky gradient stops */
+  --sky-top:    #7ec8e3;
+  --sky-mid:    #b3dff5;
+  --sky-light:  #dceefa;
+  --sky-pale:   #eaf6fd;
+  --sky-bottom: #f5fbff;
+
+  /* Text */
+  --ink:        #0f1729;
+  --ink-soft:   #3d5a80;
+  --muted:      #64748b;
+  --on-dark:    #f8fafc;
+  --on-dark-soft: #94a3b8;
+
+  /* Surfaces */
+  --cta-dark:         #0f1729;
+  --cta-dark-hover:   #1e3a5f;
+  --surface-footer:   #0a1020;
+  --surface-section:  rgba(255,255,255,0.55);
+
+  /* Glass */
+  --glass-bg:     rgba(255,255,255,0.28);
+  --glass-border: rgba(255,255,255,0.5);
+  --glass-shadow: 0 8px 32px rgba(14, 101, 173, 0.10);
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Fonts */
+  --font-sans: var(--font-sans);
+  --font-mono: ui-monospace, monospace;
+
+  /* Brand colors exposed to Tailwind */
+  --color-ink:        var(--ink);
+  --color-ink-soft:   var(--ink-soft);
+  --color-muted:      var(--muted);
+  --color-on-dark:    var(--on-dark);
+  --color-cta-dark:   var(--cta-dark);
+  --color-sky-top:    var(--sky-top);
+  --color-sky-bottom: var(--sky-bottom);
+
+  /* shadcn compat */
+  --color-background:    var(--sky-bottom);
+  --color-foreground:    var(--ink);
+  --color-border:        rgba(255,255,255,0.4);
+  --color-ring:          var(--sky-top);
+  --color-input:         rgba(255,255,255,0.4);
+  --color-card:          rgba(255,255,255,0.3);
+  --color-card-foreground: var(--ink);
+  --color-primary:       var(--cta-dark);
+  --color-primary-foreground: #ffffff;
+  --color-secondary:     rgba(255,255,255,0.3);
+  --color-secondary-foreground: var(--ink);
+  --color-muted:         rgba(255,255,255,0.2);
+  --color-muted-foreground: var(--muted);
+  --color-accent:        rgba(255,255,255,0.3);
+  --color-accent-foreground: var(--ink);
+  --color-destructive:   #ef4444;
+  --color-popover:       #ffffff;
+  --color-popover-foreground: var(--ink);
+  --color-sidebar:       var(--cta-dark);
+  --color-sidebar-foreground: var(--on-dark);
+  --color-sidebar-primary: var(--sky-top);
+  --color-sidebar-primary-foreground: var(--ink);
+  --color-sidebar-accent: rgba(255,255,255,0.1);
+  --color-sidebar-accent-foreground: var(--on-dark);
+  --color-sidebar-border: rgba(255,255,255,0.1);
+  --color-sidebar-ring:  var(--sky-top);
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: var(--font-sans), Inter, system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-sans), Inter, system-ui, sans-serif;
+    font-weight: 800;
+    color: var(--ink);
+  }
+}
+
+/* ─── Sky page background ─── */
+.sky-bg {
+  background: linear-gradient(
+    180deg,
+    #7ec8e3 0%,
+    #b3dff5 18%,
+    #d6eefa 40%,
+    #eaf6fd 65%,
+    #f5fbff 100%
+  );
+  min-height: 100vh;
+}
+
+/* ─── Glass utility ─── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-sm {
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(8px) saturate(150%);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.glass-nav {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.5);
+}

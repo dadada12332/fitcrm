@@ -1,0 +1,27 @@
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+
+const inter = Inter({
+  variable: "--font-sans",
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+})
+
+export const metadata: Metadata = {
+  title: "FitCRM — CRM для фитнес-клубов Узбекистана",
+  description:
+    "Управляйте клиентами, абонементами и расписанием в одном месте. QR-чекин, Telegram-бот и аналитика для вашего фитнес-клуба.",
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="ru" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  )
+}

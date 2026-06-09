@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitCRM — Техническое задание для разработки</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --surface2: #14141f;
+    --border: rgba(255,255,255,0.08);
+    --accent: #7b6fff;
+    --green: #4dffaa;
+    --red: #ff5f5f;
+    --yellow: #ffcf5c;
+    --blue: #4da6ff;
+    --text: #e2e2ef;
+    --muted: #6e6e88;
+    --card: rgba(255,255,255,0.025);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Golos Text', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.75;
+  }
+
+  body::after {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  }
+
+  nav {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    height: 52px;
+    background: rgba(8,8,16,0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 2rem; gap: 2rem;
+  }
+  .nav-brand {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px; font-weight:700;
+    letter-spacing: .12em; text-transform:uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .nav-brand::before {
+    content:'';
+    width:8px; height:8px; border-radius:50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: blink 2.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .nav-links { display:flex; gap:.2rem; overflow-x:auto; scrollbar-width:none; }
+  .nav-links::-webkit-scrollbar { display:none; }
+  .nav-links a {
+    font-size:11.5px; font-weight:500; color:var(--muted);
+    text-decoration:none; padding:.3rem .8rem; border-radius:4px;
+    white-space:nowrap; transition:color .2s, background .2s;
+    letter-spacing:.03em;
+  }
+  .nav-links a:hover { color:var(--text); background:var(--card); }
+  .nav-badge {
+    margin-left:auto; font-size:10px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+    color: var(--yellow); opacity:.7;
+    white-space:nowrap;
+  }
+
+  .page { max-width:1060px; margin:0 auto; padding:0 2rem; }
+
+  .hero {
+    padding: 110px 2rem 60px;
+    max-width: 1060px; margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-chip {
+    display:inline-flex; align-items:center; gap:.5rem;
+    font-size:10.5px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--green);
+    border:1px solid rgba(77,255,170,.25); border-radius:100px;
+    padding:.35rem 1rem; margin-bottom:1.75rem;
+    background:rgba(77,255,170,.05);
+  }
+  h1 {
+    font-family:'Unbounded',sans-serif;
+    font-size:clamp(26px,4.5vw,46px);
+    font-weight:900; line-height:1.1;
+    letter-spacing:-.025em; margin-bottom:1.25rem;
+  }
+  h1 em { color:var(--accent); font-style:normal; }
+  .hero-sub {
+    color:var(--muted); font-size:14.5px;
+    max-width:580px; margin-bottom:2.5rem;
+  }
+  .hero-chips { display:flex; flex-wrap:wrap; gap:.6rem; }
+  .chip {
+    font-size:11.5px; font-weight:600;
+    padding:.3rem .85rem; border-radius:6px;
+    background:var(--card); border:1px solid var(--border);
+    letter-spacing:.03em;
+  }
+  .chip.green { color:var(--green); border-color:rgba(77,255,170,.2); background:rgba(77,255,170,.05); }
+  .chip.purple { color:var(--accent); border-color:rgba(123,111,255,.2); background:rgba(123,111,255,.05); }
+  .chip.blue   { color:var(--blue);  border-color:rgba(77,166,255,.2);  background:rgba(77,166,255,.05); }
+  .chip.yellow { color:var(--yellow);border-color:rgba(255,207,92,.2); background:rgba(255,207,92,.05); }
+
+  section { padding:4.5rem 0; border-top:1px solid var(--border); }
+  .sec-header { display:flex; align-items:flex-start; gap:1.25rem; margin-bottom:2.5rem; }
+  .sec-num {
+    font-family:'Unbounded',sans-serif; font-size:10px; font-weight:700;
+    letter-spacing:.15em; color:var(--accent);
+    background:rgba(123,111,255,.1); border:1px solid rgba(123,111,255,.2);
+    padding:.3rem .65rem; border-radius:4px; flex-shrink:0; margin-top:5px;
+  }
+  h2 {
+    font-family:'Unbounded',sans-serif;
+    font-size:clamp(18px,2.8vw,26px);
+    font-weight:700; letter-spacing:-.02em; line-height:1.2;
+  }
+  h2 + p { color:var(--muted); margin-top:.4rem; font-size:13.5px; }
+  h3 {
+    font-family:'Unbounded',sans-serif;
+    font-size:13px; font-weight:600;
+    letter-spacing:.03em; color:var(--text);
+    margin:2.5rem 0 1rem;
+  }
+  h3:first-child { margin-top:0; }
+
+  .t-wrap { overflow-x:auto; border-radius:10px; border:1px solid var(--border); margin:1.25rem 0; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  thead th {
+    background:var(--surface2); color:var(--muted);
+    font-size:10.5px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.08em; padding:.8rem 1rem; text-align:left;
+    border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  tbody td {
+    padding:.8rem 1rem; border-bottom:1px solid var(--border);
+    vertical-align:top; line-height:1.55;
+  }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr:hover td { background:rgba(255,255,255,.012); }
+
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:.85rem; margin:1.25rem 0; }
+  .card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:11px; padding:1.4rem;
+    transition:border-color .2s, transform .2s;
+    position:relative; overflow:hidden;
+  }
+  .card::before {
+    content:''; position:absolute; top:0;left:0;right:0; height:2px;
+    background:var(--ca,var(--accent)); opacity:.45;
+    transition:opacity .2s;
+  }
+  .card:hover { border-color:rgba(255,255,255,.14); transform:translateY(-2px); }
+  .card:hover::before { opacity:1; }
+  .card-lbl { font-size:10px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); margin-bottom:.6rem; }
+  .card-ttl { font-family:'Unbounded',sans-serif; font-size:14px; font-weight:700; margin-bottom:.6rem; line-height:1.3; }
+  .card-body { font-size:13px; color:var(--muted); line-height:1.6; }
+
+  .note {
+    border-left:3px solid var(--accent); border-radius:0 8px 8px 0;
+    background:rgba(123,111,255,.07); padding:1rem 1.2rem;
+    margin:1.25rem 0; font-size:13.5px; color:var(--muted);
+  }
+  .note strong { color:var(--text); }
+  .note.green { border-color:var(--green); background:rgba(77,255,170,.06); }
+  .note.green strong { color:var(--green); }
+  .note.red   { border-color:var(--red);   background:rgba(255,95,95,.06); }
+  .note.red strong { color:var(--red); }
+  .note.yellow { border-color:var(--yellow); background:rgba(255,207,92,.06); }
+  .note.yellow strong { color:var(--yellow); }
+
+  pre, .codeblock {
+    background:#06060e;
+    border:1px solid var(--border); border-radius:10px;
+    padding:1.25rem 1.4rem; overflow-x:auto;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px;
+    line-height:1.75; color:#9090b8; margin:1.25rem 0;
+  }
+  .k { color:#7b6fff; }
+  .v { color:#4dffaa; }
+  .c { color:#3a3a60; }
+  .s { color:#ffcf5c; }
+  .pk{ color:#ff9f5c; }
+  .fk{ color:#4da6ff; }
+  .enc{ color:#ff5f5f; }
+
+  .vgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:.85rem; margin:1.25rem 0; }
+  .vcol { border:1px solid var(--border); border-radius:11px; overflow:hidden; }
+  .vhead {
+    padding:.9rem 1.2rem; font-family:'Unbounded',sans-serif;
+    font-size:12.5px; font-weight:700;
+    display:flex; align-items:center; gap:.6rem;
+  }
+  .vhead.mvp  { background:rgba(77,255,170,.1);  color:var(--green); }
+  .vhead.v2   { background:rgba(77,166,255,.1);  color:var(--blue); }
+  .vhead.v3   { background:rgba(255,207,92,.1); color:var(--yellow); }
+  .vbody { padding:1rem 1.2rem; }
+  .vi {
+    font-size:13px; padding:.4rem 0;
+    border-bottom:1px solid var(--border);
+    display:flex; gap:.55rem; align-items:flex-start;
+    color:var(--muted);
+  }
+  .vi:last-child { border-bottom:none; }
+  .vi::before { content:'›'; color:var(--accent); flex-shrink:0; margin-top:1px; }
+  .vi strong { color:var(--text); }
+  .vi .tag {
+    margin-left:auto; font-size:9.5px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase;
+    padding:.15rem .5rem; border-radius:3px; flex-shrink:0;
+  }
+  .tag.new  { background:rgba(77,255,170,.15); color:var(--green); }
+  .tag.crit { background:rgba(255,95,95,.15);  color:var(--red); }
+
+  .db-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:.75rem; margin:1.25rem 0; }
+  .dbt { background:var(--card); border:1px solid var(--border); border-radius:9px; overflow:hidden; }
+  .dbt-h {
+    background:rgba(77,166,255,.1); border-bottom:1px solid var(--border);
+    padding:.6rem .9rem; font-family:'JetBrains Mono',monospace;
+    font-size:12px; font-weight:500; color:var(--blue); letter-spacing:.04em;
+  }
+  .dbf { padding:.3rem .9rem; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.4rem; }
+  .dbf:last-child { border-bottom:none; }
+
+  .int-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(195px,1fr)); gap:.7rem; margin:1.25rem 0; }
+  .int-item {
+    display:flex; align-items:center; gap:.7rem;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:8px; padding:.7rem 1rem;
+    font-size:13px; font-weight:500; transition:border-color .2s;
+  }
+  .int-item:hover { border-color:rgba(255,255,255,.14); }
+  .idot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .idot.crit { background:var(--red);   box-shadow:0 0 6px var(--red); }
+  .idot.imp  { background:var(--yellow);box-shadow:0 0 6px var(--yellow); }
+  .idot.v2   { background:var(--muted); }
+
+  .role-pill {
+    display:inline-block; font-size:10px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase;
+    padding:.2rem .6rem; border-radius:4px;
+  }
+
+  .stack-row {
+    display:flex; gap:.5rem; padding:.65rem 0;
+    border-bottom:1px solid var(--border); align-items:flex-start;
+    font-size:13.5px;
+  }
+  .stack-row:last-child { border-bottom:none; }
+  .sk { color:var(--muted); min-width:160px; font-size:12.5px; letter-spacing:.03em; flex-shrink:0; }
+  .sv { color:var(--green); font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:500; min-width:200px; flex-shrink:0; }
+  .sc { color:var(--muted); font-size:12px; }
+
+  .screen-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.7rem; margin:1.25rem 0; }
+  .screen-item {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:8px; padding:.9rem 1rem; font-size:13px;
+    display:flex; flex-direction:column; gap:.3rem;
+  }
+  .screen-n { font-family:'Unbounded',sans-serif; font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.1em; }
+  .screen-title { font-weight:600; color:var(--text); line-height:1.3; }
+  .screen-desc { font-size:12px; color:var(--muted); }
+
+  .sec-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.85rem; margin:1.25rem 0; }
+  .sec-card {
+    background:rgba(255,95,95,.04); border:1px solid rgba(255,95,95,.18);
+    border-radius:11px; padding:1.3rem;
+  }
+  .sec-icon { font-size:22px; margin-bottom:.6rem; }
+  .sec-title { font-family:'Unbounded',sans-serif; font-size:13px; font-weight:700; color:var(--red); margin-bottom:.5rem; }
+  .sec-body { font-size:13px; color:var(--muted); line-height:1.6; }
+  .sec-body code { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text); background:var(--surface2); padding:.1rem .4rem; border-radius:3px; }
+
+  .wa-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.25rem 0; }
+  .wa-col { border-radius:11px; padding:1.25rem; }
+  .wa-col.win { background:rgba(77,255,170,.05); border:1px solid rgba(77,255,170,.2); }
+  .wa-col.avoid { background:rgba(255,95,95,.05); border:1px solid rgba(255,95,95,.2); }
+  .wa-title { font-family:'Unbounded',sans-serif; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:1rem; }
+  .wa-col.win .wa-title { color:var(--green); }
+  .wa-col.avoid .wa-title { color:var(--red); }
+  .wa-item { font-size:13px; padding:.4rem 0; border-bottom:1px solid var(--border); color:var(--muted); }
+  .wa-item:last-child { border-bottom:none; }
+
+  footer {
+    border-top:1px solid var(--border);
+    padding:2rem 2rem; text-align:center;
+    color:var(--muted); font-size:12px;
+  }
+
+  p { margin-bottom:.9rem; color:var(--muted); }
+  p:last-child { margin-bottom:0; }
+  p strong { color:var(--text); }
+  ul { list-style:none; }
+  ul li { padding:.3rem 0; color:var(--muted); font-size:13.5px; }
+  ul li::before { content:'› '; color:var(--accent); }
+
+  .fix-badge {
+    display:inline-block; font-size:9px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+    padding:.1rem .45rem; border-radius:3px;
+    background:rgba(255,95,95,.15); color:var(--red);
+    margin-left:.4rem; vertical-align:middle;
+  }
+
+  @media(max-width:640px) {
+    .wa-grid { grid-template-columns:1fr; }
+    nav { gap:1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">FitCRM UZ</div>
+  <div class="nav-links">
+    <a href="#strategy">Стратегия</a>
+    <a href="#screens">Экраны</a>
+    <a href="#versions">Версии</a>
+    <a href="#entities">Сущности</a>
+    <a href="#db">База данных</a>
+    <a href="#security">Безопасность</a>
+    <a href="#integrations">Интеграции</a>
+    <a href="#stack">Стек</a>
+    <a href="#roles">Роли</a>
+    <a href="#advantage">USP</a>
+  </div>
+  <div class="nav-badge">v1.1 · ТЗ для разработки</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-chip">Техническое задание · Июнь 2026 · Готово к разработке</div>
+  <h1>FitCRM — <em>Техническое задание</em><br>для команды разработки</h1>
+  <p class="hero-sub">Документ содержит продуктовую стратегию, список экранов, версии MVP, схему базы данных с требованиями к шифрованию, интеграции и технический стек.</p>
+  <div class="hero-chips">
+    <span class="chip green">Next.js 15 + TypeScript</span>
+    <span class="chip purple">Supabase + Prisma</span>
+    <span class="chip blue">tRPC + shadcn/ui</span>
+    <span class="chip yellow">Click · Payme · Telegram Bot</span>
+    <span class="chip green">AES-256 · TLS 1.3 · RLS</span>
+  </div>
+</div>
+
+<!-- SECTION 1: STRATEGY -->
+<section id="strategy">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">01</div>
+      <div>
+        <h2>Продуктовая стратегия</h2>
+        <p>На чём строим систему и почему</p>
+      </div>
+    </div>
+
+    <div class="note green">
+      <strong>Выбранный вектор:</strong> Доступная CRM для малых и средних фитнес-залов Узбекистана + AI-удержание клиентов как главный USP против конкурента Deepen.uz. 80% рынка (малые залы) не охвачены Deepen из-за высокого установочного взноса (2–5 млн сум). Мы входим без установочного взноса, с онбордингом за 15 минут.
+    </div>
+
+    <div class="cards">
+      <div class="card" style="--ca:var(--green)">
+        <div class="card-lbl">Целевой рынок</div>
+        <div class="card-ttl">Малые и средние залы</div>
+        <div class="card-body">20–200 активных клиентов. Работают в Excel или тетради. Не могут позволить Deepen из-за высокого порога входа. Ташкент — Узбекистан.</div>
+      </div>
+      <div class="card" style="--ca:var(--accent)">
+        <div class="card-lbl">Ценообразование</div>
+        <div class="card-ttl">Без установочного взноса</div>
+        <div class="card-body">Starter 150–250K сум/мес · Standard 350–500K · Business 700K–1.2M. Deepen берут 2–5M сум единоразово. Это наш главный аргумент при продаже.</div>
+      </div>
+      <div class="card" style="--ca:var(--blue)">
+        <div class="card-lbl">Главный USP</div>
+        <div class="card-ttl">AI-удержание + Telegram-first</div>
+        <div class="card-body">Предсказываем отток за 7–14 дней. Telegram-бот как основной канал: напоминания, продление, оплата прямо в боте. Никто в СНГ этого не делает.</div>
+      </div>
+    </div>
+
+    <div class="note yellow">
+      <strong>Приоритет запуска:</strong> Выйти с MVP за 10–12 недель. Первые 30–50 платящих клубов в Ташкенте. Затем V2 с AI-удержанием и расширенной аналитикой. Сетевая функциональность — V3.
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: SCREENS -->
+<section id="screens">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">02</div>
+      <div>
+        <h2>Список экранов (MVP)</h2>
+        <p>Полный перечень всех страниц системы</p>
+      </div>
+    </div>
+
+    <h3>Для администратора / менеджера</h3>
+    <div class="screen-grid">
+      <div class="screen-item"><div class="screen-n">SCR-01</div><div class="screen-title">Дашборд</div><div class="screen-desc">Выручка сегодня, новые клиенты, истекающие абонементы, посещения за день</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-02</div><div class="screen-title">База клиентов</div><div class="screen-desc">Список, поиск, фильтры по статусу абонемента, тегам, дате</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-03</div><div class="screen-title">Карточка клиента</div><div class="screen-desc">Профиль, активные абонементы, история посещений, платежи, заметки, QR-код</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-04</div><div class="screen-title">Продажа абонемента</div><div class="screen-desc">Выбор тарифа, срок, оплата (Click / Payme / наличные), выдача QR</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-05</div><div class="screen-title">Расписание</div><div class="screen-desc">Недельный / дневной вид, занятия, тренеры, количество мест, залы</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-06</div><div class="screen-title">Журнал посещений</div><div class="screen-desc">Ручной check-in, сканирование QR, лента событий в реальном времени</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-07</div><div class="screen-title">Финансы</div><div class="screen-desc">Выручка по дням / месяцам, список платежей, экспорт</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-08</div><div class="screen-title">Склад / Продажи</div><div class="screen-desc">Товары (протеин, одежда, вода и т.д.), остатки, продажи, приход, списание</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-09</div><div class="screen-title">Сотрудники</div><div class="screen-desc">Список тренеров и администраторов, расписание, роли, контакты</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-10</div><div class="screen-title">Уведомления</div><div class="screen-desc">Шаблоны сообщений, очередь, история отправок, настройка триггеров</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-11</div><div class="screen-title">Настройки клуба</div><div class="screen-desc">Название, логотип, тарифы абонементов, Telegram-бот токен, реквизиты</div></div>
+    </div>
+
+    <h3>Для владельца (Owner)</h3>
+    <div class="screen-grid">
+      <div class="screen-item"><div class="screen-n">SCR-12</div><div class="screen-title">Executive Dashboard</div><div class="screen-desc">MRR, ARR, активные клиенты, отток за месяц, загрузка залов</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-13</div><div class="screen-title">Аналитика продаж</div><div class="screen-desc">Конверсия, средний чек, популярные тарифы, выручка по тренерам</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-14</div><div class="screen-title">Отчёт по персоналу <span style="color:var(--yellow);font-size:10px">(MVP: без расчёта зарплат)</span></div><div class="screen-desc">Часы работы, количество занятий. Расчёт зарплаты — V2</div></div>
+      <div class="screen-item"><div class="screen-n">SCR-15</div><div class="screen-title">Склад — отчёт</div><div class="screen-desc">Оборот товаров, прибыль от продаж, низкие остатки (сигнал дозакупки)</div></div>
+    </div>
+
+    <h3>Для клиента (Telegram-бот)</h3>
+    <div class="screen-grid">
+      <div class="screen-item"><div class="screen-n">BOT-01</div><div class="screen-title">Мой абонемент</div><div class="screen-desc">Остаток дней / визитов, срок окончания</div></div>
+      <div class="screen-item"><div class="screen-n">BOT-02</div><div class="screen-title">Продление абонемента</div><div class="screen-desc">Выбор тарифа → оплата Click / Payme прямо в боте</div></div>
+      <div class="screen-item"><div class="screen-n">BOT-03</div><div class="screen-title">Расписание</div><div class="screen-desc">Ближайшие занятия, запись на групповые тренировки</div></div>
+      <div class="screen-item"><div class="screen-n">BOT-04</div><div class="screen-title">Мой QR-код</div><div class="screen-desc">Показать QR для входа в клуб</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: VERSIONS -->
+<section id="versions">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">03</div>
+      <div>
+        <h2>Версии продукта</h2>
+        <p>MVP → V2 → V3 с чётким разграничением функций</p>
+      </div>
+    </div>
+
+    <div class="vgrid">
+      <div class="vcol">
+        <div class="vhead mvp">● MVP — Недели 1–12</div>
+        <div class="vbody">
+          <div class="vi"><strong>Регистрация клуба</strong> + онбординг за 15 мин <span class="tag crit">критично</span></div>
+          <div class="vi"><strong>База клиентов</strong> — карточка, поиск, фильтры</div>
+          <div class="vi"><strong>Абонементы</strong> — создание, продажа, история</div>
+          <div class="vi"><strong>Заморозка абонемента</strong> — с трекингом дней</div>
+          <div class="vi"><strong>Check-in</strong> — ручной + QR-сканирование</div>
+          <div class="vi"><strong>Расписание</strong> — занятия, тренеры, залы, запись</div>
+          <div class="vi"><strong>Финансы</strong> — журнал платежей, выручка</div>
+          <div class="vi"><strong>Склад</strong> — товары, остатки, продажи <span class="tag new">новое</span></div>
+          <div class="vi"><strong>Telegram-бот</strong> — напоминания, QR, расписание</div>
+          <div class="vi"><strong>Click + Payme</strong> — онлайн-оплата в боте</div>
+          <div class="vi"><strong>Дашборд владельца</strong> — базовые KPI</div>
+          <div class="vi"><strong>Роли</strong> — Owner, Manager, Admin, Trainer</div>
+          <div class="vi"><strong>Уведомления</strong> — истечение абонемента (авто)</div>
+          <div class="vi"><strong>Отчёт по складу</strong> — оборот, остатки <span class="tag new">новое</span></div>
+          <div class="vi"><strong>SaaS-тарифы</strong> — Starter/Standard/Business + trial 30д</div>
+        </div>
+      </div>
+      <div class="vcol">
+        <div class="vhead v2">⚡ V2 — Месяцы 4–6</div>
+        <div class="vbody">
+          <div class="vi"><strong>AI-удержание</strong> — предсказание оттока за 7–14 дней</div>
+          <div class="vi"><strong>Лид-менеджмент</strong> — воронка новых клиентов</div>
+          <div class="vi"><strong>Зарплаты тренеров</strong> — % от занятий, ставки</div>
+          <div class="vi"><strong>Рассылки</strong> — сегментированные Telegram / SMS</div>
+          <div class="vi"><strong>Uzum Bank</strong> — интеграция оплаты</div>
+          <div class="vi"><strong>Retention / LTV</strong> — расширенная аналитика</div>
+          <div class="vi"><strong>White Label</strong> — брендированный бот</div>
+          <div class="vi"><strong>PWA</strong> — мобильная версия для клиентов</div>
+          <div class="vi"><strong>Склад v2</strong> — приход, поставщики, инвентаризация</div>
+          <div class="vi"><strong>Программа лояльности</strong> — бонусы за визиты</div>
+        </div>
+      </div>
+      <div class="vcol">
+        <div class="vhead v3">🌐 V3 — Месяцы 7–12</div>
+        <div class="vbody">
+          <div class="vi"><strong>Мультиклубность</strong> — сети, общая база клиентов</div>
+          <div class="vi"><strong>Мобильное приложение тренера</strong></div>
+          <div class="vi"><strong>Онлайн-продажа</strong> — публичная страница клуба</div>
+          <div class="vi"><strong>API</strong> — для сторонних разработчиков</div>
+          <div class="vi"><strong>Биометрия / RFID</strong> — интеграция турникетов</div>
+          <div class="vi"><strong>Маркетплейс</strong> — партнёрские интеграции</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note red">
+      <strong>Не разрабатывать вообще (решение команды):</strong> нативные iOS/Android приложения в V1, собственный платёжный процессинг, email-кампании, биометрия в MVP, складской модуль для баров/кухонь (только товары для перепродажи).
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: ENTITIES -->
+<section id="entities">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">04</div>
+      <div>
+        <h2>Сущности системы</h2>
+        <p>Полный список доменных объектов</p>
+      </div>
+    </div>
+
+    <div class="t-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Сущность</th><th>Описание</th><th>Версия</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>clubs</code></td><td>Клубы (мультитенантность с самого начала) + SaaS-план (starter/standard/business/trial)</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>2</td><td><code>users</code></td><td>Все пользователи системы (staff + owners) — профиль поверх Supabase auth.users</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>3</td><td><code>clients</code></td><td>Клиенты клуба — ФИО, телефон, telegram_id, QR, фото</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>4</td><td><code>memberships</code></td><td>Типы абонементов (шаблоны) — название, цена, срок, кол-во визитов</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>5</td><td><code>subscriptions</code></td><td>Абонементы клиентов (экземпляры) — статус, даты, остаток визитов, поля заморозки</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>6</td><td><code>visits</code></td><td>Посещения — клиент, метод входа (manual/qr), временная метка</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>7</td><td><code>payments</code></td><td>Платежи — сумма, провайдер (click/payme/cash), статус, idempotency_key, subscription_id</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>8</td><td><code>staff</code></td><td>Сотрудники — тренеры, администраторы, роль, расписание</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>9</td><td><code>rooms</code></td><td><strong>Залы/помещения</strong> — название, вместимость, привязка к клубу</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>10</td><td><code>schedules</code></td><td>Шаблоны расписания занятий (повторяющиеся)</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>11</td><td><code>classes</code></td><td>Конкретные занятия (экземпляры) — дата, тренер, зал, места</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>12</td><td><code>class_bookings</code></td><td>Запись клиента на занятие — статус (booked/attended/cancelled)</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>13</td><td><code>products</code></td><td><strong>Склад: товары</strong> — название, категория, цена продажи, цена закупки, единица измерения</td><td><span style="color:var(--green)">MVP ★</span></td></tr>
+          <tr><td>14</td><td><code>inventory</code></td><td><strong>Склад: остатки</strong> — текущий остаток, минимальный остаток (сигнал)</td><td><span style="color:var(--green)">MVP ★</span></td></tr>
+          <tr><td>15</td><td><code>stock_movements</code></td><td><strong>Склад: движения</strong> — приход, продажа, списание, возврат, дата, кто провёл</td><td><span style="color:var(--green)">MVP ★</span></td></tr>
+          <tr><td>16</td><td><code>notifications</code></td><td>Очередь уведомлений — канал, статус, дата отправки</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>17</td><td><code>notification_templates</code></td><td>Шаблоны сообщений с переменными ({{client_name}}, {{days_left}})</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>18</td><td><code>audit_logs</code></td><td>Журнал действий — кто, что, когда изменил (для безопасности)</td><td><span style="color:var(--green)">MVP</span></td></tr>
+          <tr><td>19</td><td><code>leads</code></td><td>Лиды — потенциальные клиенты, воронка продаж</td><td><span style="color:var(--blue)">V2</span></td></tr>
+          <tr><td>20</td><td><code>salary_rules</code></td><td>Правила расчёта зарплаты тренеров — % от занятий, фикс и т.д.</td><td><span style="color:var(--blue)">V2</span></td></tr>
+          <tr><td>21</td><td><code>loyalty_points</code></td><td>Баллы лояльности клиентов</td><td><span style="color:var(--blue)">V2</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5: DATABASE -->
+<section id="db">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">05</div>
+      <div>
+        <h2>Схема базы данных</h2>
+        <p>Ключевые таблицы с полями и типами</p>
+      </div>
+    </div>
+
+    <div class="db-grid">
+
+      <div class="dbt">
+        <div class="dbt-h">clubs</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf">name <span class="v">text</span></div>
+        <div class="dbf">city <span class="v">text</span></div>
+        <div class="dbf"><span class="fk">owner_id</span> <span class="fk">→ users</span></div>
+        <div class="dbf">settings <span class="v">jsonb</span></div>
+        <div class="dbf">plan <span class="v">enum</span> <span class="c">starter/standard/business/trial</span></div>
+        <div class="dbf">trial_expires_at <span class="v">timestamptz nullable</span></div>
+        <div class="dbf">plan_expires_at <span class="v">timestamptz nullable</span></div>
+        <div class="dbf">created_at <span class="v">timestamptz</span></div>
+        <div class="dbf"><span class="enc">encrypted_tg_token</span> <span class="v">bytea 🔒</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">clients</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf"><span class="enc">encrypted_full_name</span> <span class="v">bytea 🔒</span></div>
+        <div class="dbf">name_hash <span class="v">text</span> <span class="c">HMAC-SHA256</span></div>
+        <div class="dbf"><span class="enc">encrypted_phone</span> <span class="v">bytea 🔒</span></div>
+        <div class="dbf">phone_hash <span class="v">text INDEX</span> <span class="c">HMAC-SHA256</span></div>
+        <div class="dbf">telegram_id <span class="v">bigint</span></div>
+        <div class="dbf">qr_token <span class="v">text UNIQUE</span></div>
+        <div class="dbf">photo_url <span class="v">text</span></div>
+        <div class="dbf">tags <span class="v">text[]</span></div>
+        <div class="dbf">notes <span class="v">text</span></div>
+        <div class="dbf">created_at <span class="v">timestamptz</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">memberships</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">name <span class="v">text</span></div>
+        <div class="dbf">price <span class="v">numeric(12,2)</span></div>
+        <div class="dbf">duration_days <span class="v">int</span></div>
+        <div class="dbf">visits_limit <span class="v">int nullable</span></div>
+        <div class="dbf">freeze_days_allowed <span class="v">int default 0</span></div>
+        <div class="dbf">is_active <span class="v">boolean</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">subscriptions</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">client_id</span> <span class="fk">→ clients</span></div>
+        <div class="dbf"><span class="fk">membership_id</span> <span class="fk">→ memberships</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">starts_at <span class="v">date</span></div>
+        <div class="dbf">expires_at <span class="v">date</span></div>
+        <div class="dbf">visits_total <span class="v">int</span></div>
+        <div class="dbf">visits_used <span class="v">int default 0</span></div>
+        <div class="dbf">status <span class="v">enum</span> <span class="c">active/frozen/expired/cancelled</span></div>
+        <div class="dbf">frozen_at <span class="v">timestamptz nullable</span></div>
+        <div class="dbf">freeze_days_limit <span class="v">int nullable</span></div>
+        <div class="dbf">freeze_days_used <span class="v">int default 0</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">visits</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">client_id</span> <span class="fk">→ clients</span></div>
+        <div class="dbf"><span class="fk">subscription_id</span> <span class="fk">→ subscriptions</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">checked_in_at <span class="v">timestamptz</span></div>
+        <div class="dbf"><span class="fk">checked_in_by</span> <span class="fk">→ users</span></div>
+        <div class="dbf">method <span class="v">enum</span> <span class="c">manual/qr/telegram</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">payments</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf"><span class="fk">client_id</span> <span class="fk">→ clients</span></div>
+        <div class="dbf"><span class="fk">subscription_id</span> <span class="fk">→ subscriptions nullable</span></div>
+        <div class="dbf">amount <span class="v">numeric(12,2)</span></div>
+        <div class="dbf">currency <span class="v">text default 'UZS'</span></div>
+        <div class="dbf">provider <span class="v">enum</span> <span class="c">click/payme/uzum/cash</span></div>
+        <div class="dbf"><span class="enc">encrypted_tx_id</span> <span class="v">bytea 🔒</span></div>
+        <div class="dbf">idempotency_key <span class="v">text UNIQUE nullable</span></div>
+        <div class="dbf">status <span class="v">enum</span> <span class="c">pending/paid/failed/refunded</span></div>
+        <div class="dbf">paid_at <span class="v">timestamptz</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">rooms <span style="color:var(--green);font-size:10px">★ новое</span></div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">name <span class="v">text</span></div>
+        <div class="dbf">capacity <span class="v">int</span></div>
+        <div class="dbf">is_active <span class="v">boolean default true</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">schedules <span style="color:var(--green);font-size:10px">★ новое</span></div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf"><span class="fk">staff_id</span> <span class="fk">→ staff</span></div>
+        <div class="dbf"><span class="fk">room_id</span> <span class="fk">→ rooms</span></div>
+        <div class="dbf">title <span class="v">text</span></div>
+        <div class="dbf">day_of_week <span class="v">int</span> <span class="c">0=вс..6=сб</span></div>
+        <div class="dbf">start_time <span class="v">time</span></div>
+        <div class="dbf">end_time <span class="v">time</span></div>
+        <div class="dbf">is_active <span class="v">boolean default true</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">classes <span style="color:var(--green);font-size:10px">★ новое</span></div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">schedule_id</span> <span class="fk">→ schedules nullable</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf"><span class="fk">staff_id</span> <span class="fk">→ staff</span></div>
+        <div class="dbf"><span class="fk">room_id</span> <span class="fk">→ rooms</span></div>
+        <div class="dbf">date <span class="v">date</span></div>
+        <div class="dbf">start_time <span class="v">time</span></div>
+        <div class="dbf">seats_total <span class="v">int</span></div>
+        <div class="dbf">seats_booked <span class="v">int default 0</span></div>
+        <div class="dbf">status <span class="v">enum</span> <span class="c">scheduled/cancelled</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">class_bookings <span style="color:var(--green);font-size:10px">★ новое</span></div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">class_id</span> <span class="fk">→ classes</span></div>
+        <div class="dbf"><span class="fk">client_id</span> <span class="fk">→ clients</span></div>
+        <div class="dbf"><span class="fk">subscription_id</span> <span class="fk">→ subscriptions nullable</span></div>
+        <div class="dbf">status <span class="v">enum</span> <span class="c">booked/attended/cancelled</span></div>
+        <div class="dbf">created_at <span class="v">timestamptz</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">products <span style="color:var(--yellow);font-size:10px">★ Склад</span></div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">name <span class="v">text</span></div>
+        <div class="dbf">category <span class="v">text</span> <span class="c">протеин/одежда/вода/другое</span></div>
+        <div class="dbf">unit <span class="v">text</span> <span class="c">шт / кг / л</span></div>
+        <div class="dbf">sell_price <span class="v">numeric(12,2)</span></div>
+        <div class="dbf">buy_price <span class="v">numeric(12,2)</span></div>
+        <div class="dbf">sku <span class="v">text</span></div>
+        <div class="dbf">is_active <span class="v">boolean</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">inventory <span style="color:var(--yellow);font-size:10px">★ Склад</span></div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">product_id</span> <span class="fk">→ products</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">quantity <span class="v">numeric(10,2)</span></div>
+        <div class="dbf">min_quantity <span class="v">numeric(10,2)</span> <span class="c">сигнал дозакупки</span></div>
+        <div class="dbf">updated_at <span class="v">timestamptz</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">stock_movements <span style="color:var(--yellow);font-size:10px">★ Склад</span></div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">product_id</span> <span class="fk">→ products</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">type <span class="v">enum</span> <span class="c">in/sale/writeoff/return</span></div>
+        <div class="dbf">qty <span class="v">numeric(10,2)</span></div>
+        <div class="dbf">unit_price <span class="v">numeric(12,2)</span></div>
+        <div class="dbf"><span class="fk">client_id</span> <span class="fk">→ clients nullable</span></div>
+        <div class="dbf"><span class="fk">payment_id</span> <span class="fk">→ payments nullable</span></div>
+        <div class="dbf">note <span class="v">text</span></div>
+        <div class="dbf"><span class="fk">created_by</span> <span class="fk">→ users</span></div>
+        <div class="dbf">created_at <span class="v">timestamptz</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">notifications</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">client_id</span> <span class="fk">→ clients</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">channel <span class="v">enum</span> <span class="c">telegram/sms</span></div>
+        <div class="dbf"><span class="fk">template_id</span> <span class="fk">→ notification_templates</span></div>
+        <div class="dbf">payload <span class="v">jsonb</span></div>
+        <div class="dbf">status <span class="v">enum</span> <span class="c">pending/sent/failed</span></div>
+        <div class="dbf">scheduled_at <span class="v">timestamptz</span></div>
+        <div class="dbf">sent_at <span class="v">timestamptz</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">staff</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">uuid PK</span></div>
+        <div class="dbf"><span class="fk">user_id</span> <span class="fk">→ users</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf">role <span class="v">enum</span> <span class="c">owner/manager/admin/trainer</span></div>
+        <div class="dbf"><span class="enc">encrypted_salary</span> <span class="v">bytea 🔒</span></div>
+        <div class="dbf">is_active <span class="v">boolean</span></div>
+      </div>
+
+      <div class="dbt">
+        <div class="dbt-h">audit_logs</div>
+        <div class="dbf"><span class="pk">id</span> <span class="v">bigint PK</span> <span class="c">автоинкремент</span></div>
+        <div class="dbf"><span class="fk">club_id</span> <span class="fk">→ clubs</span></div>
+        <div class="dbf"><span class="fk">user_id</span> <span class="fk">→ users</span></div>
+        <div class="dbf">action <span class="v">text</span></div>
+        <div class="dbf">table_name <span class="v">text</span></div>
+        <div class="dbf">record_id <span class="v">uuid</span></div>
+        <div class="dbf">old_data <span class="v">jsonb</span></div>
+        <div class="dbf">new_data <span class="v">jsonb</span></div>
+        <div class="dbf">ip_address <span class="v">inet</span></div>
+        <div class="dbf">created_at <span class="v">timestamptz</span></div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <strong>🔒 — поля с шифрованием:</strong> encrypted_full_name, encrypted_phone (клиенты), encrypted_salary (сотрудники), encrypted_tx_id (платежи), encrypted_tg_token (клубы). Шифруются на уровне приложения алгоритмом AES-256-GCM до записи в БД. Ключи хранятся в Supabase Vault / переменных окружения, не в базе данных.
+    </div>
+
+    <div class="note yellow">
+      <strong>Важно — payments ↔ subscriptions:</strong> Связь односторонняя: <code>payments.subscription_id → subscriptions</code>. Один абонемент может иметь несколько платежей (продление, рассрочка, частичная оплата). Поле <code>payment_id</code> в таблице <code>subscriptions</code> отсутствует намеренно.
+    </div>
+
+    <div class="note yellow">
+      <strong>Важно — audit_logs.id:</strong> Используется <code>bigint</code> вместо <code>uuid</code> — намеренное решение для производительности (INSERT-heavy таблица, последовательный PK быстрее для индексов).
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6: SECURITY -->
+<section id="security">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">06</div>
+      <div>
+        <h2>Безопасность и шифрование</h2>
+        <p>Обязательные требования для защиты данных клиентов</p>
+      </div>
+    </div>
+
+    <div class="sec-grid">
+      <div class="sec-card">
+        <div class="sec-icon">🔐</div>
+        <div class="sec-title">Шифрование персональных данных</div>
+        <div class="sec-body">
+          Поля <code>phone</code>, <code>full_name</code> в таблице <code>clients</code> шифруются на уровне приложения алгоритмом <strong>AES-256-GCM</strong> до INSERT/UPDATE. В базе хранится только зашифрованный blob. Поиск по телефону — через хеш <code>HMAC-SHA256(phone, pepper)</code> в отдельном индексном поле. Pepper-ключ хранится в Supabase Vault, не в коде.
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">🗝️</div>
+        <div class="sec-title">Управление ключами (KMS)</div>
+        <div class="sec-body">
+          Мастер-ключ шифрования хранится в <code>Supabase Vault</code> (или HashiCorp Vault при self-host). Каждый клуб получает отдельный ключ шифрования данных (DEK). Ключи никогда не пишутся в код или git-репозиторий. Ротация ключей — раз в 90 дней.
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">🛡️</div>
+        <div class="sec-title">Row Level Security (RLS)</div>
+        <div class="sec-body">
+          Supabase RLS включён на <strong>всех таблицах</strong>. Политика: пользователь видит только данные своего <code>club_id</code>. Прямой доступ к БД без токена — невозможен. Политики проверяются на уровне PostgreSQL, не только в приложении.
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">🔑</div>
+        <div class="sec-title">Аутентификация и сессии</div>
+        <div class="sec-body">
+          JWT-токены с временем жизни <code>access: 15 мин</code>, <code>refresh: 7 дней</code>. Access-токен хранится в памяти приложения (memory-only, не в localStorage — защита от XSS). Refresh-токены хранятся в <code>httpOnly</code> cookie. При смене пароля — инвалидация всех сессий. Поддержка 2FA для роли Owner (TOTP).
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">🔒</div>
+        <div class="sec-title">Транспортное шифрование</div>
+        <div class="sec-body">
+          Все соединения только через <code>TLS 1.3</code>. HTTP — принудительный редирект на HTTPS. API доступен только по HTTPS. Telegram-вебхук — только через HTTPS. Supabase SSL-соединение обязательно (sslmode=require).
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">🚫</div>
+        <div class="sec-title">Rate Limiting и защита API</div>
+        <div class="sec-body">
+          Rate limiting на уровне Vercel Edge: max <code>100 req/min</code> на IP для публичных endpoints. Защита от brute-force: блокировка на 15 мин после 5 неудачных попыток входа. <strong>QR check-in endpoint: max 10 req/min на IP.</strong> CSRF-защита на все мутации. Валидация входных данных через <code>Zod</code>.
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">📋</div>
+        <div class="sec-title">Audit Log</div>
+        <div class="sec-body">
+          Каждое изменение данных пишется в <code>audit_logs</code>: кто, что, когда, с какого IP. Логи доступны только Owner. Записи нельзя удалить (только Owner может экспортировать). Хранение — минимум 12 месяцев.
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">💾</div>
+        <div class="sec-title">Резервное копирование</div>
+        <div class="sec-body">
+          Supabase автоматически делает <code>ежедневный бэкап</code> базы данных (Point-in-Time Recovery). Хранение бэкапов — 7 дней (Supabase Pro). Дополнительно: еженедельный pg_dump в зашифрованный S3-bucket (пароль — отдельный от KMS).
+        </div>
+      </div>
+    </div>
+
+    <h3>Поля с обязательным шифрованием (AES-256-GCM)</h3>
+    <div class="codeblock">
+<span class="c">-- Таблица: clients</span>
+<span class="k">full_name</span>        → <span class="enc">encrypted_full_name</span> <span class="v">bytea</span>  + <span class="k">name_hash</span>  <span class="v">text</span> <span class="c">(HMAC-SHA256 с pepper для поиска)</span>
+<span class="k">phone</span>            → <span class="enc">encrypted_phone</span>     <span class="v">bytea</span>  + <span class="k">phone_hash</span> <span class="v">text</span> <span class="c">(HMAC-SHA256 с pepper для поиска)</span>
+
+<span class="c">-- Таблица: staff</span>
+<span class="k">salary_info</span>      → <span class="enc">encrypted_salary</span>    <span class="v">bytea</span>  <span class="c">(ставки, % — видит только Owner)</span>
+
+<span class="c">-- Таблица: payments</span>
+<span class="k">external_tx_id</span>   → <span class="enc">encrypted_tx_id</span>     <span class="v">bytea</span>  <span class="c">(ID транзакции в Click/Payme)</span>
+
+<span class="c">-- Таблица: clubs</span>
+<span class="k">telegram_bot_token</span> → <span class="enc">encrypted_tg_token</span> <span class="v">bytea</span>  <span class="c">(токен бота — критически важно)</span>
+
+<span class="c">-- Ключи шифрования:</span>
+<span class="c">-- Никогда не хранятся в таблицах БД</span>
+<span class="c">-- Хранятся в: Supabase Vault → env переменные → только в памяти приложения</span>
+<span class="c">-- DEK (Data Encryption Key) уникален для каждого club_id</span>
+<span class="c">-- Pepper для HMAC-SHA256 хранится отдельно от DEK в Vault</span>
+<span class="c">-- ВНИМАНИЕ: SHA-256 без pepper уязвим для rainbow-таблиц (10^8 UZ телефонов)</span>
+<span class="c">--           Использовать ТОЛЬКО HMAC-SHA256(value, pepper)</span>
+    </div>
+
+    <div class="note yellow">
+      <strong>Важно для разработчиков:</strong> Никогда не логировать значения зашифрованных полей. В error-сообщениях не выводить персональные данные. Swagger/API-документация не должна содержать примеры с реальными данными. Тестовые данные — только синтетические.
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7: INTEGRATIONS -->
+<section id="integrations">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">07</div>
+      <div>
+        <h2>Интеграции</h2>
+        <p>Приоритеты и технические требования</p>
+      </div>
+    </div>
+
+    <h3>MVP — обязательно</h3>
+    <div class="int-grid">
+      <div class="int-item"><div class="idot crit"></div><strong>Payme</strong> — онлайн-оплата</div>
+      <div class="int-item"><div class="idot crit"></div><strong>Click</strong> — онлайн-оплата</div>
+      <div class="int-item"><div class="idot crit"></div><strong>Telegram Bot API</strong></div>
+      <div class="int-item"><div class="idot crit"></div><strong>QR-код</strong> (библиотека)</div>
+      <div class="int-item"><div class="idot imp"></div><strong>SMS (Playmobile.uz)</strong></div>
+      <div class="int-item"><div class="idot imp"></div><strong>Supabase Realtime</strong> (live check-in)</div>
+    </div>
+
+    <h3>V2 — добавить позже</h3>
+    <div class="int-grid">
+      <div class="int-item"><div class="idot v2"></div>Uzum Bank — оплата</div>
+      <div class="int-item"><div class="idot v2"></div>WhatsApp Business API</div>
+      <div class="int-item"><div class="idot v2"></div>Google / Apple Pay (PWA)</div>
+    </div>
+
+    <div class="note red">
+      <strong>Не интегрировать в MVP:</strong> СКУД-системы (Hikvision, ZKTeco) — вынесены в V3. Биометрия — не планируется. Кассовое оборудование — только при явном запросе крупного клиента.
+    </div>
+
+    <h3>Технические детали платёжных интеграций</h3>
+    <div class="t-wrap">
+      <table>
+        <thead><tr><th>Провайдер</th><th>Метод интеграции</th><th>Webhook</th><th>Примечание</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Payme</strong></td><td>REST API + Merchant API</td><td>Да — POST на наш endpoint</td><td>Обязательна idempotency_key проверка</td></tr>
+          <tr><td><strong>Click</strong></td><td>REST API + Merchant API</td><td>Да — POST на наш endpoint</td><td>Обязательна idempotency_key проверка</td></tr>
+          <tr><td><strong>Uzum Bank</strong></td><td>REST API</td><td>Да</td><td>V2</td></tr>
+          <tr><td><strong>Telegram Bot</strong></td><td>Grammy.js (TypeScript)</td><td>Webhook mode (production)</td><td>Деплой не на Vercel — timeout ограничен</td></tr>
+          <tr><td><strong>SMS</strong></td><td>Playmobile REST API</td><td>Нет</td><td>playmobile.uz</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 8: STACK -->
+<section id="stack">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">08</div>
+      <div>
+        <h2>Технический стек</h2>
+        <p>Оптимизирован для AI-assisted разработки (Claude Code, Cursor)</p>
+      </div>
+    </div>
+
+    <div class="stack-row"><div class="sk">Framework</div><div class="sv">Next.js 15</div><div class="sc">App Router, TypeScript, Server Components</div></div>
+    <div class="stack-row"><div class="sk">API Layer</div><div class="sv">tRPC v11</div><div class="sc">End-to-end типизация, нет REST boilerplate</div></div>
+    <div class="stack-row"><div class="sk">Database</div><div class="sv">Supabase PostgreSQL</div><div class="sc">Managed, RLS, Realtime, Vault для KMS</div></div>
+    <div class="stack-row">
+      <div class="sk">ORM</div>
+      <div class="sv">Prisma</div>
+      <div class="sc">
+        Только для миграций и schema. Все пользовательские запросы — через Supabase client с JWT (чтобы RLS работал). Прямой Prisma service-role доступ — только в Edge Functions с явной проверкой <code>club_id</code> в WHERE.
+      </div>
+    </div>
+    <div class="stack-row"><div class="sk">Auth</div><div class="sv">Supabase Auth</div><div class="sc">JWT + Row Level Security, 2FA (TOTP) для Owner</div></div>
+    <div class="stack-row"><div class="sk">UI Components</div><div class="sv">shadcn/ui + Tailwind CSS</div><div class="sc">Готовые компоненты, быстрая разработка</div></div>
+    <div class="stack-row"><div class="sk">State / Cache</div><div class="sv">Zustand + TanStack Query</div><div class="sc">Локальный стейт + серверный кэш</div></div>
+    <div class="stack-row"><div class="sk">Realtime</div><div class="sv">Supabase Realtime</div><div class="sc">Live check-in лента, дашборд в реальном времени</div></div>
+    <div class="stack-row"><div class="sk">Background Jobs</div><div class="sv">pg_cron → Edge Functions</div><div class="sc">pg_cron запускает Edge Function по HTTP. Напоминания об истечении абонементов, отчёты</div></div>
+    <div class="stack-row"><div class="sk">Telegram Bot</div><div class="sv">Grammy.js</div><div class="sc">TypeScript-first bot framework, webhook mode. Деплой на Railway / Fly.io (не Vercel — timeout)</div></div>
+    <div class="stack-row"><div class="sk">Payments</div><div class="sv">Payme SDK + Click API</div><div class="sc">Кастомные хуки для обработки webhook-ов, idempotency_key обязательна</div></div>
+    <div class="stack-row"><div class="sk">Validation</div><div class="sv">Zod</div><div class="sc">Валидация на фронте и бэке из одной схемы</div></div>
+    <div class="stack-row"><div class="sk">Encryption</div><div class="sv">Node.js crypto (AES-256-GCM)</div><div class="sc">Встроено в Node, нет внешних зависимостей</div></div>
+    <div class="stack-row"><div class="sk">QR-коды</div><div class="sv">qrcode + jsQR</div><div class="sc">Генерация и сканирование QR в браузере</div></div>
+    <div class="stack-row"><div class="sk">Deploy — Frontend</div><div class="sv">Vercel</div><div class="sc">Edge network, автодеплой из GitHub, rate limiting</div></div>
+    <div class="stack-row"><div class="sk">Deploy — DB</div><div class="sv">Supabase Cloud</div><div class="sc">Регион: Frankfurt или Singapore (ближайший к UZ)</div></div>
+    <div class="stack-row"><div class="sk">Мониторинг</div><div class="sv">Sentry + Vercel Analytics</div><div class="sc">Ошибки, производительность, Core Web Vitals</div></div>
+    <div class="stack-row"><div class="sk">CI/CD</div><div class="sv">GitHub Actions</div><div class="sc">Тесты → lint → preview deploy → production</div></div>
+
+    <div class="note green">
+      <strong>Почему этот стек для AI-разработки:</strong> tRPC устраняет рассинхронизацию фронта и бэка — Claude Code видит единую типизацию. Prisma schema = единый источник истины о структуре БД. Zod-схемы используются и для валидации, и для генерации типов. Монорепо = один контекст для AI-ассистента.
+    </div>
+
+    <div class="note red">
+      <strong>Критично — Telegram Bot деплой:</strong> Grammy.js в webhook mode не совместим с Vercel serverless (25 сек timeout). Бот должен деплоиться на отдельный сервис: Railway, Fly.io или Supabase Edge Functions (для простых обработчиков).
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 9: ROLES -->
+<section id="roles">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">09</div>
+      <div>
+        <h2>Роли пользователей</h2>
+        <p>Матрица прав доступа</p>
+      </div>
+    </div>
+
+    <div class="t-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Роль</th>
+            <th>Клиенты</th>
+            <th>Финансы</th>
+            <th>Склад</th>
+            <th>Сотрудники</th>
+            <th>Настройки</th>
+            <th>Аналитика</th>
+            <th>Audit Log</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="role-pill" style="background:rgba(77,255,170,.15);color:var(--green)">Owner</span></td>
+            <td>✅ Полный</td><td>✅ Полный</td><td>✅ Полный</td><td>✅ Полный</td><td>✅ Полный</td><td>✅ Полный</td><td>✅ Читать</td>
+          </tr>
+          <tr>
+            <td><span class="role-pill" style="background:rgba(77,166,255,.15);color:var(--blue)">Manager</span></td>
+            <td>✅ Полный</td><td>👁 Читать</td><td>✅ Продажи</td><td>👁 Читать</td><td>❌</td><td>👁 Читать</td><td>❌</td>
+          </tr>
+          <tr>
+            <td><span class="role-pill" style="background:rgba(255,255,255,.08);color:var(--text)">Admin</span></td>
+            <td>✅ Check-in, продажи</td><td>❌</td><td>✅ Продажи</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td>
+          </tr>
+          <tr>
+            <td><span class="role-pill" style="background:rgba(255,207,92,.15);color:var(--yellow)">Trainer</span></td>
+            <td>👁 Только своё расписание</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>Важно:</strong> Все права проверяются на уровне RLS политик PostgreSQL (не только в middleware). Middleware — дополнительный слой, не единственная защита. Роль хранится в JWT claims и в таблице <code>staff</code>. Пользователь может быть сотрудником нескольких клубов — в JWT claim хранится текущий активный <code>club_id</code>, переключение через отдельный endpoint.
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 10: ADVANTAGE -->
+<section id="advantage">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-num">10</div>
+      <div>
+        <h2>Что строим vs что нет</h2>
+        <p>Конкурентные преимущества против Deepen.uz</p>
+      </div>
+    </div>
+
+    <div class="wa-grid">
+      <div class="wa-col win">
+        <div class="wa-title">✅ Строим — конкурентный USP</div>
+        <div class="wa-item">🤖 AI-удержание: предсказание оттока за 7–14 дней</div>
+        <div class="wa-item">📱 Telegram-бот как полноценный канал (оплата, QR, расписание)</div>
+        <div class="wa-item">🚀 Нулевой установочный взнос — онбординг 15 минут</div>
+        <div class="wa-item">📊 P&L дашборд в реальном времени</div>
+        <div class="wa-item">🪙 Складской учёт товаров (протеин, одежда, вода)</div>
+        <div class="wa-item">🎯 Freemium / trial 30 дней без карты</div>
+        <div class="wa-item">🔐 Шифрование персональных данных (AES-256)</div>
+        <div class="wa-item">✨ Современный UX — shadcn/ui, мобильный-first</div>
+        <div class="wa-item">❄️ Заморозка абонемента с трекингом дней</div>
+        <div class="wa-item">🏠 Управление залами и расписанием занятий</div>
+      </div>
+      <div class="wa-col avoid">
+        <div class="wa-title">❌ Не строим в MVP</div>
+        <div class="wa-item">Нативные iOS/Android приложения</div>
+        <div class="wa-item">СКУД / турникеты (Hikvision, ZKTeco)</div>
+        <div class="wa-item">Биометрия / Face ID вход</div>
+        <div class="wa-item">Email-кампании и A/B-тесты</div>
+        <div class="wa-item">Собственный платёжный процессинг</div>
+        <div class="wa-item">Складской учёт бара / кухни</div>
+        <div class="wa-item">Публичный маркетплейс интеграций</div>
+        <div class="wa-item">Казахстан / СНГ до стабильного продукта</div>
+      </div>
+    </div>
+
+    <div class="note green" style="margin-top:2rem">
+      <strong>Главный аргумент при продаже:</strong> Deepen берут 2–5 млн сум единоразово + 500K–1M в месяц. Мы берём 150–250K в месяц, без установки, онбординг за 15 минут, работает в Telegram который уже открыт у каждого клиента.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <strong>FitCRM Uzbekistan</strong> — Техническое задание v1.1 · Июнь 2026<br>
+  Исправления v1.1: перевёрнута связь payments↔subscriptions · добавлены rooms/schedules/classes/class_bookings · HMAC-SHA256 для хешей · idempotency_key · SaaS-план в clubs · заморозка абонементов · архитектура Prisma+RLS
+</footer>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.nav-links a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => { l.style.color = ''; });
+        const a = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+        if (a) a.style.color = 'var(--green)';
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
