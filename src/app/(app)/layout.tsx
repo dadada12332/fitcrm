@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { Sidebar } from "@/components/app/Sidebar"
 import { SignOutButton } from "@/components/app/SignOutButton"
 
@@ -13,6 +14,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/login")
   }
 
+  const club = await getCurrentClub()
+  if (!club) {
+    redirect("/onboarding")
+  }
+
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg)" }}>
       <Sidebar />
@@ -21,9 +27,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           className="h-16 flex items-center justify-end gap-4 px-6 flex-shrink-0"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
-          <span className="text-sm hidden sm:block" style={{ color: "var(--on-dark-soft)" }}>
-            {user.email}
-          </span>
+          <div className="hidden sm:flex flex-col items-end leading-tight">
+            <span className="text-sm" style={{ color: "var(--on-dark)" }}>{club.clubName}</span>
+            <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{user.email}</span>
+          </div>
           <SignOutButton />
         </header>
         <main className="flex-1 p-6 md:p-8">{children}</main>

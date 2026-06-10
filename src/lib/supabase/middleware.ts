@@ -32,7 +32,8 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Protected app routes — require an authenticated user.
-  const isProtected = pathname.startsWith("/dashboard")
+  const protectedPrefixes = ["/dashboard", "/clients", "/memberships", "/schedule", "/payments", "/onboarding"]
+  const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
   // Auth pages — redirect away if already signed in.
   const isAuthPage = pathname === "/login" || pathname === "/register"
 
