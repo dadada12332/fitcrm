@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
 
   if (!user) redirect("/login")
 
-  const club = await getCurrentClub()
+  const club = await getCurrentClub(user.id)
   if (club) redirect("/dashboard")
 
   return (

@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/login")
   }
 
-  const club = await getCurrentClub()
+  const club = await getCurrentClub(user.id)
   if (!club) {
     redirect("/onboarding")
   }
