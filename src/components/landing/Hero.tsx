@@ -1,233 +1,165 @@
 "use client"
 
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
+import { motion, animate, useInView } from "framer-motion"
+import { ArrowUpRight, Sparkles } from "lucide-react"
+import { MockDashboard } from "./MockDashboard"
 
-/* ─── Dashboard mockup inside glass card ─── */
-function DashboardMockup() {
+const featureTags = ["Интеграции", "Отчёты", "QR-чекин", "Уведомления", "Безопасность", "Аналитика"]
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] as const },
+  }),
+}
+
+const hoverLift = { y: -6, transition: { duration: 0.25, ease: "easeOut" as const } }
+
+/* Animated number counter that runs once when scrolled into view */
+function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-60px" })
+  const [val, setVal] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    const controls = animate(0, to, {
+      duration: 1.6,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setVal(Math.round(v)),
+    })
+    return () => controls.stop()
+  }, [inView, to])
+
   return (
-    <div className="w-full max-w-3xl mx-auto rounded-2xl overflow-hidden"
-      style={{
-        background: "rgba(255,255,255,0.22)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        border: "1px solid rgba(255,255,255,0.55)",
-        boxShadow: "0 24px 64px rgba(14,101,173,0.18), 0 2px 8px rgba(255,255,255,0.5) inset",
-      }}
-    >
-      {/* Browser bar */}
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-white/30"
-        style={{ background: "rgba(255,255,255,0.35)" }}>
-        <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-400/70"/>
-          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/70"/>
-          <div className="w-2.5 h-2.5 rounded-full bg-green-400/70"/>
-        </div>
-        <div className="flex-1 mx-4 h-6 rounded-md flex items-center px-3"
-          style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.6)" }}>
-          <span className="text-xs" style={{ color: "var(--muted)" }}>fitcrm.uz/dashboard</span>
-        </div>
-      </div>
-
-      {/* Dashboard content */}
-      <div className="flex" style={{ minHeight: "340px" }}>
-        {/* Sidebar */}
-        <div className="w-48 flex-shrink-0 p-4 flex flex-col gap-1 border-r border-white/20"
-          style={{ background: "rgba(255,255,255,0.15)" }}>
-          <p className="text-xs font-bold mb-3 px-2" style={{ color: "var(--ink)" }}>FitCRM</p>
-          {["Дашборд", "Клиенты", "Абонементы", "Расписание", "Аналитика", "Настройки"].map((item, i) => (
-            <div key={item} className="px-3 py-2 rounded-lg text-xs font-medium"
-              style={{
-                background: i === 1 ? "rgba(255,255,255,0.6)" : "transparent",
-                color: i === 1 ? "var(--ink)" : "var(--ink-soft)",
-              }}>
-              {item}
-            </div>
-          ))}
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 p-5">
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            {[
-              { label: "Клиентов", value: "312", up: true, delta: "+12%" },
-              { label: "Посещений", value: "1 842", up: true, delta: "+8%" },
-              { label: "Выручка", value: "4.2M", up: false, delta: "-2%" },
-            ].map((s) => (
-              <div key={s.label} className="rounded-xl p-3"
-                style={{
-                  background: "rgba(255,255,255,0.55)",
-                  border: "1px solid rgba(255,255,255,0.6)",
-                }}>
-                <p className="text-[10px] mb-1" style={{ color: "var(--muted)" }}>{s.label}</p>
-                <p className="text-lg font-bold leading-none mb-1" style={{ color: "var(--ink)" }}>{s.value}</p>
-                <span className="text-[10px] font-medium"
-                  style={{ color: s.up ? "#16a34a" : "#dc2626" }}>
-                  {s.delta}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Client list */}
-          <div className="rounded-xl overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.6)" }}>
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/40">
-              <span className="text-xs font-semibold" style={{ color: "var(--ink)" }}>Клиенты</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                style={{ background: "var(--sky-top)", color: "white" }}>Активные</span>
-            </div>
-            {[
-              { name: "Алишер Каримов", plan: "Standard", status: "Активен", ok: true },
-              { name: "Нилуфар Юсупова", plan: "Business", status: "Активен", ok: true },
-              { name: "Санжар Рашидов", plan: "Starter", status: "Истекает", ok: false },
-            ].map((c) => (
-              <div key={c.name} className="flex items-center gap-3 px-4 py-2.5 border-b border-white/20 last:border-0">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, var(--sky-top), #3b82f6)" }}>
-                  {c.name[0]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate" style={{ color: "var(--ink)" }}>{c.name}</p>
-                  <p className="text-[10px]" style={{ color: "var(--muted)" }}>{c.plan}</p>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                  style={{
-                    background: c.ok ? "rgba(22,163,74,0.1)" : "rgba(251,146,60,0.15)",
-                    color: c.ok ? "#16a34a" : "#ea580c",
-                  }}>
-                  {c.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    <span ref={ref}>
+      {val}
+      {suffix}
+    </span>
   )
 }
 
-/* ─── Hero ─── */
 export function Hero() {
   return (
-    <section
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
-      style={{
-        background: "linear-gradient(180deg, #7ec8e3 0%, #b3dff5 18%, #d6eefa 42%, #eaf6fd 65%, #f5fbff 100%)",
-        paddingTop: "64px",
-      }}
-    >
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pt-16 pb-12 flex flex-col items-center text-center">
-        {/* Badge */}
+    <section className="pt-28 pb-12 px-4" style={{ background: "var(--bg)" }}>
+      <div className="max-w-[1500px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 auto-rows-[minmax(0,auto)]">
+        {/* Big cream hero card */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          custom={0}
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          whileHover={hoverLift}
+          className="relative overflow-hidden lg:col-span-2 rounded-3xl p-8 md:p-12 flex flex-col justify-between min-h-[420px]"
+          style={{ background: "#ffffff", color: "#0a0a0a" }}
         >
-          <span
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8"
-            style={{
-              background: "rgba(255,255,255,0.35)",
-              backdropFilter: "blur(8px)",
-              border: "1px solid rgba(255,255,255,0.5)",
-              color: "var(--ink-soft)",
-              letterSpacing: "0.04em",
-            }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"/>
-            CRM для фитнес-клубов · Узбекистан
-          </span>
+          <div className="relative z-10">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-8"
+              style={{ background: "rgba(10,10,10,0.06)", color: "#0a0a0a", fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <Sparkles className="w-3.5 h-3.5" style={{ color: "var(--orange)" }} />
+              Множество решений
+            </span>
+            <h1
+              className="leading-[1.04] mb-5"
+              style={{ fontSize: "clamp(40px, 6vw, 76px)", color: "#0a0a0a" }}
+            >
+              Управляй клубом
+              <br />
+              <span style={{ color: "var(--orange)" }}>проще</span> и быстрее
+            </h1>
+            <p className="max-w-md text-base md:text-lg leading-relaxed" style={{ color: "rgba(10,10,10,0.6)" }}>
+              Клиенты, абонементы, QR-чекин, расписание и Telegram-бот —
+              всё в одной системе для вашего фитнес-клуба.
+            </p>
+          </div>
+
+          <div className="relative z-10 flex flex-wrap items-center gap-4 mt-8">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 h-12 px-7 rounded-full text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
+              style={{ background: "#0a0a0a", fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.03em" }}
+            >
+              Начать с FitCRM
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
         </motion.div>
 
-        {/* H1 */}
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.08 }}
-          className="font-black leading-[1.02] tracking-tight mb-6 max-w-3xl"
-          style={{
-            fontSize: "clamp(42px, 6.5vw, 76px)",
-            letterSpacing: "-2px",
-            color: "var(--ink)",
-          }}
-        >
-          Управляй клубом.<br />
-          <span style={{ color: "#0ea5e9" }}>Расти быстрее.</span>
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.18 }}
-          className="text-lg max-w-lg mb-10 leading-relaxed"
-          style={{ color: "var(--ink-soft)" }}
-        >
-          Клиенты, абонементы, QR-чекин и Telegram-бот в одной системе.
-          Всё что нужно современному фитнес-клубу.
-        </motion.p>
-
-        {/* CTAs */}
+        {/* Dark mockup card */}
         <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.28 }}
-          className="flex flex-wrap items-center justify-center gap-4 mb-5"
+          custom={1}
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          whileHover={hoverLift}
+          className="rounded-3xl p-4 min-h-[420px]"
+          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
         >
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-2 h-12 px-7 rounded-full text-sm font-semibold transition-colors"
-            style={{ backgroundColor: "var(--cta-dark)", color: "#fff" }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--cta-dark-hover)")}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--cta-dark)")}
-          >
-            Начать бесплатно →
-          </Link>
-          <Link
-            href="#features"
-            className="inline-flex items-center gap-2 h-12 px-7 rounded-full text-sm font-semibold transition-colors"
-            style={{
-              background: "rgba(255,255,255,0.35)",
-              backdropFilter: "blur(8px)",
-              border: "1px solid rgba(255,255,255,0.55)",
-              color: "var(--ink)",
-            }}
-          >
-            Смотреть демо
-          </Link>
+          <MockDashboard />
         </motion.div>
 
-        {/* Social proof */}
+        {/* Blue accent card */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex items-center gap-3 mb-14"
+          custom={2}
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          whileHover={hoverLift}
+          className="rounded-3xl p-7 flex flex-col justify-between min-h-[200px] relative overflow-hidden"
+          style={{ background: "var(--orange)", color: "#fff" }}
         >
-          <div className="flex -space-x-2">
-            {["А", "Б", "В", "Г", "Д"].map((l) => (
-              <div key={l}
-                className="w-8 h-8 rounded-full border-2 border-white/70 flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: "linear-gradient(135deg, var(--sky-top), #3b82f6)" }}
+          <div
+            className="absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none"
+            style={{ background: "rgba(255,255,255,0.12)" }}
+          />
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="flex -space-x-2">
+              {["#fbbf24", "#f472b6", "#34d399"].map((c) => (
+                <div key={c} className="w-8 h-8 rounded-full border-2" style={{ background: c, borderColor: "var(--orange)" }} />
+              ))}
+            </div>
+            <span className="text-xs font-medium opacity-80 uppercase tracking-wider" style={{ fontFamily: "var(--font-display)" }}>
+              Свежие обновления
+            </span>
+          </div>
+          <h3 className="relative z-10 leading-tight" style={{ fontSize: "clamp(22px, 2.5vw, 30px)", color: "#fff" }}>
+            Расширенные<br />возможности доступны
+          </h3>
+        </motion.div>
+
+        {/* Stats card */}
+        <motion.div
+          custom={3}
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          whileHover={hoverLift}
+          className="lg:col-span-2 rounded-3xl p-7 md:p-8 flex flex-col sm:flex-row gap-8 items-center min-h-[200px]"
+          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+        >
+          <div className="flex-shrink-0 text-center sm:text-left">
+            <div className="leading-none" style={{ fontSize: "clamp(52px, 7vw, 84px)", color: "var(--on-dark)", fontFamily: "var(--font-display)" }}>
+              <CountUp to={89} suffix="%" />
+            </div>
+            <p className="text-sm mt-2 max-w-[180px]" style={{ color: "var(--on-dark-soft)" }}>
+              клубов повысили эффективность с FitCRM
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 content-center">
+            {featureTags.map((t) => (
+              <span
+                key={t}
+                className="px-4 py-2 rounded-full text-xs font-medium"
+                style={{ background: "var(--card-2)", color: "var(--on-dark-soft)", border: "1px solid var(--border)" }}
               >
-                {l}
-              </div>
+                {t}
+              </span>
             ))}
           </div>
-          <span className="text-sm" style={{ color: "var(--ink-soft)" }}>
-            Рейтинг <strong style={{ color: "var(--ink)" }}>4.8/5</strong> от 50+ клубов
-          </span>
-        </motion.div>
-
-        {/* Floating dashboard mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.85, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full"
-        >
-          <DashboardMockup />
         </motion.div>
       </div>
     </section>

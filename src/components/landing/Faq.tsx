@@ -37,73 +37,55 @@ const faqs = [
 
 export function Faq() {
   return (
-    <section
-      id="faq"
-      className="py-28"
-      style={{ background: "linear-gradient(180deg, #eaf6fd 0%, #f5fbff 100%)" }}
-    >
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="grid lg:grid-cols-[1fr_2fr] gap-16 items-start">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <span
-              className="inline-block text-xs font-semibold uppercase px-4 py-1.5 rounded-full mb-6"
-              style={{ background: "rgba(14,165,233,0.1)", color: "#0ea5e9", letterSpacing: "0.12em" }}
-            >
-              FAQ
-            </span>
-            <h2
-              className="font-black tracking-tight mb-4"
-              style={{ fontSize: "clamp(26px, 3vw, 40px)", letterSpacing: "-1px", color: "var(--ink)" }}
-            >
-              Частые вопросы
-            </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-              Не нашли ответ? Напишите нам в Telegram — ответим в течение часа.
-            </p>
-          </motion.div>
+    <section id="faq" className="py-24 px-4" style={{ background: "var(--bg)" }}>
+      <div className="max-w-[1500px] mx-auto grid lg:grid-cols-[1fr_1.4fr] gap-12 items-start">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5 }}
+        >
+          <span className="text-xs uppercase tracking-[0.2em]" style={{ color: "var(--orange)", fontFamily: "var(--font-display)" }}>
+            FAQ
+          </span>
+          <h2 className="mt-4" style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1 }}>
+            Вопросы?<br />У нас есть ответы
+          </h2>
+          <p className="mt-5 text-sm leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>
+            Не нашли ответ? Напишите нам в Telegram — ответим в течение часа.
+          </p>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <Accordion multiple={false} className="flex flex-col gap-2">
-              {faqs.map((faq, i) => (
-                <AccordionItem
-                  key={i}
-                  value={`item-${i}`}
-                  className="rounded-xl px-6"
-                  style={{
-                    background: "rgba(255,255,255,0.7)",
-                    backdropFilter: "blur(8px)",
-                    WebkitBackdropFilter: "blur(8px)",
-                    border: "1px solid rgba(255,255,255,0.75)",
-                    boxShadow: "0 2px 12px rgba(14,101,173,0.05)",
-                  }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Accordion multiple={false} className="flex flex-col gap-3">
+            {faqs.map((faq, i) => (
+              <AccordionItem
+                key={i}
+                value={`item-${i}`}
+                className="rounded-2xl px-6"
+                style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+              >
+                <AccordionTrigger
+                  className="text-left py-5 text-base font-semibold hover:no-underline"
+                  style={{ color: "var(--on-dark)" }}
                 >
-                  <AccordionTrigger
-                    className="text-left py-5 text-sm font-semibold hover:no-underline"
-                    style={{ color: "var(--ink)" }}
-                  >
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent
-                    className="pb-5 text-sm leading-relaxed"
-                    style={{ color: "var(--ink-soft)" }}
-                  >
-                    {faq.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </motion.div>
-        </div>
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent
+                  className="pb-5 text-sm leading-relaxed"
+                  style={{ color: "var(--on-dark-soft)" }}
+                >
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </motion.div>
       </div>
     </section>
   )

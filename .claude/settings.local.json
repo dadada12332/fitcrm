@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Get-ChildItem -Path \"E:\\\\crm-temp\" -Force | ForEach-Object { Move-Item -Path $_.FullName -Destination \"E:\\\\crm\\\\\" -Force }; Write-Host \"Done\")"
+      "PowerShell(Get-ChildItem -Path \"E:\\\\crm-temp\" -Force | ForEach-Object { Move-Item -Path $_.FullName -Destination \"E:\\\\crm\\\\\" -Force }; Write-Host \"Done\")",
+      "PowerShell(npx tsc --noEmit)"
     ]
   }
 }

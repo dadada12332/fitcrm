@@ -42,19 +42,33 @@
 ```
 src/
   app/
-    page.tsx              ← лендинг (главная)
-    layout.tsx            ← root layout
+    layout.tsx            ← root layout (шрифты Inter + Oswald, html/body)
+    globals.css           ← тёмная EPOQUE дизайн-система (токены, Oswald для h1-h4)
+    (marketing)/          ← публичный лендинг
+      page.tsx            → главная (Navbar, Hero, Clients, Features, Testimonials, Pricing, Faq, Download, Footer)
+    (auth)/               ← вход/регистрация
+      layout.tsx          → центрированная тёмная карточка
+      login/page.tsx
+      register/page.tsx
+      actions.ts          → server actions: signIn, signUp, signInWithGoogle, signOut
+      auth/callback/route.ts → обмен OAuth/email-кода на сессию (/auth/callback)
+    (app)/                ← CRM за авторизацией
+      layout.tsx          → сайдбар + топбар, серверная проверка getUser()
+      dashboard/page.tsx  → заглушка дашборда
+  middleware.ts           ← рефреш сессии Supabase + защита /dashboard, редирект с /login|/register
+  lib/
+    supabase/{client,server,middleware}.ts  ← Supabase clients (@supabase/ssr)
+    utils.ts              → cn()
   components/
-    landing/              ← компоненты лендинга
-      Navbar.tsx
-      Hero.tsx
-      Features.tsx
-      HowItWorks.tsx
-      Pricing.tsx
-      Faq.tsx
-      Footer.tsx
-    ui/                   ← shadcn компоненты
+    landing/              ← компоненты лендинга (Navbar, Hero, MockDashboard, ...)
+    auth/AuthForm.tsx     ← форма входа/регистрации
+    app/                  ← Sidebar, SignOutButton
+    ui/                   ← shadcn компоненты (button, input, accordion, ...)
 ```
+
+> **Auth:** email/пароль + Google OAuth через Supabase (@supabase/ssr, cookie-based).
+> Требует `.env.local` с `NEXT_PUBLIC_SUPABASE_URL` и `NEXT_PUBLIC_SUPABASE_ANON_KEY` (шаблон — `.env.example`).
+> Тема тёмная, заголовки — Oswald (uppercase), акцент — синий `#2563eb`.
 
 ТЗ: `E:\crm\fitcrm_techspec.html` (v1.1)
 
@@ -127,3 +141,6 @@ _Баги, workaround'ы, технический долг._
 | 09.06.2026 | Подключён Figma MCP Remote Server (`figma@claude-plugins-official`) |
 | 09.06.2026 | Добавлено ТЗ `fitcrm_techspec.html` v1.1 с исправленной схемой БД, стеком, архитектурными решениями |
 | 09.06.2026 | Инициализирован Next.js 15 (App Router, TypeScript, Tailwind) |
+| 10.06.2026 | Лендинг переделан в тёмную EPOQUE-тему (Oswald, синий акцент, bento) |
+| 10.06.2026 | Реструктуризация в route groups: (marketing), (auth), (app) |
+| 10.06.2026 | Авторизация Supabase (email/пароль + Google OAuth), middleware-защита роутов |

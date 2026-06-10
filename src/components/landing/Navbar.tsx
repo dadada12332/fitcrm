@@ -1,151 +1,121 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
-import { Menu, X } from "lucide-react"
-import { usePathname } from "next/navigation"
+import { useState } from "react"
+import { Menu, X, Zap } from "lucide-react"
 
 const navLinks = [
   { href: "#features", label: "Возможности" },
   { href: "#pricing", label: "Цены" },
   { href: "#faq", label: "FAQ" },
+  { href: "#download", label: "Скачать" },
 ]
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [active, setActive] = useState("#features")
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
 
   return (
-    <header
-      className="fixed top-0 w-full z-50 transition-all duration-300"
-      style={{
-        height: "64px",
-        background: scrolled ? "rgba(255,255,255,0.72)" : "transparent",
-        backdropFilter: scrolled ? "blur(12px) saturate(180%)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(12px) saturate(180%)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(255,255,255,0.5)" : "1px solid transparent",
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="font-bold text-xl tracking-tight flex-shrink-0"
-          style={{ color: "var(--ink)", fontFamily: "var(--font-sans)" }}
-        >
-          FitCRM
-        </Link>
-
-        {/* Center pill nav */}
-        <nav
-          className="hidden md:flex items-center gap-1 px-2 py-1 rounded-full"
+    <header className="fixed top-4 inset-x-0 z-50 px-4">
+      <div className="max-w-5xl mx-auto">
+        <div
+          className="flex items-center justify-between rounded-full pl-5 pr-2 h-14"
           style={{
-            background: "rgba(255,255,255,0.25)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-            border: "1px solid rgba(255,255,255,0.4)",
+            background: "rgba(22,22,22,0.7)",
+            backdropFilter: "blur(20px) saturate(160%)",
+            WebkitBackdropFilter: "blur(20px) saturate(160%)",
+            border: "1px solid var(--border)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
           }}
         >
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setActive(href)}
-              className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
-              style={{
-                fontFamily: "var(--font-sans)",
-                background: active === href ? "rgba(255,255,255,0.85)" : "transparent",
-                color: active === href ? "var(--ink)" : "var(--ink-soft)",
-                boxShadow: active === href ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-              }}
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+            <span
+              className="w-7 h-7 rounded-md flex items-center justify-center"
+              style={{ background: "var(--orange)" }}
             >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Right CTA */}
-        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
-          <Link
-            href="/login"
-            className="text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ color: "var(--ink)", fontFamily: "var(--font-sans)" }}
-          >
-            Войти
+              <Zap className="w-4 h-4 text-white" fill="white" />
+            </span>
+            <span
+              className="text-lg tracking-tight text-white"
+              style={{ fontFamily: "var(--font-display)", textTransform: "uppercase" }}
+            >
+              FitCRM
+            </span>
           </Link>
+
+          {/* Center nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            {navLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="text-xs font-medium uppercase tracking-wider transition-colors duration-150"
+                style={{ color: "rgba(255,255,255,0.55)", fontFamily: "var(--font-display)" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Right CTA */}
           <Link
             href="/register"
-            className="text-sm font-semibold px-5 h-9 inline-flex items-center gap-1.5 rounded-full transition-colors"
-            style={{
-              backgroundColor: "var(--cta-dark)",
-              color: "#fff",
-              fontFamily: "var(--font-sans)",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--cta-dark-hover)")}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--cta-dark)")}
+            className="hidden md:inline-flex items-center h-10 px-5 rounded-full text-xs font-semibold uppercase tracking-wider text-white transition-colors duration-150 flex-shrink-0"
+            style={{ backgroundColor: "var(--orange)", fontFamily: "var(--font-display)" }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--orange-hover)")}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--orange)")}
           >
-            Попробовать →
+            Начать
           </Link>
+
+          {/* Mobile burger */}
+          <button
+            className="md:hidden p-2 mr-1 rounded-lg text-white"
+            onClick={() => setOpen(!open)}
+            aria-label="Меню"
+          >
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
-        {/* Mobile burger */}
-        <button
-          className="md:hidden p-2 rounded-full"
-          style={{
-            background: "rgba(255,255,255,0.3)",
-            backdropFilter: "blur(8px)",
-            color: "var(--ink)",
-          }}
-          onClick={() => setOpen(!open)}
-          aria-label="Меню"
-        >
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {open && (
-        <div
-          className="md:hidden absolute top-16 left-4 right-4 rounded-2xl px-6 py-5 flex flex-col gap-3"
-          style={{
-            background: "rgba(255,255,255,0.85)",
-            backdropFilter: "blur(16px)",
-            border: "1px solid rgba(255,255,255,0.6)",
-            boxShadow: "0 8px 32px rgba(14,101,173,0.12)",
-          }}
-        >
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="text-sm font-medium py-1"
-              style={{ color: "var(--ink-soft)" }}
-              onClick={() => setOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-          <div className="pt-3 border-t border-black/5 flex flex-col gap-2">
-            <Link href="/login" className="text-sm font-medium" style={{ color: "var(--ink)" }}>
-              Войти
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm font-semibold px-5 h-10 inline-flex items-center justify-center rounded-full"
-              style={{ backgroundColor: "var(--cta-dark)", color: "#fff" }}
-            >
-              Попробовать бесплатно →
-            </Link>
+        {/* Mobile menu */}
+        {open && (
+          <div
+            className="md:hidden mt-2 rounded-2xl px-6 py-5 flex flex-col gap-3"
+            style={{
+              background: "rgba(22,22,22,0.92)",
+              backdropFilter: "blur(20px) saturate(160%)",
+              WebkitBackdropFilter: "blur(20px) saturate(160%)",
+              border: "1px solid var(--border)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+            }}
+          >
+            {navLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="text-sm font-medium uppercase tracking-wider py-1"
+                style={{ color: "rgba(255,255,255,0.7)", fontFamily: "var(--font-display)" }}
+                onClick={() => setOpen(false)}
+              >
+                {label}
+              </Link>
+            ))}
+            <div className="pt-3" style={{ borderTop: "1px solid var(--border)" }}>
+              <Link
+                href="/register"
+                className="text-sm font-semibold uppercase tracking-wider px-5 h-10 inline-flex items-center justify-center rounded-full text-white w-full"
+                style={{ backgroundColor: "var(--orange)", fontFamily: "var(--font-display)" }}
+                onClick={() => setOpen(false)}
+              >
+                Начать →
+              </Link>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   )
 }

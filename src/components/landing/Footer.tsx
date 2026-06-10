@@ -1,10 +1,11 @@
 import Link from "next/link"
+import { Zap, ArrowRight } from "lucide-react"
 
 const productLinks = [
   { label: "Возможности", href: "#features" },
   { label: "Тарифы", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
-  { label: "Документация", href: "/docs" },
+  { label: "Скачать", href: "#download" },
 ]
 
 const companyLinks = [
@@ -14,7 +15,7 @@ const companyLinks = [
   { label: "Конфиденциальность", href: "/privacy" },
 ]
 
-const contactLinks = [
+const socialLinks = [
   { label: "Telegram", href: "https://t.me/fitcrm_uz" },
   { label: "Instagram", href: "#" },
   { label: "info@fitcrm.uz", href: "mailto:info@fitcrm.uz" },
@@ -22,46 +23,40 @@ const contactLinks = [
 
 export function Footer() {
   return (
-    <footer className="py-16" style={{ background: "var(--cta-dark)" }}>
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-14">
-          <div className="md:col-span-1">
-            <span className="block font-bold text-xl mb-4 tracking-tight" style={{ color: "var(--on-dark)" }}>
-              FitCRM
-            </span>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--on-dark-soft)" }}>
+    <footer className="px-4 pb-10 pt-16" style={{ background: "var(--bg)" }}>
+      <div
+        className="max-w-[1500px] mx-auto rounded-3xl p-10 md:p-14"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr_1fr_1.5fr] gap-12 mb-14">
+          {/* Brand */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: "var(--orange)" }}>
+                <Zap className="w-4 h-4 text-white" fill="white" />
+              </span>
+              <span className="text-lg text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase" }}>
+                FitCRM
+              </span>
+            </div>
+            <p className="text-sm leading-relaxed max-w-xs" style={{ color: "var(--on-dark-soft)" }}>
               CRM-система для фитнес-клубов Узбекистана. Управляйте бизнесом умнее.
             </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                background: "rgba(255,255,255,0.1)",
-                color: "var(--on-dark)",
-                border: "1px solid rgba(255,255,255,0.12)",
-              }}
-            >
-              Попробовать бесплатно →
-            </Link>
           </div>
 
+          {/* Links */}
           {[
             { title: "Продукт", links: productLinks },
             { title: "Компания", links: companyLinks },
-            { title: "Контакты", links: contactLinks },
           ].map((col) => (
             <div key={col.title}>
-              <h4 className="text-sm font-semibold mb-5" style={{ color: "var(--on-dark)" }}>
+              <h4 className="text-sm mb-5 text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 {col.title}
               </h4>
               <ul className="flex flex-col gap-3">
                 {col.links.map((item) => (
                   <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      className="text-sm transition-opacity hover:opacity-80"
-                      style={{ color: "var(--on-dark-soft)" }}
-                    >
+                    <Link href={item.href} className="text-sm transition-colors hover:text-white" style={{ color: "var(--on-dark-soft)" }}>
                       {item.label}
                     </Link>
                   </li>
@@ -69,18 +64,48 @@ export function Footer() {
               </ul>
             </div>
           ))}
+
+          {/* Subscribe */}
+          <div>
+            <h4 className="text-sm mb-3 text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Подпишитесь на обновления
+            </h4>
+            <p className="text-sm mb-4" style={{ color: "var(--on-dark-soft)" }}>
+              Новости продукта и подборки фич.
+            </p>
+            <form className="flex items-center gap-2 p-1 rounded-full" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
+              <input
+                type="email"
+                placeholder="Ваш email"
+                className="flex-1 bg-transparent px-4 py-2 text-sm outline-none"
+                style={{ color: "var(--on-dark)" }}
+              />
+              <button
+                type="submit"
+                aria-label="Подписаться"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                style={{ background: "var(--orange)" }}
+              >
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
         </div>
 
         <div
-          className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t"
-          style={{ borderColor: "rgba(255,255,255,0.07)" }}
+          className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+          style={{ borderTop: "1px solid var(--border)" }}
         >
-          <p className="text-xs" style={{ color: "var(--on-dark-soft)", opacity: 0.5 }}>
-            © 2026 FitCRM. Все права защищены.
+          <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
+            © 2026 FitCRM. Все права защищены. · Ташкент, Узбекистан
           </p>
-          <p className="text-xs" style={{ color: "var(--on-dark-soft)", opacity: 0.35 }}>
-            Ташкент, Узбекистан
-          </p>
+          <div className="flex gap-5">
+            {socialLinks.map((s) => (
+              <Link key={s.label} href={s.href} className="text-xs transition-colors hover:text-white" style={{ color: "var(--on-dark-soft)" }}>
+                {s.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </footer>
