@@ -1,0 +1,67 @@
+import ExcelJS from "exceljs"
+import { createClient } from "@/lib/supabase/server"
+import { getDashboardData } from "@/lib/dashboard"
+
+export const runtime = "nodejs"
+
+export async function GET() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return new Response("Unauthorized", { status: 401 })
+  }
+
+  const d = await getDashboardData(supabase)
+
+  const wb = new ExcelJS.Workbook()
+  wb.creator = "FitCRM"
+  wb.created = new Date()
+
+  // Лист 1 — Сводка
+  const summary = wb.addWorksheet("Сводка")
+  summary.columns = [
+    { header: "Показатель", key: "metric", width: 36 },
+    { header: "Значение", key: "value", width: 22 },
+  ]
+  summary.getRow(1).font = { bold: true }
+  summary.addRows([
+    { metric: "Выручка за сегодня", value: d.todayRevenue },
+    { metric: "Выручка за вчера", value: d.prevRevenue },
+    { metric: "Активные клиенты", value: d.activeClients },
+    { metric: "Посещений сегодня", value: d.todayVisits },
+    { metric: "Посещений вчера", value: d.prevVisits },
+    { metric: "Абонементов истекает (7 дней)", value: d.expiringCount },
+    { metric: "Клиентов в зоне риска", value: d.churnCount },
+    { metric: "Изменение посещаемости за 7 дней, %", value: Number(d.attendanceChangePct.toFixed(1)) },
+  ])
+
+  // Лист 2 — Выручка по дням (30 дней)
+  const revenue = wb.addWorksheet("Выручка по дням")
+  revenue.columns = [
+    { header: "День", key: "day", width: 14 },
+    { header: "Выручка", key: "value", width: 22 },
+  ]
+  revenue.getRow(1).font = { bold: true }
+  const now = new Date()
+  d.chartData.forEach((point, i) => {
+    const date = new Date(now)
+    date.setDate(now.getDate() - (d.chartData.length - 1 - i))
+    revenue.addRow({
+      day: date.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }),
+      value: point.value,
+    })
+  })
+
+  const buffer = await wb.xlsx.writeBuffer()
+  const stamp = new Date().toISOString().slice(0, 10)
+
+  return new Response(buffer, {
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="fitcrm-dashboard-${stamp}.xlsx"`,
+      "Cache-Control": "no-store",
+    },
+  })
+}

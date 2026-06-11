@@ -86,14 +86,14 @@ export function StatisticsWidget({
       <div className="flex items-stretch gap-5 px-5 pb-5">
 
         {/* Revenue + mini chart */}
-        <div className="flex flex-col w-[340px] flex-shrink-0">
+        <div className="flex flex-col w-[420px] xl:w-[520px] flex-shrink-0">
           {/* Text */}
           <div className="flex flex-col gap-3 px-4 py-5">
             <p className="text-base font-normal leading-6" style={{ color: "#64748b" }}>
               Выручка за сегодня
             </p>
             <div className="flex items-center gap-3">
-              <p className="text-3xl font-medium leading-none tracking-[-0.27px]" style={{ color: "#020617" }}>
+              <p className="text-4xl font-medium leading-none tracking-[-0.27px]" style={{ color: "#020617" }}>
                 {fmt(Math.floor(todayRevenue))}
                 <span style={{ color: "rgba(2,6,23,0.3)" }}>
                   .{String(Math.round((todayRevenue % 1) * 100)).padStart(2, "0")}
