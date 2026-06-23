@@ -1,8 +1,9 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, SlidersHorizontal, Download, MoreHorizontal, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
-import { pluralDays, type MembershipRow } from "@/lib/memberships"
+import { Search, SlidersHorizontal, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { pluralDays, membershipStatus, statusMeta, type MembershipRow } from "@/lib/memberships"
+import { MembershipRowMenu } from "./MembershipRowMenu"
 
 const PAGE_SIZE = 10
 
@@ -80,17 +81,17 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
               {r.activeClients} <span style={{ color: "#94a3b8" }}>клиентов</span>
             </span>
             <span className="flex justify-center">
-              <span className="px-2.5 py-1 rounded-full text-xs font-medium"
-                style={r.isActive
-                  ? { background: "#dcfce7", color: "#16a34a" }
-                  : { background: "#f1f5f9", color: "#64748b" }}>
-                {r.isActive ? "Активный" : "Архив"}
-              </span>
+              {(() => {
+                const sm = statusMeta[membershipStatus(r)]
+                return (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: sm.bg, color: sm.color }}>
+                    {sm.label}
+                  </span>
+                )
+              })()}
             </span>
             <span className="flex justify-end">
-              <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors" style={{ color: "#94a3b8" }}>
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
+              <MembershipRowMenu row={r} />
             </span>
           </div>
         ))

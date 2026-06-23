@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Search, SlidersHorizontal, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import type { ClientRow, ClientStatus } from "@/lib/clients"
 import { ClientsFilterDrawer, type FilterSection } from "./ClientsFilterDrawer"
@@ -43,11 +43,15 @@ function matchStatus(r: ClientRow, sel: Set<string>): boolean {
 
 export function ClientsTable({ rows }: { rows: ClientRow[] }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(0)
   const [filterOpen, setFilterOpen] = useState(false)
   const [statusSet, setStatusSet] = useState<Set<string>>(new Set())
-  const [typeSet, setTypeSet] = useState<Set<string>>(new Set())
+  const [typeSet, setTypeSet] = useState<Set<string>>(() => {
+    const m = searchParams.get("membership")
+    return m ? new Set([m]) : new Set()
+  })
   const [daysSet, setDaysSet] = useState<Set<string>>(new Set())
 
   const typeOptions = useMemo(
