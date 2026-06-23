@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   const potentialLoss = d.expiringCount * 700000
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
 
       {/* ── Page header ── */}
       <div className="flex items-center justify-between">
@@ -64,8 +64,7 @@ export default async function DashboardPage() {
 
       {/* ── Статистика ── */}
       <StatisticsWidget
-        todayRevenue={d.todayRevenue}
-        prevRevenue={d.prevRevenue}
+        periods={d.periods}
         activeClients={d.activeClients}
         prevClients={d.prevClients}
         todayVisits={d.todayVisits}
@@ -73,7 +72,6 @@ export default async function DashboardPage() {
         alertsCount={d.alertsCount}
         expiringCount={d.expiringCount}
         churnCount={d.churnCount}
-        chartData={d.chartData}
       />
 
       {/* ── Аналитика клуба + Новые клиенты ── */}

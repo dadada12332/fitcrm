@@ -90,23 +90,23 @@ export function ClubAnalytics({ attendanceChangePct, churnCount, expiringCount, 
         </button>
       </div>
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
         {cards.map(({ icon: Icon, title, body, tint, btnBg, btnColor, iconColor }) => (
           <div
             key={title}
-            className="rounded-lg p-4 flex flex-col gap-3"
+            className="rounded-2xl p-8 flex flex-col h-[268px]"
             style={{ background: tint, border: tint === "#ffffff" ? "1px solid #e2e8f0" : "none" }}
           >
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center"
+              className="w-12 h-12 rounded-full flex items-center justify-center mb-5"
               style={{ background: "white", border: "1px solid rgba(2,6,23,0.06)" }}
             >
-              <Icon className="w-4 h-4" style={{ color: iconColor }} />
+              <Icon className="w-6 h-6" style={{ color: iconColor }} />
             </div>
-            <span className="text-base font-medium" style={{ color: "#020617" }}>{title}</span>
+            <span className="text-lg font-medium mb-2" style={{ color: "#020617" }}>{title}</span>
             <div className="flex-1">{body}</div>
             <button
-              className="h-8 px-3 rounded-md text-xs font-medium self-start"
+              className="h-9 px-4 rounded-md text-sm font-medium self-start mt-4"
               style={{ background: btnBg, color: btnColor }}
             >
               Подробнее

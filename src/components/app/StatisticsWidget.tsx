@@ -1,14 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { TrendingUp, TrendingDown, User, Users, AlertTriangle, MoreVertical } from "lucide-react"
+import { TrendingUp, TrendingDown, User, Users, AlertTriangle } from "lucide-react"
 import { MiniChart } from "./MiniChart"
-
-type ChartPoint = { value: number }
+import type { PeriodKey, PeriodStat } from "@/lib/dashboard"
 
 type Props = {
-  todayRevenue: number
-  prevRevenue: number
+  periods: Record<PeriodKey, PeriodStat>
   activeClients: number
   prevClients: number
   todayVisits: number
@@ -16,10 +14,9 @@ type Props = {
   alertsCount: number
   expiringCount: number
   churnCount: number
-  chartData: ChartPoint[]
 }
 
-const PERIODS = ["1H", "1D", "7D", "1M"] as const
+const PERIODS: PeriodKey[] = ["1Ч", "1Д", "7Д", "1М"]
 
 function pct(curr: number, prev: number) {
   if (!prev) return 0
@@ -27,8 +24,7 @@ function pct(curr: number, prev: number) {
 }
 
 export function StatisticsWidget({
-  todayRevenue,
-  prevRevenue,
+  periods,
   activeClients,
   prevClients,
   todayVisits,
@@ -36,11 +32,14 @@ export function StatisticsWidget({
   alertsCount,
   expiringCount,
   churnCount,
-  chartData,
 }: Props) {
-  const [period, setPeriod] = useState<(typeof PERIODS)[number]>("1D")
+  const [period, setPeriod] = useState<PeriodKey>("1Д")
 
-  const revPct = pct(todayRevenue, prevRevenue)
+  const cur = periods[period]
+  const todayRevenue = cur.revenue
+  const chartData = cur.chart
+
+  const revPct = pct(cur.revenue, cur.prevRevenue)
   const clientPct = pct(activeClients, prevClients)
   const visitPct = pct(todayVisits, prevVisits)
 
@@ -76,9 +75,6 @@ export function StatisticsWidget({
               {p}
             </button>
           ))}
-          <button className="w-9 h-9 flex items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 transition-colors">
-            <MoreVertical className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
@@ -90,7 +86,7 @@ export function StatisticsWidget({
           {/* Text */}
           <div className="flex flex-col gap-3 px-4 py-5">
             <p className="text-base font-normal leading-6" style={{ color: "#64748b" }}>
-              Выручка за сегодня
+              Выручка за {period === "1Д" ? "сегодня" : cur.unit}
             </p>
             <div className="flex items-center gap-3">
               <p className="text-4xl font-medium leading-none tracking-[-0.27px]" style={{ color: "#020617" }}>
@@ -110,7 +106,7 @@ export function StatisticsWidget({
               </div>
             </div>
             <p className="text-sm font-normal leading-5" style={{ color: "#64748b" }}>
-              за {period === "1H" ? "час" : period === "1D" ? "день" : period === "7D" ? "неделю" : "месяц"}
+              за {cur.unit}
             </p>
           </div>
 

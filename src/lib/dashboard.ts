@@ -8,6 +8,15 @@ export type NewClient = {
   membership: string | null
 }
 
+export type PeriodKey = "1Ч" | "1Д" | "7Д" | "1М"
+
+export type PeriodStat = {
+  revenue: number
+  prevRevenue: number
+  chart: { label: string; value: number }[]
+  unit: string // подпись «за час/день/неделю/месяц»
+}
+
 export type DashboardData = {
   todayRevenue: number
   prevRevenue: number
@@ -19,12 +28,9 @@ export type DashboardData = {
   churnCount: number
   alertsCount: number
   attendanceChangePct: number
-  chartData: { value: number }[]
+  chartData: { label: string; value: number }[]
+  periods: Record<PeriodKey, PeriodStat>
   newClients: NewClient[]
-}
-
-function formatDay(iso: string) {
-  return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })
 }
 
 /** Single source of dashboard metrics — reused by the page and the Excel export route. */
@@ -33,28 +39,24 @@ export async function getDashboardData(supabase: SupabaseClient): Promise<Dashbo
   const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
   const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1)
   const monthStart = new Date(now); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
-  const prev30 = new Date(now); prev30.setDate(now.getDate() - 30)
+  const prev60 = new Date(now); prev60.setDate(now.getDate() - 60)
   const next7 = new Date(now); next7.setDate(now.getDate() + 7)
   const prev7 = new Date(now); prev7.setDate(now.getDate() - 7)
   const prev14 = new Date(now); prev14.setDate(now.getDate() - 14)
 
   const [
-    todayPayRes,
-    yesterdayPayRes,
+    pay60Res,
     activeClientsRes,
     prevMonthClientsRes,
     todayVisitsRes,
     yesterdayVisitsRes,
     expiringRes,
     churnRes,
-    chartPayRes,
     visits7Res,
     visitsPrev7Res,
     newClientsRes,
   ] = await Promise.all([
-    supabase.from("payments").select("amount").eq("status", "paid").gte("paid_at", todayStart.toISOString()),
-    supabase.from("payments").select("amount").eq("status", "paid")
-      .gte("paid_at", yesterdayStart.toISOString()).lt("paid_at", todayStart.toISOString()),
+    supabase.from("payments").select("paid_at, amount").eq("status", "paid").gte("paid_at", prev60.toISOString()),
     supabase.from("clients").select("id", { count: "exact", head: true }),
     supabase.from("clients").select("id", { count: "exact", head: true }).lt("created_at", monthStart.toISOString()),
     supabase.from("visits").select("id", { count: "exact", head: true }).gte("checked_in_at", todayStart.toISOString()),
@@ -64,18 +66,12 @@ export async function getDashboardData(supabase: SupabaseClient): Promise<Dashbo
       .eq("status", "active").gte("expires_at", now.toISOString()).lte("expires_at", next7.toISOString()),
     supabase.from("subscriptions").select("id", { count: "exact", head: true })
       .eq("status", "expired").gte("expires_at", prev7.toISOString()).lte("expires_at", now.toISOString()),
-    supabase.from("payments").select("paid_at, amount").eq("status", "paid").gte("paid_at", prev30.toISOString()),
     supabase.from("visits").select("id", { count: "exact", head: true }).gte("checked_in_at", prev7.toISOString()),
     supabase.from("visits").select("id", { count: "exact", head: true })
       .gte("checked_in_at", prev14.toISOString()).lt("checked_in_at", prev7.toISOString()),
     supabase.from("clients").select("id, full_name, tags, created_at").order("created_at", { ascending: false }).limit(6),
   ])
 
-  const sum = (rows: { amount: number }[] | null) =>
-    (rows ?? []).reduce((s, p) => s + Number(p.amount ?? 0), 0)
-
-  const todayRevenue = sum(todayPayRes.data)
-  const prevRevenue = sum(yesterdayPayRes.data)
   const expiringCount = expiringRes.count ?? 0
   const churnCount = churnRes.count ?? 0
 
@@ -83,18 +79,72 @@ export async function getDashboardData(supabase: SupabaseClient): Promise<Dashbo
   const visitsPrev7 = visitsPrev7Res.count ?? 0
   const attendanceChangePct = visitsPrev7 ? ((visits7 - visitsPrev7) / visitsPrev7) * 100 : 0
 
-  // Chart: revenue grouped by day for the last 30 days
-  const dayMap: Record<string, number> = {}
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now); d.setDate(now.getDate() - i)
-    dayMap[formatDay(d.toISOString())] = 0
+  // ── Revenue by period (computed from one 60-day fetch) ──
+  const payRows = (pay60Res.data ?? [])
+    .filter((r) => r.paid_at)
+    .map((r) => ({ t: new Date(r.paid_at as string).getTime(), a: Number(r.amount ?? 0) }))
+  const nowMs = now.getTime()
+  const HOUR = 3600_000
+  const DAY = 86_400_000
+  const sumBetween = (from: number, to: number) =>
+    payRows.reduce((s, r) => (r.t >= from && r.t < to ? s + r.a : s), 0)
+
+  const hourlyChart = (hours: number) => {
+    const arr: { label: string; value: number }[] = []
+    const base = Math.floor(nowMs / HOUR) * HOUR
+    for (let i = hours - 1; i >= 0; i--) {
+      const start = base - i * HOUR
+      arr.push({
+        label: new Date(start).toLocaleString("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+        value: sumBetween(start, start + HOUR),
+      })
+    }
+    return arr
   }
-  for (const row of chartPayRes.data ?? []) {
-    if (!row.paid_at) continue
-    const key = formatDay(row.paid_at)
-    if (key in dayMap) dayMap[key] = (dayMap[key] ?? 0) + Number(row.amount ?? 0)
+  const dailyChart = (daysN: number) => {
+    const arr: { label: string; value: number }[] = []
+    for (let i = daysN - 1; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0, 0, 0, 0)
+      const start = d.getTime()
+      arr.push({
+        label: new Date(start).toLocaleDateString("ru-RU", { day: "2-digit", month: "long" }),
+        value: sumBetween(start, start + DAY),
+      })
+    }
+    return arr
   }
-  const chartData = Object.values(dayMap).map((value) => ({ value }))
+
+  const periods: Record<PeriodKey, PeriodStat> = {
+    "1Ч": {
+      revenue: sumBetween(nowMs - HOUR, nowMs),
+      prevRevenue: sumBetween(nowMs - 2 * HOUR, nowMs - HOUR),
+      chart: hourlyChart(12),
+      unit: "час",
+    },
+    "1Д": {
+      revenue: sumBetween(todayStart.getTime(), nowMs),
+      prevRevenue: sumBetween(yesterdayStart.getTime(), todayStart.getTime()),
+      chart: hourlyChart(24),
+      unit: "день",
+    },
+    "7Д": {
+      revenue: sumBetween(nowMs - 7 * DAY, nowMs),
+      prevRevenue: sumBetween(nowMs - 14 * DAY, nowMs - 7 * DAY),
+      chart: dailyChart(7),
+      unit: "неделю",
+    },
+    "1М": {
+      revenue: sumBetween(nowMs - 30 * DAY, nowMs),
+      prevRevenue: sumBetween(nowMs - 60 * DAY, nowMs - 30 * DAY),
+      chart: dailyChart(30),
+      unit: "месяц",
+    },
+  }
+
+  // Backwards-compatible fields (used by the Excel export route)
+  const todayRevenue = periods["1Д"].revenue
+  const prevRevenue = periods["1Д"].prevRevenue
+  const chartData = periods["1М"].chart
 
   // Attach each new client's subscription (membership) name
   const rawNew = (newClientsRes.data ?? []) as Omit<NewClient, "membership">[]
@@ -132,6 +182,7 @@ export async function getDashboardData(supabase: SupabaseClient): Promise<Dashbo
     alertsCount: expiringCount + churnCount,
     attendanceChangePct,
     chartData,
+    periods,
     newClients,
   }
 }

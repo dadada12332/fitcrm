@@ -44,7 +44,7 @@ export function NewClients({ clients }: { clients: NewClient[] }) {
       ) : (
         <div className="flex flex-col gap-4 overflow-y-auto">
           {clients.map((c, i) => (
-            <div key={c.id} className="flex items-center gap-3">
+            <Link key={c.id} href={`/clients/${c.id}`} className="flex items-center gap-3 -mx-2 px-2 py-1 rounded-md hover:bg-slate-50 transition-colors">
               <div
                 className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
                 style={{ background: avatarColors[i % avatarColors.length] }}
@@ -58,7 +58,7 @@ export function NewClients({ clients }: { clients: NewClient[] }) {
               <span className="text-xs flex-shrink-0" style={{ color: "#64748b" }}>
                 {c.membership ?? "Без абонемента"}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       )}

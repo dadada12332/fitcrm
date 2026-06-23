@@ -2,7 +2,7 @@
 
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from "recharts"
 
-type Props = { data: { value: number }[] }
+type Props = { data: { label: string; value: number }[] }
 
 export function MiniChart({ data }: Props) {
   return (
@@ -16,6 +16,7 @@ export function MiniChart({ data }: Props) {
         </defs>
         <Tooltip
           formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, ""]}
+          labelFormatter={(_, payload) => payload?.[0]?.payload?.label ?? ""}
           contentStyle={{
             background: "white",
             border: "1px solid #e2e8f0",
@@ -23,7 +24,7 @@ export function MiniChart({ data }: Props) {
             fontSize: 12,
             boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
           }}
-          labelStyle={{ display: "none" }}
+          labelStyle={{ color: "#64748b", fontWeight: 500, marginBottom: 2 }}
           itemStyle={{ color: "#020617", fontWeight: 600 }}
           separator=""
         />
