@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Search, SlidersHorizontal, Download, CalendarCheck, CreditCard, UserPlus, Snowflake, User, Clock } from "lucide-react"
 import {
   type ClientProfile,
@@ -48,7 +49,16 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 }
 
 export function ClientProfileTabs({ client }: { client: ClientProfile }) {
-  const [tab, setTab] = useState<TabKey>("profile")
+  const searchParams = useSearchParams()
+  const initialTab = (searchParams.get("tab") as TabKey | null) ?? "profile"
+  const [tab, setTab] = useState<TabKey>(
+    TABS.some((t) => t.key === initialTab) ? initialTab : "profile"
+  )
+
+  useEffect(() => {
+    const t = searchParams.get("tab") as TabKey | null
+    if (t && TABS.some((x) => x.key === t)) setTab(t)
+  }, [searchParams])
 
   return (
     <div className="flex flex-col gap-5">

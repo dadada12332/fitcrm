@@ -1,9 +1,61 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useRef, useMemo, useState } from "react"
 import Link from "next/link"
-import { Clock, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Clock, CheckCircle2, AlertCircle, AlertTriangle, MoreHorizontal, History, RefreshCw } from "lucide-react"
 import type { VisitRow } from "@/lib/visits"
+
+function RowMenu({ row }: { row: VisitRow }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", onDown)
+    return () => document.removeEventListener("mousedown", onDown)
+  }, [open])
+
+  return (
+    <div ref={ref} className="relative flex justify-end">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100"
+        style={{ color: "#94a3b8" }}
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1 z-50 w-52 rounded-lg py-1"
+          style={{ background: "white", border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
+        >
+          <button
+            onClick={() => { setOpen(false); router.push(`/clients/${row.clientId}?tab=history`) }}
+            className="w-full flex items-center gap-2.5 px-3 h-9 text-sm text-left transition-colors hover:bg-slate-50"
+            style={{ color: "#334155" }}
+          >
+            <History className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
+            История посещений
+          </button>
+          <button
+            onClick={() => { setOpen(false); router.push(`/clients/${row.clientId}`) }}
+            className="w-full flex items-center gap-2.5 px-3 h-9 text-sm text-left transition-colors hover:bg-slate-50"
+            style={{ color: "#334155" }}
+          >
+            <RefreshCw className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
+            Продлить абонемент
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 type Filter = "all" | "active" | "expired" | "ending"
 
@@ -99,7 +151,7 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                {["Клиент", "Время", "Абонемент", "Статус"].map((h) => (
+                {["Клиент", "Время", "Абонемент", "Статус", ""].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3 text-left text-xs font-medium"
@@ -152,6 +204,11 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
                   {/* Status */}
                   <td className="px-5 py-3">
                     <StatusBadge row={row} />
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-3 py-3">
+                    <RowMenu row={row} />
                   </td>
                 </tr>
               ))}
