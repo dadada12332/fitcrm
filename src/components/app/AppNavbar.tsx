@@ -54,7 +54,7 @@ export function AppNavbar({ clubName, email }: Props) {
         borderBottom: "1px solid var(--border)",
       }}
     >
-      <div className="flex items-center justify-between w-full gap-4">
+      <div className="relative flex items-center w-full">
 
         {/* ── Left: burger + logo ── */}
         <div className="flex items-center gap-5 flex-shrink-0">
@@ -138,9 +138,9 @@ export function AppNavbar({ clubName, email }: Props) {
           </div>
         </div>
 
-        {/* ── Center: tab group ── */}
+        {/* ── Center: tab group — абсолютно по центру ── */}
         <nav
-          className="hidden md:flex items-center gap-0.5 p-1 rounded-md"
+          className="hidden md:flex items-center gap-0.5 p-1 rounded-md absolute left-1/2 -translate-x-1/2"
           style={{ background: "#f1f5f9" }}
         >
           {nav.map(({ href, label, icon: Icon }) => {
@@ -166,7 +166,7 @@ export function AppNavbar({ clubName, email }: Props) {
         </nav>
 
         {/* ── Right: search, bell, avatar ── */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
           <button
             className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             aria-label="Поиск"
