@@ -1,41 +1,60 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createHmac, timingSafeEqual } from "crypto"
 
-// Supabase Auth Hook — перехватывает отправку OTP и шлёт его в Telegram
-// Supabase Dashboard → Auth → Hooks → Send SMS → HTTP → этот URL
 export async function POST(req: NextRequest) {
-  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
-  const CHAT_ID   = process.env.TELEGRAM_CHAT_ID
+  const BOT_TOKEN   = process.env.TELEGRAM_BOT_TOKEN
+  const CHAT_ID     = process.env.TELEGRAM_CHAT_ID
+  const HOOK_SECRET = process.env.SUPABASE_HOOK_SECRET
 
   if (!BOT_TOKEN || !CHAT_ID) {
     return NextResponse.json({ error: "Telegram env vars not set" }, { status: 500 })
   }
 
-  let body: { phone?: string; otp?: string }
-  try {
-    body = await req.json()
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  // Проверяем подпись Supabase
+  if (HOOK_SECRET) {
+    const signature = req.headers.get("x-supabase-signature") ?? ""
+    const rawBody   = await req.text()
+
+    const expected = createHmac("sha256", HOOK_SECRET).update(rawBody).digest("hex")
+    try {
+      if (!timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
+      }
+    } catch {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
+    }
+
+    const body = JSON.parse(rawBody) as { phone?: string; otp?: string }
+    return sendToTelegram(body.phone, body.otp, BOT_TOKEN, CHAT_ID)
   }
 
-  const { phone, otp } = body
+  // Без секрета (локальный дев)
+  const body = await req.json() as { phone?: string; otp?: string }
+  return sendToTelegram(body.phone, body.otp, BOT_TOKEN, CHAT_ID)
+}
+
+async function sendToTelegram(
+  phone: string | undefined,
+  otp: string | undefined,
+  token: string,
+  chatId: string,
+) {
   if (!phone || !otp) {
     return NextResponse.json({ error: "Missing phone or otp" }, { status: 400 })
   }
 
-  const text = `🔐 *FitCRM — код подтверждения*\n\nТелефон: \`${phone}\`\nКод: *${otp}*\n\n_Код действителен 5 минут_`
+  const text = `🔐 *FitCRM — код подтверждения*\n\nТелефон: \`${phone}\`\nКод: *${otp}*\n\n_Действителен 5 минут_`
 
-  const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+  const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: CHAT_ID, text, parse_mode: "Markdown" }),
+    body: JSON.stringify({ chat_id: Number(chatId), text, parse_mode: "Markdown" }),
   })
 
   if (!tgRes.ok) {
-    const err = await tgRes.text()
-    console.error("Telegram error:", err)
+    console.error("Telegram error:", await tgRes.text())
     return NextResponse.json({ error: "Telegram send failed" }, { status: 502 })
   }
 
-  // Supabase ожидает пустой ответ {}
   return NextResponse.json({})
 }
