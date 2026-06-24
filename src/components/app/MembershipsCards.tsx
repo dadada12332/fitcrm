@@ -137,12 +137,12 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               return (
                 <div
                   key={row.id}
-                  className="rounded-2xl overflow-hidden flex flex-col"
+                  className="rounded-2xl flex flex-col"
                   style={{ border: "1px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                 >
                   {/* Colored header */}
                   <div
-                    className="relative px-5 pt-5 pb-6 overflow-hidden"
+                    className="relative px-5 pt-5 pb-6 overflow-hidden rounded-t-2xl"
                     style={{ background: `linear-gradient(135deg, ${palette.from} 0%, ${palette.to} 100%)` }}
                   >
                     <div className="flex items-center justify-between mb-4 relative z-10">
