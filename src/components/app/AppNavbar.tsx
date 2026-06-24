@@ -13,6 +13,10 @@ import {
   Bell,
   Zap,
   LogOut,
+  ChevronDown,
+  Check,
+  Plus,
+  Building2,
 } from "lucide-react"
 import { useState } from "react"
 import { signOut } from "@/app/(auth)/actions"
@@ -33,8 +37,12 @@ type Props = {
 export function AppNavbar({ clubName, email }: Props) {
   const pathname = usePathname()
   const [profileOpen, setProfileOpen] = useState(false)
+  const [branchOpen, setBranchOpen] = useState(false)
 
   const initials = email.charAt(0).toUpperCase()
+
+  // Placeholder branches list — current club is always first
+  const branches = [clubName]
 
   return (
     <header
@@ -56,25 +64,76 @@ export function AppNavbar({ clubName, email }: Props) {
             <Menu className="w-4 h-4 text-foreground" />
           </button>
 
-          <Link href="/dashboard" className="flex items-center gap-1.5">
-            <span
-              className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
-              style={{ background: "var(--orange)" }}
-            >
-              <Zap className="w-4 h-4 text-white" fill="white" />
-            </span>
-            <span
-              className="text-sm hidden sm:block"
-              style={{
-                fontFamily: "var(--font-display)",
-                textTransform: "uppercase",
-                letterSpacing: "0.03em",
-                color: "var(--on-dark)",
-              }}
-            >
-              FitCRM
-            </span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-1.5">
+              <span
+                className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+                style={{ background: "var(--orange)" }}
+              >
+                <Zap className="w-4 h-4 text-white" fill="white" />
+              </span>
+              <span
+                className="text-sm hidden sm:block"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.03em",
+                  color: "var(--on-dark)",
+                }}
+              >
+                FitCRM
+              </span>
+            </Link>
+
+            {/* ── Branch switcher ── */}
+            <div className="relative hidden sm:block">
+              <button
+                onClick={() => { setBranchOpen((v) => !v); setProfileOpen(false) }}
+                className="flex items-center gap-1 h-6 px-2 rounded-md text-xs font-medium transition-colors hover:bg-secondary"
+                style={{ color: "#64748b", border: "1px solid var(--border)" }}
+              >
+                <Building2 className="w-3 h-3" />
+                <span className="max-w-[100px] truncate">{clubName}</span>
+                <ChevronDown className="w-3 h-3 flex-shrink-0" />
+              </button>
+
+              {branchOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setBranchOpen(false)} />
+                  <div
+                    className="absolute left-0 top-8 z-20 w-52 rounded-xl py-1.5 text-sm"
+                    style={{ background: "white", border: "1px solid #e5e7eb", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
+                  >
+                    <div className="px-2.5 py-1.5 mb-1">
+                      <p className="text-xs font-medium" style={{ color: "#94a3b8" }}>Филиалы</p>
+                    </div>
+
+                    {branches.map((b) => (
+                      <button
+                        key={b}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg mx-1 transition-colors hover:bg-slate-50"
+                        style={{ width: "calc(100% - 8px)", color: "#020617" }}
+                      >
+                        <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--orange)" }} />
+                        <span className="truncate">{b}</span>
+                      </button>
+                    ))}
+
+                    <div className="h-px mx-3 my-1.5" style={{ background: "#e5e7eb" }} />
+
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-slate-50"
+                      style={{ color: "#64748b" }}
+                      onClick={() => setBranchOpen(false)}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Добавить филиал
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── Center: tab group ── */}
