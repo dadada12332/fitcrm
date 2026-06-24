@@ -137,22 +137,26 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               return (
                 <div
                   key={row.id}
-                  className="rounded-2xl flex flex-col"
+                  className="rounded-2xl flex flex-col relative"
                   style={{ border: "1px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                 >
+                  {/* Menu floats at card level so dropdown isn't clipped by header overflow-hidden */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <MembershipRowMenu row={row} onDark />
+                  </div>
+
                   {/* Colored header */}
                   <div
                     className="relative px-5 pt-5 pb-6 overflow-hidden rounded-t-2xl"
                     style={{ background: `linear-gradient(135deg, ${palette.from} 0%, ${palette.to} 100%)` }}
                   >
-                    <div className="flex items-center justify-between mb-4 relative z-10">
+                    <div className="flex items-center mb-4 relative z-10">
                       <span
                         className="text-xs font-medium px-2.5 py-1 rounded-full"
                         style={{ background: "rgba(255,255,255,0.22)", color: "rgba(255,255,255,0.95)" }}
                       >
                         {meta.label}
                       </span>
-                      <MembershipRowMenu row={row} onDark />
                     </div>
 
                     <h3 className="text-xl font-semibold text-white leading-tight mb-1.5 relative z-10">
