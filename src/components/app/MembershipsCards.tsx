@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, SlidersHorizontal, Download, Users, Clock, CheckCircle2 } from "lucide-react"
+import { Search, Users, Clock, CheckCircle2 } from "lucide-react"
 import { pluralDays, membershipStatus, statusMeta, type MembershipRow } from "@/lib/memberships"
 import { MembershipRowMenu } from "./MembershipRowMenu"
 
@@ -104,21 +104,6 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
           </div>
         </div>
 
-        {/* Right: filter + export */}
-        <div className="flex items-center gap-2">
-          <button
-            className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
-          >
-            <SlidersHorizontal className="w-4 h-4" />Фильтр
-          </button>
-          <button
-            className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
-          >
-            <Download className="w-4 h-4" />Экспорт в excel
-          </button>
-        </div>
       </div>
 
       {/* ── Cards block ── */}
