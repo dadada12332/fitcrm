@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Search, Plus, Download } from "lucide-react"
+import { Search, Plus, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { type PaymentRow, providerMeta, statusMeta } from "@/lib/payments"
 import { NewPaymentModal } from "./NewPaymentModal"
+
+const PAGE_SIZE = 10
 
 type Membership = { id: string; name: string; price: number }
 type Period = "today" | "week" | "month" | "year"
@@ -74,7 +76,10 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
   const [prov, setProv]         = useState<ProviderFilter>("all")
   const [status, setStatus]     = useState<StatusFilter>("all")
   const [query, setQuery]       = useState("")
+  const [page, setPage]         = useState(0)
   const [modalOpen, setModalOpen] = useState(false)
+
+  function resetPage() { setPage(0) }
 
   const filtered = useMemo(() => {
     const start = periodStart(period)
@@ -89,6 +94,9 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
     })
   }, [rows, period, prov, status, query])
 
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const current   = Math.min(page, pageCount - 1)
+  const pageRows  = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
   const totalFiltered = filtered.reduce((a, r) => a + r.amount, 0)
 
   return (
@@ -104,7 +112,7 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#94a3b8" }} />
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); resetPage() }}
               placeholder="Поиск клиента или услуги..."
               className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
               style={{ border: "1px solid #e2e8f0", color: "#020617" }}
@@ -131,9 +139,9 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
 
         {/* Row 2: filters */}
         <div className="flex items-center gap-3 flex-wrap">
-          <TabGroup items={PERIOD_LABELS} value={period} onChange={setPeriod} />
-          <TabGroup items={PROVIDER_LABELS} value={prov} onChange={setProv} />
-          <TabGroup items={STATUS_LABELS} value={status} onChange={setStatus} />
+          <TabGroup items={PERIOD_LABELS} value={period} onChange={(v) => { setPeriod(v); resetPage() }} />
+          <TabGroup items={PROVIDER_LABELS} value={prov} onChange={(v) => { setProv(v); resetPage() }} />
+          <TabGroup items={STATUS_LABELS} value={status} onChange={(v) => { setStatus(v); resetPage() }} />
         </div>
       </div>
 
@@ -165,7 +173,7 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row) => {
+                {pageRows.map((row) => {
                   const pm = providerMeta[row.provider] ?? providerMeta.cash
                   const sm = statusMeta[row.status] ?? statusMeta.pending
                   return (
@@ -210,6 +218,32 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
             </table>
           </div>
         )}
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
+          <span className="text-sm" style={{ color: "#94a3b8" }}>{filtered.length} платежей</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm" style={{ color: "#475569" }}>Стр {current + 1} из {pageCount}</span>
+            <div className="flex items-center gap-1">
+              {[
+                { icon: ChevronsLeft,  to: 0,             dis: current === 0 },
+                { icon: ChevronLeft,   to: current - 1,   dis: current === 0 },
+                { icon: ChevronRight,  to: current + 1,   dis: current >= pageCount - 1 },
+                { icon: ChevronsRight, to: pageCount - 1, dis: current >= pageCount - 1 },
+              ].map(({ icon: Icon, to, dis }, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(to)}
+                  disabled={dis}
+                  className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-slate-50"
+                  style={{ border: "1px solid #e2e8f0", color: "#475569" }}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {modalOpen && (
