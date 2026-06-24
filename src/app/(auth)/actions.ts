@@ -66,6 +66,20 @@ export async function signInWithGoogle() {
   redirect(data.url)
 }
 
+export async function sendPhoneOTP(phone: string): Promise<AuthState> {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signInWithOtp({ phone })
+  if (error) return { error: error.message }
+  return { message: "ok" }
+}
+
+export async function verifyPhoneOTP(phone: string, token: string): Promise<AuthState> {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" })
+  if (error) return { error: "Неверный код или код истёк" }
+  redirect("/dashboard")
+}
+
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
