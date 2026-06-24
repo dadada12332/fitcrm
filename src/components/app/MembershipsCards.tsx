@@ -152,9 +152,7 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
                       >
                         {meta.label}
                       </span>
-                      <div style={{ color: "rgba(255,255,255,0.75)" }}>
-                        <MembershipRowMenu row={row} />
-                      </div>
+                      <MembershipRowMenu row={row} onDark />
                     </div>
 
                     <h3 className="text-xl font-semibold text-white leading-tight mb-1.5 relative z-10">

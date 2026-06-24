@@ -22,7 +22,7 @@ function Item({ icon: Icon, label, onClick, danger, disabled }: { icon: typeof P
   )
 }
 
-export function MembershipRowMenu({ row }: { row: MembershipRow }) {
+export function MembershipRowMenu({ row, onDark }: { row: MembershipRow; onDark?: boolean }) {
   const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
@@ -55,8 +55,14 @@ export function MembershipRowMenu({ row }: { row: MembershipRow }) {
   return (
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)}
-        className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors cursor-pointer" style={{ color: "#94a3b8" }}>
-        <MoreHorizontal className="w-4 h-4" />
+        className="w-8 h-8 flex items-center justify-center rounded-md transition-colors cursor-pointer"
+        style={onDark
+          ? { color: "white", background: "rgba(255,255,255,0.15)" }
+          : { color: "#94a3b8" }}
+        onMouseEnter={e => { if (onDark) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.25)" }}
+        onMouseLeave={e => { if (onDark) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.15)" }}
+      >
+        <MoreHorizontal className="w-5 h-5" />
       </button>
 
       {open && (
