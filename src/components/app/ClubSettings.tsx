@@ -1,13 +1,20 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import Link from "next/link"
+import { useState, useTransition, useRef } from "react"
 import {
-  Building2, GitBranch, CreditCard, Users, Wallet, Bell,
-  Plug, Shield, Crown, ChevronRight, Check, ExternalLink,
-  Smartphone, Mail, MessageCircle, RefreshCw,
+  Building2, GitBranch, Users, Wallet, Bell,
+  Plug, Shield, Crown, Check, X, Plus,
+  Smartphone, Mail, MessageCircle, Eye, EyeOff,
 } from "lucide-react"
-import { saveClubBasicAction, saveNotificationsAction } from "@/app/(app)/settings/club/actions"
+import {
+  saveClubBasicAction,
+  saveNotificationsAction,
+  saveFinanceAction,
+  changePasswordAction,
+  saveBranchAction,
+  inviteStaffAction,
+  saveIntegrationAction,
+} from "@/app/(app)/settings/club/actions"
 
 export type ClubData = {
   id: string
@@ -23,27 +30,30 @@ export type ClubData = {
     timezone?: string
     currency?: string
     notifications?: Record<string, boolean>
+    branches?: { name: string; address: string }[]
+    finance?: { methods: string[]; autoNum: boolean; categories: string[] }
   }
   staffList: { id: string; name: string; role: string; email: string }[]
 }
 
-type Section = "basic" | "branches" | "memberships" | "staff" | "finance" | "notifications" | "integrations" | "security" | "plan"
+type Section = "basic" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "security" | "plan"
 
 const SECTIONS: { key: Section; label: string; icon: typeof Building2 }[] = [
-  { key: "basic",          label: "Основное",           icon: Building2 },
-  { key: "branches",       label: "Филиалы",            icon: GitBranch },
-  { key: "memberships",    label: "Абонементы",         icon: CreditCard },
-  { key: "staff",          label: "Сотрудники и роли",  icon: Users },
-  { key: "finance",        label: "Финансы",            icon: Wallet },
-  { key: "notifications",  label: "Уведомления",        icon: Bell },
-  { key: "integrations",   label: "Интеграции",         icon: Plug },
-  { key: "security",       label: "Безопасность",       icon: Shield },
-  { key: "plan",           label: "Подписка",           icon: Crown },
+  { key: "basic",          label: "Основное",          icon: Building2 },
+  { key: "branches",       label: "Филиалы",           icon: GitBranch },
+  { key: "staff",          label: "Сотрудники",        icon: Users },
+  { key: "finance",        label: "Финансы",           icon: Wallet },
+  { key: "notifications",  label: "Уведомления",       icon: Bell },
+  { key: "integrations",   label: "Интеграции",        icon: Plug },
+  { key: "security",       label: "Безопасность",      icon: Shield },
+  { key: "plan",           label: "Подписка",          icon: Crown },
 ]
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный", starter: "Starter", standard: "Standard", business: "Business",
 }
+
+// ── UI Primitives ────────────────────────────────────────────────
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -54,8 +64,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Input({ value, onChange, placeholder, type = "text" }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; type?: string
+function Input({ value, onChange, placeholder, type = "text", disabled }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; type?: string; disabled?: boolean
 }) {
   return (
     <input
@@ -63,9 +73,10 @@ function Input({ value, onChange, placeholder, type = "text" }: {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full h-10 px-3 rounded-lg text-sm outline-none transition-shadow"
-      style={{ border: "1.5px solid #e2e8f0", color: "#020617" }}
-      onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)" }}
+      disabled={disabled}
+      className="w-full h-10 px-3 rounded-lg text-sm outline-none transition-shadow disabled:opacity-50"
+      style={{ border: "1.5px solid #e2e8f0", color: "#020617", background: disabled ? "#f8fafc" : "white" }}
+      onFocus={(e) => { if (!disabled) { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)" } }}
       onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none" }}
     />
   )
@@ -83,37 +94,72 @@ function Card({ title, children, action }: { title: string; children: React.Reac
   )
 }
 
-function SaveButton({ pending, saved }: { pending: boolean; saved: boolean }) {
+function Btn({ onClick, children, variant = "primary", disabled, type = "button", small }: {
+  onClick?: () => void; children: React.ReactNode; variant?: "primary" | "secondary" | "danger";
+  disabled?: boolean; type?: "button" | "submit"; small?: boolean
+}) {
+  const base = small ? "h-8 px-3 text-xs" : "h-9 px-4 text-sm"
+  const styles: Record<string, React.CSSProperties> = {
+    primary:   { background: "#2563eb", color: "white" },
+    secondary: { border: "1px solid #e2e8f0", color: "#475569", background: "white" },
+    danger:    { background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" },
+  }
   return (
-    <button
-      type="submit"
-      disabled={pending}
+    <button type={type} onClick={onClick} disabled={disabled}
+      className={`${base} rounded-lg font-medium flex items-center gap-1.5 transition-opacity hover:opacity-80 disabled:opacity-40`}
+      style={styles[variant]}>
+      {children}
+    </button>
+  )
+}
+
+function SaveBtn({ pending, saved }: { pending: boolean; saved: boolean }) {
+  return (
+    <button type="submit" disabled={pending}
       className="h-9 px-5 rounded-lg text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-50"
-      style={{ background: "#2563eb" }}
-    >
+      style={{ background: "#2563eb" }}>
       {saved ? <><Check className="w-4 h-4" />Сохранено</> : pending ? "Сохранение..." : "Сохранить"}
     </button>
   )
 }
 
-// ── Sections ──────────────────────────────────────────────────────
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button type="button" onClick={() => onChange(!checked)}
+      className="w-10 h-6 rounded-full transition-colors flex-shrink-0 relative"
+      style={{ background: checked ? "#2563eb" : "#e2e8f0" }}>
+      <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
+        style={{ left: checked ? "22px" : "2px" }} />
+    </button>
+  )
+}
+
+function Alert({ msg, type }: { msg: string; type: "ok" | "err" }) {
+  return (
+    <div className="text-sm px-4 py-2 rounded-lg"
+      style={{ background: type === "ok" ? "#f0fdf4" : "#fef2f2", color: type === "ok" ? "#16a34a" : "#dc2626" }}>
+      {msg}
+    </div>
+  )
+}
+
+// ── Basic ────────────────────────────────────────────────────────
 
 function BasicSection({ club }: { club: ClubData }) {
   const s = club.settings
-  const [name, setName]       = useState(club.name)
-  const [address, setAddress] = useState(s.address ?? "")
-  const [phone, setPhone]     = useState(s.phone ?? "")
-  const [email, setEmail]     = useState(s.email ?? "")
-  const [website, setWebsite] = useState(s.website ?? "")
-  const [tz, setTz]           = useState(s.timezone ?? "Asia/Tashkent")
+  const [name, setName]         = useState(club.name)
+  const [address, setAddress]   = useState(s.address ?? "")
+  const [phone, setPhone]       = useState(s.phone ?? "")
+  const [email, setEmail]       = useState(s.email ?? "")
+  const [website, setWebsite]   = useState(s.website ?? "")
+  const [tz, setTz]             = useState(s.timezone ?? "Asia/Tashkent")
   const [currency, setCurrency] = useState(s.currency ?? "UZS")
-  const [saved, setSaved]     = useState(false)
-  const [error, setError]     = useState<string | null>(null)
-  const [pending, start]      = useTransition()
+  const [saved, setSaved]       = useState(false)
+  const [error, setError]       = useState<string | null>(null)
+  const [pending, start]        = useTransition()
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSaved(false); setError(null)
+    e.preventDefault(); setSaved(false); setError(null)
     start(async () => {
       const res = await saveClubBasicAction({ name, address, phone, email, website, timezone: tz, currency })
       if (res.error) { setError(res.error); return }
@@ -125,21 +171,11 @@ function BasicSection({ club }: { club: ClubData }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Card title="Основная информация">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Название клуба">
-            <Input value={name} onChange={setName} placeholder="FitClub" />
-          </Field>
-          <Field label="Адрес">
-            <Input value={address} onChange={setAddress} placeholder="г. Ташкент, ул. Амира Темура 1" />
-          </Field>
-          <Field label="Телефон">
-            <Input value={phone} onChange={setPhone} placeholder="+998 90 000 00 00" type="tel" />
-          </Field>
-          <Field label="Email">
-            <Input value={email} onChange={setEmail} placeholder="info@fitclub.uz" type="email" />
-          </Field>
-          <Field label="Сайт">
-            <Input value={website} onChange={setWebsite} placeholder="https://fitclub.uz" />
-          </Field>
+          <Field label="Название клуба"><Input value={name} onChange={setName} placeholder="FitClub" /></Field>
+          <Field label="Адрес"><Input value={address} onChange={setAddress} placeholder="г. Ташкент, ул. Амира Темура 1" /></Field>
+          <Field label="Телефон"><Input value={phone} onChange={setPhone} placeholder="+998 90 000 00 00" type="tel" /></Field>
+          <Field label="Email"><Input value={email} onChange={setEmail} placeholder="info@fitclub.uz" type="email" /></Field>
+          <Field label="Сайт"><Input value={website} onChange={setWebsite} placeholder="https://fitclub.uz" /></Field>
         </div>
       </Card>
 
@@ -181,37 +217,75 @@ function BasicSection({ club }: { club: ClubData }) {
         </div>
       </Card>
 
-      {error && <p className="text-sm" style={{ color: "#dc2626" }}>{error}</p>}
-
-      <div className="flex justify-end">
-        <SaveButton pending={pending} saved={saved} />
-      </div>
+      {error && <Alert msg={error} type="err" />}
+      <div className="flex justify-end"><SaveBtn pending={pending} saved={saved} /></div>
     </form>
   )
 }
 
-function BranchesSection() {
+// ── Branches ─────────────────────────────────────────────────────
+
+function BranchesSection({ club }: { club: ClubData }) {
+  const initial = club.settings.branches ?? [{ name: "Основной зал", address: club.settings.address ?? "—" }]
+  const [branches, setBranches] = useState(initial)
+  const [showForm, setShowForm] = useState(false)
+  const [bName, setBName]       = useState("")
+  const [bAddr, setBAddr]       = useState("")
+  const [msg, setMsg]           = useState<{ text: string; type: "ok" | "err" } | null>(null)
+  const [pending, start]        = useTransition()
+
+  function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    if (!bName.trim()) return
+    start(async () => {
+      const res = await saveBranchAction({ name: bName.trim(), address: bAddr.trim() })
+      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      setBranches((prev) => [...prev, { name: bName.trim(), address: bAddr.trim() }])
+      setBName(""); setBAddr(""); setShowForm(false)
+      setMsg({ text: "Филиал добавлен", type: "ok" })
+      setTimeout(() => setMsg(null), 2500)
+    })
+  }
+
   return (
     <Card title="Филиалы" action={
-      <button className="h-8 px-3 rounded-lg text-xs font-medium text-white flex items-center gap-1.5" style={{ background: "#2563eb" }}>
-        + Добавить филиал
-      </button>
+      <Btn small onClick={() => setShowForm((v) => !v)}>
+        <Plus className="w-3.5 h-3.5" /> Добавить
+      </Btn>
     }>
+      {showForm && (
+        <form onSubmit={handleAdd} className="mb-5 p-4 rounded-xl space-y-3" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+          <Field label="Название филиала">
+            <Input value={bName} onChange={setBName} placeholder="Зал №2" />
+          </Field>
+          <Field label="Адрес">
+            <Input value={bAddr} onChange={setBAddr} placeholder="г. Ташкент, ул. ..." />
+          </Field>
+          <div className="flex gap-2">
+            <Btn type="submit" disabled={pending || !bName.trim()}>
+              {pending ? "Сохранение..." : "Добавить"}
+            </Btn>
+            <Btn variant="secondary" onClick={() => setShowForm(false)}>Отмена</Btn>
+          </div>
+        </form>
+      )}
+      {msg && <div className="mb-4"><Alert msg={msg.text} type={msg.type} /></div>}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-              {["Название","Адрес","Клиенты"].map((h) => (
+              {["Название","Адрес"].map((h) => (
                 <th key={h} className="py-2 pr-4 text-left text-xs font-medium" style={{ color: "#94a3b8" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: "1px solid #f8fafc" }}>
-              <td className="py-3 pr-4 font-medium" style={{ color: "#020617" }}>Основной зал</td>
-              <td className="py-3 pr-4" style={{ color: "#64748b" }}>г. Ташкент</td>
-              <td className="py-3" style={{ color: "#64748b" }}>—</td>
-            </tr>
+            {branches.map((b, i) => (
+              <tr key={i} style={{ borderBottom: "1px solid #f8fafc" }}>
+                <td className="py-3 pr-4 font-medium" style={{ color: "#020617" }}>{b.name}</td>
+                <td className="py-3" style={{ color: "#64748b" }}>{b.address || "—"}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -219,37 +293,66 @@ function BranchesSection() {
   )
 }
 
-function MembershipsSection() {
-  return (
-    <Card title="Абонементы">
-      <p className="text-sm mb-4" style={{ color: "#64748b" }}>Управление тарифами вынесено в отдельный раздел.</p>
-      <Link href="/memberships"
-        className="inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
-        style={{ background: "#2563eb" }}>
-        Перейти к абонементам <ExternalLink className="w-3.5 h-3.5" />
-      </Link>
-    </Card>
-  )
-}
+// ── Staff ─────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Владелец", admin: "Администратор", trainer: "Тренер", accountant: "Бухгалтер",
 }
 
 function StaffSection({ club }: { club: ClubData }) {
+  const [showForm, setShowForm] = useState(false)
+  const [invEmail, setInvEmail] = useState("")
+  const [invRole, setInvRole]   = useState("trainer")
+  const [msg, setMsg]           = useState<{ text: string; type: "ok" | "err" } | null>(null)
+  const [pending, start]        = useTransition()
+
+  function handleInvite(e: React.FormEvent) {
+    e.preventDefault(); setMsg(null)
+    start(async () => {
+      const res = await inviteStaffAction({ email: invEmail.trim(), role: invRole })
+      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      setMsg({ text: `Приглашение отправлено на ${invEmail.trim()}`, type: "ok" })
+      setInvEmail(""); setShowForm(false)
+      setTimeout(() => setMsg(null), 3000)
+    })
+  }
+
   return (
     <Card title="Сотрудники и роли" action={
-      <button className="h-8 px-3 rounded-lg text-xs font-medium text-white flex items-center gap-1.5" style={{ background: "#2563eb" }}>
-        + Пригласить
-      </button>
+      <Btn small onClick={() => setShowForm((v) => !v)}>
+        <Plus className="w-3.5 h-3.5" /> Пригласить
+      </Btn>
     }>
+      {showForm && (
+        <form onSubmit={handleInvite} className="mb-5 p-4 rounded-xl space-y-3" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+          <Field label="Email сотрудника">
+            <Input value={invEmail} onChange={setInvEmail} placeholder="trainer@fitclub.uz" type="email" />
+          </Field>
+          <Field label="Роль">
+            <select value={invRole} onChange={(e) => setInvRole(e.target.value)}
+              className="w-full h-10 px-3 rounded-lg text-sm outline-none appearance-none"
+              style={{ border: "1.5px solid #e2e8f0", color: "#020617", background: "white" }}>
+              {Object.entries(ROLE_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          </Field>
+          <div className="flex gap-2">
+            <Btn type="submit" disabled={pending || !invEmail.trim()}>
+              {pending ? "Отправка..." : "Отправить приглашение"}
+            </Btn>
+            <Btn variant="secondary" onClick={() => setShowForm(false)}>Отмена</Btn>
+          </div>
+        </form>
+      )}
+      {msg && <div className="mb-4"><Alert msg={msg.text} type={msg.type} /></div>}
       {club.staffList.length === 0 ? (
         <p className="text-sm py-4 text-center" style={{ color: "#94a3b8" }}>Сотрудников нет</p>
       ) : (
-        <div className="space-y-0">
+        <div>
           {club.staffList.map((s) => (
             <div key={s.id} className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid #f8fafc" }}>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ background: "#3b82f6" }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0" style={{ background: "#3b82f6" }}>
                 {s.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
@@ -267,44 +370,55 @@ function StaffSection({ club }: { club: ClubData }) {
   )
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className="w-10 h-6 rounded-full transition-colors flex-shrink-0 relative"
-      style={{ background: checked ? "#2563eb" : "#e2e8f0" }}
-    >
-      <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
-        style={{ left: checked ? "22px" : "2px" }} />
-    </button>
-  )
-}
+// ── Finance ───────────────────────────────────────────────────────
 
 const PAYMENT_METHODS = [
-  { key: "cash", label: "Наличные" },
-  { key: "card", label: "Карта" },
+  { key: "cash",  label: "Наличные" },
+  { key: "card",  label: "Карта" },
   { key: "click", label: "Click" },
   { key: "payme", label: "Payme" },
-  { key: "uzum", label: "Uzum" },
+  { key: "uzum",  label: "Uzum" },
 ]
 
-function FinanceSection() {
-  const [methods, setMethods] = useState(new Set(["cash", "click", "payme", "uzum"]))
-  const [autoNum, setAutoNum] = useState(true)
+function FinanceSection({ club }: { club: ClubData }) {
+  const fin = club.settings.finance
+  const [methods, setMethods]     = useState(new Set(fin?.methods ?? ["cash", "click", "payme", "uzum"]))
+  const [autoNum, setAutoNum]     = useState(fin?.autoNum ?? true)
+  const [cats, setCats]           = useState<string[]>(fin?.categories ?? ["Аренда","Зарплаты","Реклама","Коммунальные"])
+  const [newCat, setNewCat]       = useState("")
+  const [saved, setSaved]         = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+  const [pending, start]          = useTransition()
 
-  function toggle(key: string) {
+  function toggleMethod(key: string) {
     setMethods((prev) => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s })
   }
 
+  function addCat() {
+    const v = newCat.trim()
+    if (!v || cats.includes(v)) return
+    setCats((prev) => [...prev, v]); setNewCat("")
+  }
+
+  function removeCat(cat: string) { setCats((prev) => prev.filter((c) => c !== cat)) }
+
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault(); setSaved(false); setError(null)
+    start(async () => {
+      const res = await saveFinanceAction({ methods: [...methods], autoNum, categories: cats })
+      if (res.error) { setError(res.error); return }
+      setSaved(true); setTimeout(() => setSaved(false), 2500)
+    })
+  }
+
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSave} className="space-y-4">
       <Card title="Методы оплаты">
         <div className="space-y-3">
           {PAYMENT_METHODS.map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between">
               <span className="text-sm" style={{ color: "#334155" }}>{label}</span>
-              <Toggle checked={methods.has(key)} onChange={() => toggle(key)} />
+              <Toggle checked={methods.has(key)} onChange={() => toggleMethod(key)} />
             </div>
           ))}
         </div>
@@ -321,40 +435,57 @@ function FinanceSection() {
       </Card>
 
       <Card title="Категории расходов">
-        <div className="space-y-2">
-          {["Аренда", "Зарплаты", "Реклама", "Коммунальные"].map((cat) => (
-            <div key={cat} className="flex items-center justify-between py-1.5" style={{ borderBottom: "1px solid #f8fafc" }}>
+        <div className="space-y-1 mb-3">
+          {cats.map((cat) => (
+            <div key={cat} className="flex items-center justify-between py-2 px-1" style={{ borderBottom: "1px solid #f8fafc" }}>
               <span className="text-sm" style={{ color: "#334155" }}>{cat}</span>
-              <button className="text-xs" style={{ color: "#94a3b8" }}>✕</button>
+              <button type="button" onClick={() => removeCat(cat)}
+                className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:bg-red-50"
+                style={{ color: "#94a3b8" }}>
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           ))}
-          <input placeholder="+ Добавить категорию" className="w-full h-9 px-3 mt-2 rounded-lg text-sm outline-none"
+        </div>
+        <div className="flex gap-2">
+          <input value={newCat} onChange={(e) => setNewCat(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCat() } }}
+            placeholder="Новая категория..." className="flex-1 h-9 px-3 rounded-lg text-sm outline-none"
             style={{ border: "1px dashed #e2e8f0", color: "#020617" }} />
+          <Btn small onClick={addCat} disabled={!newCat.trim()}>
+            <Plus className="w-3.5 h-3.5" /> Добавить
+          </Btn>
         </div>
       </Card>
-    </div>
+
+      {error && <Alert msg={error} type="err" />}
+      <div className="flex justify-end"><SaveBtn pending={pending} saved={saved} /></div>
+    </form>
   )
 }
 
+// ── Notifications ─────────────────────────────────────────────────
+
 const NOTIF_SETTINGS = [
-  { key: "sms_3d",     label: "SMS за 3 дня до окончания",        icon: Smartphone },
-  { key: "sms_7d",     label: "SMS за 7 дней до окончания",       icon: Smartphone },
-  { key: "tg_owner",   label: "Telegram-уведомления владельцу",   icon: MessageCircle },
-  { key: "email_reports", label: "Email-отчёты",                  icon: Mail },
+  { key: "sms_3d",        label: "SMS за 3 дня до окончания",        icon: Smartphone },
+  { key: "sms_7d",        label: "SMS за 7 дней до окончания",       icon: Smartphone },
+  { key: "tg_owner",      label: "Telegram-уведомления владельцу",   icon: MessageCircle },
+  { key: "email_reports", label: "Email-отчёты",                     icon: Mail },
 ]
 
 function NotificationsSection({ club }: { club: ClubData }) {
   const def = club.settings.notifications ?? {}
   const [settings, setSettings] = useState<Record<string, boolean>>({
-    sms_3d: def.sms_3d ?? true,
-    sms_7d: def.sms_7d ?? false,
-    tg_owner: def.tg_owner ?? true,
+    sms_3d:        def.sms_3d        ?? true,
+    sms_7d:        def.sms_7d        ?? false,
+    tg_owner:      def.tg_owner      ?? true,
     email_reports: def.email_reports ?? false,
   })
-  const [saved, setSaved] = useState(false)
-  const [pending, start] = useTransition()
+  const [saved, setSaved]   = useState(false)
+  const [pending, start]    = useTransition()
 
-  function handleSave() {
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault()
     start(async () => {
       await saveNotificationsAction(settings)
       setSaved(true); setTimeout(() => setSaved(false), 2500)
@@ -362,7 +493,7 @@ function NotificationsSection({ club }: { club: ClubData }) {
   }
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSave} className="space-y-4">
       <Card title="Настройки уведомлений">
         <div className="space-y-4">
           {NOTIF_SETTINGS.map(({ key, label, icon: Icon }) => (
@@ -378,71 +509,160 @@ function NotificationsSection({ club }: { club: ClubData }) {
           ))}
         </div>
       </Card>
-      <div className="flex justify-end">
-        <SaveButton pending={pending} saved={saved} />
-      </div>
-    </div>
+      <div className="flex justify-end"><SaveBtn pending={pending} saved={saved} /></div>
+    </form>
   )
 }
 
-const INTEGRATIONS = [
-  { key: "telegram", label: "Telegram Bot",   desc: "OTP-коды и уведомления клиентам",   color: "#2563eb" },
-  { key: "click",    label: "Click",           desc: "Приём онлайн-платежей через Click",  color: "#16a34a" },
-  { key: "payme",    label: "Payme",           desc: "Приём онлайн-платежей через Payme",  color: "#7c3aed" },
+// ── Integrations ──────────────────────────────────────────────────
+
+type IntegrationField = { key: string; label: string; placeholder: string }
+
+const INTEGRATIONS: { key: string; label: string; desc: string; color: string; fields: IntegrationField[] }[] = [
+  {
+    key: "telegram", label: "Telegram Bot", desc: "OTP-коды и уведомления клиентам", color: "#2563eb",
+    fields: [{ key: "token", label: "Bot Token", placeholder: "1234567890:AAF..." }],
+  },
+  {
+    key: "click", label: "Click", desc: "Приём онлайн-платежей через Click", color: "#16a34a",
+    fields: [
+      { key: "merchant_id", label: "Merchant ID", placeholder: "12345" },
+      { key: "secret_key",  label: "Secret Key",  placeholder: "••••••••" },
+    ],
+  },
+  {
+    key: "payme", label: "Payme", desc: "Приём онлайн-платежей через Payme", color: "#7c3aed",
+    fields: [
+      { key: "merchant_id", label: "Merchant ID", placeholder: "merchant_id" },
+      { key: "key",         label: "Key",          placeholder: "••••••••" },
+    ],
+  },
 ]
+
+function IntegrationCard({ integration }: { integration: typeof INTEGRATIONS[0] }) {
+  const [open, setOpen]       = useState(false)
+  const [vals, setVals]       = useState<Record<string, string>>({})
+  const [msg, setMsg]         = useState<{ text: string; type: "ok" | "err" } | null>(null)
+  const [pending, start]      = useTransition()
+
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault(); setMsg(null)
+    const primary = integration.fields[0]
+    const value = vals[primary.key] ?? ""
+    if (!value.trim()) return
+    start(async () => {
+      const res = await saveIntegrationAction(integration.key, value.trim())
+      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      setMsg({ text: "Сохранено!", type: "ok" })
+      setOpen(false); setTimeout(() => setMsg(null), 2500)
+    })
+  }
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #f1f5f9" }}>
+      <div className="flex items-center gap-4 p-4">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+          style={{ background: integration.color }}>
+          {integration.label[0]}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium" style={{ color: "#020617" }}>{integration.label}</p>
+          <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{integration.desc}</p>
+        </div>
+        <Btn small variant="secondary" onClick={() => setOpen((v) => !v)}>
+          {open ? "Отмена" : "Подключить"}
+        </Btn>
+      </div>
+      {open && (
+        <form onSubmit={handleSave} className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid #f1f5f9" }}>
+          <div className="pt-4 space-y-3">
+            {integration.fields.map((f) => (
+              <Field key={f.key} label={f.label}>
+                <Input value={vals[f.key] ?? ""} onChange={(v) => setVals((prev) => ({ ...prev, [f.key]: v }))}
+                  placeholder={f.placeholder} type={f.key.includes("key") || f.key === "token" ? "password" : "text"} />
+              </Field>
+            ))}
+          </div>
+          {msg && <Alert msg={msg.text} type={msg.type} />}
+          <Btn type="submit" disabled={pending || !vals[integration.fields[0].key]?.trim()}>
+            {pending ? "Сохранение..." : "Сохранить"}
+          </Btn>
+        </form>
+      )}
+      {msg && !open && <div className="px-4 pb-4"><Alert msg={msg.text} type={msg.type} /></div>}
+    </div>
+  )
+}
 
 function IntegrationsSection() {
   return (
     <Card title="Интеграции">
       <div className="space-y-3">
-        {INTEGRATIONS.map(({ key, label, desc, color }) => (
-          <div key={key} className="flex items-center gap-4 p-4 rounded-xl" style={{ border: "1px solid #f1f5f9" }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ background: color }}>
-              {label[0]}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium" style={{ color: "#020617" }}>{label}</p>
-              <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{desc}</p>
-            </div>
-            <button className="h-8 px-3 rounded-lg text-xs font-medium transition-colors hover:bg-slate-50" style={{ border: "1px solid #e2e8f0", color: "#475569" }}>
-              Подключить
-            </button>
-          </div>
-        ))}
+        {INTEGRATIONS.map((intg) => <IntegrationCard key={intg.key} integration={intg} />)}
       </div>
     </Card>
   )
 }
 
+// ── Security ──────────────────────────────────────────────────────
+
 function SecuritySection() {
+  const [cur, setCur]       = useState("")
+  const [next, setNext]     = useState("")
+  const [conf, setConf]     = useState("")
+  const [show, setShow]     = useState(false)
+  const [msg, setMsg]       = useState<{ text: string; type: "ok" | "err" } | null>(null)
+  const [pending, start]    = useTransition()
+  const [twofa, setTwofa]   = useState(false)
+
+  function handlePw(e: React.FormEvent) {
+    e.preventDefault(); setMsg(null)
+    if (next.length < 6) { setMsg({ text: "Пароль должен быть не менее 6 символов", type: "err" }); return }
+    if (next !== conf)   { setMsg({ text: "Пароли не совпадают", type: "err" }); return }
+    start(async () => {
+      const res = await changePasswordAction(next)
+      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      setMsg({ text: "Пароль успешно изменён", type: "ok" })
+      setCur(""); setNext(""); setConf("")
+      setTimeout(() => setMsg(null), 3000)
+    })
+  }
+
+  const type = show ? "text" : "password"
+
   return (
     <div className="space-y-4">
-      <Card title="Пароль">
-        <div className="space-y-3 max-w-sm">
+      <Card title="Пароль" action={
+        <button type="button" onClick={() => setShow((v) => !v)}
+          className="flex items-center gap-1.5 text-xs" style={{ color: "#94a3b8" }}>
+          {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          {show ? "Скрыть" : "Показать"}
+        </button>
+      }>
+        <form onSubmit={handlePw} className="space-y-3 max-w-sm">
           <Field label="Текущий пароль">
-            <Input value="" onChange={() => {}} type="password" placeholder="••••••••" />
+            <Input value={cur} onChange={setCur} type={type} placeholder="••••••••" />
           </Field>
           <Field label="Новый пароль">
-            <Input value="" onChange={() => {}} type="password" placeholder="••••••••" />
+            <Input value={next} onChange={setNext} type={type} placeholder="••••••••" />
           </Field>
           <Field label="Повторите новый пароль">
-            <Input value="" onChange={() => {}} type="password" placeholder="••••••••" />
+            <Input value={conf} onChange={setConf} type={type} placeholder="••••••••" />
           </Field>
-          <button className="h-9 px-4 rounded-lg text-sm font-medium text-white" style={{ background: "#2563eb" }}>
-            Сменить пароль
-          </button>
-        </div>
+          {msg && <Alert msg={msg.text} type={msg.type} />}
+          <Btn type="submit" disabled={pending || !next || !conf}>
+            {pending ? "Сохранение..." : "Сменить пароль"}
+          </Btn>
+        </form>
       </Card>
 
       <Card title="Активные сессии">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between py-2" style={{ borderBottom: "1px solid #f8fafc" }}>
-            <div>
-              <p className="text-sm font-medium" style={{ color: "#020617" }}>MacBook — Ташкент</p>
-              <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>Сейчас онлайн</p>
-            </div>
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#dcfce7", color: "#16a34a" }}>Текущая</span>
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium" style={{ color: "#020617" }}>Текущее устройство</p>
+            <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>Сейчас онлайн</p>
           </div>
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#dcfce7", color: "#16a34a" }}>Активна</span>
         </div>
       </Card>
 
@@ -452,14 +672,19 @@ function SecuritySection() {
             <p className="text-sm font-medium" style={{ color: "#020617" }}>2FA через Telegram</p>
             <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>Дополнительная защита входа</p>
           </div>
-          <button className="h-8 px-3 rounded-lg text-xs font-medium transition-colors hover:bg-slate-50" style={{ border: "1px solid #e2e8f0", color: "#475569" }}>
-            Включить
-          </button>
+          <Toggle checked={twofa} onChange={setTwofa} />
         </div>
+        {twofa && (
+          <div className="mt-3 p-3 rounded-lg text-sm" style={{ background: "#eff6ff", color: "#2563eb" }}>
+            Для активации 2FA сначала подключите Telegram Bot в разделе Интеграции.
+          </div>
+        )}
       </Card>
     </div>
   )
 }
+
+// ── Plan ──────────────────────────────────────────────────────────
 
 const PLAN_LIMITS: Record<string, { clients: number; staff: number; price: string }> = {
   trial:    { clients: 50,   staff: 2,  price: "0$"  },
@@ -469,13 +694,14 @@ const PLAN_LIMITS: Record<string, { clients: number; staff: number; price: strin
 }
 
 function PlanSection({ club }: { club: ClubData }) {
-  const plan = club.plan
+  const plan   = club.plan
   const limits = PLAN_LIMITS[plan] ?? PLAN_LIMITS.trial
   const daysLeft = club.planExpiresAt
     ? Math.ceil((new Date(club.planExpiresAt).getTime() - Date.now()) / 86_400_000)
     : club.trialExpiresAt
       ? Math.ceil((new Date(club.trialExpiresAt).getTime() - Date.now()) / 86_400_000)
       : null
+  const [upgrading, setUpgrading] = useState<string | null>(null)
 
   return (
     <div className="space-y-4">
@@ -493,7 +719,7 @@ function PlanSection({ club }: { club: ClubData }) {
             </div>
             {daysLeft !== null && (
               <p className="text-sm mt-0.5" style={{ color: daysLeft <= 7 ? "#dc2626" : "#64748b" }}>
-                {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : "Истёк"}
+                {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : "Срок истёк"}
               </p>
             )}
           </div>
@@ -501,8 +727,8 @@ function PlanSection({ club }: { club: ClubData }) {
 
         <div className="space-y-3">
           {[
-            { label: "Клиенты",    used: 18,  max: limits.clients },
-            { label: "Сотрудники", used: 1,   max: limits.staff },
+            { label: "Клиенты",    used: club.staffList.length > 0 ? 18 : 0, max: limits.clients },
+            { label: "Сотрудники", used: club.staffList.length,               max: limits.staff },
           ].map(({ label, used, max }) => (
             <div key={label}>
               <div className="flex items-center justify-between mb-1">
@@ -510,7 +736,8 @@ function PlanSection({ club }: { club: ClubData }) {
                 <span className="text-xs font-medium" style={{ color: "#020617" }}>{used} / {max}</span>
               </div>
               <div className="h-2 rounded-full" style={{ background: "#f1f5f9" }}>
-                <div className="h-2 rounded-full" style={{ background: "#2563eb", width: `${Math.min(100, (used / max) * 100)}%` }} />
+                <div className="h-2 rounded-full transition-all"
+                  style={{ background: "#2563eb", width: `${Math.min(100, (used / max) * 100)}%` }} />
               </div>
             </div>
           ))}
@@ -525,19 +752,28 @@ function PlanSection({ club }: { club: ClubData }) {
             return (
               <div key={p} className="p-4 rounded-xl" style={{ border: `1.5px solid ${isCurrent ? "#2563eb" : "#e2e8f0"}`, background: isCurrent ? "#eff6ff" : "white" }}>
                 <p className="text-sm font-semibold" style={{ color: "#020617" }}>{PLAN_LABELS[p]}</p>
-                <p className="text-xl font-bold mt-1" style={{ color: "#2563eb" }}>{l.price}<span className="text-xs font-normal text-slate-400">/мес</span></p>
+                <p className="text-xl font-bold mt-1" style={{ color: "#2563eb" }}>
+                  {l.price}<span className="text-xs font-normal" style={{ color: "#94a3b8" }}>/мес</span>
+                </p>
                 <p className="text-xs mt-2" style={{ color: "#64748b" }}>до {l.clients} клиентов</p>
                 <p className="text-xs" style={{ color: "#64748b" }}>до {l.staff} сотрудников</p>
-                {!isCurrent && (
-                  <button className="mt-3 w-full h-8 rounded-lg text-xs font-medium text-white" style={{ background: "#2563eb" }}>
-                    Выбрать
-                  </button>
-                )}
-                {isCurrent && (
+                {isCurrent ? (
                   <div className="mt-3 flex items-center gap-1">
                     <Check className="w-3.5 h-3.5" style={{ color: "#2563eb" }} />
                     <span className="text-xs font-medium" style={{ color: "#2563eb" }}>Текущий</span>
                   </div>
+                ) : (
+                  upgrading === p ? (
+                    <div className="mt-3 p-2 rounded-lg text-xs" style={{ background: "#f8fafc", color: "#64748b" }}>
+                      Свяжитесь с нами: <br /><span className="font-medium" style={{ color: "#2563eb" }}>support@fitcrm.uz</span>
+                    </div>
+                  ) : (
+                    <button onClick={() => setUpgrading(p)}
+                      className="mt-3 w-full h-8 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90"
+                      style={{ background: "#2563eb" }}>
+                      Выбрать
+                    </button>
+                  )
                 )}
               </div>
             )
@@ -548,7 +784,7 @@ function PlanSection({ club }: { club: ClubData }) {
   )
 }
 
-// ── Main component ─────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────
 
 export function ClubSettings({ club }: { club: ClubData }) {
   const [section, setSection] = useState<Section>("basic")
@@ -556,10 +792,9 @@ export function ClubSettings({ club }: { club: ClubData }) {
   const renderSection = () => {
     switch (section) {
       case "basic":         return <BasicSection club={club} />
-      case "branches":      return <BranchesSection />
-      case "memberships":   return <MembershipsSection />
+      case "branches":      return <BranchesSection club={club} />
       case "staff":         return <StaffSection club={club} />
-      case "finance":       return <FinanceSection />
+      case "finance":       return <FinanceSection club={club} />
       case "notifications": return <NotificationsSection club={club} />
       case "integrations":  return <IntegrationsSection />
       case "security":      return <SecuritySection />
@@ -570,12 +805,12 @@ export function ClubSettings({ club }: { club: ClubData }) {
   return (
     <div className="flex gap-6 items-start">
       {/* Sidebar */}
-      <aside className="w-52 flex-shrink-0 rounded-xl overflow-hidden sticky top-[76px]"
+      <aside className="w-48 flex-shrink-0 rounded-xl overflow-hidden sticky top-[76px]"
         style={{ background: "white", border: "1px solid #e2e8f0" }}>
-        <div className="px-4 py-3.5" style={{ borderBottom: "1px solid #f1f5f9" }}>
+        <div className="px-4 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
           <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#94a3b8" }}>Настройки</p>
         </div>
-        <nav className="py-1.5">
+        <nav className="py-1">
           {SECTIONS.map(({ key, label, icon: Icon }) => {
             const active = key === section
             return (
@@ -583,11 +818,15 @@ export function ClubSettings({ club }: { club: ClubData }) {
                 key={key}
                 onClick={() => setSection(key)}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors hover:bg-slate-50"
-                style={{ color: active ? "#2563eb" : "#334155", background: active ? "#eff6ff" : "transparent", fontWeight: active ? 500 : 400 }}
+                style={{
+                  color: active ? "#2563eb" : "#334155",
+                  background: active ? "#eff6ff" : "transparent",
+                  fontWeight: active ? 500 : 400,
+                  borderLeft: active ? "2px solid #2563eb" : "2px solid transparent",
+                }}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? "#2563eb" : "#94a3b8" }} />
-                {label}
-                {active && <ChevronRight className="w-3.5 h-3.5 ml-auto" style={{ color: "#2563eb" }} />}
+                <span className="whitespace-nowrap">{label}</span>
               </button>
             )
           })}
