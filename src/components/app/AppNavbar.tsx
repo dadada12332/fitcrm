@@ -6,6 +6,7 @@ import {
   LayoutDashboard, Users, CreditCard, Calendar, Wallet, CheckSquare,
   Search, Bell, Zap, LogOut, ChevronDown, Check, Plus, Building2,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
+  Settings, UserCog, HelpCircle, SlidersHorizontal,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { signOut } from "@/app/(auth)/actions"
@@ -358,10 +359,31 @@ export function AppNavbar({ clubName, email }: Props) {
                   <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
                   <div className="absolute right-0 top-11 z-20 w-52 rounded-xl py-2 text-sm"
                     style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}>
-                    <div className="px-3 py-2 border-b border-border mb-1">
+                    <div className="px-3 py-2.5 border-b border-border mb-1">
                       <p className="font-medium text-foreground truncate">{clubName}</p>
                       <p className="text-xs text-muted-foreground truncate">{email}</p>
                     </div>
+
+                    {[
+                      { href: "/settings/club",  icon: Settings,          label: "Настройки клуба" },
+                      { href: "/staff",          icon: UserCog,           label: "Сотрудники" },
+                      { href: "/settings",       icon: SlidersHorizontal, label: "Настройки CRM" },
+                      { href: "/support",        icon: HelpCircle,        label: "Поддержка" },
+                    ].map(({ href, icon: Icon, label }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        onClick={() => setProfileOpen(false)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-slate-50"
+                        style={{ color: "#334155" }}
+                      >
+                        <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
+                        {label}
+                      </Link>
+                    ))}
+
+                    <div className="my-1" style={{ borderTop: "1px solid #f1f5f9" }} />
+
                     <form action={signOut}>
                       <button type="submit" className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
                         <LogOut className="w-4 h-4" />Выйти
