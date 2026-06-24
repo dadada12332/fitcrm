@@ -9,6 +9,7 @@ import {
   CreditCard,
   Calendar,
   Wallet,
+  CheckSquare,
   Search,
   Bell,
   Zap,
@@ -26,6 +27,7 @@ const nav = [
   { href: "/clients",     label: "Клиенты",    icon: Users },
   { href: "/memberships", label: "Абонементы", icon: CreditCard },
   { href: "/schedule",    label: "Расписание", icon: Calendar },
+  { href: "/visits",      label: "Посещения",  icon: CheckSquare },
   { href: "/payments",    label: "Оплата",     icon: Wallet },
 ]
 
