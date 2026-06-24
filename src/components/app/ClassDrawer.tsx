@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { X, Clock, MapPin, User, Users, Wallet, Check, CalendarClock } from "lucide-react"
+import { X, Clock, MapPin, User, Users, Wallet, CalendarClock } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { fillColor, type ClassItem } from "@/lib/schedule"
 import {
@@ -89,8 +89,8 @@ export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; 
                             <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "#dcfce7", color: "#16a34a" }}>Пришёл</span>
                           ) : (
                             <button disabled={pending} onClick={() => run(() => markAttendanceAction(b.bookingId))}
-                              className="text-xs font-medium px-2 py-1 rounded-md flex items-center gap-1 hover:bg-slate-100 disabled:opacity-50" style={{ color: "#2563eb" }}>
-                              <Check className="w-3.5 h-3.5" />Отметить
+                              className="text-xs font-medium px-2 py-1 rounded-md flex items-center gap-1 hover:bg-red-50 disabled:opacity-50" style={{ color: "#dc2626" }}>
+                              <X className="w-3.5 h-3.5" />Отметить
                             </button>
                           )}
                         </div>

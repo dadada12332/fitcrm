@@ -24,7 +24,7 @@ export function Sidebar() {
         <span className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: "var(--orange)" }}>
           <Zap className="w-4 h-4 text-white" fill="white" />
         </span>
-        <span className="text-lg text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase" }}>
+        <span className="text-lg" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", color: "var(--on-dark)" }}>
           FitCRM
         </span>
       </Link>
