@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  Menu,
   LayoutDashboard,
   Users,
   CreditCard,
@@ -56,16 +55,8 @@ export function AppNavbar({ clubName, email }: Props) {
     >
       <div className="relative flex items-center w-full">
 
-        {/* ── Left: burger + logo ── */}
+        {/* ── Left: logo ── */}
         <div className="flex items-center gap-5 flex-shrink-0">
-          <button
-            className="w-9 h-9 flex items-center justify-center rounded-md transition-colors hover:bg-secondary"
-            style={{ border: "1px solid var(--border)" }}
-            aria-label="Меню"
-          >
-            <Menu className="w-4 h-4 text-foreground" />
-          </button>
-
           <div className="flex items-center gap-2">
             <Link href="/dashboard" className="flex items-center gap-1.5">
               <span
