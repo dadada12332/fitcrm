@@ -190,17 +190,6 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
                     </div>
                   </div>
 
-                  {/* Footer */}
-                  <div className="px-5 py-3 flex items-center justify-between"
-                    style={{ borderTop: "1px solid #f1f5f9" }}>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                      style={{ background: meta.bg, color: meta.color }}>
-                      {meta.label}
-                    </span>
-                    <span className="text-xs" style={{ color: "#94a3b8" }}>
-                      {row.activeClients} клиентов
-                    </span>
-                  </div>
                 </div>
               )
             })}
