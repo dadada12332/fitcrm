@@ -64,19 +64,19 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-2xl overflow-hidden"
+        className="w-full max-w-2xl rounded-2xl overflow-hidden"
         style={{ background: "white", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input */}
-        <div className="flex items-center gap-3 px-4 py-3.5" style={{ borderBottom: "1px solid #f1f5f9" }}>
-          <Search className="w-4.5 h-4.5 flex-shrink-0" style={{ color: loading ? "#3b82f6" : "#94a3b8" }} />
+        <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
+          <Search className="w-5 h-5 flex-shrink-0" style={{ color: loading ? "#3b82f6" : "#94a3b8" }} />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск клиентов по имени или телефону..."
-            className="flex-1 text-sm outline-none"
+            className="flex-1 text-base outline-none"
             style={{ color: "#020617" }}
           />
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors flex-shrink-0">
@@ -86,23 +86,23 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
 
         {/* Results */}
         {results.length > 0 ? (
-          <div className="py-1.5 max-h-80 overflow-y-auto">
+          <div className="py-2 max-h-96 overflow-y-auto">
             {results.map((r) => (
               <button
                 key={r.id}
                 onClick={() => go(r.id)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left"
+                className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors text-left"
               >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ background: "#3b82f6" }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0" style={{ background: "#3b82f6" }}>
                   {r.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium" style={{ color: "#020617" }}>{r.name}</p>
-                  {r.phone && <p className="text-xs" style={{ color: "#94a3b8" }}>{r.phone}</p>}
+                  {r.phone && <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{r.phone}</p>}
                 </div>
                 <div className="text-right flex-shrink-0">
                   {r.membershipName && <p className="text-xs" style={{ color: "#64748b" }}>{r.membershipName}</p>}
-                  <p className="text-xs font-medium" style={{ color: statusColor(r.status) }}>{statusLabel(r.status)}</p>
+                  <p className="text-xs font-medium mt-0.5" style={{ color: statusColor(r.status) }}>{statusLabel(r.status)}</p>
                 </div>
               </button>
             ))}
