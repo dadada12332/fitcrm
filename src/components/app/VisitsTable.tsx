@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import { Clock, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react"
 import type { VisitRow } from "@/lib/visits"
 
@@ -118,7 +119,7 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
                 >
                   {/* Client */}
                   <td className="px-5 py-3">
-                    <div className="flex items-center gap-3">
+                    <Link href={`/clients/${row.clientId}`} className="flex items-center gap-3 group w-fit">
                       <div
                         className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold text-white"
                         style={{ background: "#3b82f6" }}
@@ -126,12 +127,12 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
                         {row.clientName.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-medium" style={{ color: "#020617" }}>{row.clientName}</p>
+                        <p className="font-medium group-hover:underline" style={{ color: "#020617" }}>{row.clientName}</p>
                         {row.clientPhone && (
                           <p className="text-xs" style={{ color: "#94a3b8" }}>{row.clientPhone}</p>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   </td>
 
                   {/* Time */}
