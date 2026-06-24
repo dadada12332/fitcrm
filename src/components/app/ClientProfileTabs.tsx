@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, SlidersHorizontal, Download, CalendarCheck, CreditCard, UserPlus, Snowflake } from "lucide-react"
+import { Search, SlidersHorizontal, Download, CalendarCheck, CreditCard, UserPlus, Snowflake, User, Clock } from "lucide-react"
 import {
   type ClientProfile,
   type ProfilePayment,
@@ -13,11 +13,11 @@ import {
 
 type TabKey = "profile" | "visits" | "payments" | "history"
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "profile", label: "Профиль" },
-  { key: "visits", label: "Посещения" },
-  { key: "payments", label: "Платежи" },
-  { key: "history", label: "История" },
+const TABS: { key: TabKey; label: string; icon: typeof User }[] = [
+  { key: "profile",  label: "Профиль",   icon: User },
+  { key: "visits",   label: "Посещения", icon: CalendarCheck },
+  { key: "payments", label: "Платежи",   icon: CreditCard },
+  { key: "history",  label: "История",   icon: Clock },
 ]
 
 function fmtSum(n: number) {
@@ -56,15 +56,17 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
       <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: "#f1f5f9" }}>
         {TABS.map((t) => {
           const active = t.key === tab
+          const Icon = t.icon
           return (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className="h-9 rounded-md text-sm font-medium transition-colors"
+              className="h-9 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
               style={active
                 ? { background: "white", color: "#020617", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }
                 : { background: "transparent", color: "#64748b" }}
             >
+              <Icon className="w-4 h-4 flex-shrink-0" />
               {t.label}
             </button>
           )

@@ -1,29 +1,150 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, X } from "lucide-react"
+import { Plus, X, ChevronDown, Calendar } from "lucide-react"
 import { createClientAction, type ClientFormState } from "@/app/(app)/clients/actions"
-import { Input } from "@/components/ui/input"
 
-export function AddClientButton() {
-  const [open, setOpen] = useState(false)
+export type MembershipOption = { id: string; name: string; price: number }
+
+/* ─── Masking helpers ─── */
+
+function phoneDigits(v: string) {
+  const d = v.replace(/\D/g, "")
+  return d.startsWith("998") ? d.slice(3).slice(0, 9) : d.slice(0, 9)
+}
+
+function displayPhone(d: string) {
+  if (!d) return ""
+  if (d.length <= 2) return `+998 (${d}`
+  if (d.length <= 5) return `+998 (${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 7) return `+998 (${d.slice(0, 2)}) ${d.slice(2, 5)}-${d.slice(5)}`
+  return `+998 (${d.slice(0, 2)}) ${d.slice(2, 5)}-${d.slice(5, 7)}-${d.slice(7, 9)}`
+}
+
+function dateDigits(v: string) {
+  return v.replace(/\D/g, "").slice(0, 8)
+}
+
+function displayDate(d: string) {
+  if (!d) return ""
+  if (d.length <= 2) return d
+  if (d.length <= 4) return `${d.slice(0, 2)}.${d.slice(2)}`
+  return `${d.slice(0, 2)}.${d.slice(2, 4)}.${d.slice(4)}`
+}
+
+function rawDateISO(d: string): string {
+  if (d.length !== 8) return ""
+  return `${d.slice(4, 8)}-${d.slice(2, 4)}-${d.slice(0, 2)}`
+}
+
+/* ─── Field helpers ─── */
+
+const BASE_INPUT = "h-10 w-full rounded-md text-sm outline-none px-3"
+const INPUT_STYLE = { background: "white", border: "1px solid #e2e8f0", color: "#020617" }
+const PLACEHOLDER_COLOR = "#64748b"
+const SELECT_CLS = `${BASE_INPUT} appearance-none pr-8`
+
+function Label({ children, required }: { children: string; required?: boolean }) {
+  return (
+    <div className="flex items-center gap-0.5 text-sm font-medium mb-1.5" style={{ color: "#020617" }}>
+      {children}
+      {required && <span style={{ color: "#ef4444" }}>*</span>}
+    </div>
+  )
+}
+
+function StyledInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={BASE_INPUT}
+      style={INPUT_STYLE}
+    />
+  )
+}
+
+function SelectWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      {children}
+      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: PLACEHOLDER_COLOR }} />
+    </div>
+  )
+}
+
+function SectionTitle({ children }: { children: string }) {
+  return <p className="text-base font-medium" style={{ color: "#020617" }}>{children}</p>
+}
+
+const SOURCE_OPTIONS = [
+  { value: "instagram", label: "Instagram" },
+  { value: "facebook",  label: "Facebook / VK" },
+  { value: "referral",  label: "Рекомендация" },
+  { value: "outdoor",   label: "Наружная реклама" },
+  { value: "other",     label: "Другое" },
+]
+
+const GENDER_OPTIONS = [
+  { value: "male",   label: "Мужской" },
+  { value: "female", label: "Женский" },
+]
+
+/* ─── Main component ─── */
+
+export function AddClientButton({ memberships }: { memberships: MembershipOption[] }) {
   const router = useRouter()
-  const [state, formAction, pending] = useActionState<ClientFormState, FormData>(createClientAction, {})
+  const [open, setOpen] = useState(false)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (state.ok) {
-      setOpen(false)
-      router.refresh()
-    }
-  }, [state, router])
+  // Form state
+  const [firstName, setFirstName]   = useState("")
+  const [lastName,  setLastName]    = useState("")
+  const [phoneDig,  setPhoneDig]    = useState("")
+  const [dateDig,   setDateDig]     = useState("")
+  const [gender,    setGender]      = useState("")
+  const [email,     setEmail]       = useState("")
+  const [membershipId, setMembershipId] = useState("")
+  const [source,    setSource]      = useState("")
+  const [notes,     setNotes]       = useState("")
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false) }
-    document.addEventListener("keydown", onKey)
-    return () => document.removeEventListener("keydown", onKey)
-  }, [open])
+  const SINGLE = { id: "single", name: "Разовый (1 занятие)", price: 0 }
+  const allMemberships = [SINGLE, ...memberships]
+
+  function reset() {
+    setFirstName(""); setLastName(""); setPhoneDig(""); setDateDig("")
+    setGender(""); setEmail(""); setMembershipId(""); setSource(""); setNotes("")
+    setError(null)
+  }
+
+  function close() { setOpen(false); reset() }
+
+  function handleSubmit() {
+    if (!firstName.trim()) { setError("Введите имя клиента"); return }
+    if (phoneDig.length !== 9) { setError("Введите корректный номер: +998 (XX) XXX-XX-XX"); return }
+
+    const fd = new FormData()
+    fd.set("first_name", firstName.trim())
+    fd.set("last_name", lastName.trim())
+    fd.set("phone", `+998${phoneDig}`)
+    fd.set("birth_date", rawDateISO(dateDig))
+    fd.set("gender", gender)
+    fd.set("email", email.trim())
+    fd.set("membership_id", membershipId)
+    fd.set("source", source)
+    fd.set("notes", notes.trim())
+
+    startTransition(async () => {
+      const res: ClientFormState = await createClientAction({}, fd)
+      if (res.error) {
+        setError(res.error)
+      } else {
+        close()
+        router.refresh()
+      }
+    })
+  }
 
   return (
     <>
@@ -37,50 +158,246 @@ export function AddClientButton() {
       </button>
 
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(2,6,23,0.4)" }}
-          onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false) }}
-        >
-          <div className="w-full max-w-md rounded-2xl p-6" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-medium" style={{ color: "#020617" }}>Новый клиент</h3>
-              <button onClick={() => setOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100" style={{ color: "#64748b" }}>
+        <div className="fixed inset-0 z-40" style={{ background: "rgba(2,6,23,0.4)" }}>
+          {/* Click-outside to close */}
+          <div className="absolute inset-0" onClick={close} />
+
+          {/* Drawer panel */}
+          <div
+            className="absolute top-0 right-0 bottom-0 w-full max-w-[560px] flex flex-col"
+            style={{ background: "white", borderLeft: "1px solid #e2e8f0", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ borderBottom: "1px solid #e2e8f0" }}>
+              <h3 className="text-2xl font-semibold" style={{ color: "#020617", letterSpacing: "-0.144px" }}>
+                Добавление клиента
+              </h3>
+              <button
+                onClick={close}
+                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
+                style={{ background: "#f1f5f9", color: "#64748b" }}
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form action={formAction} className="flex flex-col gap-4">
-              <Field label="ФИО"><Input name="full_name" placeholder="Иван Иванов" required autoFocus /></Field>
-              <Field label="Телефон"><Input name="phone" placeholder="+998 90 123-45-67" /></Field>
-              <Field label="Теги"><Input name="tags" placeholder="VIP, новый (через запятую)" /></Field>
-              <Field label="Заметка"><Input name="notes" placeholder="Комментарий" /></Field>
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="flex flex-col gap-6 px-6 py-5">
 
-              {state.error && <p className="text-sm" style={{ color: "#dc2626" }}>{state.error}</p>}
+                {/* ── Личные данные ── */}
+                <div className="flex flex-col gap-4">
+                  <SectionTitle>Личные данные</SectionTitle>
 
-              <div className="flex justify-end gap-2 mt-2">
-                <button type="button" onClick={() => setOpen(false)}
-                  className="h-10 px-4 rounded-md text-sm font-medium" style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}>
-                  Отмена
-                </button>
-                <button type="submit" disabled={pending}
-                  className="h-10 px-5 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-60" style={{ background: "#0f172a" }}>
-                  {pending ? "Сохранение…" : "Добавить"}
-                </button>
+                  {/* Имя */}
+                  <div>
+                    <Label required>Имя</Label>
+                    <StyledInput
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Введите имя"
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Фамилия */}
+                  <div>
+                    <Label required>Фамилия</Label>
+                    <StyledInput
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Введите фамилию"
+                    />
+                  </div>
+
+                  {/* Номер телефона */}
+                  <div>
+                    <Label required>Номер телефона</Label>
+                    <input
+                      className={BASE_INPUT}
+                      style={INPUT_STYLE}
+                      value={displayPhone(phoneDig)}
+                      placeholder="+998 (__) ___-__-__"
+                      onChange={(e) => setPhoneDig(phoneDigits(e.target.value))}
+                      inputMode="numeric"
+                    />
+                  </div>
+
+                  {/* Дата рождения + Пол */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label required>Дата рождения</Label>
+                      <div className="relative">
+                        <input
+                          className={BASE_INPUT}
+                          style={INPUT_STYLE}
+                          value={displayDate(dateDig)}
+                          placeholder="дд.мм.гггг"
+                          onChange={(e) => setDateDig(dateDigits(e.target.value))}
+                          inputMode="numeric"
+                        />
+                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: PLACEHOLDER_COLOR }} />
+                      </div>
+                    </div>
+                    <div>
+                      <Label required>Пол</Label>
+                      <SelectWrapper>
+                        <select
+                          className={SELECT_CLS}
+                          style={{ ...INPUT_STYLE, color: gender ? "#020617" : PLACEHOLDER_COLOR }}
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value)}
+                        >
+                          <option value="">Выберите пол</option>
+                          {GENDER_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                          ))}
+                        </select>
+                      </SelectWrapper>
+                    </div>
+                  </div>
+
+                  {/* E-mail */}
+                  <div>
+                    <Label>E-mail</Label>
+                    <StyledInput
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="example@gmail.com"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ borderTop: "1px solid #f1f5f9" }} />
+
+                {/* ── Абонемент и тренировки ── */}
+                <div className="flex flex-col gap-4">
+                  <SectionTitle>Абонемент и тренировки</SectionTitle>
+
+                  {/* Абонемент */}
+                  <div>
+                    <Label required>Абонемент</Label>
+                    <SelectWrapper>
+                      <select
+                        className={SELECT_CLS}
+                        style={{ ...INPUT_STYLE, color: membershipId ? "#020617" : PLACEHOLDER_COLOR }}
+                        value={membershipId}
+                        onChange={(e) => setMembershipId(e.target.value)}
+                      >
+                        <option value="">Выберите абонемент</option>
+                        {allMemberships.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name}{m.price > 0 ? ` — ${m.price.toLocaleString("ru-RU")} сум` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </SelectWrapper>
+                  </div>
+
+                  {/* Персональный тренер — placeholder */}
+                  <div>
+                    <Label>Персональный тренер</Label>
+                    <SelectWrapper>
+                      <select
+                        className={SELECT_CLS}
+                        style={{ ...INPUT_STYLE, color: PLACEHOLDER_COLOR }}
+                        disabled
+                      >
+                        <option value="">Выберите тренера</option>
+                      </select>
+                    </SelectWrapper>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: "1px solid #f1f5f9" }} />
+
+                {/* ── Дополнительная информация ── */}
+                <div className="flex flex-col gap-4">
+                  <SectionTitle>Дополнительная информация</SectionTitle>
+
+                  {/* Источник */}
+                  <div>
+                    <Label>Источник</Label>
+                    <SelectWrapper>
+                      <select
+                        className={SELECT_CLS}
+                        style={{ ...INPUT_STYLE, color: source ? "#020617" : PLACEHOLDER_COLOR }}
+                        value={source}
+                        onChange={(e) => setSource(e.target.value)}
+                      >
+                        <option value="">Выберите источник</option>
+                        {SOURCE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </SelectWrapper>
+                  </div>
+
+                  {/* Комментарий */}
+                  <div>
+                    <Label>Комментарий</Label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Введите комментарий..."
+                      rows={4}
+                      className="w-full rounded-md px-3 py-2.5 text-sm outline-none resize-none"
+                      style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+                    />
+                  </div>
+                </div>
+
               </div>
-            </form>
+            </div>
+
+            {/* Footer */}
+            <div className="shrink-0 px-4 py-4 flex gap-3" style={{ borderTop: "1px solid #e2e8f0" }}>
+              {error && (
+                <p className="text-sm w-full" style={{ color: "#dc2626" }}>{error}</p>
+              )}
+              {!error && (
+                <>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={pending}
+                    className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                    style={{ background: "#0f172a" }}
+                  >
+                    {pending ? "Сохранение..." : "Сохранить"}
+                  </button>
+                  <button
+                    onClick={close}
+                    className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-slate-50"
+                    style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+                  >
+                    Отмена
+                  </button>
+                </>
+              )}
+              {error && (
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setError(null)}
+                    className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-slate-50"
+                    style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+                  >
+                    Назад
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={pending}
+                    className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                    style={{ background: "#0f172a" }}
+                  >
+                    Повторить
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
     </>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="block text-xs mb-2" style={{ color: "#64748b" }}>{label}</label>
-      {children}
-    </div>
   )
 }

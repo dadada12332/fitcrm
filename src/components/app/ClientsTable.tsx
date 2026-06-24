@@ -15,28 +15,31 @@ const statusMeta: Record<ClientStatus, { label: string; bg: string; color: strin
   none:    { label: "Нет",       bg: "#f1f5f9", color: "#64748b" },
 }
 
-function fmtBalance(b: number | null) {
-  if (b === null) return "—"
-  return b.toLocaleString("ru-RU")
+const genderLabel: Record<string, string> = { male: "Мужской", female: "Женский" }
+
+function fmtBirthDate(iso: string | null): string {
+  if (!iso) return "—"
+  const [y, m, d] = iso.split("-")
+  return `${d}.${m}.${y}`
 }
 
 function inDaysBucket(days: number | null, bucket: string): boolean {
   if (days === null) return false
   switch (bucket) {
-    case "0-3": return days >= 0 && days <= 3
-    case "4-7": return days >= 4 && days <= 7
+    case "0-3":  return days >= 0 && days <= 3
+    case "4-7":  return days >= 4 && days <= 7
     case "8-14": return days >= 8 && days <= 14
-    case "14+": return days > 14
-    default: return false
+    case "14+":  return days > 14
+    default:     return false
   }
 }
 
 function matchStatus(r: ClientRow, sel: Set<string>): boolean {
   for (const key of sel) {
-    if (key === "active" && r.status === "active") return true
+    if (key === "active"   && r.status === "active") return true
     if (key === "expiring" && r.status === "active" && r.daysLeft !== null && r.daysLeft <= 7) return true
-    if (key === "expired" && r.status === "expired") return true
-    if (key === "frozen" && r.status === "frozen") return true
+    if (key === "expired"  && r.status === "expired") return true
+    if (key === "frozen"   && r.status === "frozen") return true
   }
   return false
 }
@@ -73,10 +76,7 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
   }
 
   function clearFilters() {
-    setStatusSet(new Set())
-    setTypeSet(new Set())
-    setDaysSet(new Set())
-    setPage(0)
+    setStatusSet(new Set()); setTypeSet(new Set()); setDaysSet(new Set()); setPage(0)
   }
 
   const filtered = useMemo(() => {
@@ -94,11 +94,11 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
   const current = Math.min(page, pageCount - 1)
   const pageRows = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
 
-  const cols = "minmax(180px,1.1fr) minmax(160px,1fr) minmax(120px,1fr) minmax(140px,1fr) minmax(110px,0.9fr) minmax(120px,1fr) minmax(120px,0.9fr)"
+  const cols = "minmax(160px,1.1fr) minmax(160px,1fr) minmax(110px,0.9fr) minmax(110px,0.9fr) minmax(140px,1fr) minmax(120px,1fr) minmax(110px,0.9fr)"
 
   return (
     <div className="rounded-lg" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-      {/* Header + toolbar */}
+      {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 px-6 py-5">
         <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>Список клиентов</span>
         <div className="flex items-center gap-2">
@@ -134,19 +134,19 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
         </div>
       </div>
 
-      {/* Table header */}
+      {/* Header row */}
       <div className="grid items-center px-6 h-12 text-sm"
         style={{ gridTemplateColumns: cols, borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", color: "#64748b" }}>
         <span>Клиент</span>
-        <span>Номер телефона</span>
+        <span>Телефон</span>
+        <span>Дата рожд.</span>
+        <span>Пол</span>
         <span>Абонемент</span>
-        <span>Дата окончания</span>
-        <span>Остаток</span>
-        <span>Баланс</span>
+        <span>Источник</span>
         <span className="text-right">Статус</span>
       </div>
 
-      {/* Rows */}
+      {/* Data rows */}
       {pageRows.length === 0 ? (
         <div className="px-6 py-12 text-sm text-center" style={{ color: "#94a3b8" }}>Клиенты не найдены</div>
       ) : (
@@ -161,10 +161,10 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
             >
               <span className="font-medium truncate transition-colors text-[#020617] group-hover:text-[#2563eb]">{r.name}</span>
               <span style={{ color: "#475569" }}>{r.phone ?? "—"}</span>
+              <span style={{ color: "#475569" }}>{fmtBirthDate(r.birthDate)}</span>
+              <span style={{ color: "#475569" }}>{r.gender ? genderLabel[r.gender] ?? "—" : "—"}</span>
               <span style={{ color: "#475569" }}>{r.membership ?? "—"}</span>
-              <span style={{ color: "#475569" }}>{r.expiresAt ?? "—"}</span>
-              <span style={{ color: "#475569" }}>{r.daysLeft !== null ? `${r.daysLeft} дней` : "—"}</span>
-              <span style={{ color: r.balance !== null && r.balance < 0 ? "#dc2626" : "#475569" }}>{fmtBalance(r.balance)}</span>
+              <span style={{ color: "#475569" }}>{r.source ?? "—"}</span>
               <span className="flex justify-end">
                 <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: sm.bg, color: sm.color }}>
                   {sm.label}
@@ -175,19 +175,17 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
         })
       )}
 
-      {/* Footer / pagination */}
+      {/* Pagination */}
       <div className="flex items-center justify-between px-6 py-4">
-        <span className="text-sm" style={{ color: "#94a3b8" }}>
-          {filtered.length} клиентов
-        </span>
+        <span className="text-sm" style={{ color: "#94a3b8" }}>{filtered.length} клиентов</span>
         <div className="flex items-center gap-4">
           <span className="text-sm" style={{ color: "#475569" }}>Стр {current + 1} из {pageCount}</span>
           <div className="flex items-center gap-1">
             {[
-              { icon: ChevronsLeft, to: 0, dis: current === 0 },
-              { icon: ChevronLeft, to: current - 1, dis: current === 0 },
-              { icon: ChevronRight, to: current + 1, dis: current >= pageCount - 1 },
-              { icon: ChevronsRight, to: pageCount - 1, dis: current >= pageCount - 1 },
+              { icon: ChevronsLeft,  to: 0,              dis: current === 0 },
+              { icon: ChevronLeft,   to: current - 1,    dis: current === 0 },
+              { icon: ChevronRight,  to: current + 1,    dis: current >= pageCount - 1 },
+              { icon: ChevronsRight, to: pageCount - 1,  dis: current >= pageCount - 1 },
             ].map(({ icon: Icon, to, dis }, i) => (
               <button
                 key={i}

@@ -10,37 +10,119 @@ export async function createClientAction(
   _prev: ClientFormState,
   formData: FormData,
 ): Promise<ClientFormState> {
-  const fullName = String(formData.get("full_name") ?? "").trim()
-  const phone = String(formData.get("phone") ?? "").trim()
-  const notes = String(formData.get("notes") ?? "").trim()
-  const tagsRaw = String(formData.get("tags") ?? "").trim()
+  const firstName  = String(formData.get("first_name") ?? "").trim()
+  const lastName   = String(formData.get("last_name") ?? "").trim()
+  const phone      = String(formData.get("phone") ?? "").trim()
+  const birthDate  = String(formData.get("birth_date") ?? "").trim()
+  const gender     = String(formData.get("gender") ?? "").trim()
+  const email      = String(formData.get("email") ?? "").trim()
+  const membershipId = String(formData.get("membership_id") ?? "").trim()
+  const source     = String(formData.get("source") ?? "").trim()
+  const notes      = String(formData.get("notes") ?? "").trim()
 
-  if (!fullName) {
-    return { error: "Введите ФИО клиента" }
-  }
+  if (!firstName) return { error: "Введите имя клиента" }
 
   const club = await getCurrentClub()
-  if (!club) {
-    return { error: "Клуб не найден" }
-  }
-
-  const tags = tagsRaw
-    ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
-    : []
+  if (!club) return { error: "Клуб не найден" }
 
   const supabase = await createClient()
-  const { error } = await supabase.from("clients").insert({
-    club_id: club.clubId,
-    full_name: fullName,
-    phone: phone || null,
-    notes: notes || null,
-    tags,
-  })
 
-  if (error) {
-    return { error: error.message }
+  const { data: newClient, error: clientErr } = await supabase
+    .from("clients")
+    .insert({
+      club_id: club.clubId,
+      full_name: lastName ? `${firstName} ${lastName}` : firstName,
+      phone: phone || null,
+      gender: gender || null,
+      birth_date: birthDate || null,
+      email: email || null,
+      source: source || null,
+      notes: notes || null,
+      tags: [],
+    })
+    .select("id")
+    .single()
+
+  if (clientErr) return { error: clientErr.message }
+
+  const clientId = newClient.id as string
+
+  if (membershipId) {
+    const today = new Date()
+    const todayStr = today.toISOString().split("T")[0]
+
+    if (membershipId === "single") {
+      const tomorrow = new Date(today.getTime() + 86_400_000)
+      await supabase.from("subscriptions").insert({
+        club_id: club.clubId,
+        client_id: clientId,
+        membership_id: null,
+        visits_total: 1,
+        visits_used: 0,
+        starts_at: todayStr,
+        expires_at: tomorrow.toISOString().split("T")[0],
+        status: "active",
+      })
+    } else {
+      const { data: mem } = await supabase
+        .from("memberships")
+        .select("duration_days, visits_limit")
+        .eq("id", membershipId)
+        .single()
+
+      if (mem) {
+        const expires = new Date(today.getTime() + (mem.duration_days as number) * 86_400_000)
+        await supabase.from("subscriptions").insert({
+          club_id: club.clubId,
+          client_id: clientId,
+          membership_id: membershipId,
+          visits_total: (mem.visits_limit as number | null) ?? null,
+          visits_used: 0,
+          starts_at: todayStr,
+          expires_at: expires.toISOString().split("T")[0],
+          status: "active",
+        })
+      }
+    }
   }
 
   revalidatePath("/clients")
+  return { ok: true }
+}
+
+export async function deleteClientAction(clientId: string): Promise<{ error?: string; ok?: boolean }> {
+  const supabase = await createClient()
+  const { error } = await supabase.from("clients").delete().eq("id", clientId)
+  if (error) return { error: error.message }
+  revalidatePath("/clients")
+  return { ok: true }
+}
+
+export async function toggleFreezeAction(clientId: string, currentStatus: string): Promise<{ error?: string; ok?: boolean }> {
+  const supabase = await createClient()
+
+  const targetStatus = currentStatus === "frozen" ? "active" : "frozen"
+  const fromStatus = currentStatus === "frozen" ? "frozen" : "active"
+
+  const { data: subs, error: subErr } = await supabase
+    .from("subscriptions")
+    .select("id")
+    .eq("client_id", clientId)
+    .eq("status", fromStatus)
+    .order("created_at", { ascending: false })
+    .limit(1)
+
+  if (subErr) return { error: subErr.message }
+  if (!subs?.length) return { error: "Активный абонемент не найден" }
+
+  const { error } = await supabase
+    .from("subscriptions")
+    .update({ status: targetStatus })
+    .eq("id", subs[0].id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath("/clients")
+  revalidatePath(`/clients/${clientId}`)
   return { ok: true }
 }

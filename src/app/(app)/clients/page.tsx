@@ -1,13 +1,17 @@
 import { Download } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getClientsData } from "@/lib/clients"
+import { getActiveMemberships } from "@/lib/memberships"
 import { ClientsStats } from "@/components/app/ClientsStats"
 import { ClientsTable } from "@/components/app/ClientsTable"
 import { AddClientButton } from "@/components/app/AddClientButton"
 
 export default async function ClientsPage() {
   const supabase = await createClient()
-  const { rows, stats } = await getClientsData(supabase)
+  const [{ rows, stats }, memberships] = await Promise.all([
+    getClientsData(supabase),
+    getActiveMemberships(supabase),
+  ])
 
   return (
     <div className="space-y-4">
@@ -27,7 +31,7 @@ export default async function ClientsPage() {
             <Download className="w-4 h-4" />
             Экспорт в excel
           </button>
-          <AddClientButton />
+          <AddClientButton memberships={memberships} />
         </div>
       </div>
 

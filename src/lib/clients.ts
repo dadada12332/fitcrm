@@ -6,10 +6,12 @@ export type ClientRow = {
   id: string
   name: string
   phone: string | null
+  birthDate: string | null
+  gender: string | null
+  source: string | null
   membership: string | null
   expiresAt: string | null
   daysLeft: number | null
-  balance: number | null // нет модели баланса — заглушка
   status: ClientStatus
 }
 
@@ -30,7 +32,6 @@ type SubRow = {
 
 function pickSubscription(subs: SubRow[]): SubRow | null {
   if (!subs?.length) return null
-  // приоритет: active → frozen → последняя по дате окончания
   const active = subs.find((s) => s.status === "active")
   if (active) return active
   const frozen = subs.find((s) => s.status === "frozen")
@@ -53,13 +54,16 @@ function daysUntil(dateStr: string | null): number | null {
 export async function getClientsData(supabase: SupabaseClient): Promise<ClientsData> {
   const { data } = await supabase
     .from("clients")
-    .select("id, full_name, phone, created_at, subscriptions(status, expires_at, memberships(name))")
+    .select("id, full_name, phone, gender, birth_date, source, created_at, subscriptions(status, expires_at, memberships(name))")
     .order("created_at", { ascending: false })
 
   const clients = (data ?? []) as {
     id: string
     full_name: string
     phone: string | null
+    gender: string | null
+    birth_date: string | null
+    source: string | null
     subscriptions: SubRow[] | null
   }[]
 
@@ -71,10 +75,12 @@ export async function getClientsData(supabase: SupabaseClient): Promise<ClientsD
       id: c.id,
       name: c.full_name,
       phone: c.phone,
+      birthDate: c.birth_date ?? null,
+      gender: c.gender ?? null,
+      source: c.source ?? null,
       membership: membershipName(sub?.memberships ?? null),
       expiresAt,
       daysLeft: status === "active" || status === "frozen" ? daysUntil(expiresAt) : null,
-      balance: null,
       status,
     }
   })

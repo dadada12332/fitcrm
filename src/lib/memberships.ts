@@ -51,6 +51,16 @@ export function pluralDays(n: number): string {
   return `${n} дней`
 }
 
+export async function getActiveMemberships(supabase: SupabaseClient): Promise<{ id: string; name: string; price: number }[]> {
+  const { data } = await supabase
+    .from("memberships")
+    .select("id, name, price")
+    .eq("is_active", true)
+    .eq("archived", false)
+    .order("created_at", { ascending: false })
+  return (data ?? []).map((m) => ({ id: m.id as string, name: m.name as string, price: Number(m.price ?? 0) }))
+}
+
 export async function getMembershipsData(supabase: SupabaseClient): Promise<MembershipsData> {
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)

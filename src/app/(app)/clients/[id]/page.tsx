@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, Phone } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getClientProfile } from "@/lib/client-profile"
+import { getActiveMemberships } from "@/lib/memberships"
 import { ClientProfileCard } from "@/components/app/ClientProfileCard"
 import { ClientProfileTabs } from "@/components/app/ClientProfileTabs"
 import { AddClientButton } from "@/components/app/AddClientButton"
@@ -10,7 +11,10 @@ import { AddClientButton } from "@/components/app/AddClientButton"
 export default async function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const client = await getClientProfile(supabase, id)
+  const [client, memberships] = await Promise.all([
+    getClientProfile(supabase, id),
+    getActiveMemberships(supabase),
+  ])
 
   if (!client) notFound()
 
@@ -36,13 +40,13 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             )}
           </p>
         </div>
-        <AddClientButton />
+        <AddClientButton memberships={memberships} />
       </div>
 
       {/* Body */}
-      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-5 items-start">
-        <ClientProfileCard client={client} />
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-5 items-start">
         <ClientProfileTabs client={client} />
+        <ClientProfileCard client={client} />
       </div>
     </div>
   )
