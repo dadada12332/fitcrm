@@ -141,7 +141,7 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
                   style={{ border: "1px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                 >
                   {/* Menu floats at card level so dropdown isn't clipped by header overflow-hidden */}
-                  <div className="absolute top-3 right-3 z-10">
+                  <div className="absolute top-3 right-3 z-20 flex">
                     <MembershipRowMenu row={row} onDark />
                   </div>
 
