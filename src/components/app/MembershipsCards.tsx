@@ -9,16 +9,15 @@ function fmtSum(n: number) {
   return n.toLocaleString("ru-RU")
 }
 
-// Muted/pastel gradient palettes
 const CARD_PALETTES = [
-  { from: "#4a6fa5", to: "#6b9fd4", accent: "#c8ddf0" },  // slate blue
-  { from: "#3d7a5e", to: "#5fa882", accent: "#b8dece" },  // muted teal
-  { from: "#6b5b8e", to: "#9278b8", accent: "#d0c4e8" },  // muted violet
-  { from: "#9e7b3a", to: "#c4a060", accent: "#ead9b0" },  // muted amber
-  { from: "#8e4a5a", to: "#b87080", accent: "#e8c4cc" },  // muted rose
-  { from: "#3a7a8e", to: "#60a8c0", accent: "#b8dce8" },  // muted cyan
-  { from: "#5a6a7a", to: "#7a8e9e", accent: "#c0ccd8" },  // slate
-  { from: "#4a7a5a", to: "#6a9e7a", accent: "#b8d8c4" },  // muted green
+  { from: "#2563eb", to: "#3b82f6", accent: "#bfdbfe" },  // blue
+  { from: "#059669", to: "#10b981", accent: "#a7f3d0" },  // emerald
+  { from: "#7c3aed", to: "#8b5cf6", accent: "#ddd6fe" },  // violet
+  { from: "#d97706", to: "#f59e0b", accent: "#fde68a" },  // amber
+  { from: "#dc2626", to: "#ef4444", accent: "#fecaca" },  // red
+  { from: "#0891b2", to: "#06b6d4", accent: "#a5f3fc" },  // cyan
+  { from: "#4338ca", to: "#6366f1", accent: "#c7d2fe" },  // indigo
+  { from: "#0f766e", to: "#14b8a6", accent: "#99f6e4" },  // teal
 ]
 
 type Tab = "active" | "archived"
