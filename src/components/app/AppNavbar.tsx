@@ -312,20 +312,20 @@ export function AppNavbar({ clubName, email }: Props) {
             {/* Search button */}
             <button
               onClick={() => { setSearchOpen(true); setNotifOpen(false); setProfileOpen(false) }}
-              className="h-8 px-2.5 flex items-center gap-1.5 rounded-md text-xs transition-colors hover:bg-secondary"
+              className="h-9 px-4 flex items-center gap-2 rounded-md text-xs transition-colors hover:bg-secondary"
               style={{ color: "#64748b", border: "1px solid var(--border)" }}
               title="Поиск (⌘K)"
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-4 h-4" />
               <span className="hidden sm:block">Поиск</span>
-              <span className="hidden sm:block text-xs px-1 py-0.5 rounded" style={{ background: "#f1f5f9", color: "#94a3b8", fontSize: 10 }}>⌘K</span>
+              <span className="hidden sm:block text-xs px-1.5 py-0.5 rounded" style={{ background: "#f1f5f9", color: "#94a3b8", fontSize: 10 }}>⌘K</span>
             </button>
 
             {/* Bell */}
             <div ref={notifRef} className="relative">
               <button
                 onClick={() => { setNotifOpen((v) => !v); setProfileOpen(false) }}
-                className="w-9 h-9 flex items-center justify-center rounded-md transition-colors hover:bg-secondary relative"
+                className="w-10 h-9 flex items-center justify-center rounded-md transition-colors hover:bg-secondary relative"
                 style={{ color: "#64748b" }}
                 aria-label="Уведомления"
               >
