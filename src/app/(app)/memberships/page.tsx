@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getMembershipsData } from "@/lib/memberships"
 import { MembershipsStats } from "@/components/app/MembershipsStats"
-import { MembershipsTable } from "@/components/app/MembershipsTable"
+import { MembershipsCards } from "@/components/app/MembershipsCards"
 import { AddMembershipButton } from "@/components/app/AddMembershipButton"
 
 export default async function MembershipsPage() {
@@ -24,8 +24,8 @@ export default async function MembershipsPage() {
       {/* Stat tiles */}
       <MembershipsStats stats={stats} />
 
-      {/* Table */}
-      <MembershipsTable rows={rows} />
+      {/* Cards */}
+      <MembershipsCards rows={rows} />
     </div>
   )
 }
