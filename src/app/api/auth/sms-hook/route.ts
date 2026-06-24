@@ -12,10 +12,13 @@ export async function POST(req: NextRequest) {
     }
 
     const text_body = await req.text()
-    let body: { phone?: string; otp?: string } = {}
+    let body: { phone?: string; otp?: string; user?: { phone?: string }; sms?: { otp?: string } } = {}
     try { body = JSON.parse(text_body) } catch { /* ignore */ }
 
-    const { phone, otp } = body
+    // Supabase hook format: { user: { phone }, sms: { otp } }
+    // Fallback to flat format for direct testing: { phone, otp }
+    const phone = body.user?.phone ?? body.phone
+    const otp = body.sms?.otp ?? body.otp
     if (!phone || !otp) {
       return NextResponse.json({ error: "Missing phone or otp" }, { status: 400 })
     }
