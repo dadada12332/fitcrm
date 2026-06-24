@@ -12,8 +12,10 @@ export function AppShell({ clubName, email, children }: Props) {
   return (
     <div className="min-h-screen" style={{ background: "#f8fafc" }}>
       <AppNavbar clubName={clubName} email={email} />
-      <main className="pt-[60px] p-4 md:p-6">
-        {children}
+      <main style={{ paddingTop: 60 }}>
+        <div className="p-4 md:p-6">
+          {children}
+        </div>
       </main>
     </div>
   )
