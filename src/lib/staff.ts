@@ -92,14 +92,26 @@ export async function getStaffKPI(supabase: SupabaseClient): Promise<StaffKPI> {
 
 export async function getStaffList(supabase: SupabaseClient): Promise<StaffRow[]> {
   const [staffRes, visitsRes] = await Promise.all([
-    supabase.from("staff").select("id, user_id, role, salary, is_active, settings, users(id, email, full_name)"),
+    supabase.from("staff").select("id, user_id, role, salary, is_active, settings"),
     supabase.from("visits").select("staff_id, client_id").not("staff_id", "is", null),
   ])
 
-  const visits: any[] = visitsRes.data ?? []
+  const staffRows: any[] = staffRes.data ?? []
+  const visits: any[]    = visitsRes.data ?? []
 
-  return (staffRes.data ?? []).map((s: any) => {
-    const u = Array.isArray(s.users) ? s.users[0] : s.users
+  // fetch user info separately to avoid RLS join issues
+  const userIds = [...new Set(staffRows.map((s: any) => s.user_id as string))]
+  const usersMap = new Map<string, { email: string; full_name: string | null }>()
+  if (userIds.length > 0) {
+    const { data: usersData } = await supabase
+      .from("users")
+      .select("id, email, full_name")
+      .in("id", userIds)
+    for (const u of usersData ?? []) usersMap.set(u.id, u)
+  }
+
+  return staffRows.map((s: any) => {
+    const u        = usersMap.get(s.user_id)
     const settings: StaffSettings = (s.settings as StaffSettings) ?? {}
     const myVisits  = visits.filter((v: any) => v.staff_id === s.id)
     const clientIds = [...new Set(myVisits.map((v: any) => v.client_id as string))]
@@ -122,8 +134,7 @@ export async function getStaffList(supabase: SupabaseClient): Promise<StaffRow[]
 
 export async function getStaffMember(supabase: SupabaseClient, id: string): Promise<StaffDetail | null> {
   const [staffRes, visitsRes, schedRes] = await Promise.all([
-    supabase.from("staff").select("id, user_id, role, salary, is_active, settings, users(id, email, full_name)")
-      .eq("id", id).single(),
+    supabase.from("staff").select("id, user_id, role, salary, is_active, settings").eq("id", id).single(),
     supabase.from("visits").select("client_id, created_at, subscription_id, subscriptions(membership_id, memberships(name), status)")
       .eq("staff_id", id),
     supabase.from("schedules").select("id, title, day_of_week, start_time, end_time").eq("staff_id", id).eq("is_active", true),
@@ -132,7 +143,9 @@ export async function getStaffMember(supabase: SupabaseClient, id: string): Prom
   const s = staffRes.data
   if (!s) return null
 
-  const u        = Array.isArray(s.users) ? s.users[0] : s.users
+  // fetch user info separately
+  const { data: userData } = await supabase.from("users").select("id, email, full_name").eq("id", s.user_id).single()
+  const u        = userData
   const settings = (s.settings as StaffSettings) ?? {}
   const visits: any[] = visitsRes.data ?? []
 
