@@ -23,18 +23,25 @@ export default async function ClubSettingsPage() {
       .single(),
     supabase
       .from("staff")
-      .select("id, role, users(id, email, raw_user_meta_data)")
+      .select("id, user_id, role")
       .eq("club_id", staffRow.club_id),
   ])
 
   const club = clubRes.data
   if (!club) redirect("/dashboard")
 
+  // fetch user info separately to avoid RLS join issues
+  const userIds = (staffListRes.data ?? []).map((s: any) => s.user_id as string)
+  const { data: usersData } = userIds.length > 0
+    ? await supabase.from("users").select("id, email, full_name").in("id", userIds)
+    : { data: [] }
+  const usersMap = new Map((usersData ?? []).map((u: any) => [u.id, u]))
+
   const staffList = (staffListRes.data ?? []).map((s: any) => {
-    const u = Array.isArray(s.users) ? s.users[0] : s.users
+    const u = usersMap.get(s.user_id) as any
     return {
       id: s.id,
-      name: u?.raw_user_meta_data?.full_name ?? u?.email?.split("@")[0] ?? "—",
+      name: u?.full_name ?? u?.email?.split("@")[0] ?? "—",
       role: s.role,
       email: u?.email ?? "",
     }
