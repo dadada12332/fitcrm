@@ -5,7 +5,7 @@ import { Plus, Clock, Trash2, ChevronDown } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 
 export const inputCls = "h-11 w-full rounded-md px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#2563eb]"
-export const inputStyle = { background: "white", border: "1px solid #e2e8f0", color: "#020617" } as const
+export const inputStyle = { background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" } as const
 
 const WEEKDAYS = [
   { key: "mon", label: "Понедельник", short: "Пн" },
@@ -19,7 +19,7 @@ const WEEKDAYS = [
 
 export function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-sm font-medium mb-1.5" style={{ color: "#334155" }}>
+    <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>
       {children}{required && <span style={{ color: "#dc2626" }}> *</span>}
     </label>
   )
@@ -70,12 +70,12 @@ function PopoverField({ summary, children }: { summary: string; children: React.
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)}
         className={`${inputCls} flex items-center justify-between text-left`} style={inputStyle}>
-        <span className="truncate" style={{ color: empty ? "#94a3b8" : "#020617" }}>{summary}</span>
-        <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2" style={{ color: "#94a3b8" }} />
+        <span className="truncate" style={{ color: empty ? "var(--gray-muted)" : "var(--on-dark)" }}>{summary}</span>
+        <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2" style={{ color: "var(--gray-muted)" }} />
       </button>
       {open && (
         <div className="absolute left-0 top-full mt-1 z-50 w-full rounded-lg p-3 shadow-lg"
-          style={{ background: "white", border: "1px solid #e2e8f0" }}>
+          style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           {children}
         </div>
       )}
@@ -105,7 +105,7 @@ export function AvailableDays({ initial }: { initial?: string[] }) {
         {WEEKDAYS.map((d) => (
           <label key={d.key} className="flex items-center gap-3 py-2 cursor-pointer">
             <Checkbox checked={sel.has(d.key)} onCheckedChange={() => toggle(d.key)} />
-            <span className="text-sm" style={{ color: "#334155" }}>{d.label}</span>
+            <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{d.label}</span>
           </label>
         ))}
       </div>
@@ -145,14 +145,14 @@ export function AvailableTime({ initial }: { initial?: string[] }) {
       <div className="flex flex-col gap-2">
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-2">
-            <span className="text-sm" style={{ color: "#64748b" }}>с</span>
+            <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>с</span>
             <div className="relative flex-1">
-              <Clock className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "#94a3b8" }} />
+              <Clock className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
               <input type="time" value={it.from} onChange={(e) => update(i, { from: e.target.value })} className={timeCls} style={inputStyle} />
             </div>
-            <span className="text-sm" style={{ color: "#64748b" }}>до</span>
+            <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>до</span>
             <div className="relative flex-1">
-              <Clock className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "#94a3b8" }} />
+              <Clock className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
               <input type="time" value={it.to} onChange={(e) => update(i, { to: e.target.value })} className={timeCls} style={inputStyle} />
             </div>
             <button type="button" onClick={() => remove(i)}
@@ -162,8 +162,8 @@ export function AvailableTime({ initial }: { initial?: string[] }) {
           </div>
         ))}
         <button type="button" onClick={add}
-          className="h-10 px-3 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-slate-50 self-start"
-          style={{ background: "white", border: "1px solid #e2e8f0", color: "#334155" }}>
+          className="h-10 px-3 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 self-start"
+          style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
           <Plus className="w-4 h-4" />Добавить интервал
         </button>
       </div>

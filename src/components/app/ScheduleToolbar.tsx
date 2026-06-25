@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { toISODate, type Room, type ScheduleView } from "@/lib/schedule"
 
 const inputCls = "h-9 rounded-md px-3 text-sm outline-none"
-const inputStyle = { background: "white", border: "1px solid #e2e8f0", color: "#020617" } as const
+const inputStyle = { background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" } as const
 
 const VIEWS: { key: ScheduleView; label: string }[] = [
   { key: "day", label: "День" },
@@ -43,31 +43,31 @@ export function ScheduleToolbar({
     : anchor.toLocaleDateString("ru-RU", { day: "2-digit", month: "long", year: "numeric" })
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg p-3" style={{ background: "white", border: "1px solid #e2e8f0" }}>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg p-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1">
-          <button onClick={() => shift(-1)} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-slate-50" style={{ border: "1px solid #e2e8f0", color: "#475569" }}>
+          <button onClick={() => shift(-1)} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button onClick={() => push({ date: toISODate(new Date()) })} className="h-9 px-3 rounded-md text-sm font-medium hover:bg-slate-50" style={{ border: "1px solid #e2e8f0", color: "#334155" }}>
+          <button onClick={() => push({ date: toISODate(new Date()) })} className="h-9 px-3 rounded-md text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             Сегодня
           </button>
-          <button onClick={() => shift(1)} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-slate-50" style={{ border: "1px solid #e2e8f0", color: "#475569" }}>
+          <button onClick={() => shift(1)} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-        <span className="text-sm font-medium capitalize" style={{ color: "#020617" }}>{label}</span>
+        <span className="text-sm font-medium capitalize" style={{ color: "var(--on-dark)" }}>{label}</span>
       </div>
 
       <div className="flex items-center gap-2">
         {/* view switcher */}
-        <div className="flex items-center gap-0.5 p-0.5 rounded-md" style={{ background: "#f1f5f9" }}>
+        <div className="flex items-center gap-0.5 p-0.5 rounded-md" style={{ background: "var(--card-2)" }}>
           {VIEWS.map((v) => {
             const active = v.key === view
             return (
               <button key={v.key} onClick={() => push({ view: v.key })}
                 className="h-8 px-3 rounded-md text-sm font-medium transition-colors"
-                style={active ? { background: "white", color: "#020617", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" } : { background: "transparent", color: "#64748b" }}>
+                style={active ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" } : { background: "transparent", color: "var(--on-dark-soft)" }}>
                 {v.label}
               </button>
             )

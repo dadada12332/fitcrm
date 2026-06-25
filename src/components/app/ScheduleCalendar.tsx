@@ -42,7 +42,7 @@ export function ScheduleCalendar({ data, clients }: { data: ScheduleData; client
   }, [data.classes])
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ background: "white", border: "1px solid #e2e8f0" }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {data.view === "day" && <DayGrid data={data} hours={hours} onPick={setSelectedId} />}
       {data.view === "week" && <WeekGrid data={data} hours={hours} onPick={setSelectedId} />}
       {data.view === "month" && <MonthGrid data={data} onPick={setSelectedId} />}
@@ -60,9 +60,9 @@ function DayGrid({ data, hours, onPick }: { data: ScheduleData; hours: number[];
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: cols }}>
-      <div className="h-11 flex items-center px-3 text-sm" style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>Время</div>
+      <div className="h-11 flex items-center px-3 text-sm" style={{ color: "var(--on-dark-soft)", borderBottom: "1px solid var(--border)", background: "var(--bg)" }}>Время</div>
       {rooms.map((r) => (
-        <div key={r.id} className="h-11 flex items-center px-3 text-sm font-medium" style={{ color: "#020617", borderBottom: "1px solid #e2e8f0", borderLeft: "1px solid #e2e8f0", background: "#f8fafc" }}>{r.name}</div>
+        <div key={r.id} className="h-11 flex items-center px-3 text-sm font-medium" style={{ color: "var(--on-dark)", borderBottom: "1px solid var(--border)", borderLeft: "1px solid var(--border)", background: "var(--bg)" }}>{r.name}</div>
       ))}
 
       {hours.map((h) => (
@@ -75,11 +75,11 @@ function DayGrid({ data, hours, onPick }: { data: ScheduleData; hours: number[];
 function DayRow({ hour, rooms, classes, onPick }: { hour: number; rooms: ScheduleData["rooms"]; classes: ClassItem[]; onPick: (id: string) => void }) {
   return (
     <>
-      <div className="min-h-[60px] flex items-start justify-end px-2 py-1.5 text-xs" style={{ color: "#94a3b8", borderBottom: "1px solid #f1f5f9" }}>{pad(hour)}:00</div>
+      <div className="min-h-[60px] flex items-start justify-end px-2 py-1.5 text-xs" style={{ color: "var(--gray-muted)", borderBottom: "1px solid var(--border-subtle)" }}>{pad(hour)}:00</div>
       {rooms.map((r) => {
         const items = classes.filter((c) => c.roomId === r.id && c.startHour === hour)
         return (
-          <div key={r.id} className="min-h-[60px] p-1 flex flex-col gap-1" style={{ borderBottom: "1px solid #f1f5f9", borderLeft: "1px solid #f1f5f9" }}>
+          <div key={r.id} className="min-h-[60px] p-1 flex flex-col gap-1" style={{ borderBottom: "1px solid var(--border-subtle)", borderLeft: "1px solid var(--border-subtle)" }}>
             {items.map((c) => <ClassCard key={c.id} cls={c} onClick={() => onPick(c.id)} />)}
           </div>
         )
@@ -99,9 +99,9 @@ function WeekGrid({ data, hours, onPick }: { data: ScheduleData; hours: number[]
   return (
     <div className="overflow-x-auto">
       <div style={{ display: "grid", gridTemplateColumns: cols, minWidth: 760 }}>
-        <div className="h-11 flex items-center px-3 text-sm" style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>Время</div>
+        <div className="h-11 flex items-center px-3 text-sm" style={{ color: "var(--on-dark-soft)", borderBottom: "1px solid var(--border)", background: "var(--bg)" }}>Время</div>
         {days.map((d) => (
-          <div key={d.toISOString()} className="h-11 flex items-center px-3 text-sm font-medium capitalize" style={{ color: "#020617", borderBottom: "1px solid #e2e8f0", borderLeft: "1px solid #e2e8f0", background: "#f8fafc" }}>
+          <div key={d.toISOString()} className="h-11 flex items-center px-3 text-sm font-medium capitalize" style={{ color: "var(--on-dark)", borderBottom: "1px solid var(--border)", borderLeft: "1px solid var(--border)", background: "var(--bg)" }}>
             {d.toLocaleDateString("ru-RU", { weekday: "short", day: "2-digit" })}
           </div>
         ))}
@@ -117,12 +117,12 @@ function WeekGrid({ data, hours, onPick }: { data: ScheduleData; hours: number[]
 function WeekRow({ hour, days, classes, onPick }: { hour: number; days: Date[]; classes: ClassItem[]; onPick: (id: string) => void }) {
   return (
     <>
-      <div className="min-h-[56px] flex items-start justify-end px-2 py-1.5 text-xs" style={{ color: "#94a3b8", borderBottom: "1px solid #f1f5f9" }}>{pad(hour)}:00</div>
+      <div className="min-h-[56px] flex items-start justify-end px-2 py-1.5 text-xs" style={{ color: "var(--gray-muted)", borderBottom: "1px solid var(--border-subtle)" }}>{pad(hour)}:00</div>
       {days.map((d) => {
         const iso = toISODate(d)
         const items = classes.filter((c) => c.date === iso && c.startHour === hour)
         return (
-          <div key={iso} className="min-h-[56px] p-1 flex flex-col gap-1" style={{ borderBottom: "1px solid #f1f5f9", borderLeft: "1px solid #f1f5f9" }}>
+          <div key={iso} className="min-h-[56px] p-1 flex flex-col gap-1" style={{ borderBottom: "1px solid var(--border-subtle)", borderLeft: "1px solid var(--border-subtle)" }}>
             {items.map((c) => <ClassCard key={c.id} cls={c} onClick={() => onPick(c.id)} showRoom />)}
           </div>
         )
@@ -160,7 +160,7 @@ function MonthGrid({ data, onPick }: { data: ScheduleData; onPick: (id: string) 
     <div>
       <div className="grid grid-cols-7">
         {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((w) => (
-          <div key={w} className="h-10 flex items-center justify-center text-xs font-medium" style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>{w}</div>
+          <div key={w} className="h-10 flex items-center justify-center text-xs font-medium" style={{ color: "var(--on-dark-soft)", borderBottom: "1px solid var(--border)", background: "var(--bg)" }}>{w}</div>
         ))}
       </div>
       <div className="grid grid-cols-7">
@@ -169,9 +169,9 @@ function MonthGrid({ data, onPick }: { data: ScheduleData; onPick: (id: string) 
           const items = data.classes.filter((c) => c.date === iso && c.status !== "cancelled")
           const dim = d.getMonth() !== month
           return (
-            <div key={iso} className="min-h-[104px] p-1.5 flex flex-col gap-1" style={{ borderBottom: "1px solid #f1f5f9", borderRight: "1px solid #f1f5f9", background: dim ? "#fafafa" : "white" }}>
+            <div key={iso} className="min-h-[104px] p-1.5 flex flex-col gap-1" style={{ borderBottom: "1px solid var(--border-subtle)", borderRight: "1px solid var(--border-subtle)", background: dim ? "var(--card-2)" : "var(--card)" }}>
               <button onClick={() => openDay(d)}
-                className="self-start text-xs font-medium px-1.5 py-0.5 rounded hover:bg-slate-100"
+                className="self-start text-xs font-medium px-1.5 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 style={{ color: iso === todayISO ? "#fff" : dim ? "#cbd5e1" : "#334155", background: iso === todayISO ? "#2563eb" : "transparent" }}>
                 {d.getDate()}
               </button>
@@ -184,7 +184,7 @@ function MonthGrid({ data, onPick }: { data: ScheduleData; onPick: (id: string) 
                   </button>
                 )
               })}
-              {items.length > 3 && <span className="text-[11px] px-1" style={{ color: "#94a3b8" }}>+{items.length - 3} ещё</span>}
+              {items.length > 3 && <span className="text-[11px] px-1" style={{ color: "var(--gray-muted)" }}>+{items.length - 3} ещё</span>}
             </div>
           )
         })}

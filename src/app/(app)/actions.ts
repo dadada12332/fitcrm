@@ -109,3 +109,31 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
 
   return result
 }
+
+// ── Branch switcher ────────────────────────────────────────────────
+export type Branch = { clubId: string; name: string; plan: string; role: string }
+
+export async function getBranchesAction(): Promise<Branch[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data } = await supabase
+    .from("staff")
+    .select("club_id, role, clubs(id, name, plan)")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+
+  return (data ?? []).map((s: any) => ({
+    clubId: s.club_id,
+    role: s.role,
+    name: s.clubs?.name ?? "Клуб",
+    plan: s.clubs?.plan ?? "",
+  }))
+}
+
+export async function switchBranchAction(clubId: string): Promise<void> {
+  const { cookies } = await import("next/headers")
+  const store = await cookies()
+  store.set("selected_club_id", clubId, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" })
+}

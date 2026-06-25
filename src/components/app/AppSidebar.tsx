@@ -114,11 +114,11 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
   return (
     <aside
       className={`flex flex-col ${width} h-full flex-shrink-0 transition-all duration-200 overflow-hidden`}
-      style={{ background: "white", borderRight: "1px solid #e5e7eb" }}
+      style={{ background: "var(--card)", borderRight: "1px solid var(--border)" }}
     >
       {/* Mobile header */}
       {mobile && (
-        <div className="flex items-center justify-between px-3 h-[60px] flex-shrink-0" style={{ borderBottom: "1px solid #e5e7eb" }}>
+        <div className="flex items-center justify-between px-3 h-[60px] flex-shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -126,12 +126,12 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
             >
               <Zap className="w-4 h-4 text-white" fill="white" />
             </div>
-            <span className="text-sm font-medium" style={{ color: "#09090b" }}>fitCRM</span>
+            <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>fitCRM</span>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-zinc-100 transition-colors"
-            style={{ color: "#71717a" }}
+            style={{ color: "var(--on-dark-soft)" }}
           >
             <X className="w-4 h-4" />
           </button>
@@ -144,7 +144,7 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
         <div className={`pt-2 ${collapsed && !mobile ? "px-1" : "px-2"}`}>
           {!collapsed && (
             <div className="px-2 h-8 flex items-center">
-              <span className="text-sm font-medium leading-4 tracking-[-0.072px]" style={{ color: "#3f3f46", opacity: 0.7 }}>
+              <span className="text-sm font-medium leading-4 tracking-[-0.072px]" style={{ color: "var(--on-dark-soft)", opacity: 0.7 }}>
                 Меню
               </span>
             </div>
@@ -168,7 +168,7 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
         <div className={`pt-3 ${collapsed && !mobile ? "px-1" : "px-2"}`}>
           {!collapsed && (
             <div className="px-2 h-8 flex items-center">
-              <span className="text-sm font-medium leading-4 tracking-[-0.072px]" style={{ color: "#3f3f46", opacity: 0.7 }}>
+              <span className="text-sm font-medium leading-4 tracking-[-0.072px]" style={{ color: "var(--on-dark-soft)", opacity: 0.7 }}>
                 Другое
               </span>
             </div>
@@ -209,7 +209,7 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
       {/* Footer: user */}
       <div
         className={`flex-shrink-0 relative ${collapsed && !mobile ? "px-1 py-2" : "px-2 py-2"}`}
-        style={{ borderTop: "1px solid #e5e7eb" }}
+        style={{ borderTop: "1px solid var(--border)" }}
       >
         <Tooltip label={`${email.split("@")[0]} — ${email}`} show={collapsed && !mobile}>
           <button
@@ -227,10 +227,10 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
             {(!collapsed || mobile) && (
               <>
                 <div className="flex flex-col min-w-0 flex-1 text-left">
-                  <span className="text-sm font-semibold leading-none truncate tracking-[-0.084px]" style={{ color: "#09090b" }}>
+                  <span className="text-sm font-semibold leading-none truncate tracking-[-0.084px]" style={{ color: "var(--on-dark)" }}>
                     {email.split("@")[0]}
                   </span>
-                  <span className="text-xs font-normal leading-none truncate tracking-[-0.072px] mt-0.5" style={{ color: "#3f3f46" }}>
+                  <span className="text-xs font-normal leading-none truncate tracking-[-0.072px] mt-0.5" style={{ color: "var(--on-dark-soft)" }}>
                     {email}
                   </span>
                 </div>
@@ -245,7 +245,7 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
             <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
             <div
               className="absolute left-2 right-2 bottom-full mb-2 z-20 rounded-xl py-2 text-sm"
-              style={{ background: "white", border: "1px solid #e5e7eb", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
+              style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
             >
               <div className="px-3 py-2 border-b border-zinc-100 mb-1">
                 <p className="font-medium text-zinc-900 truncate">{email.split("@")[0]}</p>

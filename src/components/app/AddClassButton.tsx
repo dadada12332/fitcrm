@@ -8,10 +8,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, S
 import type { Room } from "@/lib/schedule"
 
 const inputCls = "h-11 w-full rounded-md px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#2563eb]"
-const inputStyle = { background: "white", border: "1px solid #e2e8f0", color: "#020617" } as const
+const inputStyle = { background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" } as const
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-sm font-medium mb-1.5" style={{ color: "#334155" }}>{children}<span style={{ color: "#dc2626" }}> *</span></label>
+  return <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>{children}<span style={{ color: "#dc2626" }}> *</span></label>
 }
 
 export function AddClassButton({ rooms, defaultDate }: { rooms: Room[]; defaultDate: string }) {
@@ -27,7 +27,7 @@ export function AddClassButton({ rooms, defaultDate }: { rooms: Room[]; defaultD
     <>
       <button onClick={() => setOpen(true)}
         className="flex items-center gap-2 h-10 px-4 rounded-md text-sm font-medium transition-opacity hover:opacity-90"
-        style={{ background: "#0f172a", color: "#f8fafc" }}>
+        style={{ background: "var(--on-dark)", color: "var(--bg)" }}>
         <Plus className="w-4 h-4" />Добавить занятие
       </button>
 
@@ -36,7 +36,7 @@ export function AddClassButton({ rooms, defaultDate }: { rooms: Room[]; defaultD
           <form action={formAction} className="flex flex-col h-full">
             <SheetHeader>
               <SheetTitle>Новое занятие</SheetTitle>
-              <SheetClose className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors" style={{ color: "#64748b" }}>
+              <SheetClose className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: "var(--on-dark-soft)" }}>
                 <X className="w-4 h-4" />
               </SheetClose>
             </SheetHeader>
@@ -67,7 +67,7 @@ export function AddClassButton({ rooms, defaultDate }: { rooms: Room[]; defaultD
 
             <SheetFooter>
               <button type="submit" disabled={pending}
-                className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-60" style={{ background: "#0f172a" }}>
+                className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-60" style={{ background: "var(--on-dark)" }}>
                 {pending ? "Сохранение…" : "Создать занятие"}
               </button>
             </SheetFooter>

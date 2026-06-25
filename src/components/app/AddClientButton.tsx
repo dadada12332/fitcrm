@@ -41,13 +41,13 @@ function rawDateISO(d: string): string {
 /* ─── Field helpers ─── */
 
 const BASE_INPUT = "h-10 w-full rounded-md text-sm outline-none px-3"
-const INPUT_STYLE = { background: "white", border: "1px solid #e2e8f0", color: "#020617" }
-const PLACEHOLDER_COLOR = "#64748b"
+const INPUT_STYLE = { background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }
+const PLACEHOLDER_COLOR = "var(--on-dark-soft)"
 const SELECT_CLS = `${BASE_INPUT} appearance-none pr-8`
 
 function Label({ children, required }: { children: string; required?: boolean }) {
   return (
-    <div className="flex items-center gap-0.5 text-sm font-medium mb-1.5" style={{ color: "#020617" }}>
+    <div className="flex items-center gap-0.5 text-sm font-medium mb-1.5" style={{ color: "var(--on-dark)" }}>
       {children}
       {required && <span style={{ color: "#ef4444" }}>*</span>}
     </div>
@@ -74,7 +74,7 @@ function SelectWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function SectionTitle({ children }: { children: string }) {
-  return <p className="text-base font-medium" style={{ color: "#020617" }}>{children}</p>
+  return <p className="text-base font-medium" style={{ color: "var(--on-dark)" }}>{children}</p>
 }
 
 const SOURCE_OPTIONS = [
@@ -151,7 +151,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 h-10 px-4 rounded-md text-sm font-medium transition-opacity hover:opacity-90"
-        style={{ background: "#0f172a", color: "#f8fafc" }}
+        style={{ background: "var(--on-dark)", color: "var(--bg)" }}
       >
         <Plus className="w-4 h-4" />
         Добавить клиента
@@ -165,17 +165,17 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
           {/* Drawer panel */}
           <div
             className="absolute top-0 right-0 bottom-0 w-full max-w-[560px] flex flex-col"
-            style={{ background: "white", borderLeft: "1px solid #e2e8f0", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }}
+            style={{ background: "var(--card)", borderLeft: "1px solid var(--border)", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ borderBottom: "1px solid #e2e8f0" }}>
-              <h3 className="text-2xl font-semibold" style={{ color: "#020617", letterSpacing: "-0.144px" }}>
+            <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+              <h3 className="text-2xl font-semibold" style={{ color: "var(--on-dark)", letterSpacing: "-0.144px" }}>
                 Добавление клиента
               </h3>
               <button
                 onClick={close}
-                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
-                style={{ background: "#f1f5f9", color: "#64748b" }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                style={{ background: "var(--card-2)", color: "var(--on-dark-soft)" }}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -244,7 +244,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                       <SelectWrapper>
                         <select
                           className={SELECT_CLS}
-                          style={{ ...INPUT_STYLE, color: gender ? "#020617" : PLACEHOLDER_COLOR }}
+                          style={{ ...INPUT_STYLE, color: gender ? "var(--on-dark)" : PLACEHOLDER_COLOR }}
                           value={gender}
                           onChange={(e) => setGender(e.target.value)}
                         >
@@ -269,7 +269,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                   </div>
                 </div>
 
-                <div style={{ borderTop: "1px solid #f1f5f9" }} />
+                <div style={{ borderTop: "1px solid var(--border-subtle)" }} />
 
                 {/* ── Абонемент и тренировки ── */}
                 <div className="flex flex-col gap-4">
@@ -281,7 +281,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                     <SelectWrapper>
                       <select
                         className={SELECT_CLS}
-                        style={{ ...INPUT_STYLE, color: membershipId ? "#020617" : PLACEHOLDER_COLOR }}
+                        style={{ ...INPUT_STYLE, color: membershipId ? "var(--on-dark)" : PLACEHOLDER_COLOR }}
                         value={membershipId}
                         onChange={(e) => setMembershipId(e.target.value)}
                       >
@@ -310,7 +310,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                   </div>
                 </div>
 
-                <div style={{ borderTop: "1px solid #f1f5f9" }} />
+                <div style={{ borderTop: "1px solid var(--border-subtle)" }} />
 
                 {/* ── Дополнительная информация ── */}
                 <div className="flex flex-col gap-4">
@@ -322,7 +322,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                     <SelectWrapper>
                       <select
                         className={SELECT_CLS}
-                        style={{ ...INPUT_STYLE, color: source ? "#020617" : PLACEHOLDER_COLOR }}
+                        style={{ ...INPUT_STYLE, color: source ? "var(--on-dark)" : PLACEHOLDER_COLOR }}
                         value={source}
                         onChange={(e) => setSource(e.target.value)}
                       >
@@ -343,7 +343,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                       placeholder="Введите комментарий..."
                       rows={4}
                       className="w-full rounded-md px-3 py-2.5 text-sm outline-none resize-none"
-                      style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+                      style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
                     />
                   </div>
                 </div>
@@ -352,7 +352,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
             </div>
 
             {/* Footer */}
-            <div className="shrink-0 px-4 py-4 flex gap-3" style={{ borderTop: "1px solid #e2e8f0" }}>
+            <div className="shrink-0 px-4 py-4 flex gap-3" style={{ borderTop: "1px solid var(--border)" }}>
               {error && (
                 <p className="text-sm w-full" style={{ color: "#dc2626" }}>{error}</p>
               )}
@@ -362,14 +362,14 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                     onClick={handleSubmit}
                     disabled={pending}
                     className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                    style={{ background: "#0f172a" }}
+                    style={{ background: "var(--on-dark)" }}
                   >
                     {pending ? "Сохранение..." : "Сохранить"}
                   </button>
                   <button
                     onClick={close}
-                    className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-slate-50"
-                    style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+                    className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                    style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
                   >
                     Отмена
                   </button>
@@ -379,8 +379,8 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                 <div className="flex gap-3 w-full">
                   <button
                     onClick={() => setError(null)}
-                    className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-slate-50"
-                    style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+                    className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                    style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
                   >
                     Назад
                   </button>
@@ -388,7 +388,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                     onClick={handleSubmit}
                     disabled={pending}
                     className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                    style={{ background: "#0f172a" }}
+                    style={{ background: "var(--on-dark)" }}
                   >
                     Повторить
                   </button>

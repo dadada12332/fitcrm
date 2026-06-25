@@ -42,29 +42,29 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
       {/* ── Toolbar block ── */}
       <div
         className="rounded-lg flex items-center justify-between gap-4 px-6 py-4"
-        style={{ background: "white", border: "1px solid #e2e8f0" }}
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}
       >
         {/* Left: search + tabs */}
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#94a3b8" }} />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Поиск"
               className="h-9 w-[220px] pl-9 pr-3 rounded-md text-sm outline-none"
-              style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+              style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
             />
           </div>
 
           {/* Active / Archived tabs */}
-          <div className="flex items-center gap-0.5 p-1 rounded-lg" style={{ background: "#f1f5f9" }}>
+          <div className="flex items-center gap-0.5 p-1 rounded-lg" style={{ background: "var(--card-2)" }}>
             <button
               onClick={() => setTab("active")}
               className="flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium transition-all"
               style={{
-                background: tab === "active" ? "white" : "transparent",
-                color: tab === "active" ? "#020617" : "#64748b",
+                background: tab === "active" ? "var(--pill-active)" : "transparent",
+                color: tab === "active" ? "var(--on-dark)" : "var(--on-dark-soft)",
                 boxShadow: tab === "active" ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
               }}
             >
@@ -72,8 +72,8 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               <span
                 className="text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center"
                 style={{
-                  background: tab === "active" ? "#020617" : "#cbd5e1",
-                  color: tab === "active" ? "white" : "#475569",
+                  background: tab === "active" ? "var(--on-dark)" : "var(--gray-muted)",
+                  color: tab === "active" ? "var(--bg)" : "var(--on-dark-soft)",
                   fontSize: 10,
                 }}
               >
@@ -84,8 +84,8 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               onClick={() => setTab("archived")}
               className="flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium transition-all"
               style={{
-                background: tab === "archived" ? "white" : "transparent",
-                color: tab === "archived" ? "#020617" : "#64748b",
+                background: tab === "archived" ? "var(--pill-active)" : "transparent",
+                color: tab === "archived" ? "var(--on-dark)" : "var(--on-dark-soft)",
                 boxShadow: tab === "archived" ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
               }}
             >
@@ -93,8 +93,8 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               <span
                 className="text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center"
                 style={{
-                  background: tab === "archived" ? "#020617" : "#cbd5e1",
-                  color: tab === "archived" ? "white" : "#475569",
+                  background: tab === "archived" ? "var(--on-dark)" : "var(--gray-muted)",
+                  color: tab === "archived" ? "var(--bg)" : "var(--on-dark-soft)",
                   fontSize: 10,
                 }}
               >
@@ -107,9 +107,9 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
       </div>
 
       {/* ── Cards block ── */}
-      <div className="rounded-lg p-6" style={{ background: "white", border: "1px solid #e2e8f0" }}>
+      <div className="rounded-lg p-6" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {filtered.length === 0 ? (
-          <p className="text-sm py-10 text-center" style={{ color: "#94a3b8" }}>
+          <p className="text-sm py-10 text-center" style={{ color: "var(--gray-muted)" }}>
             {tab === "archived" ? "Архивных абонементов нет" : "Ничего не найдено"}
           </p>
         ) : (
@@ -123,7 +123,7 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
                 <div
                   key={row.id}
                   className="rounded-2xl flex flex-col relative"
-                  style={{ border: "1px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
+                  style={{ border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                 >
                   {/* Menu floats at card level so dropdown isn't clipped by header overflow-hidden */}
                   <div className="absolute top-3 right-3 z-20 flex">
@@ -156,24 +156,24 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
                     <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full opacity-15"
                       style={{ background: palette.accent }} />
                     <div className="absolute -bottom-3 right-8 w-14 h-14 rounded-full opacity-10"
-                      style={{ background: "white" }} />
+                      style={{ background: "var(--card)" }} />
                   </div>
 
                   {/* Body */}
                   <div className="flex flex-col gap-2.5 px-5 py-4 flex-1">
-                    <div className="flex items-center gap-2 text-sm" style={{ color: "#64748b" }}>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
                       <Clock className="w-4 h-4 flex-shrink-0" />
-                      <span>Срок — <strong style={{ color: "#020617" }}>{pluralDays(row.durationDays)}</strong></span>
+                      <span>Срок — <strong style={{ color: "var(--on-dark)" }}>{pluralDays(row.durationDays)}</strong></span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm" style={{ color: "#64748b" }}>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
                       <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                      <span>Посещений — <strong style={{ color: "#020617" }}>
+                      <span>Посещений — <strong style={{ color: "var(--on-dark)" }}>
                         {row.visitsLimit === null ? "∞" : row.visitsLimit}
                       </strong></span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm" style={{ color: "#64748b" }}>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
                       <Users className="w-4 h-4 flex-shrink-0" />
-                      <span>Клиентов — <strong style={{ color: "#020617" }}>{row.activeClients}</strong></span>
+                      <span>Клиентов — <strong style={{ color: "var(--on-dark)" }}>{row.activeClients}</strong></span>
                     </div>
                   </div>
 
@@ -183,7 +183,7 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
           </div>
         )}
 
-        <p className="text-xs mt-5" style={{ color: "#94a3b8" }}>
+        <p className="text-xs mt-5" style={{ color: "var(--gray-muted)" }}>
           {filtered.length} тарифов
         </p>
       </div>

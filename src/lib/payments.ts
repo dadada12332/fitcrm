@@ -23,17 +23,17 @@ export type PaymentsKPI = {
 }
 
 export const providerMeta: Record<string, { label: string; color: string; bg: string }> = {
-  cash:  { label: "Наличные", color: "#059669", bg: "#dcfce7" },
-  click: { label: "Click",    color: "#2563eb", bg: "#dbeafe" },
-  payme: { label: "Payme",    color: "#7c3aed", bg: "#ede9fe" },
-  uzum:  { label: "Uzum",     color: "#d97706", bg: "#fef3c7" },
+  cash:  { label: "Наличные", color: "#059669", bg: "rgba(5,150,105,0.12)" },
+  click: { label: "Click",    color: "#2563eb", bg: "rgba(37,99,235,0.12)" },
+  payme: { label: "Payme",    color: "#7c3aed", bg: "rgba(124,58,237,0.12)" },
+  uzum:  { label: "Uzum",     color: "#d97706", bg: "rgba(217,119,6,0.12)" },
 }
 
 export const statusMeta: Record<string, { label: string; color: string; bg: string }> = {
-  paid:     { label: "Оплачено", color: "#16a34a", bg: "#dcfce7" },
-  pending:  { label: "Ожидает",  color: "#d97706", bg: "#fef3c7" },
-  refunded: { label: "Возврат",  color: "#dc2626", bg: "#fee2e2" },
-  failed:   { label: "Отменён",  color: "#64748b", bg: "#f1f5f9" },
+  paid:     { label: "Оплачено", color: "#16a34a", bg: "rgba(22,163,74,0.12)" },
+  pending:  { label: "Ожидает",  color: "#d97706", bg: "rgba(217,119,6,0.12)" },
+  refunded: { label: "Возврат",  color: "#dc2626", bg: "rgba(220,38,38,0.12)" },
+  failed:   { label: "Отменён",  color: "#64748b", bg: "rgba(100,116,139,0.12)" },
 }
 
 function startOf(d: Date, unit: "day" | "month") {

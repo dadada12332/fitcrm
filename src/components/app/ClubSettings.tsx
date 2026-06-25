@@ -58,7 +58,7 @@ const PLAN_LABELS: Record<string, string> = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>{label}</label>
+      <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>{label}</label>
       {children}
     </div>
   )
@@ -75,18 +75,18 @@ function Input({ value, onChange, placeholder, type = "text", disabled }: {
       placeholder={placeholder}
       disabled={disabled}
       className="w-full h-10 px-3 rounded-lg text-sm outline-none transition-shadow disabled:opacity-50"
-      style={{ border: "1.5px solid #e2e8f0", color: "#020617", background: disabled ? "#f8fafc" : "white" }}
+      style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: disabled ? "var(--bg)" : "var(--card)" }}
       onFocus={(e) => { if (!disabled) { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)" } }}
-      onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none" }}
+      onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none" }}
     />
   )
 }
 
 function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
-        <h3 className="text-sm font-semibold" style={{ color: "#020617" }}>{title}</h3>
+    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+        <h3 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{title}</h3>
         {action}
       </div>
       <div className="px-6 py-5">{children}</div>
@@ -101,7 +101,7 @@ function Btn({ onClick, children, variant = "primary", disabled, type = "button"
   const base = small ? "h-8 px-3 text-xs" : "h-9 px-4 text-sm"
   const styles: Record<string, React.CSSProperties> = {
     primary:   { background: "#2563eb", color: "white" },
-    secondary: { border: "1px solid #e2e8f0", color: "#475569", background: "white" },
+    secondary: { border: "1px solid var(--border)", color: "var(--on-dark-soft)", background: "var(--card)" },
     danger:    { background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" },
   }
   return (
@@ -127,7 +127,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   return (
     <button type="button" onClick={() => onChange(!checked)}
       className="w-10 h-6 rounded-full transition-colors flex-shrink-0 relative"
-      style={{ background: checked ? "#2563eb" : "#e2e8f0" }}>
+      style={{ background: checked ? "#2563eb" : "var(--border)" }}>
       <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
         style={{ left: checked ? "22px" : "2px" }} />
     </button>
@@ -183,11 +183,11 @@ function BasicSection({ club }: { club: ClubData }) {
         <div className="space-y-2.5">
           {["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"].map((day) => (
             <div key={day} className="flex items-center justify-between">
-              <span className="text-sm w-28" style={{ color: "#475569" }}>{day}</span>
+              <span className="text-sm w-28" style={{ color: "var(--on-dark-soft)" }}>{day}</span>
               <div className="flex items-center gap-2">
-                <input defaultValue="06:00" type="time" className="h-8 px-2 rounded-md text-sm outline-none" style={{ border: "1px solid #e2e8f0" }} />
-                <span className="text-xs" style={{ color: "#94a3b8" }}>—</span>
-                <input defaultValue="23:00" type="time" className="h-8 px-2 rounded-md text-sm outline-none" style={{ border: "1px solid #e2e8f0" }} />
+                <input defaultValue="06:00" type="time" className="h-8 px-2 rounded-md text-sm outline-none" style={{ border: "1px solid var(--border)" }} />
+                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>—</span>
+                <input defaultValue="23:00" type="time" className="h-8 px-2 rounded-md text-sm outline-none" style={{ border: "1px solid var(--border)" }} />
               </div>
             </div>
           ))}
@@ -199,7 +199,7 @@ function BasicSection({ club }: { club: ClubData }) {
           <Field label="Часовой пояс">
             <select value={tz} onChange={(e) => setTz(e.target.value)}
               className="w-full h-10 px-3 rounded-lg text-sm outline-none appearance-none"
-              style={{ border: "1.5px solid #e2e8f0", color: "#020617", background: "white" }}>
+              style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: "var(--card)" }}>
               <option value="Asia/Tashkent">Asia/Tashkent (UTC+5)</option>
               <option value="Asia/Almaty">Asia/Almaty (UTC+6)</option>
               <option value="Europe/Moscow">Europe/Moscow (UTC+3)</option>
@@ -208,7 +208,7 @@ function BasicSection({ club }: { club: ClubData }) {
           <Field label="Валюта">
             <select value={currency} onChange={(e) => setCurrency(e.target.value)}
               className="w-full h-10 px-3 rounded-lg text-sm outline-none appearance-none"
-              style={{ border: "1.5px solid #e2e8f0", color: "#020617", background: "white" }}>
+              style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: "var(--card)" }}>
               <option value="UZS">UZS — Узбекский сум</option>
               <option value="USD">USD — Доллар США</option>
               <option value="RUB">RUB — Российский рубль</option>
@@ -254,7 +254,7 @@ function BranchesSection({ club }: { club: ClubData }) {
       </Btn>
     }>
       {showForm && (
-        <form onSubmit={handleAdd} className="mb-5 p-4 rounded-xl space-y-3" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+        <form onSubmit={handleAdd} className="mb-5 p-4 rounded-xl space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
           <Field label="Название филиала">
             <Input value={bName} onChange={setBName} placeholder="Зал №2" />
           </Field>
@@ -273,17 +273,17 @@ function BranchesSection({ club }: { club: ClubData }) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+            <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
               {["Название","Адрес"].map((h) => (
-                <th key={h} className="py-2 pr-4 text-left text-xs font-medium" style={{ color: "#94a3b8" }}>{h}</th>
+                <th key={h} className="py-2 pr-4 text-left text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {branches.map((b, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #f8fafc" }}>
-                <td className="py-3 pr-4 font-medium" style={{ color: "#020617" }}>{b.name}</td>
-                <td className="py-3" style={{ color: "#64748b" }}>{b.address || "—"}</td>
+              <tr key={i} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                <td className="py-3 pr-4 font-medium" style={{ color: "var(--on-dark)" }}>{b.name}</td>
+                <td className="py-3" style={{ color: "var(--on-dark-soft)" }}>{b.address || "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -324,14 +324,14 @@ function StaffSection({ club }: { club: ClubData }) {
       </Btn>
     }>
       {showForm && (
-        <form onSubmit={handleInvite} className="mb-5 p-4 rounded-xl space-y-3" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+        <form onSubmit={handleInvite} className="mb-5 p-4 rounded-xl space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
           <Field label="Email сотрудника">
             <Input value={invEmail} onChange={setInvEmail} placeholder="trainer@fitclub.uz" type="email" />
           </Field>
           <Field label="Роль">
             <select value={invRole} onChange={(e) => setInvRole(e.target.value)}
               className="w-full h-10 px-3 rounded-lg text-sm outline-none appearance-none"
-              style={{ border: "1.5px solid #e2e8f0", color: "#020617", background: "white" }}>
+              style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: "var(--card)" }}>
               {Object.entries(ROLE_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
               ))}
@@ -347,19 +347,19 @@ function StaffSection({ club }: { club: ClubData }) {
       )}
       {msg && <div className="mb-4"><Alert msg={msg.text} type={msg.type} /></div>}
       {club.staffList.length === 0 ? (
-        <p className="text-sm py-4 text-center" style={{ color: "#94a3b8" }}>Сотрудников нет</p>
+        <p className="text-sm py-4 text-center" style={{ color: "var(--gray-muted)" }}>Сотрудников нет</p>
       ) : (
         <div>
           {club.staffList.map((s) => (
-            <div key={s.id} className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid #f8fafc" }}>
+            <div key={s.id} className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0" style={{ background: "#3b82f6" }}>
                 {s.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: "#020617" }}>{s.name}</p>
-                <p className="text-xs" style={{ color: "#94a3b8" }}>{s.email}</p>
+                <p className="text-sm font-medium truncate" style={{ color: "var(--on-dark)" }}>{s.name}</p>
+                <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{s.email}</p>
               </div>
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#f1f5f9", color: "#475569" }}>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "var(--card-2)", color: "var(--on-dark-soft)" }}>
                 {ROLE_LABELS[s.role] ?? s.role}
               </span>
             </div>
@@ -417,7 +417,7 @@ function FinanceSection({ club }: { club: ClubData }) {
         <div className="space-y-3">
           {PAYMENT_METHODS.map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between">
-              <span className="text-sm" style={{ color: "#334155" }}>{label}</span>
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
               <Toggle checked={methods.has(key)} onChange={() => toggleMethod(key)} />
             </div>
           ))}
@@ -427,8 +427,8 @@ function FinanceSection({ club }: { club: ClubData }) {
       <Card title="Настройки кассы">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium" style={{ color: "#020617" }}>Автоматическая нумерация платежей</p>
-            <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>Платежи будут нумероваться автоматически: #001, #002…</p>
+            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Автоматическая нумерация платежей</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Платежи будут нумероваться автоматически: #001, #002…</p>
           </div>
           <Toggle checked={autoNum} onChange={setAutoNum} />
         </div>
@@ -437,11 +437,11 @@ function FinanceSection({ club }: { club: ClubData }) {
       <Card title="Категории расходов">
         <div className="space-y-1 mb-3">
           {cats.map((cat) => (
-            <div key={cat} className="flex items-center justify-between py-2 px-1" style={{ borderBottom: "1px solid #f8fafc" }}>
-              <span className="text-sm" style={{ color: "#334155" }}>{cat}</span>
+            <div key={cat} className="flex items-center justify-between py-2 px-1" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{cat}</span>
               <button type="button" onClick={() => removeCat(cat)}
                 className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:bg-red-50"
-                style={{ color: "#94a3b8" }}>
+                style={{ color: "var(--gray-muted)" }}>
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -451,7 +451,7 @@ function FinanceSection({ club }: { club: ClubData }) {
           <input value={newCat} onChange={(e) => setNewCat(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCat() } }}
             placeholder="Новая категория..." className="flex-1 h-9 px-3 rounded-lg text-sm outline-none"
-            style={{ border: "1px dashed #e2e8f0", color: "#020617" }} />
+            style={{ border: "1px dashed #e2e8f0", color: "var(--on-dark)" }} />
           <Btn small onClick={addCat} disabled={!newCat.trim()}>
             <Plus className="w-3.5 h-3.5" /> Добавить
           </Btn>
@@ -499,10 +499,10 @@ function NotificationsSection({ club }: { club: ClubData }) {
           {NOTIF_SETTINGS.map(({ key, label, icon: Icon }) => (
             <div key={key} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#f1f5f9" }}>
-                  <Icon className="w-4 h-4" style={{ color: "#64748b" }} />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--card-2)" }}>
+                  <Icon className="w-4 h-4" style={{ color: "var(--on-dark-soft)" }} />
                 </div>
-                <span className="text-sm" style={{ color: "#334155" }}>{label}</span>
+                <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
               </div>
               <Toggle checked={settings[key]} onChange={(v) => setSettings((s) => ({ ...s, [key]: v }))} />
             </div>
@@ -559,22 +559,22 @@ function IntegrationCard({ integration }: { integration: typeof INTEGRATIONS[0] 
   }
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #f1f5f9" }}>
+    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
       <div className="flex items-center gap-4 p-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
           style={{ background: integration.color }}>
           {integration.label[0]}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium" style={{ color: "#020617" }}>{integration.label}</p>
-          <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{integration.desc}</p>
+          <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{integration.label}</p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>{integration.desc}</p>
         </div>
         <Btn small variant="secondary" onClick={() => setOpen((v) => !v)}>
           {open ? "Отмена" : "Подключить"}
         </Btn>
       </div>
       {open && (
-        <form onSubmit={handleSave} className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid #f1f5f9" }}>
+        <form onSubmit={handleSave} className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
           <div className="pt-4 space-y-3">
             {integration.fields.map((f) => (
               <Field key={f.key} label={f.label}>
@@ -634,7 +634,7 @@ function SecuritySection() {
     <div className="space-y-4">
       <Card title="Пароль" action={
         <button type="button" onClick={() => setShow((v) => !v)}
-          className="flex items-center gap-1.5 text-xs" style={{ color: "#94a3b8" }}>
+          className="flex items-center gap-1.5 text-xs" style={{ color: "var(--gray-muted)" }}>
           {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           {show ? "Скрыть" : "Показать"}
         </button>
@@ -659,8 +659,8 @@ function SecuritySection() {
       <Card title="Активные сессии">
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium" style={{ color: "#020617" }}>Текущее устройство</p>
-            <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>Сейчас онлайн</p>
+            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Текущее устройство</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Сейчас онлайн</p>
           </div>
           <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#dcfce7", color: "#16a34a" }}>Активна</span>
         </div>
@@ -669,8 +669,8 @@ function SecuritySection() {
       <Card title="Двухфакторная авторизация">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium" style={{ color: "#020617" }}>2FA через Telegram</p>
-            <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>Дополнительная защита входа</p>
+            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>2FA через Telegram</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Дополнительная защита входа</p>
           </div>
           <Toggle checked={twofa} onChange={setTwofa} />
         </div>
@@ -712,13 +712,13 @@ function PlanSection({ club }: { club: ClubData }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <p className="text-lg font-bold" style={{ color: "#020617" }}>{PLAN_LABELS[plan] ?? plan}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--on-dark)" }}>{PLAN_LABELS[plan] ?? plan}</p>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#fef3c7", color: "#d97706" }}>
                 {limits.price} / мес
               </span>
             </div>
             {daysLeft !== null && (
-              <p className="text-sm mt-0.5" style={{ color: daysLeft <= 7 ? "#dc2626" : "#64748b" }}>
+              <p className="text-sm mt-0.5" style={{ color: daysLeft <= 7 ? "#dc2626" : "var(--on-dark-soft)" }}>
                 {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : "Срок истёк"}
               </p>
             )}
@@ -732,10 +732,10 @@ function PlanSection({ club }: { club: ClubData }) {
           ].map(({ label, used, max }) => (
             <div key={label}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm" style={{ color: "#64748b" }}>{label}</span>
-                <span className="text-xs font-medium" style={{ color: "#020617" }}>{used} / {max}</span>
+                <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+                <span className="text-xs font-medium" style={{ color: "var(--on-dark)" }}>{used} / {max}</span>
               </div>
-              <div className="h-2 rounded-full" style={{ background: "#f1f5f9" }}>
+              <div className="h-2 rounded-full" style={{ background: "var(--card-2)" }}>
                 <div className="h-2 rounded-full transition-all"
                   style={{ background: "#2563eb", width: `${Math.min(100, (used / max) * 100)}%` }} />
               </div>
@@ -750,13 +750,13 @@ function PlanSection({ club }: { club: ClubData }) {
             const l = PLAN_LIMITS[p]
             const isCurrent = p === plan
             return (
-              <div key={p} className="p-4 rounded-xl" style={{ border: `1.5px solid ${isCurrent ? "#2563eb" : "#e2e8f0"}`, background: isCurrent ? "#eff6ff" : "white" }}>
-                <p className="text-sm font-semibold" style={{ color: "#020617" }}>{PLAN_LABELS[p]}</p>
+              <div key={p} className="p-4 rounded-xl" style={{ border: `1.5px solid ${isCurrent ? "#2563eb" : "var(--border)"}`, background: isCurrent ? "#eff6ff" : "var(--card)" }}>
+                <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{PLAN_LABELS[p]}</p>
                 <p className="text-xl font-bold mt-1" style={{ color: "#2563eb" }}>
-                  {l.price}<span className="text-xs font-normal" style={{ color: "#94a3b8" }}>/мес</span>
+                  {l.price}<span className="text-xs font-normal" style={{ color: "var(--gray-muted)" }}>/мес</span>
                 </p>
-                <p className="text-xs mt-2" style={{ color: "#64748b" }}>до {l.clients} клиентов</p>
-                <p className="text-xs" style={{ color: "#64748b" }}>до {l.staff} сотрудников</p>
+                <p className="text-xs mt-2" style={{ color: "var(--on-dark-soft)" }}>до {l.clients} клиентов</p>
+                <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>до {l.staff} сотрудников</p>
                 {isCurrent ? (
                   <div className="mt-3 flex items-center gap-1">
                     <Check className="w-3.5 h-3.5" style={{ color: "#2563eb" }} />
@@ -764,7 +764,7 @@ function PlanSection({ club }: { club: ClubData }) {
                   </div>
                 ) : (
                   upgrading === p ? (
-                    <div className="mt-3 p-2 rounded-lg text-xs" style={{ background: "#f8fafc", color: "#64748b" }}>
+                    <div className="mt-3 p-2 rounded-lg text-xs" style={{ background: "var(--bg)", color: "var(--on-dark-soft)" }}>
                       Свяжитесь с нами: <br /><span className="font-medium" style={{ color: "#2563eb" }}>support@fitcrm.uz</span>
                     </div>
                   ) : (
@@ -786,57 +786,15 @@ function PlanSection({ club }: { club: ClubData }) {
 
 // ── Main ──────────────────────────────────────────────────────────
 
-export function ClubSettings({ club }: { club: ClubData }) {
-  const [section, setSection] = useState<Section>("basic")
-
-  const renderSection = () => {
-    switch (section) {
-      case "basic":         return <BasicSection club={club} />
-      case "branches":      return <BranchesSection club={club} />
-      case "staff":         return <StaffSection club={club} />
-      case "finance":       return <FinanceSection club={club} />
-      case "notifications": return <NotificationsSection club={club} />
-      case "integrations":  return <IntegrationsSection />
-      case "security":      return <SecuritySection />
-      case "plan":          return <PlanSection club={club} />
-    }
+export function ClubSettings({ club, section }: { club: ClubData; section: Section }) {
+  switch (section) {
+    case "basic":         return <BasicSection club={club} />
+    case "branches":      return <BranchesSection club={club} />
+    case "staff":         return <StaffSection club={club} />
+    case "finance":       return <FinanceSection club={club} />
+    case "notifications": return <NotificationsSection club={club} />
+    case "integrations":  return <IntegrationsSection />
+    case "security":      return <SecuritySection />
+    case "plan":          return <PlanSection club={club} />
   }
-
-  return (
-    <div className="flex gap-6 items-start">
-      {/* Sidebar */}
-      <aside className="w-48 flex-shrink-0 rounded-xl overflow-hidden sticky top-[76px]"
-        style={{ background: "white", border: "1px solid #e2e8f0" }}>
-        <div className="px-4 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
-          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#94a3b8" }}>Настройки</p>
-        </div>
-        <nav className="py-1">
-          {SECTIONS.map(({ key, label, icon: Icon }) => {
-            const active = key === section
-            return (
-              <button
-                key={key}
-                onClick={() => setSection(key)}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors hover:bg-slate-50"
-                style={{
-                  color: active ? "#2563eb" : "#334155",
-                  background: active ? "#eff6ff" : "transparent",
-                  fontWeight: active ? 500 : 400,
-                  borderLeft: active ? "2px solid #2563eb" : "2px solid transparent",
-                }}
-              >
-                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? "#2563eb" : "#94a3b8" }} />
-                <span className="whitespace-nowrap">{label}</span>
-              </button>
-            )
-          })}
-        </nav>
-      </aside>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        {renderSection()}
-      </div>
-    </div>
-  )
 }

@@ -24,8 +24,8 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
     <div className="space-y-4">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "#020617" }}>Расписание</h1>
-          <p className="text-sm mt-1" style={{ color: "#64748b" }}>Управление загрузкой клуба: занятия, залы, тренеры</p>
+          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Расписание</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Управление загрузкой клуба: занятия, залы, тренеры</p>
         </div>
         <AddClassButton rooms={data.rooms} defaultDate={data.date} />
       </div>

@@ -13,7 +13,7 @@ function KPICard({ label, value, icon: Icon, color }: {
   return (
     <div
       className="rounded-xl px-5 py-4 flex items-center gap-4"
-      style={{ background: "white", border: "1px solid #e2e8f0" }}
+      style={{ background: "var(--card)", border: "1px solid var(--border)" }}
     >
       <div
         className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -22,8 +22,8 @@ function KPICard({ label, value, icon: Icon, color }: {
         <Icon className="w-5 h-5" style={{ color }} />
       </div>
       <div>
-        <p className="text-2xl font-bold tracking-tight" style={{ color: "#020617" }}>{value}</p>
-        <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>{label}</p>
+        <p className="text-2xl font-bold tracking-tight" style={{ color: "var(--on-dark)" }}>{value}</p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{label}</p>
       </div>
     </div>
   )
@@ -41,8 +41,8 @@ export default async function VisitsPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "#020617" }}>Посещения</h1>
-          <p className="text-sm mt-1" style={{ color: "#64748b" }}>Быстрый check-in и журнал посещений</p>
+          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Посещения</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Быстрый check-in и журнал посещений</p>
         </div>
         <button
           className="h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 text-white transition-opacity hover:opacity-90"
@@ -62,8 +62,8 @@ export default async function VisitsPage() {
       </div>
 
       {/* Quick check-in */}
-      <div className="rounded-xl p-5" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-        <p className="text-xs font-medium mb-3" style={{ color: "#94a3b8" }}>
+      <div className="rounded-xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <p className="text-xs font-medium mb-3" style={{ color: "var(--gray-muted)" }}>
           БЫСТРЫЙ CHECK-IN — введите имя или телефон, нажмите на клиента
         </p>
         <VisitsQuickCheckin />

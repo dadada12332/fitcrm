@@ -35,9 +35,9 @@ const DAY_LABELS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"]
 
 function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
-        <h3 className="text-sm font-semibold" style={{ color: "#020617" }}>{title}</h3>
+    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+        <h3 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{title}</h3>
         {action}
       </div>
       <div className="px-6 py-5">{children}</div>
@@ -48,7 +48,7 @@ function Card({ title, children, action }: { title: string; children: React.Reac
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>{label}</label>
+      <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>{label}</label>
       {children}
     </div>
   )
@@ -60,9 +60,9 @@ function Input({ value, onChange, placeholder, type = "text" }: {
   return (
     <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
       className="w-full h-10 px-3 rounded-lg text-sm outline-none transition-shadow"
-      style={{ border: "1.5px solid #e2e8f0", color: "#020617" }}
+      style={{ border: "1.5px solid #e2e8f0", color: "var(--on-dark)" }}
       onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)" }}
-      onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none" }}
+      onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none" }}
     />
   )
 }
@@ -81,7 +81,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   return (
     <button type="button" onClick={() => onChange(!checked)}
       className="w-10 h-6 rounded-full transition-colors flex-shrink-0 relative"
-      style={{ background: checked ? "#2563eb" : "#e2e8f0" }}>
+      style={{ background: checked ? "#2563eb" : "var(--border)" }}>
       <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
         style={{ left: checked ? "22px" : "2px" }} />
     </button>
@@ -92,8 +92,8 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
   return (
     <div className="p-5 rounded-xl" style={{ background: accent + "18", border: `1px solid ${accent}30` }}>
       <p className="text-xs font-medium mb-1" style={{ color: accent }}>{label}</p>
-      <p className="text-2xl font-bold" style={{ color: "#020617" }}>{value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: "#64748b" }}>{sub}</p>}
+      <p className="text-2xl font-bold" style={{ color: "var(--on-dark)" }}>{value}</p>
+      {sub && <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{sub}</p>}
     </div>
   )
 }
@@ -146,8 +146,8 @@ function BasicSection({ member }: { member: StaffDetail }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Card title="Личные данные" action={
         <div className="relative">
-          <button type="button" className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-colors hover:bg-slate-50"
-            style={{ border: "1px solid #e2e8f0", background: sm.bg, color: sm.color }}
+          <button type="button" className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            style={{ border: "1px solid var(--border)", background: sm.bg, color: sm.color }}
             onClick={(e) => {
               const m = e.currentTarget.nextElementSibling as HTMLElement
               m.style.display = m.style.display === "block" ? "none" : "block"
@@ -155,10 +155,10 @@ function BasicSection({ member }: { member: StaffDetail }) {
             {sm.label} <ChevronDown className="w-3 h-3" />
           </button>
           <div className="absolute right-0 top-full mt-1 z-20 rounded-xl py-1 hidden"
-            style={{ background: "white", border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", minWidth: "140px" }}>
+            style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", minWidth: "140px" }}>
             {(["active","vacation","fired"] as const).map((s) => (
               <button key={s} type="button" onClick={() => { handleStatus(s); (document.activeElement as HTMLElement)?.blur() }}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2"
+                className="w-full text-left px-4 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 flex items-center gap-2"
                 style={{ color: STATUS_META[s].color }}>
                 {STATUS_META[s].label}
               </button>
@@ -172,8 +172,8 @@ function BasicSection({ member }: { member: StaffDetail }) {
             {member.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-lg font-semibold" style={{ color: "#020617" }}>{member.name}</p>
-            <p className="text-sm" style={{ color: "#64748b" }}>{member.email}</p>
+            <p className="text-lg font-semibold" style={{ color: "var(--on-dark)" }}>{member.name}</p>
+            <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{member.email}</p>
           </div>
         </div>
 
@@ -191,9 +191,9 @@ function BasicSection({ member }: { member: StaffDetail }) {
             <button key={k} type="button" onClick={() => setRole(k)}
               className="h-10 rounded-lg text-sm font-medium transition-all"
               style={{
-                border: `1.5px solid ${role === k ? "#2563eb" : "#e2e8f0"}`,
-                background: role === k ? "#eff6ff" : "white",
-                color: role === k ? "#2563eb" : "#475569",
+                border: `1.5px solid ${role === k ? "#2563eb" : "var(--border)"}`,
+                background: role === k ? "rgba(37,99,235,0.12)" : "var(--card)",
+                color: role === k ? "#2563eb" : "var(--on-dark-soft)",
               }}>
               {v}
             </button>
@@ -219,27 +219,27 @@ function ClientsSection({ member }: { member: StaffDetail }) {
 
       <Card title={`Клиенты тренера (${member.clients.length})`}>
         {member.clients.length === 0 ? (
-          <p className="text-sm py-4 text-center" style={{ color: "#94a3b8" }}>Нет закреплённых клиентов</p>
+          <p className="text-sm py-4 text-center" style={{ color: "var(--gray-muted)" }}>Нет закреплённых клиентов</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                   {["Клиент","Абонемент","Статус"].map((h) => (
-                    <th key={h} className="px-2 py-2 text-left text-xs font-medium" style={{ color: "#94a3b8" }}>{h}</th>
+                    <th key={h} className="px-2 py-2 text-left text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {member.clients.map((c) => (
-                  <tr key={c.id} className="hover:bg-slate-50" style={{ borderBottom: "1px solid #f8fafc" }}>
+                  <tr key={c.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                     <td className="px-2 py-3">
-                      <Link href={`/clients/${c.id}`} className="font-medium hover:underline" style={{ color: "#020617" }}>{c.name}</Link>
+                      <Link href={`/clients/${c.id}`} className="font-medium hover:underline" style={{ color: "var(--on-dark)" }}>{c.name}</Link>
                     </td>
-                    <td className="px-2 py-3" style={{ color: "#64748b" }}>{c.membershipName ?? "—"}</td>
+                    <td className="px-2 py-3" style={{ color: "var(--on-dark-soft)" }}>{c.membershipName ?? "—"}</td>
                     <td className="px-2 py-3">
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: c.status === "active" ? "#dcfce7" : "#f1f5f9", color: c.status === "active" ? "#16a34a" : "#64748b" }}>
+                        style={{ background: c.status === "active" ? "#dcfce7" : "var(--card-2)", color: c.status === "active" ? "#16a34a" : "var(--on-dark-soft)" }}>
                         {c.status === "active" ? "Активен" : c.status === "expired" ? "Истёк" : c.status}
                       </span>
                     </td>
@@ -262,20 +262,20 @@ function ScheduleSection({ member }: { member: StaffDetail }) {
   return (
     <Card title="Расписание тренировок">
       {member.schedule.length === 0 ? (
-        <p className="text-sm py-4 text-center" style={{ color: "#94a3b8" }}>Расписание не настроено</p>
+        <p className="text-sm py-4 text-center" style={{ color: "var(--gray-muted)" }}>Расписание не настроено</p>
       ) : (
         <div className="grid grid-cols-7 gap-2">
           {DAY_LABELS.map((day, i) => (
             <div key={day}>
-              <p className="text-xs font-semibold text-center mb-2" style={{ color: "#64748b" }}>{day}</p>
+              <p className="text-xs font-semibold text-center mb-2" style={{ color: "var(--on-dark-soft)" }}>{day}</p>
               <div className="space-y-1.5">
                 {byDay[i].length === 0 ? (
-                  <div className="h-14 rounded-lg" style={{ background: "#f8fafc" }} />
+                  <div className="h-14 rounded-lg" style={{ background: "var(--bg)" }} />
                 ) : (
                   byDay[i].map((slot) => (
-                    <div key={slot.id} className="p-2 rounded-lg text-center" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
+                    <div key={slot.id} className="p-2 rounded-lg text-center" style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.2)" }}>
                       <p className="text-xs font-semibold truncate" style={{ color: "#2563eb" }}>{slot.title}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>{slot.startTime.slice(0,5)}–{slot.endTime.slice(0,5)}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{slot.startTime.slice(0,5)}–{slot.endTime.slice(0,5)}</p>
                     </div>
                   ))
                 )}
@@ -337,15 +337,15 @@ function SalarySection({ member }: { member: StaffDetail }) {
         <Card title="Настройка зарплаты" action={<SaveBtn pending={pending} saved={saved} />}>
           <div className="space-y-5">
             <div>
-              <label className="block text-xs font-medium mb-2" style={{ color: "#64748b" }}>Тип оплаты</label>
+              <label className="block text-xs font-medium mb-2" style={{ color: "var(--on-dark-soft)" }}>Тип оплаты</label>
               <div className="flex gap-2">
                 {SALARY_TYPES.map(({ key, label }) => (
                   <button key={key} type="button" onClick={() => setSalType(key as "fixed" | "percent" | "mixed")}
                     className="flex-1 h-9 rounded-lg text-xs font-medium transition-all"
                     style={{
-                      border: `1.5px solid ${salType === key ? "#2563eb" : "#e2e8f0"}`,
-                      background: salType === key ? "#eff6ff" : "white",
-                      color: salType === key ? "#2563eb" : "#475569",
+                      border: `1.5px solid ${salType === key ? "#2563eb" : "var(--border)"}`,
+                      background: salType === key ? "rgba(37,99,235,0.12)" : "var(--card)",
+                      color: salType === key ? "#2563eb" : "var(--on-dark-soft)",
                     }}>
                     {label}
                   </button>
@@ -356,14 +356,14 @@ function SalarySection({ member }: { member: StaffDetail }) {
             <div className="grid grid-cols-2 gap-4">
               {(salType === "fixed" || salType === "mixed") && (
                 <div>
-                  <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Фикс (сум)</label>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Фикс (сум)</label>
                   <input value={fixed} onChange={(e) => setFixed(e.target.value)} type="number" placeholder="4 000 000"
                     className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
                 </div>
               )}
               {(salType === "percent" || salType === "mixed") && (
                 <div>
-                  <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Процент (%)</label>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Процент (%)</label>
                   <input value={pct} onChange={(e) => setPct(e.target.value)} type="number" placeholder="20"
                     className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
                 </div>
@@ -371,22 +371,22 @@ function SalarySection({ member }: { member: StaffDetail }) {
             </div>
 
             {/* Auto-calculation */}
-            <div className="rounded-xl p-4 space-y-3" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#94a3b8" }}>Автоматический расчёт</p>
+            <div className="rounded-xl p-4 space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--gray-muted)" }}>Автоматический расчёт</p>
               {(salType === "fixed" || salType === "mixed") && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: "#475569" }}>Фикс:</span>
-                  <span className="text-sm font-semibold" style={{ color: "#020617" }}>{fmt(fixedNum)} сум</span>
+                  <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Фикс:</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(fixedNum)} сум</span>
                 </div>
               )}
               {(salType === "percent" || salType === "mixed") && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: "#475569" }}>Персоналки ({pct}%):</span>
-                  <span className="text-sm font-semibold" style={{ color: "#020617" }}>{fmt(pctAmount)} сум</span>
+                  <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Персоналки ({pct}%):</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(pctAmount)} сум</span>
                 </div>
               )}
-              <div className="flex items-center justify-between pt-2" style={{ borderTop: "1px solid #e2e8f0" }}>
-                <span className="text-sm font-semibold" style={{ color: "#020617" }}>Итого:</span>
+              <div className="flex items-center justify-between pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+                <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>Итого:</span>
                 <span className="text-base font-bold" style={{ color: "#2563eb" }}>{fmt(total)} сум</span>
               </div>
             </div>
@@ -406,25 +406,25 @@ function SalarySection({ member }: { member: StaffDetail }) {
 
       {showPay && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
-          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "white" }}>
-            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #f1f5f9" }}>
-              <h2 className="text-base font-semibold" style={{ color: "#020617" }}>Выплата зарплаты</h2>
-              <button onClick={() => setShowPay(false)} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ color: "#94a3b8" }}>✕</button>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "var(--card)" }}>
+            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+              <h2 className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>Выплата зарплаты</h2>
+              <button onClick={() => setShowPay(false)} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ color: "var(--gray-muted)" }}>✕</button>
             </div>
             <form onSubmit={handlePay} className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Сумма (сум)</label>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Сумма (сум)</label>
                 <input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} type="number"
                   className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Комментарий</label>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Комментарий</label>
                 <input value={payNote} onChange={(e) => setPayNote(e.target.value)} placeholder="Май 2026"
                   className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setShowPay(false)}
-                  className="flex-1 h-10 rounded-xl text-sm font-medium" style={{ border: "1px solid #e2e8f0", color: "#475569" }}>
+                  className="flex-1 h-10 rounded-xl text-sm font-medium" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
                   Отмена
                 </button>
                 <button type="submit" disabled={payPending || !payAmount}
@@ -441,23 +441,23 @@ function SalarySection({ member }: { member: StaffDetail }) {
       {/* History */}
       <Card title="История выплат">
         {history.length === 0 ? (
-          <p className="text-sm py-4 text-center" style={{ color: "#94a3b8" }}>Выплат ещё нет</p>
+          <p className="text-sm py-4 text-center" style={{ color: "var(--gray-muted)" }}>Выплат ещё нет</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                   {["Дата","Сумма","Комментарий"].map((h) => (
-                    <th key={h} className="px-2 py-2 text-left text-xs font-medium" style={{ color: "#94a3b8" }}>{h}</th>
+                    <th key={h} className="px-2 py-2 text-left text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {history.map((h, i) => (
-                  <tr key={i} className="hover:bg-slate-50" style={{ borderBottom: "1px solid #f8fafc" }}>
-                    <td className="px-2 py-3" style={{ color: "#475569" }}>{fmtDate(h.date)}</td>
-                    <td className="px-2 py-3 font-semibold" style={{ color: "#020617" }}>{fmt(h.amount)} сум</td>
-                    <td className="px-2 py-3" style={{ color: "#64748b" }}>{h.note ?? "—"}</td>
+                  <tr key={i} className="hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                    <td className="px-2 py-3" style={{ color: "var(--on-dark-soft)" }}>{fmtDate(h.date)}</td>
+                    <td className="px-2 py-3 font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(h.amount)} сум</td>
+                    <td className="px-2 py-3" style={{ color: "var(--on-dark-soft)" }}>{h.note ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -501,8 +501,8 @@ function PermissionsSection({ member }: { member: StaffDetail }) {
           {PERM_LABELS.map(({ key, label, desc }) => (
             <div key={key} className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium" style={{ color: "#020617" }}>{label}</p>
-                <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{desc}</p>
+                <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{label}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>{desc}</p>
               </div>
               <Toggle checked={perms[key] ?? false} onChange={(v) => setPerms((p) => ({ ...p, [key]: v }))} />
             </div>
@@ -570,8 +570,8 @@ export function StaffProfileClient({ member }: { member: StaffDetail }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link href="/staff" className="w-9 h-9 flex items-center justify-center rounded-xl transition-colors hover:bg-slate-100"
-            style={{ border: "1px solid #e2e8f0", color: "#64748b" }}>
+          <Link href="/staff" className="w-9 h-9 flex items-center justify-center rounded-xl transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold text-white flex-shrink-0"
@@ -580,23 +580,23 @@ export function StaffProfileClient({ member }: { member: StaffDetail }) {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold" style={{ color: "#020617" }}>{member.name}</h1>
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#f1f5f9", color: "#475569" }}>
+              <h1 className="text-xl font-bold" style={{ color: "var(--on-dark)" }}>{member.name}</h1>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "var(--card-2)", color: "var(--on-dark-soft)" }}>
                 {ROLE_LABELS[member.role] ?? member.role}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: sm.bg, color: sm.color }}>
                 {sm.label}
               </span>
             </div>
-            <p className="text-sm mt-0.5" style={{ color: "#64748b" }}>{member.email}</p>
-            {member.settings.phone && <p className="text-sm" style={{ color: "#94a3b8" }}>{member.settings.phone}</p>}
+            <p className="text-sm mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{member.email}</p>
+            {member.settings.phone && <p className="text-sm" style={{ color: "var(--gray-muted)" }}>{member.settings.phone}</p>}
           </div>
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
           <div className="text-right hidden sm:block">
-            <p className="text-xs" style={{ color: "#94a3b8" }}>Работает с</p>
-            <p className="text-sm font-medium" style={{ color: "#020617" }}>
+            <p className="text-xs" style={{ color: "var(--gray-muted)" }}>Работает с</p>
+            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>
               {member.settings.hired_at ? new Date(member.settings.hired_at).toLocaleDateString("ru-RU", { month: "long", year: "numeric" }) : "—"}
             </p>
           </div>
@@ -610,9 +610,9 @@ export function StaffProfileClient({ member }: { member: StaffDetail }) {
           { label: "Занятий",      value: String(member.personalCount) },
           { label: "Зарплата",     value: `${fmt(member.salary)} сум` },
         ].map(({ label, value }) => (
-          <div key={label} className="p-4 rounded-xl text-center" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-            <p className="text-xl font-bold" style={{ color: "#020617" }}>{value}</p>
-            <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{label}</p>
+          <div key={label} className="p-4 rounded-xl text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <p className="text-xl font-bold" style={{ color: "var(--on-dark)" }}>{value}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>{label}</p>
           </div>
         ))}
       </div>
@@ -623,7 +623,7 @@ export function StaffProfileClient({ member }: { member: StaffDetail }) {
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
             className="flex items-center gap-1.5 h-9 px-3.5 text-sm font-medium whitespace-nowrap transition-colors relative flex-shrink-0"
-            style={{ color: tab === key ? "#2563eb" : "#64748b" }}>
+            style={{ color: tab === key ? "#2563eb" : "var(--on-dark-soft)" }}>
             <Icon className="w-3.5 h-3.5" />
             {label}
             {tab === key && (

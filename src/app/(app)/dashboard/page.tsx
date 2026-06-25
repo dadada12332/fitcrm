@@ -1,93 +1,103 @@
 import { createClient } from "@/lib/supabase/server"
 import { getDashboardData } from "@/lib/dashboard"
-import { StatisticsWidget } from "@/components/app/StatisticsWidget"
+import { getPaymentsList } from "@/lib/payments"
 import { ExportButton } from "@/components/app/ExportButton"
 import { QuickActions } from "@/components/app/QuickActions"
-import { ClubAnalytics } from "@/components/app/ClubAnalytics"
-import { NewClients } from "@/components/app/NewClients"
-import { AiBar } from "@/components/app/AiBar"
+import { RevenueChart } from "@/components/app/RevenueChart"
+import { ClientTimeline } from "@/components/app/ClientTimeline"
+import { RecentPayments } from "@/components/app/RecentPayments"
+import { AiInsights } from "@/components/app/AiInsights"
+import type { TimelineVisit } from "@/components/app/ClientTimeline"
+
+function greetingText() {
+  const h = new Date().getHours()
+  if (h < 12) return "Доброе утро"
+  if (h < 17) return "Добрый день"
+  return "Добрый вечер"
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const d = await getDashboardData(supabase)
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // Clients progress bar data
-  const attended = d.todayVisits
-  const total = d.activeClients || 1
-  const attendedPct = Math.round((attended / total) * 100)
-  const expiringPct = Math.round((d.expiringCount / total) * 100)
-  const restPct = Math.max(0, 100 - attendedPct - expiringPct)
-  const notCame = Math.max(0, d.activeClients - attended - d.expiringCount)
+  const [d, userRes, recentPayments, visitsRes] = await Promise.all([
+    getDashboardData(supabase),
+    supabase.from("users").select("full_name").eq("id", user!.id).maybeSingle(),
+    getPaymentsList(supabase, 8),
+    supabase
+      .from("visits")
+      .select("id, checked_in_at, clients(id, full_name, tags)")
+      .order("checked_in_at", { ascending: false })
+      .limit(10),
+  ])
 
-  // Rough potential loss estimate (placeholder until subscriptions carry prices)
-  const potentialLoss = d.expiringCount * 700000
+  const firstName =
+    ((userRes.data as any)?.full_name ?? "").split(" ")[0] || "Руководитель"
+
+  const recentVisits: TimelineVisit[] = (visitsRes.data ?? []).map((v: any) => ({
+    id: v.id as string,
+    clientId: v.clients?.id ?? null,
+    clientName: v.clients?.full_name ?? null,
+    clientTags: v.clients?.tags ?? [],
+    checkedInAt: v.checked_in_at as string,
+  }))
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-5">
 
-      {/* ── Page header ── */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "#020617" }}>
-          Дашборд
-        </h1>
-        <div className="flex items-center gap-3">
+      {/* ── Page header (Figma: title + subtitle + buttons) ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-semibold tracking-[-0.144px]" style={{ fontSize: 24, color: "var(--on-dark)" }}>
+            Дашборд
+          </h1>
+          <p style={{ fontSize: 15, color: "var(--on-dark-soft)", marginTop: 2 }}>
+            Выручка по дате, аналитика клуба и новые клиенты
+          </p>
+          {/* User improvement: personalized greeting */}
+          <p style={{ fontSize: 13, color: "var(--gray-muted)", marginTop: 6 }}>
+            {greetingText()}, {firstName} 👋
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 pt-1">
           <ExportButton />
           <QuickActions />
         </div>
       </div>
 
-      {/* ── Клиенты progress card ── */}
-      <div className="w-full rounded-lg p-6 flex flex-col gap-6" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>Клиенты</span>
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: "#16a34a" }} />
-              <span className="text-sm font-medium" style={{ color: "#64748b" }}>{attended} Пришли</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: "#ffb700" }} />
-              <span className="text-sm font-medium" style={{ color: "#64748b" }}>{d.expiringCount} Ожидаются</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: "#dc2626" }} />
-              <span className="text-sm font-medium" style={{ color: "#64748b" }}>{notCame} Не пришли</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-0.5 h-1 w-full rounded-lg overflow-hidden">
-          {attendedPct > 0 && <div className="h-full rounded-lg" style={{ background: "#16a34a", width: `${attendedPct}%` }} />}
-          {expiringPct > 0 && <div className="h-full rounded-lg ml-0.5" style={{ background: "#ffb700", width: `${expiringPct}%` }} />}
-          {restPct > 0 && <div className="h-full rounded-lg ml-0.5" style={{ background: "#dc2626", width: `${restPct}%` }} />}
-        </div>
-      </div>
+      {/* ── Main two-column layout ── */}
+      <div className="flex gap-5 items-start">
 
-      {/* ── Статистика ── */}
-      <StatisticsWidget
-        periods={d.periods}
-        activeClients={d.activeClients}
-        prevClients={d.prevClients}
-        todayVisits={d.todayVisits}
-        prevVisits={d.prevVisits}
-        alertsCount={d.alertsCount}
-        expiringCount={d.expiringCount}
-        churnCount={d.churnCount}
-      />
+        {/* Left column */}
+        <div className="flex-1 min-w-0 flex flex-col gap-5">
+          {/* Revenue chart — KPI above chart (user improvement) */}
+          <RevenueChart periods={d.periods} />
 
-      {/* ── Аналитика клуба + Новые клиенты ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_345px] gap-5 items-stretch">
-        <div className="flex flex-col gap-5">
-          <ClubAnalytics
+          {/* Client activity — timeline instead of table (user improvement) */}
+          <ClientTimeline
+            visits={recentVisits}
+            periods={d.periods}
+            activeClients={d.activeClients}
+            todayVisits={d.todayVisits}
+            expiringCount={d.expiringCount}
+            churnCount={d.churnCount}
+          />
+        </div>
+
+        {/* Right column */}
+        <div className="flex-shrink-0 flex flex-col gap-4" style={{ width: 510 }}>
+          {/* Последние оплаты */}
+          <RecentPayments payments={recentPayments} />
+
+          {/* AI insights + chat */}
+          <AiInsights
             attendanceChangePct={d.attendanceChangePct}
             churnCount={d.churnCount}
             expiringCount={d.expiringCount}
-            potentialLoss={potentialLoss}
           />
-          <AiBar />
         </div>
-        <NewClients clients={d.newClients} />
-      </div>
 
+      </div>
     </div>
   )
 }

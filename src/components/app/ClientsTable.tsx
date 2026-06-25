@@ -9,10 +9,10 @@ import { ClientsFilterDrawer, type FilterSection } from "./ClientsFilterDrawer"
 const PAGE_SIZE = 10
 
 const statusMeta: Record<ClientStatus, { label: string; bg: string; color: string }> = {
-  active:  { label: "Активный",  bg: "#dcfce7", color: "#16a34a" },
-  expired: { label: "Истек",     bg: "#fee2e2", color: "#dc2626" },
-  frozen:  { label: "Заморожен", bg: "#dbeafe", color: "#2563eb" },
-  none:    { label: "Нет",       bg: "#f1f5f9", color: "#64748b" },
+  active:  { label: "Активный",  bg: "rgba(22,163,74,0.12)",  color: "#16a34a" },
+  expired: { label: "Истек",     bg: "rgba(220,38,38,0.12)",  color: "#dc2626" },
+  frozen:  { label: "Заморожен", bg: "rgba(37,99,235,0.12)",  color: "#2563eb" },
+  none:    { label: "Нет",       bg: "var(--card-2)",          color: "var(--on-dark-soft)" },
 }
 
 const genderLabel: Record<string, string> = { male: "Мужской", female: "Женский" }
@@ -97,25 +97,25 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
   const cols = "minmax(160px,1.1fr) minmax(160px,1fr) minmax(110px,0.9fr) minmax(110px,0.9fr) minmax(140px,1fr) minmax(120px,1fr) minmax(110px,0.9fr)"
 
   return (
-    <div className="rounded-lg" style={{ background: "white", border: "1px solid #e2e8f0" }}>
+    <div className="rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 px-6 py-5">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>Список клиентов</span>
+        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>Список клиентов</span>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#94a3b8" }} />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
             <input
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(0) }}
               placeholder="Поиск"
               className="h-9 w-[239px] pl-9 pr-3 rounded-md text-sm outline-none"
-              style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+              style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
             />
           </div>
           <button
             onClick={() => setFilterOpen(true)}
             className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
           >
             <SlidersHorizontal className="w-4 h-4" />
             Фильтр
@@ -127,7 +127,7 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
             )}
           </button>
           <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}>
+            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <Download className="w-4 h-4" />
             Экспорт в excel
           </button>
@@ -136,7 +136,7 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
 
       {/* Header row */}
       <div className="grid items-center px-6 h-12 text-sm"
-        style={{ gridTemplateColumns: cols, borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", color: "#64748b" }}>
+        style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Клиент</span>
         <span>Телефон</span>
         <span>Дата рожд.</span>
@@ -148,7 +148,7 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
 
       {/* Data rows */}
       {pageRows.length === 0 ? (
-        <div className="px-6 py-12 text-sm text-center" style={{ color: "#94a3b8" }}>Клиенты не найдены</div>
+        <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Клиенты не найдены</div>
       ) : (
         pageRows.map((r) => {
           const sm = statusMeta[r.status]
@@ -156,15 +156,15 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
             <div
               key={r.id}
               onClick={() => router.push(`/clients/${r.id}`)}
-              className="group grid items-center px-6 text-sm cursor-pointer transition-colors hover:bg-[#f1f5f9] hover:shadow-[inset_3px_0_0_#2563eb]"
-              style={{ gridTemplateColumns: cols, height: 65, borderBottom: "1px solid #f1f5f9" }}
+              className="group grid items-center px-6 text-sm cursor-pointer transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:shadow-[inset_3px_0_0_#2563eb]"
+              style={{ gridTemplateColumns: cols, height: 65, borderBottom: "1px solid var(--border-subtle)" }}
             >
-              <span className="font-medium truncate transition-colors text-[#020617] group-hover:text-[#2563eb]">{r.name}</span>
-              <span style={{ color: "#475569" }}>{r.phone ?? "—"}</span>
-              <span style={{ color: "#475569" }}>{fmtBirthDate(r.birthDate)}</span>
-              <span style={{ color: "#475569" }}>{r.gender ? genderLabel[r.gender] ?? "—" : "—"}</span>
-              <span style={{ color: "#475569" }}>{r.membership ?? "—"}</span>
-              <span style={{ color: "#475569" }}>{r.source ?? "—"}</span>
+              <span className="font-medium truncate transition-colors text-[var(--on-dark)] group-hover:text-[#2563eb]">{r.name}</span>
+              <span style={{ color: "var(--on-dark-soft)" }}>{r.phone ?? "—"}</span>
+              <span style={{ color: "var(--on-dark-soft)" }}>{fmtBirthDate(r.birthDate)}</span>
+              <span style={{ color: "var(--on-dark-soft)" }}>{r.gender ? genderLabel[r.gender] ?? "—" : "—"}</span>
+              <span style={{ color: "var(--on-dark-soft)" }}>{r.membership ?? "—"}</span>
+              <span style={{ color: "var(--on-dark-soft)" }}>{r.source ?? "—"}</span>
               <span className="flex justify-end">
                 <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: sm.bg, color: sm.color }}>
                   {sm.label}
@@ -177,9 +177,9 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
 
       {/* Pagination */}
       <div className="flex items-center justify-between px-6 py-4">
-        <span className="text-sm" style={{ color: "#94a3b8" }}>{filtered.length} клиентов</span>
+        <span className="text-sm" style={{ color: "var(--gray-muted)" }}>{filtered.length} клиентов</span>
         <div className="flex items-center gap-4">
-          <span className="text-sm" style={{ color: "#475569" }}>Стр {current + 1} из {pageCount}</span>
+          <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Стр {current + 1} из {pageCount}</span>
           <div className="flex items-center gap-1">
             {[
               { icon: ChevronsLeft,  to: 0,              dis: current === 0 },
@@ -191,8 +191,8 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
                 key={i}
                 onClick={() => setPage(to)}
                 disabled={dis}
-                className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-slate-50"
-                style={{ border: "1px solid #e2e8f0", color: "#475569" }}
+                className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
               >
                 <Icon className="w-4 h-4" />
               </button>

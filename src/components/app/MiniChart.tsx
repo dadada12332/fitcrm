@@ -18,14 +18,14 @@ export function MiniChart({ data }: Props) {
           formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, ""]}
           labelFormatter={(_, payload) => payload?.[0]?.payload?.label ?? ""}
           contentStyle={{
-            background: "white",
-            border: "1px solid #e2e8f0",
+            background: "var(--card)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
             fontSize: 12,
             boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
           }}
-          labelStyle={{ color: "#64748b", fontWeight: 500, marginBottom: 2 }}
-          itemStyle={{ color: "#020617", fontWeight: 600 }}
+          labelStyle={{ color: "var(--on-dark-soft)", fontWeight: 500, marginBottom: 2 }}
+          itemStyle={{ color: "var(--on-dark)", fontWeight: 600 }}
           separator=""
         />
         <Area

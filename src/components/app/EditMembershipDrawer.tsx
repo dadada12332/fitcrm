@@ -32,7 +32,7 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
           <input type="hidden" name="id" value={row.id} />
           <SheetHeader>
             <SheetTitle>Редактирование абонемента</SheetTitle>
-            <SheetClose className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors" style={{ color: "#64748b" }}>
+            <SheetClose className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: "var(--on-dark-soft)" }}>
               <X className="w-4 h-4" />
             </SheetClose>
           </SheetHeader>
@@ -50,7 +50,7 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
                   className="w-full rounded-md px-3 py-2 text-sm resize-none outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#2563eb]" style={inputStyle} />
               </div>
 
-              <div style={{ borderTop: "1px solid #e2e8f0" }} />
+              <div style={{ borderTop: "1px solid var(--border)" }} />
 
               <div>
                 <Label required>Срок действия</Label>
@@ -58,7 +58,7 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
               </div>
 
               {/* Подкарточка: количество дней + заморозка */}
-              <div className="rounded-lg p-4 flex flex-col gap-3" style={{ border: "1px solid #e2e8f0" }}>
+              <div className="rounded-lg p-4 flex flex-col gap-3" style={{ border: "1px solid var(--border)" }}>
                 <div>
                   <Label required>Количество дней</Label>
                   <DurationField initialDays={row.durationDays} />
@@ -66,7 +66,7 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
                 <label className="flex items-center gap-3 cursor-pointer">
                   <Switch checked={freeze} onCheckedChange={setFreeze} />
                   <input type="hidden" name="freeze_allowed" value={freeze ? "on" : "off"} />
-                  <span className="text-sm" style={{ color: "#334155" }}>Можно замораживать</span>
+                  <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Можно замораживать</span>
                 </label>
               </div>
 
@@ -100,11 +100,11 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
 
           <SheetFooter>
             <button type="submit" disabled={pending}
-              className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-60" style={{ background: "#0f172a" }}>
+              className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-60" style={{ background: "var(--on-dark)" }}>
               {pending ? "Сохранение…" : "Сохранить"}
             </button>
             <button type="button" onClick={onClose}
-              className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-slate-50" style={{ background: "white", border: "1px solid #e2e8f0", color: "#334155" }}>
+              className="flex-1 h-11 rounded-md text-sm font-medium transition-colors bg-[var(--card)] hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-[var(--border)] text-[var(--on-dark-soft)]">
               Отмена
             </button>
           </SheetFooter>

@@ -52,15 +52,15 @@ function TabGroup<T extends string>({
   items, value, onChange,
 }: { items: { key: T; label: string }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div className="flex items-center gap-0.5 p-1 rounded-lg flex-wrap" style={{ background: "#f1f5f9" }}>
+    <div className="flex items-center gap-0.5 p-1 rounded-lg flex-wrap" style={{ background: "var(--card-2)" }}>
       {items.map((t) => (
         <button
           key={t.key}
           onClick={() => onChange(t.key)}
           className="h-7 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap"
           style={{
-            background: value === t.key ? "white" : "transparent",
-            color: value === t.key ? "#020617" : "#64748b",
+            background: value === t.key ? "var(--pill-active)" : "transparent",
+            color: value === t.key ? "var(--on-dark)" : "var(--on-dark-soft)",
             boxShadow: value === t.key ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
           }}
         >
@@ -104,24 +104,24 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
       {/* Toolbar */}
       <div
         className="rounded-xl px-5 py-4 flex flex-col gap-3"
-        style={{ background: "white", border: "1px solid #e2e8f0" }}
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}
       >
         {/* Row 1: search + actions */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#94a3b8" }} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--gray-muted)" }} />
             <input
               value={query}
               onChange={(e) => { setQuery(e.target.value); resetPage() }}
               placeholder="Поиск клиента или услуги..."
               className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
-              style={{ border: "1px solid #e2e8f0", color: "#020617" }}
+              style={{ border: "1px solid var(--border)", background: "var(--card)", color: "var(--on-dark)" }}
             />
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="h-9 px-3 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors hover:bg-slate-50"
-              style={{ border: "1px solid #e2e8f0", color: "#475569" }}
+              className="h-9 px-3 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
             >
               <Download className="w-4 h-4" />
               Excel
@@ -146,9 +146,9 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
       </div>
 
       {/* Table */}
-      <div className="rounded-xl overflow-hidden" style={{ background: "white", border: "1px solid #e2e8f0" }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
-          <p className="text-sm font-semibold" style={{ color: "#020617" }}>
+      <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>
             {filtered.length} платежей
           </p>
           {filtered.length > 0 && (
@@ -159,14 +159,14 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
         </div>
 
         {filtered.length === 0 ? (
-          <div className="py-14 text-center text-sm" style={{ color: "#94a3b8" }}>Платежей нет</div>
+          <div className="py-14 text-center text-sm" style={{ color: "var(--gray-muted)" }}>Платежей нет</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                   {["Клиент", "Дата", "Услуга", "Сумма", "Метод", "Статус"].map((h) => (
-                    <th key={h} className="px-5 py-3 text-left text-xs font-medium" style={{ color: "#94a3b8" }}>
+                    <th key={h} className="px-5 py-3 text-left text-xs font-medium" style={{ color: "var(--gray-muted)" }}>
                       {h}
                     </th>
                   ))}
@@ -177,29 +177,29 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
                   const pm = providerMeta[row.provider] ?? providerMeta.cash
                   const sm = statusMeta[row.status] ?? statusMeta.pending
                   return (
-                    <tr key={row.id} className="transition-colors hover:bg-slate-50" style={{ borderBottom: "1px solid #f8fafc" }}>
+                    <tr key={row.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                       <td className="px-5 py-3">
                         {row.clientId ? (
                           <Link href={`/clients/${row.clientId}`} className="group">
-                            <p className="font-medium group-hover:underline" style={{ color: "#020617" }}>
+                            <p className="font-medium group-hover:underline" style={{ color: "var(--on-dark)" }}>
                               {row.clientName ?? "—"}
                             </p>
                             {row.clientPhone && (
-                              <p className="text-xs" style={{ color: "#94a3b8" }}>{row.clientPhone}</p>
+                              <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{row.clientPhone}</p>
                             )}
                           </Link>
                         ) : (
-                          <span style={{ color: "#94a3b8" }}>—</span>
+                          <span style={{ color: "var(--gray-muted)" }}>—</span>
                         )}
                       </td>
-                      <td className="px-5 py-3 whitespace-nowrap" style={{ color: "#475569" }}>
+                      <td className="px-5 py-3 whitespace-nowrap" style={{ color: "var(--on-dark-soft)" }}>
                         {fmtDate(row.paidAt ?? row.createdAt)}
                       </td>
-                      <td className="px-5 py-3" style={{ color: row.serviceName ? "#020617" : "#94a3b8" }}>
+                      <td className="px-5 py-3" style={{ color: row.serviceName ? "var(--on-dark)" : "var(--gray-muted)" }}>
                         {row.serviceName ?? "—"}
                       </td>
-                      <td className="px-5 py-3 font-semibold whitespace-nowrap" style={{ color: "#020617" }}>
-                        {fmtSum(row.amount)} <span className="font-normal text-xs" style={{ color: "#94a3b8" }}>сум</span>
+                      <td className="px-5 py-3 font-semibold whitespace-nowrap" style={{ color: "var(--on-dark)" }}>
+                        {fmtSum(row.amount)} <span className="font-normal text-xs" style={{ color: "var(--gray-muted)" }}>сум</span>
                       </td>
                       <td className="px-5 py-3">
                         <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: pm.bg, color: pm.color }}>
@@ -220,10 +220,10 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
         )}
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
-          <span className="text-sm" style={{ color: "#94a3b8" }}>{filtered.length} платежей</span>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+          <span className="text-sm" style={{ color: "var(--gray-muted)" }}>{filtered.length} платежей</span>
           <div className="flex items-center gap-4">
-            <span className="text-sm" style={{ color: "#475569" }}>Стр {current + 1} из {pageCount}</span>
+            <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Стр {current + 1} из {pageCount}</span>
             <div className="flex items-center gap-1">
               {[
                 { icon: ChevronsLeft,  to: 0,             dis: current === 0 },
@@ -235,8 +235,8 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
                   key={i}
                   onClick={() => setPage(to)}
                   disabled={dis}
-                  className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-slate-50"
-                  style={{ border: "1px solid #e2e8f0", color: "#475569" }}
+                  className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                  style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
                 >
                   <Icon className="w-4 h-4" />
                 </button>

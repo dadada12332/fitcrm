@@ -19,7 +19,7 @@ export function AppHeader({ clubName, email, onToggle, onMobileOpen }: Props) {
   return (
     <header
       className="h-[60px] flex items-center justify-between px-4 flex-shrink-0 z-30"
-      style={{ background: "white", borderBottom: "1px solid #e2e8f0" }}
+      style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
     >
       {/* Left: toggle + logo */}
       <div className="flex items-center gap-3 w-[228px] flex-shrink-0">
@@ -27,7 +27,7 @@ export function AppHeader({ clubName, email, onToggle, onMobileOpen }: Props) {
         <button
           onClick={onMobileOpen}
           className="md:hidden w-9 h-9 flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100"
-          style={{ color: "#71717a" }}
+          style={{ color: "var(--on-dark-soft)" }}
           aria-label="Открыть меню"
         >
           <Menu className="w-4 h-4" />
@@ -37,7 +37,7 @@ export function AppHeader({ clubName, email, onToggle, onMobileOpen }: Props) {
         <button
           onClick={onToggle}
           className="hidden md:flex w-9 h-9 items-center justify-center rounded-md transition-colors hover:bg-zinc-100 flex-shrink-0"
-          style={{ color: "#71717a" }}
+          style={{ color: "var(--on-dark-soft)" }}
           aria-label="Свернуть/развернуть сайдбар"
         >
           <PanelLeftClose className="w-4 h-4" />
@@ -58,7 +58,7 @@ export function AppHeader({ clubName, email, onToggle, onMobileOpen }: Props) {
             <span className="text-sm font-medium leading-none tracking-[-0.084px] truncate" style={{ color: "#09090b" }}>
               fitCRM
             </span>
-            <span className="text-xs leading-none mt-0.5 tracking-[-0.072px] truncate" style={{ color: "#3f3f46" }}>
+            <span className="text-xs leading-none mt-0.5 tracking-[-0.072px] truncate" style={{ color: "var(--on-dark-soft)" }}>
               {clubName}
             </span>
           </div>
@@ -69,14 +69,14 @@ export function AppHeader({ clubName, email, onToggle, onMobileOpen }: Props) {
       <div className="flex items-center gap-1">
         <button
           className="w-9 h-9 flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100"
-          style={{ color: "#71717a" }}
+          style={{ color: "var(--on-dark-soft)" }}
           aria-label="Поиск"
         >
           <Search className="w-4 h-4" />
         </button>
         <button
           className="w-9 h-9 flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100"
-          style={{ color: "#71717a" }}
+          style={{ color: "var(--on-dark-soft)" }}
           aria-label="Уведомления"
         >
           <Bell className="w-4 h-4" />
@@ -97,7 +97,7 @@ export function AppHeader({ clubName, email, onToggle, onMobileOpen }: Props) {
               <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
               <div
                 className="absolute right-0 top-11 z-20 w-52 rounded-xl py-2 text-sm"
-                style={{ background: "white", border: "1px solid #e5e7eb", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
+                style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
               >
                 <div className="px-3 py-2 border-b border-zinc-100 mb-1">
                   <p className="font-medium text-zinc-900 truncate">{email.split("@")[0]}</p>

@@ -84,13 +84,13 @@ export function NewPaymentModal({ memberships, onClose }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
       <div
         className="w-full max-w-md rounded-2xl flex flex-col"
-        style={{ background: "white", boxShadow: "0 24px 64px rgba(0,0,0,0.18)", maxHeight: "90vh" }}
+        style={{ background: "var(--card)", boxShadow: "0 24px 64px rgba(0,0,0,0.18)", maxHeight: "90vh" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #f1f5f9" }}>
-          <h2 className="text-base font-semibold" style={{ color: "#020617" }}>Новая оплата</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors">
-            <X className="w-4 h-4" style={{ color: "#64748b" }} />
+        <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+          <h2 className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>Новая оплата</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+            <X className="w-4 h-4" style={{ color: "var(--on-dark-soft)" }} />
           </button>
         </div>
 
@@ -103,10 +103,10 @@ export function NewPaymentModal({ memberships, onClose }: {
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
             {/* Client search */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Клиент</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Клиент</label>
               {client ? (
                 <div
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                   style={{ border: "1.5px solid #2563eb" }}
                   onClick={() => { setClient(null); setQuery("") }}
                 >
@@ -114,35 +114,35 @@ export function NewPaymentModal({ memberships, onClose }: {
                     {client.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "#020617" }}>{client.name}</p>
-                    {client.phone && <p className="text-xs" style={{ color: "#94a3b8" }}>{client.phone}</p>}
+                    <p className="text-sm font-medium truncate" style={{ color: "var(--on-dark)" }}>{client.name}</p>
+                    {client.phone && <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{client.phone}</p>}
                   </div>
-                  <X className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#94a3b8" }} />
+                  <X className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--gray-muted)" }} />
                 </div>
               ) : (
                 <div className="relative" ref={searchRef}>
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#94a3b8" }} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--gray-muted)" }} />
                   <input
                     autoFocus
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Имя или телефон..."
                     className="w-full h-10 pl-9 pr-3 rounded-lg text-sm outline-none"
-                    style={{ border: "1.5px solid #e2e8f0", color: "#020617" }}
+                    style={{ border: "1.5px solid var(--border)", background: "var(--card)", color: "var(--on-dark)" }}
                     onFocus={() => { if (searchResults.length) setSearchOpen(true) }}
                   />
                   {searchOpen && searchResults.length > 0 && (
                     <div className="absolute left-0 right-0 top-11 z-50 rounded-lg py-1 overflow-hidden"
-                      style={{ background: "white", border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
+                      style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
                       {searchResults.map((r) => (
                         <button key={r.id} onClick={() => { setClient(r); setSearchOpen(false); setQuery("") }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 text-left transition-colors">
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-left transition-colors">
                           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ background: "#3b82f6" }}>
                             {r.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="text-sm font-medium" style={{ color: "#020617" }}>{r.name}</p>
-                            {r.phone && <p className="text-xs" style={{ color: "#94a3b8" }}>{r.phone}</p>}
+                            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{r.name}</p>
+                            {r.phone && <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{r.phone}</p>}
                           </div>
                         </button>
                       ))}
@@ -154,39 +154,39 @@ export function NewPaymentModal({ memberships, onClose }: {
 
             {/* Membership */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Абонемент (необязательно)</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Абонемент (необязательно)</label>
               <div className="relative">
                 <select
                   value={membershipId ?? ""}
                   onChange={(e) => selectMembership(e.target.value || null)}
                   className="w-full h-10 pl-3 pr-8 rounded-lg text-sm appearance-none outline-none"
-                  style={{ border: "1.5px solid #e2e8f0", color: "#020617", background: "white" }}
+                  style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: "var(--card)" }}
                 >
                   <option value="">— Без абонемента —</option>
                   {memberships.map((m) => (
                     <option key={m.id} value={m.id}>{m.name} — {m.price.toLocaleString("ru-RU")} сум</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#94a3b8" }} />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
               </div>
             </div>
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Сумма (сум)</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Сумма (сум)</label>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0"
                 className="w-full h-10 px-3 rounded-lg text-sm outline-none"
-                style={{ border: "1.5px solid #e2e8f0", color: "#020617" }}
+                style={{ border: "1.5px solid var(--border)", background: "var(--card)", color: "var(--on-dark)" }}
               />
             </div>
 
             {/* Provider */}
             <div>
-              <label className="block text-xs font-medium mb-2" style={{ color: "#64748b" }}>Способ оплаты</label>
+              <label className="block text-xs font-medium mb-2" style={{ color: "var(--on-dark-soft)" }}>Способ оплаты</label>
               <div className="grid grid-cols-2 gap-2">
                 {PROVIDERS.map((p) => (
                   <button
@@ -194,9 +194,9 @@ export function NewPaymentModal({ memberships, onClose }: {
                     onClick={() => setProvider(p.value)}
                     className="h-9 rounded-lg text-sm font-medium transition-all"
                     style={{
-                      border: provider === p.value ? "1.5px solid #2563eb" : "1.5px solid #e2e8f0",
-                      background: provider === p.value ? "#eff6ff" : "white",
-                      color: provider === p.value ? "#2563eb" : "#475569",
+                      border: provider === p.value ? "1.5px solid #2563eb" : "1.5px solid var(--border)",
+                      background: provider === p.value ? "rgba(37,99,235,0.12)" : "var(--card)",
+                      color: provider === p.value ? "#2563eb" : "var(--on-dark-soft)",
                     }}
                   >
                     {p.label}
@@ -207,13 +207,13 @@ export function NewPaymentModal({ memberships, onClose }: {
 
             {/* Comment */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "#64748b" }}>Комментарий</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Комментарий</label>
               <input
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Необязательно"
                 className="w-full h-10 px-3 rounded-lg text-sm outline-none"
-                style={{ border: "1.5px solid #e2e8f0", color: "#020617" }}
+                style={{ border: "1.5px solid var(--border)", background: "var(--card)", color: "var(--on-dark)" }}
               />
             </div>
 
@@ -224,7 +224,7 @@ export function NewPaymentModal({ memberships, onClose }: {
         )}
 
         {!success && (
-          <div className="px-6 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
+          <div className="px-6 py-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
             <button
               onClick={handleSubmit}
               disabled={pending}

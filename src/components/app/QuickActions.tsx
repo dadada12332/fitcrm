@@ -43,7 +43,7 @@ export function QuickActions() {
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 h-10 px-4 rounded-md text-sm font-medium transition-opacity hover:opacity-90"
-        style={{ background: "#0f172a", color: "#f8fafc" }}
+        style={{ background: "var(--on-dark)", color: "var(--bg)" }}
       >
         Быстрые действия
         <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -52,17 +52,17 @@ export function QuickActions() {
       {open && (
         <div
           className="absolute right-0 mt-2 w-60 rounded-lg p-1.5 z-20"
-          style={{ background: "white", border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(2,6,23,0.12)" }}
+          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 10px 30px rgba(2,6,23,0.12)" }}
         >
           {actions.map(({ label, icon: Icon, href }) => {
             const content = (
               <span className="flex items-center gap-3 w-full">
-                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: href ? "#2563eb" : "#94a3b8" }} />
+                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: href ? "#2563eb" : "var(--gray-muted)" }} />
                 <span className="flex-1 text-left">{label}</span>
                 {!href && (
                   <span
                     className="text-[10px] px-1.5 py-0.5 rounded-full uppercase tracking-wide"
-                    style={{ background: "#f1f5f9", color: "#94a3b8" }}
+                    style={{ background: "var(--card-2)", color: "var(--gray-muted)" }}
                   >
                     скоро
                   </span>
@@ -76,8 +76,8 @@ export function QuickActions() {
                   key={label}
                   href={href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center h-10 px-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-50"
-                  style={{ color: "#020617" }}
+                  className="flex items-center h-10 px-3 rounded-md text-sm font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                  style={{ color: "var(--on-dark)" }}
                 >
                   {content}
                 </Link>
@@ -88,7 +88,7 @@ export function QuickActions() {
               <div
                 key={label}
                 className="flex items-center h-10 px-3 rounded-md text-sm font-medium cursor-not-allowed"
-                style={{ color: "#94a3b8" }}
+                style={{ color: "var(--gray-muted)" }}
               >
                 {content}
               </div>

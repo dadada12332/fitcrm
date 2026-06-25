@@ -11,7 +11,7 @@ const statusMeta: Record<ClientStatus, { label: string; bg: string; color: strin
   active:  { label: "Активный",       bg: "#dcfce7", color: "#16a34a" },
   expired: { label: "Истёк",          bg: "#fee2e2", color: "#dc2626" },
   frozen:  { label: "Заморожен",      bg: "#dbeafe", color: "#2563eb" },
-  none:    { label: "Без абонемента", bg: "#f1f5f9", color: "#64748b" },
+  none:    { label: "Без абонемента", bg: "var(--card-2)", color: "var(--on-dark-soft)" },
 }
 
 function initials(name: string) {
@@ -25,12 +25,12 @@ function fmtDate(iso: string | null) {
 
 function Field({ label, value, link }: { label: string; value: string | null; link?: string }) {
   return (
-    <div className="py-3" style={{ borderTop: "1px solid #f1f5f9" }}>
-      <p className="text-xs mb-1" style={{ color: "#94a3b8" }}>{label}</p>
+    <div className="py-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+      <p className="text-xs mb-1" style={{ color: "var(--gray-muted)" }}>{label}</p>
       {link && value ? (
         <a href={link} className="text-sm font-medium hover:underline" style={{ color: "#2563eb" }}>{value}</a>
       ) : (
-        <p className="text-sm font-medium" style={{ color: "#334155" }}>{value ?? "—"}</p>
+        <p className="text-sm font-medium" style={{ color: "var(--on-dark-soft)" }}>{value ?? "—"}</p>
       )}
     </div>
   )
@@ -62,26 +62,26 @@ function ConfirmDialog({
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
       <div
         className="relative w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
-        style={{ background: "white", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+        style={{ background: "var(--card)", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
       >
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 transition-colors"
-          style={{ color: "#94a3b8" }}
+          style={{ color: "var(--gray-muted)" }}
         >
           <X className="w-4 h-4" />
         </button>
 
         <div>
-          <h3 className="text-base font-semibold mb-1" style={{ color: "#020617" }}>{title}</h3>
-          <p className="text-sm leading-relaxed" style={{ color: "#64748b" }}>{description}</p>
+          <h3 className="text-base font-semibold mb-1" style={{ color: "var(--on-dark)" }}>{title}</h3>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>{description}</p>
         </div>
 
         <div className="flex gap-2 mt-1">
           <button
             onClick={onCancel}
             className="flex-1 h-10 rounded-lg text-sm font-medium transition-colors hover:bg-zinc-50"
-            style={{ border: "1px solid #e2e8f0", color: "#334155" }}
+            style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
           >
             Нет
           </button>
@@ -89,7 +89,7 @@ function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
             className="flex-1 h-10 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: confirmDanger ? "#dc2626" : "#0f172a" }}
+            style={{ background: confirmDanger ? "#dc2626" : "var(--on-dark)" }}
           >
             {loading ? "..." : "Да"}
           </button>
@@ -129,8 +129,8 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
       <div
         className="rounded-lg p-6 flex flex-col relative overflow-hidden transition-all duration-300"
         style={{
-          background: "white",
-          border: isFrozen ? "1.5px solid #93c5fd" : "1px solid #e2e8f0",
+          background: "var(--card)",
+          border: isFrozen ? "1.5px solid #93c5fd" : "1px solid var(--border)",
         }}
       >
         {/* Эффект заморозки — ледяной оверлей */}
@@ -166,7 +166,7 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-semibold tracking-[-0.12px] truncate" style={{ color: "#020617" }}>
+              <h2 className="text-lg font-semibold tracking-[-0.12px] truncate" style={{ color: "var(--on-dark)" }}>
                 {client.name}
               </h2>
               <span className="px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
@@ -174,7 +174,7 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
                 {sm.label}
               </span>
             </div>
-            <p className="text-sm mt-0.5" style={{ color: "#64748b" }}>Баланс: 0 сум</p>
+            <p className="text-sm mt-0.5" style={{ color: "var(--on-dark-soft)" }}>Баланс: 0 сум</p>
           </div>
         </div>
 
@@ -190,15 +190,15 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
         </div>
 
         {/* Комментарий */}
-        <div className="py-3 relative" style={{ borderTop: "1px solid #f1f5f9" }}>
-          <p className="text-xs mb-2" style={{ color: "#94a3b8" }}>Комментарий</p>
+        <div className="py-3 relative" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+          <p className="text-xs mb-2" style={{ color: "var(--gray-muted)" }}>Комментарий</p>
           <textarea
             readOnly
             defaultValue={comment}
             placeholder="Нет комментария"
             rows={3}
             className="w-full rounded-md px-3 py-2 text-sm resize-none outline-none"
-            style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#334155" }}
+            style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
           />
         </div>
 
@@ -206,7 +206,7 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
         <div className="flex flex-col gap-2 mt-2 relative">
           <button
             className="h-11 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90"
-            style={{ background: "#0f172a" }}
+            style={{ background: "var(--on-dark)" }}
           >
             Добавить оплату
           </button>
@@ -216,8 +216,8 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
               onClick={() => setDialog("freeze")}
               className="h-11 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors"
               style={{
-                background: isFrozen ? "#eff6ff" : "white",
-                border: isFrozen ? "1px solid #93c5fd" : "1px solid #e2e8f0",
+                background: isFrozen ? "#eff6ff" : "var(--card)",
+                border: isFrozen ? "1px solid #93c5fd" : "1px solid var(--border)",
                 color: isFrozen ? "#2563eb" : "#334155",
               }}
             >
@@ -229,7 +229,7 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
           <button
             onClick={() => setDialog("delete")}
             className="h-11 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-red-50"
-            style={{ background: "white", border: "1px solid #fecaca", color: "#dc2626" }}
+            style={{ background: "var(--card)", border: "1px solid #fecaca", color: "#dc2626" }}
           >
             <Trash2 className="w-4 h-4" />
             Удалить клиента

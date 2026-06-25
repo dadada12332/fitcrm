@@ -11,16 +11,16 @@ function KPICard({ label, value, unit, pct, icon: Icon, iconColor }: {
 }) {
   const up = pct !== undefined && pct >= 0
   return (
-    <div className="rounded-xl px-5 py-5 flex flex-col gap-3" style={{ background: "white", border: "1px solid #e2e8f0" }}>
+    <div className="rounded-xl px-5 py-5 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium" style={{ color: "#94a3b8" }}>{label}</p>
+        <p className="text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{label}</p>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: iconColor + "18" }}>
           <Icon className="w-4.5 h-4.5" style={{ color: iconColor }} />
         </div>
       </div>
       <div>
-        <p className="text-2xl font-bold tracking-tight" style={{ color: "#020617" }}>
-          {value}{unit && <span className="text-sm font-normal ml-1" style={{ color: "#94a3b8" }}>{unit}</span>}
+        <p className="text-2xl font-bold tracking-tight" style={{ color: "var(--on-dark)" }}>
+          {value}{unit && <span className="text-sm font-normal ml-1" style={{ color: "var(--gray-muted)" }}>{unit}</span>}
         </p>
         {pct !== undefined && (
           <div className="flex items-center gap-1 mt-1">
@@ -49,8 +49,8 @@ export default async function PaymentsPage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "#020617" }}>Оплаты</h1>
-        <p className="text-sm mt-1" style={{ color: "#64748b" }}>Финансовый контроль клуба</p>
+        <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Оплаты</h1>
+        <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Финансовый контроль клуба</p>
       </div>
 
       {/* KPI */}

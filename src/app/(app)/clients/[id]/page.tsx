@@ -24,12 +24,12 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Link href="/clients" className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors" style={{ color: "#64748b" }}>
+            <Link href="/clients" className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: "var(--on-dark-soft)" }}>
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "#020617" }}>Карточка клиента</h1>
+            <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Карточка клиента</h1>
           </div>
-          <p className="text-sm mt-1 flex items-center gap-1.5" style={{ color: "#64748b" }}>
+          <p className="text-sm mt-1 flex items-center gap-1.5" style={{ color: "var(--on-dark-soft)" }}>
             {client.name}
             {client.phone && (
               <>

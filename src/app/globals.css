@@ -2,27 +2,49 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* ─── Light design system (Shadcn-aligned) ─── */
+/* ─── Design tokens ─── */
 :root {
-  --bg:            #f8fafc;   /* page background */
-  --card:          #ffffff;   /* base card */
-  --card-2:        #f1f5f9;   /* raised card / hover */
-  --card-light:    #f1f5f9;   /* accent cards */
-  --orange:        #2563eb;   /* accent = blue (name kept) */
+  --bg:            #f8fafc;
+  --card:          #ffffff;
+  --card-2:        #f1f5f9;
+  --orange:        #2563eb;
   --orange-hover:  #1d4ed8;
-  --on-dark:       #0f172a;   /* primary text */
-  --on-dark-soft:  #64748b;   /* muted text */
+  --on-dark:       #0f172a;
+  --on-dark-soft:  #64748b;
   --border:        #e2e8f0;
+  --border-subtle: #f1f5f9;
 
-  /* legacy aliases (still referenced by some components) */
+  /* legacy aliases */
   --black:         #0f172a;
   --gray-sub:      #64748b;
   --gray-muted:    #94a3b8;
   --surface-light: #ffffff;
   --surface-dark:  #f8fafc;
+
+  /* tab/pill active state — white on light, elevated zinc-700 on dark */
+  --pill-active:   #ffffff;
 }
 
 @custom-variant dark (&:is(.dark *));
+
+/* ─── Dark mode tokens ─── */
+.dark {
+  color-scheme: dark;
+  --bg:            #09090b;
+  --card:          #18181b;
+  --card-2:        #27272a;
+  --on-dark:       #fafafa;
+  --on-dark-soft:  #a1a1aa;
+  --border:        #27272a;
+  --border-subtle: rgba(255,255,255,0.07);
+  --black:         #fafafa;
+  --gray-sub:      #a1a1aa;
+  --gray-muted:    #71717a;
+  --surface-light: #18181b;
+  --surface-dark:  #09090b;
+
+  --pill-active:   #3f3f46;
+}
 
 @theme inline {
   --font-sans: var(--font-sans);
@@ -40,7 +62,7 @@
   --color-primary-foreground:      #ffffff;
   --color-secondary:               var(--card-2);
   --color-secondary-foreground:    var(--on-dark);
-  --color-muted:                   var(--card);
+  --color-muted:                   var(--card-2);
   --color-muted-foreground:        var(--on-dark-soft);
   --color-accent:                  var(--card-2);
   --color-accent-foreground:       var(--on-dark);
@@ -60,6 +82,7 @@
     background: var(--bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background 0.2s ease, color 0.2s ease;
   }
   h1, h2, h3, h4 {
     font-family: Inter, system-ui, sans-serif;
@@ -68,8 +91,13 @@
     letter-spacing: -0.02em;
     color: var(--on-dark);
   }
-  /* Sidebar scrollbar subtle */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select, textarea {
+    background-color: var(--card);
+    color-scheme: light dark;
+  }
 }

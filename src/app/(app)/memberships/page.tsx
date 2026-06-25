@@ -13,8 +13,8 @@ export default async function MembershipsPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "#020617" }}>Абонементы</h1>
-          <p className="text-sm mt-1" style={{ color: "#64748b" }}>
+          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Абонементы</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>
             Тарифные планы и абонементы, которые можно назначать клиентам
           </p>
         </div>

@@ -42,7 +42,7 @@ function Badge({ meta }: { meta: { label: string; bg: string; color: string } })
 
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-lg ${className}`} style={{ background: "white", border: "1px solid #e2e8f0" }}>
+    <div className={`rounded-lg ${className}`} style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {children}
     </div>
   )
@@ -63,7 +63,7 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
   return (
     <div className="flex flex-col gap-5">
       {/* Tab bar */}
-      <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: "#f1f5f9" }}>
+      <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: "var(--card-2)" }}>
         {TABS.map((t) => {
           const active = t.key === tab
           const Icon = t.icon
@@ -73,8 +73,8 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
               onClick={() => setTab(t.key)}
               className="h-9 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
               style={active
-                ? { background: "white", color: "#020617", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }
-                : { background: "transparent", color: "#64748b" }}
+                ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }
+                : { background: "transparent", color: "var(--on-dark-soft)" }}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               {t.label}
@@ -105,8 +105,8 @@ function ProfileTab({ client }: { client: ClientProfile }) {
               <span className="px-3 py-0.5 rounded-full text-xs font-medium mb-2" style={{ background: "#dbeafe", color: "#2563eb" }}>
                 Текущий
               </span>
-              <h3 className="text-3xl font-bold tracking-tight" style={{ color: "#020617" }}>{sub.name}</h3>
-              <p className="text-sm mt-1" style={{ color: "#64748b" }}>
+              <h3 className="text-3xl font-bold tracking-tight" style={{ color: "var(--on-dark)" }}>{sub.name}</h3>
+              <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>
                 {fmtDate(sub.startsAt)} — {fmtDate(sub.expiresAt)}
               </p>
             </div>
@@ -119,16 +119,16 @@ function ProfileTab({ client }: { client: ClientProfile }) {
 
             <div className="mt-5">
               <div className="flex items-center justify-between mb-2 text-sm">
-                <span style={{ color: "#64748b" }}>Использовано</span>
-                <span className="font-medium" style={{ color: "#020617" }}>{sub.usedPct}%</span>
+                <span style={{ color: "var(--on-dark-soft)" }}>Использовано</span>
+                <span className="font-medium" style={{ color: "var(--on-dark)" }}>{sub.usedPct}%</span>
               </div>
-              <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: "#e2e8f0" }}>
+              <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
                 <div className="h-full rounded-full" style={{ width: `${sub.usedPct}%`, background: "#2563eb" }} />
               </div>
             </div>
           </>
         ) : (
-          <p className="text-sm text-center py-8" style={{ color: "#94a3b8" }}>У клиента нет активного абонемента</p>
+          <p className="text-sm text-center py-8" style={{ color: "var(--gray-muted)" }}>У клиента нет активного абонемента</p>
         )}
       </Card>
 
@@ -142,9 +142,9 @@ function ProfileTab({ client }: { client: ClientProfile }) {
 
 function Mini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg px-4 py-3 flex flex-col items-center text-center" style={{ border: "1px solid #e2e8f0" }}>
-      <p className="text-xs mb-1" style={{ color: "#94a3b8" }}>{label}</p>
-      <p className="text-2xl font-bold" style={{ color: "#020617" }}>{value}</p>
+    <div className="rounded-lg px-4 py-3 flex flex-col items-center text-center" style={{ border: "1px solid var(--border)" }}>
+      <p className="text-xs mb-1" style={{ color: "var(--gray-muted)" }}>{label}</p>
+      <p className="text-2xl font-bold" style={{ color: "var(--on-dark)" }}>{value}</p>
     </div>
   )
 }
@@ -166,31 +166,31 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
   return (
     <>
       <div className="flex items-center justify-between gap-4 px-6 py-5">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>История транзакций</span>
+        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>История транзакций</span>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#94a3b8" }} />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Поиск"
               className="h-9 w-[200px] pl-9 pr-3 rounded-md text-sm outline-none"
-              style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+              style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
             />
           </div>
           <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}>
+            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <SlidersHorizontal className="w-4 h-4" />Фильтр
           </button>
           <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}>
+            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <Download className="w-4 h-4" />Экспорт в excel
           </button>
         </div>
       </div>
 
       <div className="grid items-center px-6 h-12 text-sm"
-        style={{ gridTemplateColumns: cols, borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", color: "#64748b" }}>
+        style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Дата</span>
         <span>Сумма</span>
         <span>Категория</span>
@@ -199,20 +199,20 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="px-6 py-12 text-sm text-center" style={{ color: "#94a3b8" }}>Транзакций нет</div>
+        <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Транзакций нет</div>
       ) : (
         filtered.map((p) => (
-          <div key={p.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 60, borderBottom: "1px solid #f1f5f9" }}>
-            <span style={{ color: "#475569" }}>{fmtDate(p.paidAt)}</span>
-            <span className="font-medium" style={{ color: "#020617" }}>{fmtSum(p.amount)}</span>
-            <span style={{ color: "#475569" }}>Абонемент</span>
+          <div key={p.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 60, borderBottom: "1px solid var(--border-subtle)" }}>
+            <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
+            <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
+            <span style={{ color: "var(--on-dark-soft)" }}>Абонемент</span>
             <span><Badge meta={providerMeta[p.provider]} /></span>
             <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status]} /></span>
           </div>
         ))
       )}
 
-      <div className="px-6 py-4 text-sm" style={{ color: "#94a3b8" }}>{filtered.length} транзакций</div>
+      <div className="px-6 py-4 text-sm" style={{ color: "var(--gray-muted)" }}>{filtered.length} транзакций</div>
     </>
   )
 }
@@ -224,22 +224,22 @@ function VisitsTab({ visits }: { visits: ProfileVisit[] }) {
   return (
     <Card>
       <div className="px-6 py-5 flex items-center justify-between">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>Посещения</span>
-        <span className="text-sm" style={{ color: "#94a3b8" }}>{visits.length} всего</span>
+        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>Посещения</span>
+        <span className="text-sm" style={{ color: "var(--gray-muted)" }}>{visits.length} всего</span>
       </div>
       <div className="grid items-center px-6 h-12 text-sm"
-        style={{ gridTemplateColumns: cols, borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", color: "#64748b" }}>
+        style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Дата</span>
         <span>Время</span>
         <span className="text-right">Метод</span>
       </div>
       {visits.length === 0 ? (
-        <div className="px-6 py-12 text-sm text-center" style={{ color: "#94a3b8" }}>Посещений нет</div>
+        <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Посещений нет</div>
       ) : (
         visits.map((v) => (
-          <div key={v.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 56, borderBottom: "1px solid #f1f5f9" }}>
-            <span style={{ color: "#475569" }}>{fmtDate(v.checkedInAt)}</span>
-            <span style={{ color: "#475569" }}>{fmtTime(v.checkedInAt)}</span>
+          <div key={v.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 56, borderBottom: "1px solid var(--border-subtle)" }}>
+            <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(v.checkedInAt)}</span>
+            <span style={{ color: "var(--on-dark-soft)" }}>{fmtTime(v.checkedInAt)}</span>
             <span className="flex justify-end"><Badge meta={visitMethodMeta[v.method]} /></span>
           </div>
         ))
@@ -256,23 +256,23 @@ function PaymentsTab({ payments }: { payments: ProfilePayment[] }) {
   return (
     <Card>
       <div className="px-6 py-5 flex items-center justify-between">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>Платежи</span>
-        <span className="text-sm" style={{ color: "#64748b" }}>Всего оплачено: <span className="font-semibold" style={{ color: "#020617" }}>{fmtSum(total)}</span></span>
+        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>Платежи</span>
+        <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Всего оплачено: <span className="font-semibold" style={{ color: "var(--on-dark)" }}>{fmtSum(total)}</span></span>
       </div>
       <div className="grid items-center px-6 h-12 text-sm"
-        style={{ gridTemplateColumns: cols, borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", color: "#64748b" }}>
+        style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Дата</span>
         <span>Сумма</span>
         <span>Платёжная система</span>
         <span className="text-right">Статус</span>
       </div>
       {payments.length === 0 ? (
-        <div className="px-6 py-12 text-sm text-center" style={{ color: "#94a3b8" }}>Платежей нет</div>
+        <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Платежей нет</div>
       ) : (
         payments.map((p) => (
-          <div key={p.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 60, borderBottom: "1px solid #f1f5f9" }}>
-            <span style={{ color: "#475569" }}>{fmtDate(p.paidAt)}</span>
-            <span className="font-medium" style={{ color: "#020617" }}>{fmtSum(p.amount)}</span>
+          <div key={p.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 60, borderBottom: "1px solid var(--border-subtle)" }}>
+            <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
+            <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
             <span><Badge meta={providerMeta[p.provider]} /></span>
             <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status]} /></span>
           </div>
@@ -323,7 +323,7 @@ function HistoryTab({ client }: { client: ClientProfile }) {
 
   return (
     <Card className="p-6">
-      <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>История активности</span>
+      <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>История активности</span>
       <div className="mt-5 flex flex-col">
         {items.map((it, i) => {
           const Icon = it.icon
@@ -333,11 +333,11 @@ function HistoryTab({ client }: { client: ClientProfile }) {
                 <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: it.bg }}>
                   <Icon className="w-4 h-4" style={{ color: it.color }} />
                 </div>
-                {i < items.length - 1 && <div className="w-px flex-1 my-1" style={{ background: "#e2e8f0" }} />}
+                {i < items.length - 1 && <div className="w-px flex-1 my-1" style={{ background: "var(--border)" }} />}
               </div>
               <div className="pb-5">
-                <p className="text-sm font-medium" style={{ color: "#020617" }}>{it.title}</p>
-                <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>{it.sub}</p>
+                <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{it.title}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>{it.sub}</p>
               </div>
             </div>
           )

@@ -10,14 +10,14 @@ export function ScheduleKPIs({ kpis }: { kpis: KPIs }) {
   ]
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
-      style={{ background: "white", border: "1px solid #e2e8f0" }}>
+      style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {cards.map(({ label, value, icon: Icon }, i) => (
-        <div key={label} className="p-5 flex flex-col gap-3" style={{ borderLeft: i === 0 ? "none" : "1px solid #e2e8f0" }}>
+        <div key={label} className="p-5 flex flex-col gap-3" style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
           <div className="flex items-start justify-between">
-            <span className="text-sm" style={{ color: "#64748b" }}>{label}</span>
-            <Icon className="w-5 h-5" style={{ color: "#94a3b8" }} />
+            <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+            <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
           </div>
-          <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "#020617" }}>{value}</span>
+          <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
         </div>
       ))}
     </div>

@@ -9,7 +9,7 @@ type Toast = { type: "ok" | "warn" | "err"; text: string; clientName?: string }
 
 function SubBadge({ result }: { result: ClientSearchResult }) {
   if (!result.subscriptionStatus || result.subscriptionStatus === "cancelled") {
-    return <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "#f1f5f9", color: "#94a3b8" }}>Нет абонемента</span>
+    return <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "var(--card-2)", color: "var(--gray-muted)" }}>Нет абонемента</span>
   }
   if (result.subscriptionStatus === "expired" || (result.daysLeft !== null && result.daysLeft < 0)) {
     return <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: "#fee2e2", color: "#dc2626" }}>Истёк</span>
@@ -90,7 +90,7 @@ export function VisitsQuickCheckin() {
       <div className="relative">
         <Search
           className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-          style={{ color: loading ? "#3b82f6" : "#94a3b8" }}
+          style={{ color: loading ? "#3b82f6" : "var(--gray-muted)" }}
         />
         <input
           ref={inputRef}
@@ -101,19 +101,19 @@ export function VisitsQuickCheckin() {
           autoComplete="off"
           className="w-full h-12 pl-12 pr-10 rounded-xl text-sm outline-none transition-shadow"
           style={{
-            background: "white",
+            background: "var(--card)",
             border: "1.5px solid #e2e8f0",
-            color: "#020617",
+            color: "var(--on-dark)",
             boxShadow: open ? "0 0 0 3px rgba(59,130,246,0.12)" : "none",
-            borderColor: open ? "#3b82f6" : "#e2e8f0",
+            borderColor: open ? "#3b82f6" : "var(--border)",
           }}
         />
         {query && (
           <button
             onClick={() => { setQuery(""); setResults([]); setOpen(false); inputRef.current?.focus() }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
-            <X className="w-3.5 h-3.5" style={{ color: "#94a3b8" }} />
+            <X className="w-3.5 h-3.5" style={{ color: "var(--gray-muted)" }} />
           </button>
         )}
       </div>
@@ -122,14 +122,14 @@ export function VisitsQuickCheckin() {
       {open && results.length > 0 && (
         <div
           className="absolute left-0 right-0 top-14 z-50 rounded-xl py-1.5 overflow-hidden"
-          style={{ background: "white", border: "1px solid #e2e8f0", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
         >
           {results.map((client) => (
             <button
               key={client.id}
               onClick={() => handleMark(client)}
               disabled={marking}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 disabled:opacity-50"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
             >
               {/* Avatar */}
               <div
@@ -142,7 +142,7 @@ export function VisitsQuickCheckin() {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium" style={{ color: "#020617" }}>{client.name}</span>
+                  <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{client.name}</span>
                   {client.visitedToday && (
                     <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "#f0fdf4", color: "#16a34a" }}>
                       Уже был сегодня
@@ -151,10 +151,10 @@ export function VisitsQuickCheckin() {
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   {client.phone && (
-                    <span className="text-xs" style={{ color: "#64748b" }}>{client.phone}</span>
+                    <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{client.phone}</span>
                   )}
                   {client.membershipName && (
-                    <span className="text-xs" style={{ color: "#94a3b8" }}>· {client.membershipName}</span>
+                    <span className="text-xs" style={{ color: "var(--gray-muted)" }}>· {client.membershipName}</span>
                   )}
                 </div>
               </div>
@@ -162,7 +162,7 @@ export function VisitsQuickCheckin() {
               {/* Status + action hint */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 <SubBadge result={client} />
-                <span className="text-xs hidden sm:block" style={{ color: "#94a3b8" }}>↵ Отметить</span>
+                <span className="text-xs hidden sm:block" style={{ color: "var(--gray-muted)" }}>↵ Отметить</span>
               </div>
             </button>
           ))}
@@ -172,7 +172,7 @@ export function VisitsQuickCheckin() {
       {open && query.trim().length >= 2 && !loading && results.length === 0 && (
         <div
           className="absolute left-0 right-0 top-14 z-50 rounded-xl px-4 py-5 text-center text-sm"
-          style={{ background: "white", border: "1px solid #e2e8f0", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", color: "#94a3b8" }}
+          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", color: "var(--gray-muted)" }}
         >
           Клиент не найден
         </div>

@@ -28,26 +28,26 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
   const cols = "minmax(180px,1.3fr) minmax(130px,1fr) minmax(110px,0.9fr) minmax(130px,1fr) minmax(150px,1fr) minmax(120px,0.9fr) 48px"
 
   return (
-    <div className="rounded-lg" style={{ background: "white", border: "1px solid #e2e8f0" }}>
+    <div className="rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 px-6 py-5">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#94a3b8" }} />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
           <input
             value={query}
             onChange={(e) => { setQuery(e.target.value); setPage(0) }}
             placeholder="Поиск"
             className="h-9 w-[239px] pl-9 pr-3 rounded-md text-sm outline-none"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}
+            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
           />
         </div>
         <div className="flex items-center gap-2">
           <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}>
+            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <SlidersHorizontal className="w-4 h-4" />Фильтр
           </button>
           <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "white", border: "1px solid #e2e8f0", color: "#020617" }}>
+            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <Download className="w-4 h-4" />Экспорт в excel
           </button>
         </div>
@@ -55,7 +55,7 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
 
       {/* Header */}
       <div className="grid items-center px-6 h-12 text-sm"
-        style={{ gridTemplateColumns: cols, borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", color: "#64748b" }}>
+        style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Название</span>
         <span className="text-right">Срок действия</span>
         <span className="text-right">Посещений</span>
@@ -67,18 +67,18 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
 
       {/* Rows */}
       {pageRows.length === 0 ? (
-        <div className="px-6 py-12 text-sm text-center" style={{ color: "#94a3b8" }}>Тарифы не найдены</div>
+        <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Тарифы не найдены</div>
       ) : (
         pageRows.map((r) => (
-          <div key={r.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 65, borderBottom: "1px solid #f1f5f9" }}>
-            <span className="font-medium truncate" style={{ color: "#020617" }}>{r.name}</span>
-            <span className="text-right" style={{ color: "#475569" }}>{pluralDays(r.durationDays)}</span>
-            <span className="text-right" style={{ color: "#475569" }}>{r.visitsLimit ?? "∞"}</span>
-            <span className="text-right" style={{ color: "#475569" }}>
-              {fmtSum(r.price)} <span style={{ color: "#94a3b8" }}>сум</span>
+          <div key={r.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 65, borderBottom: "1px solid var(--border-subtle)" }}>
+            <span className="font-medium truncate" style={{ color: "var(--on-dark)" }}>{r.name}</span>
+            <span className="text-right" style={{ color: "var(--on-dark-soft)" }}>{pluralDays(r.durationDays)}</span>
+            <span className="text-right" style={{ color: "var(--on-dark-soft)" }}>{r.visitsLimit ?? "∞"}</span>
+            <span className="text-right" style={{ color: "var(--on-dark-soft)" }}>
+              {fmtSum(r.price)} <span style={{ color: "var(--gray-muted)" }}>сум</span>
             </span>
-            <span className="text-right" style={{ color: "#475569" }}>
-              {r.activeClients} <span style={{ color: "#94a3b8" }}>клиентов</span>
+            <span className="text-right" style={{ color: "var(--on-dark-soft)" }}>
+              {r.activeClients} <span style={{ color: "var(--gray-muted)" }}>клиентов</span>
             </span>
             <span className="flex justify-center">
               {(() => {
@@ -99,9 +99,9 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
 
       {/* Footer / pagination */}
       <div className="flex items-center justify-between px-6 py-4">
-        <span className="text-sm" style={{ color: "#94a3b8" }}>{filtered.length} тарифов</span>
+        <span className="text-sm" style={{ color: "var(--gray-muted)" }}>{filtered.length} тарифов</span>
         <div className="flex items-center gap-4">
-          <span className="text-sm" style={{ color: "#475569" }}>Стр {current + 1} из {pageCount}</span>
+          <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Стр {current + 1} из {pageCount}</span>
           <div className="flex items-center gap-1">
             {[
               { icon: ChevronsLeft, to: 0, dis: current === 0 },
@@ -110,8 +110,8 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
               { icon: ChevronsRight, to: pageCount - 1, dis: current >= pageCount - 1 },
             ].map(({ icon: Icon, to, dis }, i) => (
               <button key={i} onClick={() => setPage(to)} disabled={dis}
-                className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-slate-50"
-                style={{ border: "1px solid #e2e8f0", color: "#475569" }}>
+                className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
                 <Icon className="w-4 h-4" />
               </button>
             ))}

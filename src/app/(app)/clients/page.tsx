@@ -18,15 +18,15 @@ export default async function ClientsPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "#020617" }}>Клиенты</h1>
-          <p className="text-sm mt-1" style={{ color: "#64748b" }}>
+          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Клиенты</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>
             База клиентов, абонементы, посещения и баланс
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium"
-            style={{ background: "white", color: "#020617", border: "1px solid #e2e8f0" }}
+            style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}
           >
             <Download className="w-4 h-4" />
             Экспорт в excel

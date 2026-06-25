@@ -25,26 +25,26 @@ const avatarColors = ["#fbbf24", "#f472b6", "#34d399", "#60a5fa", "#a78bfa", "#f
 
 export function NewClients({ clients }: { clients: NewClient[] }) {
   return (
-    <div className="rounded-lg p-6 flex flex-col h-full" style={{ background: "white", border: "1px solid #e2e8f0" }}>
+    <div className="rounded-lg p-6 flex flex-col h-full" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between mb-5 flex-shrink-0">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "#020617" }}>Новые клиенты</span>
+        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>Новые клиенты</span>
         <Link
           href="/clients"
           className="h-8 px-3 rounded-md text-xs font-medium flex items-center"
-          style={{ background: "white", color: "#020617", border: "1px solid #e2e8f0" }}
+          style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}
         >
           Показать все
         </Link>
       </div>
 
       {clients.length === 0 ? (
-        <p className="text-sm py-6 text-center" style={{ color: "#94a3b8" }}>
+        <p className="text-sm py-6 text-center" style={{ color: "var(--gray-muted)" }}>
           Пока нет клиентов
         </p>
       ) : (
         <div className="flex flex-col gap-4 overflow-y-auto">
           {clients.map((c, i) => (
-            <Link key={c.id} href={`/clients/${c.id}`} className="flex items-center gap-3 -mx-2 px-2 py-1 rounded-md hover:bg-slate-50 transition-colors">
+            <Link key={c.id} href={`/clients/${c.id}`} className="flex items-center gap-3 -mx-2 px-2 py-1 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
               <div
                 className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
                 style={{ background: avatarColors[i % avatarColors.length] }}
@@ -52,10 +52,10 @@ export function NewClients({ clients }: { clients: NewClient[] }) {
                 {initials(c.full_name)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: "#020617" }}>{c.full_name}</p>
-                <p className="text-xs" style={{ color: "#94a3b8" }}>{timeAgo(c.created_at)}</p>
+                <p className="text-sm font-medium truncate" style={{ color: "var(--on-dark)" }}>{c.full_name}</p>
+                <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{timeAgo(c.created_at)}</p>
               </div>
-              <span className="text-xs flex-shrink-0" style={{ color: "#64748b" }}>
+              <span className="text-xs flex-shrink-0" style={{ color: "var(--on-dark-soft)" }}>
                 {c.membership ?? "Без абонемента"}
               </span>
             </Link>

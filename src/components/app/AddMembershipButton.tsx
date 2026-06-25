@@ -27,7 +27,7 @@ export function AddMembershipButton() {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 h-10 px-4 rounded-md text-sm font-medium transition-opacity hover:opacity-90"
-        style={{ background: "#0f172a", color: "#f8fafc" }}
+        style={{ background: "var(--on-dark)", color: "var(--bg)" }}
       >
         <Plus className="w-4 h-4" />
         Добавить абонемент
@@ -38,7 +38,7 @@ export function AddMembershipButton() {
           <form action={formAction} className="flex flex-col h-full">
             <SheetHeader>
               <SheetTitle>Добавление абонемента</SheetTitle>
-              <SheetClose className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors" style={{ color: "#64748b" }}>
+              <SheetClose className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: "var(--on-dark-soft)" }}>
                 <X className="w-4 h-4" />
               </SheetClose>
             </SheetHeader>
@@ -57,7 +57,7 @@ export function AddMembershipButton() {
                     style={inputStyle} />
                 </div>
 
-                <div style={{ borderTop: "1px solid #e2e8f0" }} />
+                <div style={{ borderTop: "1px solid var(--border)" }} />
 
                 <div>
                   <Label required>Срок действия</Label>
@@ -65,7 +65,7 @@ export function AddMembershipButton() {
                 </div>
 
                 {/* Подкарточка: количество дней + заморозка */}
-                <div className="rounded-lg p-4 flex flex-col gap-3" style={{ border: "1px solid #e2e8f0" }}>
+                <div className="rounded-lg p-4 flex flex-col gap-3" style={{ border: "1px solid var(--border)" }}>
                   <div>
                     <Label required>Количество дней</Label>
                     <DurationField />
@@ -73,7 +73,7 @@ export function AddMembershipButton() {
                   <label className="flex items-center gap-3 cursor-pointer">
                     <Switch checked={freeze} onCheckedChange={setFreeze} />
                     <input type="hidden" name="freeze_allowed" value={freeze ? "on" : "off"} />
-                    <span className="text-sm" style={{ color: "#334155" }}>Можно замораживать</span>
+                    <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Можно замораживать</span>
                   </label>
                 </div>
 
@@ -106,11 +106,11 @@ export function AddMembershipButton() {
 
             <SheetFooter>
               <button type="submit" disabled={pending}
-                className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-60" style={{ background: "#0f172a" }}>
+                className="flex-1 h-11 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-60" style={{ background: "var(--on-dark)" }}>
                 {pending ? "Сохранение…" : "Сохранить"}
               </button>
               <button type="button" onClick={() => setOpen(false)}
-                className="flex-1 h-11 rounded-md text-sm font-medium transition-colors hover:bg-slate-50" style={{ background: "white", border: "1px solid #e2e8f0", color: "#334155" }}>
+                className="flex-1 h-11 rounded-md text-sm font-medium transition-colors bg-[var(--card)] hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-[var(--border)] text-[var(--on-dark-soft)]">
                 Добавить в черновик
               </button>
             </SheetFooter>

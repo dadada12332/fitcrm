@@ -54,11 +54,11 @@ export function StatisticsWidget({
   return (
     <div
       className="w-full rounded-2xl overflow-hidden"
-      style={{ background: "white", border: "1px solid #e2e8f0" }}
+      style={{ background: "var(--card)", border: "1px solid var(--border)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
-        <span className="text-2xl font-medium tracking-[-0.144px]" style={{ color: "#020617" }}>
+        <span className="text-2xl font-medium tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>
           Статистика
         </span>
         <div className="flex items-center gap-0">
@@ -68,8 +68,8 @@ export function StatisticsWidget({
               onClick={() => setPeriod(p)}
               className="h-9 px-4 rounded-md text-sm font-medium transition-colors"
               style={{
-                background: period === p ? "#f1f5f9" : "transparent",
-                color: "#020617",
+                background: period === p ? "var(--card-2)" : "transparent",
+                color: "var(--on-dark)",
               }}
             >
               {p}
@@ -85,11 +85,11 @@ export function StatisticsWidget({
         <div className="flex flex-col w-[420px] xl:w-[520px] flex-shrink-0">
           {/* Text */}
           <div className="flex flex-col gap-3 px-4 py-5">
-            <p className="text-base font-normal leading-6" style={{ color: "#64748b" }}>
+            <p className="text-base font-normal leading-6" style={{ color: "var(--on-dark-soft)" }}>
               Выручка за {period === "1Д" ? "сегодня" : cur.unit}
             </p>
             <div className="flex items-center gap-3">
-              <p className="text-4xl font-medium leading-none tracking-[-0.27px]" style={{ color: "#020617" }}>
+              <p className="text-4xl font-medium leading-none tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>
                 {fmt(Math.floor(todayRevenue))}
                 <span style={{ color: "rgba(2,6,23,0.3)" }}>
                   .{String(Math.round((todayRevenue % 1) * 100)).padStart(2, "0")}
@@ -105,7 +105,7 @@ export function StatisticsWidget({
                 </span>
               </div>
             </div>
-            <p className="text-sm font-normal leading-5" style={{ color: "#64748b" }}>
+            <p className="text-sm font-normal leading-5" style={{ color: "var(--on-dark-soft)" }}>
               за {cur.unit}
             </p>
           </div>
@@ -117,20 +117,20 @@ export function StatisticsWidget({
         </div>
 
         {/* Divider */}
-        <div className="w-px self-stretch flex-shrink-0" style={{ background: "#e2e8f0" }} />
+        <div className="w-px self-stretch flex-shrink-0" style={{ background: "var(--border)" }} />
 
         {/* Stat card 1: active clients */}
         <div
           className="flex flex-col justify-between flex-1 min-w-0 p-6 rounded-lg"
-          style={{ border: "1px solid #e2e8f0" }}
+          style={{ border: "1px solid var(--border)" }}
         >
           <div className="flex flex-col gap-4">
-            <User className="w-6 h-6" style={{ color: "#64748b" }} />
+            <User className="w-6 h-6" style={{ color: "var(--on-dark-soft)" }} />
             <div className="flex flex-col gap-1.5">
-              <p className="text-2xl font-medium leading-8 tracking-[-0.144px]" style={{ color: "#020617" }}>
+              <p className="text-2xl font-medium leading-8 tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>
                 {fmt(activeClients)} клиентов
               </p>
-              <p className="text-sm leading-5" style={{ color: "#64748b" }}>
+              <p className="text-sm leading-5" style={{ color: "var(--on-dark-soft)" }}>
                 Активных клиентов зала
               </p>
             </div>
@@ -143,7 +143,7 @@ export function StatisticsWidget({
             <span className="text-xs" style={{ color: clientUp ? "#15803d" : "#ef4444" }}>
               {Math.abs(clientPct).toFixed(1)}%
             </span>
-            <span className="text-xs" style={{ color: "#64748b" }}>
+            <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
               {" "}больше предыдущего месяца
             </span>
           </div>
@@ -152,15 +152,15 @@ export function StatisticsWidget({
         {/* Stat card 2: visits today */}
         <div
           className="flex flex-col justify-between flex-1 min-w-0 p-6 rounded-lg"
-          style={{ border: "1px solid #e2e8f0" }}
+          style={{ border: "1px solid var(--border)" }}
         >
           <div className="flex flex-col gap-4">
-            <Users className="w-6 h-6" style={{ color: "#64748b" }} />
+            <Users className="w-6 h-6" style={{ color: "var(--on-dark-soft)" }} />
             <div className="flex flex-col gap-1.5">
-              <p className="text-2xl font-medium leading-8 tracking-[-0.144px]" style={{ color: "#020617" }}>
+              <p className="text-2xl font-medium leading-8 tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>
                 {fmt(todayVisits)} посещений
               </p>
-              <p className="text-sm leading-5" style={{ color: "#64748b" }}>
+              <p className="text-sm leading-5" style={{ color: "var(--on-dark-soft)" }}>
                 Столько клиентов было за день
               </p>
             </div>
@@ -173,7 +173,7 @@ export function StatisticsWidget({
             <span className="text-xs" style={{ color: visitUp ? "#15803d" : "#ef4444" }}>
               {Math.abs(visitPct).toFixed(1)}%
             </span>
-            <span className="text-xs" style={{ color: "#64748b" }}>
+            <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
               {" "}{visitUp ? "больше" : "меньше"} предыдущего дня
             </span>
           </div>
@@ -182,15 +182,15 @@ export function StatisticsWidget({
         {/* Stat card 3: alerts */}
         <div
           className="flex flex-col justify-between flex-1 min-w-0 p-6 rounded-lg"
-          style={{ border: "1px solid #e2e8f0" }}
+          style={{ border: "1px solid var(--border)" }}
         >
           <div className="flex flex-col gap-4">
-            <AlertTriangle className="w-6 h-6" style={{ color: "#64748b" }} />
+            <AlertTriangle className="w-6 h-6" style={{ color: "var(--on-dark-soft)" }} />
             <div className="flex flex-col gap-1.5">
-              <p className="text-2xl font-medium leading-8 tracking-[-0.144px]" style={{ color: "#020617" }}>
+              <p className="text-2xl font-medium leading-8 tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>
                 {alertsCount}
               </p>
-              <p className="text-sm leading-5" style={{ color: "#64748b" }}>
+              <p className="text-sm leading-5" style={{ color: "var(--on-dark-soft)" }}>
                 Требуют внимания
               </p>
             </div>

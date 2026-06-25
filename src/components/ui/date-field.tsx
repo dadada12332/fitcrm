@@ -95,7 +95,7 @@ export function DateField({ name, placeholder = "дд.мм.гггг", className,
           style={style}
         />
         <button type="button" onClick={() => setOpen((o) => !o)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           style={{ color: "#94a3b8" }} tabIndex={-1}>
           <CalendarIcon className="w-4 h-4" />
         </button>
@@ -107,12 +107,12 @@ export function DateField({ name, placeholder = "дд.мм.гггг", className,
           {/* header */}
           <div className="flex items-center justify-between mb-2">
             <button type="button" onClick={() => setView(new Date(year, month - 1, 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-100" style={{ color: "#475569" }}>
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800" style={{ color: "#475569" }}>
               <ChevronLeft className="w-4 h-4" />
             </button>
             <span className="text-sm font-medium" style={{ color: "#020617" }}>{MONTHS[month]} {year}</span>
             <button type="button" onClick={() => setView(new Date(year, month + 1, 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-100" style={{ color: "#475569" }}>
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800" style={{ color: "#475569" }}>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

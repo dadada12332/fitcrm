@@ -45,12 +45,12 @@ function Section({
   if (options.length === 0) return null
   return (
     <div className="mb-6">
-      <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: "#94a3b8" }}>{title}</p>
+      <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: "var(--gray-muted)" }}>{title}</p>
       <div className="flex flex-col">
         {options.map((o) => (
           <label key={o.key} className="flex items-center gap-3 py-2.5 cursor-pointer">
             <Checkbox checked={selected.has(o.key)} onCheckedChange={() => onToggle(o.key)} />
-            <span className="text-sm" style={{ color: "#334155" }}>{o.label}</span>
+            <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{o.label}</span>
           </label>
         ))}
       </div>
@@ -74,8 +74,8 @@ export function ClientsFilterDrawer({
         <SheetHeader>
           <SheetTitle>Фильтр</SheetTitle>
           <SheetClose
-            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors"
-            style={{ color: "#64748b" }}
+            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            style={{ color: "var(--on-dark-soft)" }}
           >
             <X className="w-4 h-4" />
           </SheetClose>
@@ -83,14 +83,14 @@ export function ClientsFilterDrawer({
 
         <SheetBody>
           <Section title="Статус абонемента" options={STATUS_OPTIONS} selected={status} onToggle={(k) => onToggle("status", k)} />
-          <div style={{ borderTop: "1px solid #e2e8f0" }} className="mb-6" />
+          <div style={{ borderTop: "1px solid var(--border)" }} className="mb-6" />
           <Section
             title="Тип абонемента"
             options={typeOptions.map((t) => ({ key: t, label: t }))}
             selected={type}
             onToggle={(k) => onToggle("type", k)}
           />
-          <div style={{ borderTop: "1px solid #e2e8f0" }} className="mb-6" />
+          <div style={{ borderTop: "1px solid var(--border)" }} className="mb-6" />
           <Section title="Остаток дней" options={DAYS_OPTIONS} selected={days} onToggle={(k) => onToggle("days", k)} />
         </SheetBody>
 
@@ -98,11 +98,11 @@ export function ClientsFilterDrawer({
           <button
             onClick={() => onOpenChange(false)}
             className="h-11 px-6 rounded-md text-sm font-medium text-white"
-            style={{ background: "#0f172a" }}
+            style={{ background: "var(--on-dark)" }}
           >
             Применить
           </button>
-          <button onClick={onClear} className="h-11 px-4 rounded-md text-sm font-medium" style={{ color: "#64748b" }}>
+          <button onClick={onClear} className="h-11 px-4 rounded-md text-sm font-medium" style={{ color: "var(--on-dark-soft)" }}>
             Очистить
           </button>
         </SheetFooter>
