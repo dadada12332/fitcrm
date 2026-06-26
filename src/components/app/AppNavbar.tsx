@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  LayoutDashboard, Users, CreditCard, Calendar, Wallet, CheckSquare,
+  LayoutDashboard, Users, CreditCard, Calendar, Wallet, CheckSquare, BarChart2,
   Search, Bell, Zap, LogOut, ChevronDown, Check, Plus, Building2,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
   Settings, UserCog, HelpCircle, SlidersHorizontal,
@@ -19,6 +19,7 @@ const nav = [
   { href: "/schedule",    label: "Расписание", icon: Calendar },
   { href: "/visits",      label: "Посещения",  icon: CheckSquare },
   { href: "/payments",    label: "Оплата",     icon: Wallet },
+  { href: "/reports",     label: "Отчёты",     icon: BarChart2 },
 ]
 
 type Props = { clubName: string; email: string }

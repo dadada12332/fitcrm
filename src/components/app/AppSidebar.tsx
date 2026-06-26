@@ -14,6 +14,7 @@ import {
   BarChart2,
   Settings,
   HelpCircle,
+  BookOpen,
   ChevronsUpDown,
   Zap,
   X,
@@ -37,8 +38,9 @@ const otherNav = [
 ]
 
 const bottomNav = [
-  { href: "/settings", label: "Настройки", icon: Settings },
-  { href: "/support",  label: "Поддержка", icon: HelpCircle },
+  { href: "/settings",   label: "Настройки",   icon: Settings },
+  { href: "/knowledge",  label: "База знаний",  icon: BookOpen },
+  { href: "/support",    label: "Поддержка",    icon: HelpCircle },
 ]
 
 type Props = {
