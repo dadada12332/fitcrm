@@ -1,15 +1,17 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import {
   CheckCircle, AlertCircle, Trash2, Eye, EyeOff,
-  Bot, Zap, MessageSquare, BarChart2, RefreshCw, Send, Image as ImageIcon, X,
+  Bot, Zap, MessageSquare, BarChart2, RefreshCw, Send,
 } from "lucide-react"
 import {
-  connectTelegramAction, disconnectTelegramAction, saveTelegramSettingsAction, broadcastTelegramAction,
+  connectTelegramAction, disconnectTelegramAction, saveTelegramSettingsAction,
 } from "@/app/(app)/integrations/actions"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { saveIntegrationAction } from "@/app/(app)/settings/club/actions"
+import { TelegramBroadcast, type BroadcastHistoryItem } from "./TelegramBroadcast"
+import type { AudienceOption, Recipient } from "@/lib/broadcast"
 
 // ── Simple integrations (Click / Payme) ──────────────────────────
 
@@ -56,7 +58,7 @@ const TABS = [
   { id: "stats",      label: "Статистика",     icon: BarChart2 },
 ]
 
-function TelegramManage({ connected, botUsername, botFirstName, connectedAt, clientCount, subscribers, tgSettings }: {
+function TelegramManage({ connected, botUsername, botFirstName, connectedAt, clientCount, subscribers, tgSettings, clubName, audienceOptions, recipients, history }: {
   connected: boolean
   botUsername: string
   botFirstName: string
@@ -64,6 +66,10 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
   clientCount: number
   subscribers: number
   tgSettings: TelegramSettings
+  clubName: string
+  audienceOptions: AudienceOption[]
+  recipients: Recipient[]
+  history: BroadcastHistoryItem[]
 }) {
   const [tab, setTab] = useState("main")
   const [token, setToken] = useState("")
@@ -85,36 +91,6 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
   })
   const [tplMsg, setTplMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [tplPending, startTpl] = useTransition()
-
-  // Broadcast state
-  const [bcText, setBcText] = useState("")
-  const [bcImage, setBcImage] = useState<File | null>(null)
-  const [bcPreview, setBcPreview] = useState<string | null>(null)
-  const [bcMsg, setBcMsg] = useState<{ text: string; ok: boolean } | null>(null)
-  const [bcPending, startBc] = useTransition()
-  const fileRef = useRef<HTMLInputElement>(null)
-
-  function pickImage(file: File | null) {
-    setBcImage(file)
-    setBcPreview(file ? URL.createObjectURL(file) : null)
-  }
-
-  function handleBroadcast() {
-    if (!bcText.trim() && !bcImage) return
-    if (!confirm(`Отправить пост ${subscribers} подписчикам бота?`)) return
-    setBcMsg(null)
-    startBc(async () => {
-      const fd = new FormData()
-      fd.append("message", bcText)
-      if (bcImage) fd.append("image", bcImage)
-      const res = await broadcastTelegramAction(fd)
-      if (res.error && !res.sent) { setBcMsg({ text: res.error, ok: false }); return }
-      setBcMsg({ text: `Отправлено ${res.sent} из ${res.total}${res.failed ? ` (не доставлено: ${res.failed})` : ""}`, ok: true })
-      setBcText("")
-      pickImage(null)
-      if (fileRef.current) fileRef.current.value = ""
-    })
-  }
 
   function handleConnect(e: React.FormEvent) {
     e.preventDefault()
@@ -355,62 +331,14 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
 
       {/* ── Broadcast tab ── */}
       {tab === "broadcast" && (
-        <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          {!connected && (
-            <div className="p-3 rounded-lg text-sm" style={{ background: "rgba(245,158,11,0.08)", color: "#b45309" }}>
-              ⚠ Сначала подключите бота на вкладке «Основное»
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "var(--on-dark)" }}>Текст поста</label>
-            <textarea
-              value={bcText}
-              onChange={(e) => setBcText(e.target.value)}
-              rows={5}
-              placeholder="Напишите сообщение для подписчиков бота…"
-              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-none"
-              style={{ background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
-            />
-          </div>
-
-          {/* Image */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: "var(--on-dark)" }}>Изображение (необязательно)</label>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden"
-              onChange={(e) => pickImage(e.target.files?.[0] ?? null)} />
-            {bcPreview ? (
-              <div className="relative inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={bcPreview} alt="preview" className="max-h-48 rounded-lg" style={{ border: "1px solid var(--border)" }} />
-                <button type="button" onClick={() => { pickImage(null); if (fileRef.current) fileRef.current.value = "" }}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-white shadow"
-                  style={{ background: "#dc2626" }}>
-                  <X size={13} />
-                </button>
-              </div>
-            ) : (
-              <button type="button" onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                style={{ border: "1px dashed var(--border)", color: "var(--on-dark-soft)" }}>
-                <ImageIcon size={16} />Прикрепить изображение
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between gap-3 pt-1">
-            <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>
-              Будет отправлено <span className="font-semibold" style={{ color: "var(--on-dark)" }}>{subscribers}</span> подписчикам
-            </p>
-            <button onClick={handleBroadcast} disabled={bcPending || !connected || (!bcText.trim() && !bcImage)}
-              className="h-10 px-5 rounded-lg text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: "#2AABEE" }}>
-              <Send size={15} className={bcPending ? "animate-pulse" : ""} />
-              {bcPending ? "Отправляю…" : "Отправить"}
-            </button>
-          </div>
-          <Feedback msg={bcMsg} />
-        </div>
+        <TelegramBroadcast
+          connected={connected}
+          botName={botFirstName}
+          clubName={clubName}
+          audienceOptions={audienceOptions}
+          recipients={recipients}
+          history={history}
+        />
       )}
 
       {/* ── Templates tab ── */}
@@ -561,12 +489,16 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
 
 // ── Export ────────────────────────────────────────────────────────
 
-export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, connectedAt }: {
+export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, connectedAt, clubName, audienceOptions, recipients, history }: {
   slug: string; label: string; color: string
   connected: boolean; currentValue: string; clientCount: number
   subscribers?: number
   tgSettings?: TelegramSettings
   botUsername?: string; botFirstName?: string; connectedAt?: string | null
+  clubName?: string
+  audienceOptions?: AudienceOption[]
+  recipients?: Recipient[]
+  history?: BroadcastHistoryItem[]
 }) {
   if (slug === "telegram") {
     return (
@@ -578,6 +510,10 @@ export function IntegrationManage({ slug, label, color, connected, currentValue,
         clientCount={clientCount}
         subscribers={subscribers ?? 0}
         tgSettings={tgSettings ?? DEFAULT_TG_SETTINGS}
+        clubName={clubName ?? "Клуб"}
+        audienceOptions={audienceOptions ?? []}
+        recipients={recipients ?? []}
+        history={history ?? []}
       />
     )
   }

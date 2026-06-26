@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { IntegrationManage } from "@/components/app/IntegrationManage"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
+import { resolveAudienceOptions, getRecipientsDataset, type AudienceOption, type Recipient } from "@/lib/broadcast"
+import type { BroadcastHistoryItem } from "@/components/app/TelegramBroadcast"
 
 const META: Record<string, { label: string; description: string; color: string }> = {
   telegram: { label: "Telegram Bot", description: "Личный кабинет клиентов, QR-чекин и уведомления", color: "#2AABEE" },
@@ -24,6 +26,9 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   let currentValue = ""
   let clientCount = 0
   let subscribers = 0
+  let audienceOptions: AudienceOption[] = []
+  let recipients: Recipient[] = []
+  let history: BroadcastHistoryItem[] = []
   let tgSettings: TelegramSettings = DEFAULT_TG_SETTINGS
   let botUsername = ""
   let botFirstName = ""
@@ -65,6 +70,30 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
           .from("clients").select("id", { count: "exact", head: true })
           .eq("club_id", club.clubId).not("telegram_id", "is", null)
         subscribers = subs ?? 0
+
+        const [opts, ds, hist] = await Promise.all([
+          resolveAudienceOptions(supabase, club.clubId),
+          getRecipientsDataset(supabase, club.clubId),
+          supabase
+            .from("broadcasts")
+            .select("id, message, image_url, audience_label, status, scheduled_at, sent_at, total, delivered")
+            .eq("club_id", club.clubId)
+            .order("created_at", { ascending: false })
+            .limit(10),
+        ])
+        audienceOptions = opts
+        recipients = ds
+        history = (hist.data ?? []).map((b) => ({
+          id: b.id as string,
+          message: b.message as string | null,
+          imageUrl: b.image_url as string | null,
+          audienceLabel: b.audience_label as string | null,
+          status: b.status as string,
+          scheduledAt: b.scheduled_at as string | null,
+          sentAt: b.sent_at as string | null,
+          total: (b.total as number) ?? 0,
+          delivered: (b.delivered as number) ?? 0,
+        }))
       }
     }
   }
@@ -114,6 +143,10 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
         botUsername={botUsername}
         botFirstName={botFirstName}
         connectedAt={connectedAt}
+        clubName={club?.clubName ?? "Клуб"}
+        audienceOptions={audienceOptions}
+        recipients={recipients}
+        history={history}
       />
     </div>
   )
