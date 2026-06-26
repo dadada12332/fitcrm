@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import type { TelegramSettings } from "./types"
 
 export type TelegramBotInfo = { username: string; firstName: string; id: number }
+
 
 export async function connectTelegramAction(
   token: string,
@@ -64,28 +66,6 @@ export async function disconnectTelegramAction(): Promise<{ error?: string; ok?:
   revalidatePath("/integrations")
   revalidatePath("/integrations/telegram")
   return { ok: true }
-}
-
-export type TelegramSettings = {
-  auto_expiry_3d: boolean
-  auto_expiry_1d: boolean
-  qr_checkin: boolean
-  renewal_reminder: boolean
-  welcome_enabled: boolean
-  welcome_message: string
-  expiry_template: string
-  payment_template: string
-}
-
-export const DEFAULT_TG_SETTINGS: TelegramSettings = {
-  auto_expiry_3d: true,
-  auto_expiry_1d: true,
-  qr_checkin: true,
-  renewal_reminder: true,
-  welcome_enabled: true,
-  welcome_message: "Привет, {{name}}! 👋\n\nДобро пожаловать в {{club}}.\nВаш абонемент активен до {{expires}}.",
-  expiry_template: "{{name}}, ваш абонемент истекает через {{days}} дн.\n\nПродлить: /renew",
-  payment_template: "✅ Оплата подтверждена!\n\nСумма: {{amount}} сум\nАбонемент: {{membership}}\nДействует до: {{expires}}",
 }
 
 export async function saveTelegramSettingsAction(

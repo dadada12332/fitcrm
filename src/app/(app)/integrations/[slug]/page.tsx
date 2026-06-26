@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, Circle } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { IntegrationManage } from "@/components/app/IntegrationManage"
-import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/actions"
+import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 
 const META: Record<string, { label: string; description: string; color: string }> = {
   telegram: { label: "Telegram Bot", description: "Личный кабинет клиентов, QR-чекин и уведомления", color: "#2AABEE" },

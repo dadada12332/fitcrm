@@ -7,8 +7,8 @@ import {
 } from "lucide-react"
 import {
   connectTelegramAction, disconnectTelegramAction, saveTelegramSettingsAction,
-  DEFAULT_TG_SETTINGS, type TelegramSettings,
 } from "@/app/(app)/integrations/actions"
+import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { saveIntegrationAction } from "@/app/(app)/settings/club/actions"
 
 // ── Simple integrations (Click / Payme) ──────────────────────────
