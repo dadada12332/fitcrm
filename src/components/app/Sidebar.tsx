@@ -376,8 +376,8 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2">
         <div className="flex flex-col gap-0.5">
           <NavItem href="/dashboard"   icon={LayoutDashboard} label="Дашборд"    collapsed={collapsed} />
-          <NavItem href="/clients"     icon={Users}      label="Клиенты"    collapsed={collapsed} badge={stats.clientCount}            badgeType="count" />
-          <NavItem href="/memberships" icon={CreditCard} label="Абонементы" collapsed={collapsed} badge={stats.activeMembershipCount}  badgeType="count" />
+          <NavItem href="/clients"     icon={Users}      label="Клиенты"    collapsed={collapsed} badge={stats.clientCount > 0 ? stats.clientCount : undefined}            badgeType="count" />
+          <NavItem href="/memberships" icon={CreditCard} label="Абонементы" collapsed={collapsed} badge={stats.activeMembershipCount > 0 ? stats.activeMembershipCount : undefined}  badgeType="count" />
         </div>
 
         <Divider />
