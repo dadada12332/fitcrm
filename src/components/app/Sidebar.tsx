@@ -396,7 +396,7 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
         <div className="flex flex-col gap-0.5">
           <NavItem href="/staff"                icon={UserCog}   label="Сотрудники"  collapsed={collapsed} />
           <NavItem href="/reports"              icon={BarChart2} label="Отчёты"      collapsed={collapsed} />
-          <NavItem href="/settings/integrations" icon={Plug}     label="Интеграции"  collapsed={collapsed} />
+          <NavItem href="/integrations"          icon={Plug}     label="Интеграции"  collapsed={collapsed} />
           <AINavItem collapsed={collapsed} />
         </div>
       </nav>
