@@ -75,11 +75,11 @@ export function RecentPayments({ payments }: { payments: PaymentRow[] }) {
                   <p className="text-xs truncate text-zinc-400 dark:text-zinc-500">{timeAgo(p.createdAt)}</p>
                 </div>
 
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.dot }} title={s.label} />
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <span className="text-sm font-semibold tabular-nums text-zinc-950 dark:text-zinc-50">
                     {p.amount.toLocaleString("ru-RU")}
                   </span>
+                  <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">сум</span>
                 </div>
               </div>
             )

@@ -1219,11 +1219,11 @@ export function ReportsClient({ data }: { data: ReportsData }) {
           <p style={{ fontSize: 15, color: "var(--on-dark-soft)", marginTop: 2 }}>Аналитика и статистика клуба</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 pt-1">
-          <a href={`/reports/export/excel?period=${period}`}
+          <button onClick={handlePdf}
             className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
             style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             <Download className="w-4 h-4" /> Excel
-          </a>
+          </button>
           <button onClick={handlePdf}
             className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
             style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
