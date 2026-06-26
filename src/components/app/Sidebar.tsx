@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, useTransition } from "react"
 import {
   LayoutDashboard, Users, CreditCard, Activity,
   Calendar, Wallet, Package, UserCog, BarChart2,
-  Settings, HelpCircle, BookOpen,
+  Settings, HelpCircle, BookOpen, Plug,
   ChevronDown, Check, Plus, LogOut,
   GitFork, User, ShieldCheck,
 } from "lucide-react"
@@ -394,15 +394,10 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
 
         {!collapsed && <SectionLabel label="Управление" />}
         <div className="flex flex-col gap-0.5">
-          <NavItem href="/staff"   icon={UserCog}   label="Сотрудники"    collapsed={collapsed} />
-          <NavItem href="/reports" icon={BarChart2}  label="Отчёты"        collapsed={collapsed} />
+          <NavItem href="/staff"                icon={UserCog}   label="Сотрудники"  collapsed={collapsed} />
+          <NavItem href="/reports"              icon={BarChart2} label="Отчёты"      collapsed={collapsed} />
+          <NavItem href="/settings/integrations" icon={Plug}     label="Интеграции"  collapsed={collapsed} />
           <AINavItem collapsed={collapsed} />
-        </div>
-
-        <Divider />
-
-        <div className="flex flex-col gap-0.5">
-          <NavItem href="/settings/club" icon={Settings} label="Настройки клуба" collapsed={collapsed} />
         </div>
       </nav>
 
@@ -410,8 +405,9 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
 
       <div className="flex-shrink-0 px-2 pb-1">
         <div className="flex flex-col gap-0.5">
-          <NavItem href="/support" icon={HelpCircle} label="Поддержка"   collapsed={collapsed} />
-          <NavItem href="/knowledge" icon={BookOpen}   label="База знаний" collapsed={collapsed} />
+          <NavItem href="/settings/club" icon={Settings}   label="Настройки клуба" collapsed={collapsed} />
+          <NavItem href="/support"       icon={HelpCircle} label="Поддержка"        collapsed={collapsed} />
+          <NavItem href="/knowledge"     icon={BookOpen}   label="База знаний"      collapsed={collapsed} />
         </div>
       </div>
 
