@@ -5,6 +5,7 @@ import { ClientsStats } from "@/components/app/ClientsStats"
 import { ClientsTable } from "@/components/app/ClientsTable"
 import { AddClientButton } from "@/components/app/AddClientButton"
 import { ImportClientsButton } from "@/components/app/ImportClientsButton"
+import { ExportClientsButton } from "@/components/app/ExportClientsButton"
 
 export default async function ClientsPage() {
   const supabase = await createClient()
@@ -24,6 +25,7 @@ export default async function ClientsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <ExportClientsButton rows={rows} />
           <ImportClientsButton />
           <AddClientButton memberships={memberships} />
         </div>
