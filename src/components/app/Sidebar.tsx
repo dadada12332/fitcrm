@@ -91,7 +91,7 @@ function NavItem({
         justifyContent: collapsed ? "center" : "flex-start",
       }}
     >
-      <Icon style={{ width: 16, height: 16, flexShrink: 0 }} className={active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400"} />
+      <Icon style={{ width: 18, height: 18, flexShrink: 0 }} className={active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400"} />
       {!collapsed && (
         <>
           <span className={`flex-1 text-sm whitespace-nowrap ${active ? "font-medium text-zinc-900 dark:text-zinc-100" : "font-normal text-zinc-600 dark:text-zinc-400"}`}>
@@ -155,7 +155,7 @@ function AINavItem({ collapsed }: { collapsed?: boolean }) {
         }}
       >
         <svg
-          width="16" height="16" viewBox="0 0 24 24" fill="none"
+          width="18" height="18" viewBox="0 0 24 24" fill="none"
           overflow="visible"
           stroke="url(#ai-stroke-gradient)" strokeWidth="2"
           strokeLinecap="round" strokeLinejoin="round"
