@@ -216,12 +216,12 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
             className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
-            style={{ width: 28, height: 28 }}
+            style={{ width: 32, height: 32 }}
             title={isDark ? "Светлая тема" : "Тёмная тема"}
           >
             {isDark
-              ? <Sun style={{ width: 16, height: 16 }} />
-              : <Moon style={{ width: 16, height: 16 }} />
+              ? <Sun style={{ width: 20, height: 20 }} />
+              : <Moon style={{ width: 20, height: 20 }} />
             }
           </button>
 
@@ -229,8 +229,8 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
           <div ref={notifRef} className="relative">
             <button onClick={() => { setNotifOpen((v) => !v); setProfileOpen(false) }}
               className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 relative"
-              style={{ width: 28, height: 28 }}>
-              <Bell style={{ width: 16, height: 16 }} />
+              style={{ width: 32, height: 32 }}>
+              <Bell style={{ width: 20, height: 20 }} />
               {notifCount !== null && notifCount > 0 && (
                 <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center text-white font-bold"
                   style={{ background: "#dc2626", fontSize: 8 }}>
