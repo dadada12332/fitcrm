@@ -410,7 +410,7 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
       <div className="flex-shrink-0 px-2 pb-1">
         <div className="flex flex-col gap-0.5">
           <NavItem href="/support" icon={HelpCircle} label="Поддержка"   collapsed={collapsed} />
-          <NavItem href="/docs"    icon={BookOpen}   label="База знаний" collapsed={collapsed} />
+          <NavItem href="/knowledge" icon={BookOpen}   label="База знаний" collapsed={collapsed} />
         </div>
       </div>
 
