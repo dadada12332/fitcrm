@@ -1,10 +1,10 @@
-import { Download } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getClientsData } from "@/lib/clients"
 import { getActiveMemberships } from "@/lib/memberships"
 import { ClientsStats } from "@/components/app/ClientsStats"
 import { ClientsTable } from "@/components/app/ClientsTable"
 import { AddClientButton } from "@/components/app/AddClientButton"
+import { ImportClientsButton } from "@/components/app/ImportClientsButton"
 
 export default async function ClientsPage() {
   const supabase = await createClient()
@@ -24,13 +24,7 @@ export default async function ClientsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium"
-            style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}
-          >
-            <Download className="w-4 h-4" />
-            Экспорт в excel
-          </button>
+          <ImportClientsButton />
           <AddClientButton memberships={memberships} />
         </div>
       </div>

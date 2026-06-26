@@ -90,6 +90,41 @@ export async function createClientAction(
   return { ok: true }
 }
 
+export type ImportClientRow = {
+  full_name: string
+  phone?: string
+  email?: string
+  notes?: string
+  gender?: string
+}
+
+export async function importClientsAction(
+  rows: ImportClientRow[],
+): Promise<{ error?: string; ok?: boolean; imported?: number }> {
+  if (!rows.length) return { error: "Нет данных для импорта" }
+
+  const club = await getCurrentClub()
+  if (!club) return { error: "Клуб не найден" }
+
+  const supabase = await createClient()
+
+  const records = rows.map((r) => ({
+    club_id: club.clubId,
+    full_name: r.full_name.trim(),
+    phone: r.phone?.trim() || null,
+    email: r.email?.trim() || null,
+    notes: r.notes?.trim() || null,
+    gender: r.gender?.trim() || null,
+    tags: [],
+  }))
+
+  const { error } = await supabase.from("clients").insert(records)
+  if (error) return { error: error.message }
+
+  revalidatePath("/clients")
+  return { ok: true, imported: records.length }
+}
+
 export async function deleteClientAction(clientId: string): Promise<{ error?: string; ok?: boolean }> {
   const supabase = await createClient()
   const { error } = await supabase.from("clients").delete().eq("id", clientId)

@@ -126,11 +126,6 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
               </span>
             )}
           </button>
-          <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
-            <Download className="w-4 h-4" />
-            Экспорт в excel
-          </button>
         </div>
       </div>
 
