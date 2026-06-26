@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Circle } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { IntegrationManage } from "@/components/app/IntegrationManage"
+import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/actions"
 
 const META: Record<string, { label: string; description: string; color: string }> = {
   telegram: { label: "Telegram Bot", description: "Личный кабинет клиентов, QR-чекин и уведомления", color: "#2AABEE" },
@@ -22,6 +23,10 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   let connected = false
   let currentValue = ""
   let clientCount = 0
+  let tgSettings: TelegramSettings = DEFAULT_TG_SETTINGS
+  let botUsername = ""
+  let botFirstName = ""
+  let connectedAt: string | null = null
 
   if (club) {
     const { data } = await supabase
@@ -34,6 +39,12 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
       if (slug === "telegram" && data.tg_token) {
         connected = true
         currentValue = data.tg_token as string
+        const settings = data.settings as any
+        const tgBot = settings?.tg_bot ?? {}
+        botUsername = tgBot.username ?? ""
+        botFirstName = tgBot.firstName ?? "Telegram Bot"
+        connectedAt = tgBot.connected_at ?? null
+        tgSettings = { ...DEFAULT_TG_SETTINGS, ...(settings?.tg_settings ?? {}) }
       } else {
         const integrations = (data.settings as any)?.integrations ?? {}
         if (integrations[slug]) {
@@ -90,6 +101,10 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
         connected={connected}
         currentValue={currentValue}
         clientCount={clientCount}
+        tgSettings={tgSettings}
+        botUsername={botUsername}
+        botFirstName={botFirstName}
+        connectedAt={connectedAt}
       />
     </div>
   )
