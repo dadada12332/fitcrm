@@ -22,6 +22,9 @@ const LABELS: Record<string, string> = {
   subscription:  "Подписка",
   onboarding:    "Онбординг",
   support:       "Поддержка",
+  knowledge:     "База знаний",
+  reports:       "Отчёты",
+  inventory:     "Склад",
 }
 
 function isUUID(s: string) {
