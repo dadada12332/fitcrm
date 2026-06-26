@@ -23,6 +23,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   let connected = false
   let currentValue = ""
   let clientCount = 0
+  let subscribers = 0
   let tgSettings: TelegramSettings = DEFAULT_TG_SETTINGS
   let botUsername = ""
   let botFirstName = ""
@@ -58,6 +59,13 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
       const { count } = await supabase
         .from("clients").select("id", { count: "exact", head: true }).eq("club_id", club.clubId)
       clientCount = count ?? 0
+
+      if (slug === "telegram") {
+        const { count: subs } = await supabase
+          .from("clients").select("id", { count: "exact", head: true })
+          .eq("club_id", club.clubId).not("telegram_id", "is", null)
+        subscribers = subs ?? 0
+      }
     }
   }
 
@@ -101,6 +109,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
         connected={connected}
         currentValue={currentValue}
         clientCount={clientCount}
+        subscribers={subscribers}
         tgSettings={tgSettings}
         botUsername={botUsername}
         botFirstName={botFirstName}
