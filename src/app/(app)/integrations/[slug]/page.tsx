@@ -99,7 +99,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   }
 
   return (
-    <div className="max-w-2xl space-y-5">
+    <div className={`${slug === "telegram" ? "max-w-[1400px]" : "max-w-2xl"} space-y-5`}>
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
         <Link href="/integrations" className="flex items-center gap-1 hover:underline">

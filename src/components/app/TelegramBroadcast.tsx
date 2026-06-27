@@ -131,7 +131,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_360px] gap-4 items-stretch" style={{ minHeight: 520 }}>
+      <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr_360px] gap-4 items-stretch" style={{ minHeight: 600 }}>
         {/* ── LEFT: настройки ── */}
         <div className="rounded-xl p-4 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div>

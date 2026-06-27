@@ -130,11 +130,12 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
     <div className="space-y-4">
       {/* Stats row */}
       {connected && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: "Клиентов в базе",        value: clientCount,                     color: "#2AABEE" },
             { label: "Подключено через бот",   value: subscribers,                     color: "#16a34a" },
             { label: "Сообщений за месяц",     value: clientCount * 14,                color: "#7c3aed" },
+            { label: "Новых пользователей",    value: subscribers,                     color: "#020617" },
           ].map((s) => (
             <div key={s.label} className="rounded-xl p-4 text-center"
               style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
