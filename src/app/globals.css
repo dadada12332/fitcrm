@@ -30,24 +30,24 @@
   --destructive-foreground:  #fafafa;
   --border:                  #e4e4e7;
   --input:                   #e4e4e7;
-  --ring:                    #18181b;
+  --ring:                    #71717a;
   --radius:                  0.5rem;
 
-  /* charts */
-  --chart-1: #2661d8;
-  --chart-2: #2db789;
-  --chart-3: #e88c30;
-  --chart-4: #af56db;
-  --chart-5: #e2366f;
+  /* charts (light) */
+  --chart-1: #e76e4f;
+  --chart-2: #299d8f;
+  --chart-3: #264753;
+  --chart-4: #e8c468;
+  --chart-5: #f4a361;
 
-  /* sidebar */
+  /* sidebar (light) */
   --sidebar:                    #fafafa;
-  --sidebar-foreground:         #18181b;
-  --sidebar-primary:            #1d4ed8;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-foreground:         #3f3f46;
+  --sidebar-primary:            #18181b;
+  --sidebar-primary-foreground: #fafafa;
   --sidebar-accent:             #f4f4f5;
   --sidebar-accent-foreground:  #18181b;
-  --sidebar-border:             #e4e4e7;
+  --sidebar-border:             #e5e7eb;
   --sidebar-ring:               #3b82f6;
 
   /* продуктовый синий акцент (ссылки/фокус/выделение) */
@@ -94,6 +94,13 @@
   --border:                  #27272a;
   --input:                   #27272a;
   --ring:                    #a1a1aa;
+
+  /* charts (dark) */
+  --chart-1: #2661d8;
+  --chart-2: #2db789;
+  --chart-3: #e88c30;
+  --chart-4: #af56db;
+  --chart-5: #e2366f;
 
   --sidebar:                    #18181b;
   --sidebar-foreground:         #f4f4f5;
