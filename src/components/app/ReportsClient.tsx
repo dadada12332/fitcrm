@@ -11,6 +11,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts"
 import type { ReportsData, ReportPayment, ReportClient } from "@/lib/reports"
+import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -1265,29 +1266,25 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </div>
 
         {/* Section tabs */}
-        <div className="flex items-center gap-0.5 overflow-x-auto flex-1 min-w-0">
-          {SECTIONS.map(s => {
-            const Icon = s.icon
-            const active = section === s.key
-            return (
-              <button key={s.key} onClick={() => setSection(s.key)}
-                className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-1.5 transition-all whitespace-nowrap flex-shrink-0"
-                style={{
-                  background: active ? "#2563eb" : "transparent",
-                  color: active ? "white" : "var(--on-dark-soft)",
-                }}>
-                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                {s.label}
-                {s.key === "alerts" && alertsCount > 0 && (
-                  <span className="min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold flex items-center justify-center"
-                    style={{ background: active ? "rgba(255,255,255,0.25)" : "#dc2626", color: "white" }}>
-                    {alertsCount}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+        <Tabs value={section} onValueChange={(v) => setSection(v as Section)} className="min-w-0 flex-1">
+          <TabsList className="flex w-full justify-start overflow-x-auto">
+            {SECTIONS.map(s => {
+              const Icon = s.icon
+              return (
+                <TabsTab key={s.key} value={s.key} className="flex-shrink-0">
+                  <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                  {s.label}
+                  {s.key === "alerts" && alertsCount > 0 && (
+                    <span className="ml-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
+                      style={{ background: "var(--destructive)" }}>
+                      {alertsCount}
+                    </span>
+                  )}
+                </TabsTab>
+              )
+            })}
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Content */}
