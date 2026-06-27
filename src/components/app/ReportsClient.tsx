@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import {
   AlertTriangle, TrendingUp, TrendingDown, CreditCard,
   Activity, Users, UserCog, Wallet, Sparkles, RefreshCw,
-  ArrowRight, Download, ChevronRight, BarChart2,
+  ArrowRight, Download, CheckCircle2, BarChart2,
 } from "lucide-react"
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -178,23 +178,38 @@ function AlertItem({ level, text, sub, onClick }: {
   text: string; sub?: string; onClick?: () => void
 }) {
   const colors = {
-    high:   { bg: "rgba(220,38,38,0.08)",   border: "rgba(220,38,38,0.2)",  icon: "#dc2626",  dot: "#dc2626" },
-    medium: { bg: "rgba(217,119,6,0.08)",    border: "rgba(217,119,6,0.2)", icon: "#d97706",  dot: "#d97706" },
-    low:    { bg: "rgba(37,99,235,0.06)",    border: "rgba(37,99,235,0.15)", icon: "#2563eb", dot: "#2563eb" },
+    high:   { bg: "rgba(220,38,38,0.06)",  border: "rgba(220,38,38,0.22)", icon: "#dc2626", chip: "rgba(220,38,38,0.12)", label: "Срочно" },
+    medium: { bg: "rgba(217,119,6,0.06)",  border: "rgba(217,119,6,0.22)", icon: "#d97706", chip: "rgba(217,119,6,0.12)", label: "Внимание" },
+    low:    { bg: "rgba(22,163,74,0.06)",  border: "rgba(22,163,74,0.20)", icon: "#16a34a", chip: "rgba(22,163,74,0.12)", label: "В норме" },
   }[level]
+  const Icon = level === "low" ? CheckCircle2 : AlertTriangle
+  const interactive = !!onClick
 
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all hover:opacity-90"
+      disabled={!interactive}
+      className="group flex h-full flex-col gap-3 rounded-2xl p-4 text-left transition-all enabled:hover:-translate-y-0.5 enabled:hover:shadow-md disabled:cursor-default"
       style={{ background: colors.bg, border: `1px solid ${colors.border}` }}
     >
-      <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: colors.icon }} />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{text}</p>
-        {sub && <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{sub}</p>}
+      <div className="flex items-center justify-between">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0" style={{ background: colors.chip }}>
+          <Icon className="h-[18px] w-[18px]" style={{ color: colors.icon }} />
+        </div>
+        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: colors.chip, color: colors.icon }}>
+          {colors.label}
+        </span>
       </div>
-      {onClick && <ChevronRight className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "var(--gray-muted)" }} />}
+      <div className="flex-1">
+        <p className="text-sm font-semibold leading-snug" style={{ color: "var(--on-dark)" }}>{text}</p>
+        {sub && <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>{sub}</p>}
+      </div>
+      {interactive && (
+        <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: colors.icon }}>
+          Открыть
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      )}
     </button>
   )
 }
@@ -265,7 +280,7 @@ function AlertsSection({ data, bounds, onNavigate }: {
         <KpiCard label="Посещаемость"        value={`${visitsDelta > 0 ? "+" : ""}${visitsDelta}%`} icon={Activity} accent={visitsDelta >= 0 ? "#16a34a" : "#dc2626"} />
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {alerts.map((a, i) => (
           <AlertItem key={i} level={a.level} text={a.text} sub={a.sub}
             onClick={a.section ? () => onNavigate(a.section!) : undefined} />
