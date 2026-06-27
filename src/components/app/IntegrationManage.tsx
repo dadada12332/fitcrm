@@ -11,6 +11,9 @@ import {
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { saveIntegrationAction } from "@/app/(app)/settings/club/actions"
 import { TelegramBroadcast, type BroadcastHistoryItem } from "./TelegramBroadcast"
+import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import type { AudienceOption, Recipient } from "@/lib/broadcast"
 
 // ── Simple integrations (Click / Payme) ──────────────────────────
@@ -24,17 +27,6 @@ const SIMPLE_FIELDS: Record<string, { key: string; label: string; placeholder: s
     { key: "merchant_id", label: "Merchant ID", placeholder: "merchant_id" },
     { key: "key",         label: "Key",          placeholder: "Секретный ключ", secret: true },
   ],
-}
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button type="button" onClick={() => onChange(!checked)}
-      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0"
-      style={{ background: checked ? "#2563eb" : "var(--border)" }}>
-      <span className="inline-block h-4 w-4 rounded-full bg-white transition-transform shadow"
-        style={{ transform: checked ? "translateX(22px)" : "translateX(2px)" }} />
-    </button>
-  )
 }
 
 function Feedback({ msg }: { msg: { text: string; ok: boolean } | null }) {
@@ -200,13 +192,12 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                 <p className="text-sm font-medium mb-3" style={{ color: "var(--on-dark)" }}>Обновить токен</p>
                 <form onSubmit={handleConnect} className="space-y-3">
                   <div className="relative">
-                    <input
+                    <Input
                       value={token}
                       onChange={(e) => setToken(e.target.value)}
                       placeholder="Новый Bot Token от @BotFather"
                       type={showToken ? "text" : "password"}
-                      className="w-full h-10 px-3 pr-10 rounded-lg text-sm outline-none font-mono"
-                      style={{ background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
+                      className="h-10 rounded-lg px-3 pr-10 font-mono"
                     />
                     <button type="button" onClick={() => setShowToken((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
@@ -268,13 +259,12 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                     Bot Token от @BotFather
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       value={token}
                       onChange={(e) => setToken(e.target.value)}
                       placeholder="1234567890:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                       type={showToken ? "text" : "password"}
-                      className="w-full h-10 px-3 pr-10 rounded-lg text-sm outline-none font-mono"
-                      style={{ background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
+                      className="h-10 rounded-lg px-3 pr-10 font-mono"
                     />
                     <button type="button" onClick={() => setShowToken((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
@@ -317,7 +307,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                   <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{item.label}</p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{item.desc}</p>
                 </div>
-                <Toggle checked={auto[item.key]} onChange={(v) => setAuto((p) => ({ ...p, [item.key]: v }))} />
+                <Switch checked={auto[item.key]} onCheckedChange={(v) => setAuto((p) => ({ ...p, [item.key]: v }))} />
               </div>
             ))}
           </div>
@@ -361,12 +351,11 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
           ].map((t) => (
             <div key={t.key}>
               <label className="block text-sm font-medium mb-2" style={{ color: "var(--on-dark)" }}>{t.label}</label>
-              <textarea
+              <Textarea
                 value={tpl[t.key]}
                 onChange={(e) => setTpl((p) => ({ ...p, [t.key]: e.target.value }))}
                 rows={4}
-                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-none font-mono"
-                style={{ background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
+                className="rounded-lg px-3 py-2.5 font-mono"
               />
             </div>
           ))}
@@ -470,10 +459,9 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
           {fields.map((f) => (
             <div key={f.key}>
               <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>{f.label}</label>
-              <input value={vals[f.key] ?? ""} onChange={(e) => setVals((p) => ({ ...p, [f.key]: e.target.value }))}
+              <Input value={vals[f.key] ?? ""} onChange={(e) => setVals((p) => ({ ...p, [f.key]: e.target.value }))}
                 placeholder={f.placeholder} type={f.secret ? "password" : "text"}
-                className="w-full h-10 px-3 rounded-lg text-sm outline-none"
-                style={{ background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark)" }} />
+                className="h-10 rounded-lg px-3" />
             </div>
           ))}
           <Feedback msg={msg} />
