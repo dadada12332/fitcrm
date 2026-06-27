@@ -52,7 +52,7 @@ export function ClubAnalytics({ attendanceChangePct, churnCount, expiringCount, 
       ),
       tint: "var(--card-2)",
       btnBg: "var(--border)",
-      btnColor: "#475569",
+      btnColor: "var(--on-dark-soft)",
       iconColor: "var(--on-dark-soft)",
     },
     {
@@ -67,9 +67,9 @@ export function ClubAnalytics({ attendanceChangePct, churnCount, expiringCount, 
           </p>
         </>
       ),
-      tint: "#ffffff",
+      tint: "var(--card)",
       btnBg: "var(--card-2)",
-      btnColor: "#475569",
+      btnColor: "var(--on-dark-soft)",
       iconColor: "var(--on-dark-soft)",
     },
   ]
@@ -95,7 +95,7 @@ export function ClubAnalytics({ attendanceChangePct, churnCount, expiringCount, 
           <div
             key={title}
             className="rounded-2xl p-8 flex flex-col h-[268px]"
-            style={{ background: tint, border: tint === "#ffffff" ? "1px solid var(--border)" : "none" }}
+            style={{ background: tint, border: tint === "var(--card)" ? "1px solid var(--border)" : "none" }}
           >
             <div
               className="w-12 h-12 rounded-full flex items-center justify-center mb-5"

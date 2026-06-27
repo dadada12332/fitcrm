@@ -434,7 +434,7 @@ export function InventoryClient({ products, movements, stats }: Props) {
                   <div className="col-span-3 text-xs" style={{ color: "var(--on-dark-soft)" }}>{fmtDate(m.createdAt)}</div>
                   <div className="col-span-3">
                     <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ background: (MOVE_COLORS[m.type] ?? "#64748b") + "18", color: MOVE_COLORS[m.type] ?? "#64748b" }}>
+                      style={{ background: (MOVE_COLORS[m.type] ?? "var(--on-dark-soft)") + "18", color: MOVE_COLORS[m.type] ?? "var(--on-dark-soft)" }}>
                       {MOVE_LABELS[m.type] ?? m.type}
                     </span>
                   </div>

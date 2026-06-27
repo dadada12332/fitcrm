@@ -20,12 +20,12 @@ export function SheetContent({
       />
       <Dialog.Popup
         className={cn(
-          "fixed right-0 top-0 z-50 h-dvh w-full max-w-[440px] flex flex-col bg-white outline-none",
+          "fixed right-0 top-0 z-50 h-dvh w-full max-w-[440px] flex flex-col bg-[var(--card)] outline-none",
           "border-l shadow-2xl transition-transform duration-300 ease-out",
           "data-[starting-style]:translate-x-full data-[ending-style]:translate-x-full",
           className,
         )}
-        style={{ borderColor: "#e2e8f0" }}
+        style={{ borderColor: "var(--border)" }}
         {...props}
       >
         {children}
@@ -38,7 +38,7 @@ export function SheetHeader({ className, ...props }: React.ComponentProps<"div">
   return (
     <div
       className={cn("flex items-center justify-between px-6 h-16 flex-shrink-0", className)}
-      style={{ borderBottom: "1px solid #e2e8f0" }}
+      style={{ borderBottom: "1px solid var(--border)" }}
       {...props}
     />
   )
@@ -48,7 +48,7 @@ export function SheetTitle({ className, ...props }: React.ComponentProps<typeof 
   return (
     <Dialog.Title
       className={cn("text-xl font-semibold tracking-[-0.12px]", className)}
-      style={{ color: "#020617" }}
+      style={{ color: "var(--on-dark)" }}
       {...props}
     />
   )
@@ -62,7 +62,7 @@ export function SheetFooter({ className, ...props }: React.ComponentProps<"div">
   return (
     <div
       className={cn("flex items-center gap-3 px-6 h-20 flex-shrink-0", className)}
-      style={{ borderTop: "1px solid #e2e8f0" }}
+      style={{ borderTop: "1px solid var(--border)" }}
       {...props}
     />
   )

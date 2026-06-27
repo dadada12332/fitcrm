@@ -135,7 +135,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
             { label: "Клиентов в базе",        value: clientCount,                     color: "#2AABEE" },
             { label: "Подключено через бот",   value: subscribers,                     color: "#16a34a" },
             { label: "Сообщений за месяц",     value: clientCount * 14,                color: "#7c3aed" },
-            { label: "Новых пользователей",    value: subscribers,                     color: "#020617" },
+            { label: "Новых пользователей",    value: subscribers,                     color: "var(--on-dark)" },
           ].map((s) => (
             <div key={s.label} className="rounded-xl p-4 text-center"
               style={{ background: "var(--card)", border: "1px solid var(--border)" }}>

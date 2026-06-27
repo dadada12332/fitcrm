@@ -172,7 +172,7 @@ function MonthGrid({ data, onPick }: { data: ScheduleData; onPick: (id: string) 
             <div key={iso} className="min-h-[104px] p-1.5 flex flex-col gap-1" style={{ borderBottom: "1px solid var(--border-subtle)", borderRight: "1px solid var(--border-subtle)", background: dim ? "var(--card-2)" : "var(--card)" }}>
               <button onClick={() => openDay(d)}
                 className="self-start text-xs font-medium px-1.5 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                style={{ color: iso === todayISO ? "#fff" : dim ? "#cbd5e1" : "#334155", background: iso === todayISO ? "#2563eb" : "transparent" }}>
+                style={{ color: iso === todayISO ? "#fff" : dim ? "var(--gray-muted)" : "var(--on-dark)", background: iso === todayISO ? "var(--orange)" : "transparent" }}>
                 {d.getDate()}
               </button>
               {items.slice(0, 3).map((c) => {

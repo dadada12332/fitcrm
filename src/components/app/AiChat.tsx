@@ -29,7 +29,7 @@ export function AiChat() {
             if (e.key === "Enter" && hasText) setValue("")
           }}
           placeholder="Спросите ИИ о состоянии клуба..."
-          className="flex-1 h-10 text-sm bg-transparent outline-none placeholder:text-[#94a3b8]"
+          className="flex-1 h-10 text-sm bg-transparent outline-none placeholder:text-[var(--gray-muted)]"
           style={{ color: "var(--on-dark)" }}
         />
 
@@ -38,7 +38,7 @@ export function AiChat() {
           onClick={() => { if (hasText) setValue("") }}
           className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all"
           style={{
-            background: hasText ? "#0f172a" : "var(--border)",
+            background: hasText ? "var(--primary)" : "var(--border)",
             cursor: hasText ? "pointer" : "default",
           }}
         >

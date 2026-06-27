@@ -70,7 +70,7 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
   }
 
   const inp = "w-full h-10 px-3 rounded-lg text-sm outline-none"
-  const inpStyle = { border: "1.5px solid #e2e8f0", color: "var(--on-dark)" }
+  const inpStyle = { border: "1.5px solid var(--border)", color: "var(--on-dark)" }
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>

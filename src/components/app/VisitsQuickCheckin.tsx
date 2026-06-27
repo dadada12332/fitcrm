@@ -102,7 +102,7 @@ export function VisitsQuickCheckin() {
           className="w-full h-12 pl-12 pr-10 rounded-xl text-sm outline-none transition-shadow"
           style={{
             background: "var(--card)",
-            border: "1.5px solid #e2e8f0",
+            border: "1.5px solid var(--border)",
             color: "var(--on-dark)",
             boxShadow: open ? "0 0 0 3px rgba(59,130,246,0.12)" : "none",
             borderColor: open ? "#3b82f6" : "var(--border)",

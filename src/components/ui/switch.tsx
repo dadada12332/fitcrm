@@ -12,8 +12,8 @@ export function Switch({
     <SwitchPrimitive.Root
       className={cn(
         "relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full outline-none transition-colors",
-        "bg-[#cbd5e1] data-[checked]:bg-[#0f172a]",
-        "focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-offset-1",
+        "bg-[var(--border)] data-[checked]:bg-[var(--primary)]",
+        "focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1",
         className,
       )}
       {...props}

@@ -451,7 +451,7 @@ function FinanceSection({ club }: { club: ClubData }) {
           <input value={newCat} onChange={(e) => setNewCat(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCat() } }}
             placeholder="Новая категория..." className="flex-1 h-9 px-3 rounded-lg text-sm outline-none"
-            style={{ border: "1px dashed #e2e8f0", color: "var(--on-dark)" }} />
+            style={{ border: "1px dashed var(--border)", color: "var(--on-dark)" }} />
           <Btn small onClick={addCat} disabled={!newCat.trim()}>
             <Plus className="w-3.5 h-3.5" /> Добавить
           </Btn>

@@ -60,7 +60,7 @@ function Input({ value, onChange, placeholder, type = "text" }: {
   return (
     <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
       className="w-full h-10 px-3 rounded-lg text-sm outline-none transition-shadow"
-      style={{ border: "1.5px solid #e2e8f0", color: "var(--on-dark)" }}
+      style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)" }}
       onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)" }}
       onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none" }}
     />
@@ -358,14 +358,14 @@ function SalarySection({ member }: { member: StaffDetail }) {
                 <div>
                   <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Фикс (сум)</label>
                   <input value={fixed} onChange={(e) => setFixed(e.target.value)} type="number" placeholder="4 000 000"
-                    className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
+                    className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
                 </div>
               )}
               {(salType === "percent" || salType === "mixed") && (
                 <div>
                   <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Процент (%)</label>
                   <input value={pct} onChange={(e) => setPct(e.target.value)} type="number" placeholder="20"
-                    className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
+                    className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
                 </div>
               )}
             </div>
@@ -415,12 +415,12 @@ function SalarySection({ member }: { member: StaffDetail }) {
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Сумма (сум)</label>
                 <input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} type="number"
-                  className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
+                  className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Комментарий</label>
                 <input value={payNote} onChange={(e) => setPayNote(e.target.value)} placeholder="Май 2026"
-                  className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid #e2e8f0" }} />
+                  className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setShowPay(false)}
@@ -619,7 +619,7 @@ export function StaffProfileClient({ member }: { member: StaffDetail }) {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 overflow-x-auto pb-1"
-        style={{ borderBottom: "2px solid #f1f5f9" }}>
+        style={{ borderBottom: "2px solid var(--border-subtle)" }}>
         {visibleTabs.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
             className="flex items-center gap-1.5 h-9 px-3.5 text-sm font-medium whitespace-nowrap transition-colors relative flex-shrink-0"

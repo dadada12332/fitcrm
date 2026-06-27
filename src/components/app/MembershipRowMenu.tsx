@@ -15,7 +15,7 @@ function Item({ icon: Icon, label, onClick, danger, disabled }: { icon: typeof P
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className={`w-full flex items-center gap-2.5 px-3 h-9 text-sm text-left transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${danger ? "hover:bg-red-50" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
-      style={{ color: danger ? "#dc2626" : "#334155" }}>
+      style={{ color: danger ? "#dc2626" : "var(--on-dark)" }}>
       <Icon className="w-4 h-4 flex-shrink-0" style={{ color: danger ? "#dc2626" : "var(--on-dark-soft)" }} />
       {label}
     </button>

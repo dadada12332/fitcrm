@@ -96,30 +96,30 @@ export function DateField({ name, placeholder = "дд.мм.гггг", className,
         />
         <button type="button" onClick={() => setOpen((o) => !o)}
           className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          style={{ color: "#94a3b8" }} tabIndex={-1}>
+          style={{ color: "var(--gray-muted)" }} tabIndex={-1}>
           <CalendarIcon className="w-4 h-4" />
         </button>
       </div>
 
       {open && (
         <div className="absolute left-0 top-full mt-1 z-50 w-[280px] rounded-lg p-3 shadow-lg"
-          style={{ background: "white", border: "1px solid #e2e8f0" }}>
+          style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           {/* header */}
           <div className="flex items-center justify-between mb-2">
             <button type="button" onClick={() => setView(new Date(year, month - 1, 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800" style={{ color: "#475569" }}>
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800" style={{ color: "var(--on-dark-soft)" }}>
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-sm font-medium" style={{ color: "#020617" }}>{MONTHS[month]} {year}</span>
+            <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{MONTHS[month]} {year}</span>
             <button type="button" onClick={() => setView(new Date(year, month + 1, 1))}
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800" style={{ color: "#475569" }}>
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800" style={{ color: "var(--on-dark-soft)" }}>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
           {/* weekdays */}
           <div className="grid grid-cols-7 gap-0.5 mb-1">
             {WEEKDAYS.map((w) => (
-              <span key={w} className="h-7 flex items-center justify-center text-xs" style={{ color: "#94a3b8" }}>{w}</span>
+              <span key={w} className="h-7 flex items-center justify-center text-xs" style={{ color: "var(--gray-muted)" }}>{w}</span>
             ))}
           </div>
           {/* days */}
@@ -132,9 +132,9 @@ export function DateField({ name, placeholder = "дд.мм.гггг", className,
                 <button key={i} type="button" onClick={() => pick(d)}
                   className="h-8 flex items-center justify-center rounded-md text-sm transition-colors"
                   style={isSel
-                    ? { background: "#0f172a", color: "white" }
-                    : { color: "#334155", border: isToday ? "1px solid #cbd5e1" : "1px solid transparent" }}
-                  onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.background = "#f1f5f9" }}
+                    ? { background: "var(--primary)", color: "var(--primary-foreground)" }
+                    : { color: "var(--on-dark)", border: isToday ? "1px solid var(--border)" : "1px solid transparent" }}
+                  onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.background = "var(--card-2)" }}
                   onMouseLeave={(e) => { if (!isSel) e.currentTarget.style.background = "transparent" }}>
                   {d}
                 </button>

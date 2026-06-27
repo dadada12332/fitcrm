@@ -218,7 +218,7 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
               style={{
                 background: isFrozen ? "#eff6ff" : "var(--card)",
                 border: isFrozen ? "1px solid #93c5fd" : "1px solid var(--border)",
-                color: isFrozen ? "#2563eb" : "#334155",
+                color: isFrozen ? "#2563eb" : "var(--on-dark)",
               }}
             >
               <Snowflake className="w-4 h-4" />
