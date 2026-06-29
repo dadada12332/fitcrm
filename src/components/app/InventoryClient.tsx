@@ -39,7 +39,7 @@ function Modal({ open, onClose, title, children }: {
   )
 }
 
-const inputCls = "w-full px-3 py-2 rounded-xl text-sm outline-none"
+const inputCls = "w-full px-3 py-2 rounded-md text-sm outline-none"
 const inputStyle = { background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark)" } as React.CSSProperties
 
 // ── Add Product Modal ──────────────────────────────────────────────────
@@ -100,7 +100,7 @@ function AddProductModal({ open, onClose }: { open: boolean; onClose: () => void
           <input name="sku" placeholder="SKU-001" className={inputCls} style={inputStyle} />
         </div>
         <button type="submit" disabled={pending}
-          className="w-full py-2.5 rounded-xl text-sm font-medium mt-2 disabled:opacity-50"
+          className="w-full py-2.5 rounded-md text-sm font-medium mt-2 disabled:opacity-50"
           style={{ background: "#2563eb", color: "white" }}>
           {pending ? "Сохранение..." : "Добавить товар"}
         </button>
@@ -152,7 +152,7 @@ function SupplyModal({ open, onClose, products }: {
           <input name="note" placeholder="Поставщик / накладная..." className={inputCls} style={inputStyle} />
         </div>
         <button type="submit" disabled={pending}
-          className="w-full py-2.5 rounded-xl text-sm font-medium mt-2 disabled:opacity-50"
+          className="w-full py-2.5 rounded-md text-sm font-medium mt-2 disabled:opacity-50"
           style={{ background: "#16a34a", color: "white" }}>
           {pending ? "Сохранение..." : "Принять поставку"}
         </button>
@@ -198,7 +198,7 @@ function WriteoffModal({ open, onClose, products }: {
           <input name="note" placeholder="Истёк срок / бой / утеря..." className={inputCls} style={inputStyle} />
         </div>
         <button type="submit" disabled={pending}
-          className="w-full py-2.5 rounded-xl text-sm font-medium mt-2 disabled:opacity-50"
+          className="w-full py-2.5 rounded-md text-sm font-medium mt-2 disabled:opacity-50"
           style={{ background: "#dc2626", color: "white" }}>
           {pending ? "Сохранение..." : "Списать"}
         </button>
@@ -253,17 +253,17 @@ export function InventoryClient({ products, movements, stats }: Props) {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setWriteoffOpen(true)}
-            className="px-3 py-2 rounded-xl text-sm transition-colors"
+            className="px-3 py-2 rounded-md text-sm transition-colors"
             style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             Списание
           </button>
           <button onClick={() => setSupplyOpen(true)}
-            className="px-3 py-2 rounded-xl text-sm transition-colors"
+            className="px-3 py-2 rounded-md text-sm transition-colors"
             style={{ background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.25)", color: "#16a34a" }}>
             + Поставка
           </button>
           <button onClick={() => setAddOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium"
             style={{ background: "#2563eb", color: "white" }}>
             <Plus size={14} /> Товар
           </button>
@@ -278,9 +278,9 @@ export function InventoryClient({ products, movements, stats }: Props) {
           { label: "Стоимость склада", value: fmtSum(stats.totalValue) + " сум", icon: DollarSign, color: "#7c3aed" },
           { label: "Продаж за месяц", value: fmtSum(stats.totalSalesMonth) + " сум", icon: TrendingUp, color: "#d97706" },
         ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="rounded-xl px-4 py-4 flex items-center gap-3"
+          <div key={label} className="rounded-lg px-4 py-4 flex items-center gap-3"
             style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
               style={{ background: color + "18" }}>
               <Icon size={18} style={{ color }} />
             </div>
@@ -294,7 +294,7 @@ export function InventoryClient({ products, movements, stats }: Props) {
 
       {/* Low stock alert */}
       {lowStock.length > 0 && (
-        <div className="mb-4 flex items-center gap-3 p-3 rounded-xl"
+        <div className="mb-4 flex items-center gap-3 p-3 rounded-lg"
           style={{ background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.2)" }}>
           <AlertTriangle size={15} style={{ color: "#dc2626" }} />
           <span className="text-sm" style={{ color: "#dc2626" }}>
@@ -327,13 +327,13 @@ export function InventoryClient({ products, movements, stats }: Props) {
                 style={{ color: "var(--on-dark-soft)" }} />
               <input value={query} onChange={e => setQuery(e.target.value)}
                 placeholder="Поиск по названию или артикулу..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl text-sm outline-none"
+                className="w-full pl-9 pr-3 py-2 rounded-md text-sm outline-none"
                 style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }} />
             </div>
             {categories.length > 2 && (
               <div className="relative">
                 <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
-                  className="pl-3 pr-8 py-2 rounded-xl text-sm outline-none appearance-none"
+                  className="pl-3 pr-8 py-2 rounded-md text-sm outline-none appearance-none"
                   style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
                   <option value="all">Все категории</option>
                   {categories.filter(c => c !== "all").map(c => <option key={c} value={c}>{c}</option>)}
@@ -351,7 +351,7 @@ export function InventoryClient({ products, movements, stats }: Props) {
               <p className="text-sm">{query ? "Товары не найдены" : "Добавьте первый товар"}</p>
               {!query && (
                 <button onClick={() => setAddOpen(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm"
                   style={{ background: "#2563eb", color: "white" }}>
                   <Plus size={14} /> Добавить товар
                 </button>

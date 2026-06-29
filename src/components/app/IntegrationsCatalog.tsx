@@ -104,13 +104,13 @@ function IntegrationCard({ integration, status }: {
 
   return (
     <div
-      className="rounded-2xl flex flex-col transition-shadow hover:shadow-md"
+      className="rounded-lg flex flex-col transition-shadow hover:shadow-md"
       style={{ background: "var(--card)", border: "1px solid var(--border)", overflow: "hidden" }}
     >
       {/* Top */}
       <div className="p-5 flex-1">
         <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
             style={{ background: integration.color }}>
             {integration.label[0]}
           </div>
@@ -189,7 +189,7 @@ function IntegrationCard({ integration, status }: {
       <div className="px-5 pb-5">
         {integration.available ? (
           <Link href={`/integrations/${integration.key}`}
-            className="w-full h-10 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-all hover:opacity-90"
+            className="w-full h-9 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-all hover:opacity-90"
             style={connected
               ? { background: "var(--card-2)", color: "var(--on-dark)", border: "1px solid var(--border)" }
               : { background: integration.color, color: "white" }}>
@@ -197,7 +197,7 @@ function IntegrationCard({ integration, status }: {
             <ArrowRight size={14} />
           </Link>
         ) : (
-          <div className="w-full h-10 rounded-xl flex items-center justify-center text-sm font-medium cursor-not-allowed"
+          <div className="w-full h-9 rounded-md flex items-center justify-center text-sm font-medium cursor-not-allowed"
             style={{ background: "var(--card-2)", color: "var(--on-dark-soft)" }}>
             Скоро будет доступно
           </div>

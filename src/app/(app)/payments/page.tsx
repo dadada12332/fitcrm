@@ -11,11 +11,11 @@ function KPICard({ label, value, unit, pct, icon: Icon, iconColor }: {
 }) {
   const up = pct !== undefined && pct >= 0
   return (
-    <div className="rounded-xl px-5 py-5 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="rounded-lg px-5 py-5 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{label}</p>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: iconColor + "18" }}>
-          <Icon className="w-4.5 h-4.5" style={{ color: iconColor }} />
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: iconColor + "15" }}>
+          <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
       </div>
       <div>

@@ -103,7 +103,7 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
     <>
       {/* Toolbar */}
       <div
-        className="rounded-xl px-5 py-4 flex flex-col gap-3"
+        className="rounded-lg px-5 py-4 flex flex-col gap-3"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}
       >
         {/* Row 1: search + actions */}
@@ -114,13 +114,13 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
               value={query}
               onChange={(e) => { setQuery(e.target.value); resetPage() }}
               placeholder="Поиск клиента или услуги..."
-              className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
+              className="w-full h-9 pl-9 pr-3 rounded-md text-sm outline-none"
               style={{ border: "1px solid var(--border)", background: "var(--card)", color: "var(--on-dark)" }}
             />
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="h-9 px-3 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
               style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
             >
               <Download className="w-4 h-4" />
@@ -128,7 +128,7 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
             </button>
             <button
               onClick={() => setModalOpen(true)}
-              className="h-9 px-4 rounded-lg text-sm font-medium text-white flex items-center gap-1.5 transition-opacity hover:opacity-90"
+              className="h-9 px-4 rounded-md text-sm font-medium text-white flex items-center gap-1.5 transition-opacity hover:opacity-90"
               style={{ background: "#2563eb" }}
             >
               <Plus className="w-4 h-4" />
@@ -146,7 +146,7 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
       </div>
 
       {/* Table */}
-      <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>
             {filtered.length} платежей

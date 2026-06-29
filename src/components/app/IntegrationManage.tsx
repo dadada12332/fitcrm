@@ -129,7 +129,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
             { label: "Сообщений за месяц",     value: clientCount * 14,                color: "#7c3aed" },
             { label: "Новых пользователей",    value: subscribers,                     color: "var(--on-dark)" },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl p-4 text-center"
+            <div key={s.label} className="rounded-lg p-4 text-center"
               style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
               <p className="text-2xl font-bold" style={{ color: s.color }}>{s.value.toLocaleString("ru-RU")}</p>
               <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{s.label}</p>
@@ -165,10 +165,10 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
       {tab === "main" && (
         <div className="space-y-4">
           {connected ? (
-            <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <div className="rounded-lg p-5 space-y-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
               {/* Bot info */}
-              <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: "var(--card-2)" }}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+              <div className="flex items-center gap-4 p-4 rounded-lg" style={{ background: "var(--card-2)" }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-base flex-shrink-0"
                   style={{ background: "#2AABEE" }}>
                   {botFirstName?.[0] ?? "T"}
                 </div>
@@ -197,7 +197,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                       onChange={(e) => setToken(e.target.value)}
                       placeholder="Новый Bot Token от @BotFather"
                       type={showToken ? "text" : "password"}
-                      className="h-10 rounded-lg px-3 pr-10 font-mono"
+                      className="h-9 rounded-md px-3 pr-10 font-mono"
                     />
                     <button type="button" onClick={() => setShowToken((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
@@ -208,13 +208,13 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                   <Feedback msg={connectMsg} />
                   <div className="flex gap-3">
                     <button type="submit" disabled={connectPending || !token.trim()}
-                      className="h-9 px-4 rounded-lg text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
+                      className="h-9 px-4 rounded-md text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
                       style={{ background: "#2AABEE" }}>
                       <RefreshCw size={14} className={connectPending ? "animate-spin" : ""} />
                       {connectPending ? "Проверяю…" : "Обновить бота"}
                     </button>
                     <button type="button" onClick={handleDisconnect} disabled={disconnectPending}
-                      className="h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors hover:bg-red-50 dark:hover:bg-red-950/20 disabled:opacity-40"
+                      className="h-9 px-4 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-red-50 dark:hover:bg-red-950/20 disabled:opacity-40"
                       style={{ border: "1px solid var(--border)", color: "#dc2626" }}>
                       <Trash2 size={14} />
                       {disconnectPending ? "Отключаю…" : "Отключить"}
@@ -224,7 +224,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
               </div>
 
               {/* Instruction */}
-              <div className="p-4 rounded-xl text-sm space-y-1.5" style={{ background: "rgba(42,171,238,0.06)", border: "1px solid rgba(42,171,238,0.2)" }}>
+              <div className="p-4 rounded-lg text-sm space-y-1.5" style={{ background: "rgba(42,171,238,0.06)", border: "1px solid rgba(42,171,238,0.2)" }}>
                 <p className="font-medium" style={{ color: "#0e7bb5" }}>Как поделиться ботом с клиентами</p>
                 <p style={{ color: "var(--on-dark-soft)" }}>
                   Отправьте клиентам ссылку: <span className="font-mono font-medium" style={{ color: "#2AABEE" }}>https://t.me/{botUsername}</span>
@@ -235,9 +235,9 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
               </div>
             </div>
           ) : (
-            <div className="rounded-xl p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <div className="rounded-lg p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
               {/* How to get token */}
-              <div className="p-4 rounded-xl" style={{ background: "var(--card-2)" }}>
+              <div className="p-4 rounded-lg" style={{ background: "var(--card-2)" }}>
                 <p className="text-sm font-semibold mb-3" style={{ color: "var(--on-dark)" }}>Как создать бота</p>
                 {[
                   { n: 1, text: "Откройте Telegram и найдите @BotFather" },
@@ -264,7 +264,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                       onChange={(e) => setToken(e.target.value)}
                       placeholder="1234567890:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                       type={showToken ? "text" : "password"}
-                      className="h-10 rounded-lg px-3 pr-10 font-mono"
+                      className="h-9 rounded-md px-3 pr-10 font-mono"
                     />
                     <button type="button" onClick={() => setShowToken((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
@@ -275,7 +275,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                 </div>
                 <Feedback msg={connectMsg} />
                 <button type="submit" disabled={connectPending || !token.trim()}
-                  className="h-10 px-6 rounded-lg text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
+                  className="h-10 px-6 rounded-md text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
                   style={{ background: "#2AABEE" }}>
                   <Bot size={15} className={connectPending ? "animate-pulse" : ""} />
                   {connectPending ? "Проверяю токен…" : "Подключить бота"}
@@ -288,7 +288,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
 
       {/* ── Automation tab ── */}
       {tab === "automation" && (
-        <div className="rounded-xl p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="rounded-lg p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           {!connected && (
             <div className="p-3 rounded-lg text-sm" style={{ background: "rgba(245,158,11,0.08)", color: "#b45309" }}>
               ⚠ Сначала подключите бота на вкладке «Основное»
@@ -313,7 +313,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
           </div>
           <Feedback msg={autoMsg} />
           <button onClick={handleSaveAuto} disabled={autoPending || !connected}
-            className="h-10 px-5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="h-9 px-4 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
             style={{ background: "#2AABEE" }}>
             {autoPending ? "Сохранение…" : "Сохранить настройки"}
           </button>
@@ -334,7 +334,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
 
       {/* ── Templates tab ── */}
       {tab === "templates" && (
-        <div className="rounded-xl p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="rounded-lg p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           {!connected && (
             <div className="p-3 rounded-lg text-sm" style={{ background: "rgba(245,158,11,0.08)", color: "#b45309" }}>
               ⚠ Сначала подключите бота на вкладке «Основное»
@@ -355,13 +355,13 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                 value={tpl[t.key]}
                 onChange={(e) => setTpl((p) => ({ ...p, [t.key]: e.target.value }))}
                 rows={4}
-                className="rounded-lg px-3 py-2.5 font-mono"
+                className="rounded-md px-3 py-2.5 font-mono"
               />
             </div>
           ))}
           <Feedback msg={tplMsg} />
           <button onClick={handleSaveTpl} disabled={tplPending || !connected}
-            className="h-10 px-5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="h-9 px-4 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
             style={{ background: "#2AABEE" }}>
             {tplPending ? "Сохранение…" : "Сохранить шаблоны"}
           </button>
@@ -370,7 +370,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
 
       {/* ── Stats tab ── */}
       {tab === "stats" && (
-        <div className="rounded-xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="rounded-lg p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           {connected ? (
             <div className="grid grid-cols-2 gap-3">
               {[
@@ -379,7 +379,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                 { label: "Продлений через бот",  value: Math.floor(clientCount * 0.08), color: "#7c3aed" },
                 { label: "QR-чекинов сегодня",   value: Math.floor(clientCount * 0.15), color: "#f59e0b" },
               ].map((s) => (
-                <div key={s.label} className="rounded-xl p-4" style={{ background: "var(--card-2)" }}>
+                <div key={s.label} className="rounded-lg p-4" style={{ background: "var(--card-2)" }}>
                   <p className="text-2xl font-bold" style={{ color: s.color }}>{s.value.toLocaleString("ru-RU")}</p>
                   <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{s.label}</p>
                 </div>
@@ -424,20 +424,20 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
     <div className="space-y-4">
       {connected && (
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl p-4 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <div className="rounded-lg p-4 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <p className="text-2xl font-bold" style={{ color }}>{clientCount.toLocaleString("ru-RU")}</p>
             <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>Платежей всего</p>
           </div>
-          <div className="rounded-xl p-4 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <div className="rounded-lg p-4 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <p className="text-2xl font-bold" style={{ color: "#16a34a" }}>Активно</p>
             <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>Статус вебхуков</p>
           </div>
         </div>
       )}
 
-      <div className="rounded-xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="rounded-lg p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {connected && (
-          <div className="flex items-center justify-between p-4 rounded-xl mb-4"
+          <div className="flex items-center justify-between p-4 rounded-lg mb-4"
             style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
             <div>
               <p className="text-xs font-medium mb-0.5" style={{ color: "var(--on-dark-soft)" }}>Merchant ID</p>
@@ -461,12 +461,12 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
               <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>{f.label}</label>
               <Input value={vals[f.key] ?? ""} onChange={(e) => setVals((p) => ({ ...p, [f.key]: e.target.value }))}
                 placeholder={f.placeholder} type={f.secret ? "password" : "text"}
-                className="h-10 rounded-lg px-3" />
+                className="h-9 rounded-md px-3" />
             </div>
           ))}
           <Feedback msg={msg} />
           <button type="submit" disabled={pending || !vals[fields[0]?.key ?? ""]?.trim()}
-            className="h-10 px-5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="h-9 px-4 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
             style={{ background: color }}>
             {pending ? "Сохранение…" : connected ? "Обновить" : "Подключить"}
           </button>
