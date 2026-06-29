@@ -1336,21 +1336,6 @@ export function ReportsClient({ data }: { data: ReportsData }) {
 
       {/* Controls */}
       <div className="flex items-center gap-3 flex-wrap">
-        {/* Period picker */}
-        <div className="flex items-center gap-0.5 p-1 rounded-lg flex-shrink-0" style={{ background: "var(--card-2)" }}>
-          {PERIODS.map(p => (
-            <button key={p.key} onClick={() => setPeriod(p.key)}
-              className="h-7 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap"
-              style={{
-                background: period === p.key ? "var(--pill-active)" : "transparent",
-                color: period === p.key ? "var(--on-dark)" : "var(--on-dark-soft)",
-                boxShadow: period === p.key ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
-              }}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-
         {/* Section tabs */}
         <div className="flex items-center gap-0.5 p-1 rounded-lg min-w-0 flex-1 overflow-x-auto" style={{ background: "var(--card-2)" }}>
           {SECTIONS.map(s => (
@@ -1368,6 +1353,21 @@ export function ReportsClient({ data }: { data: ReportsData }) {
                   {alertsCount}
                 </span>
               )}
+            </button>
+          ))}
+        </div>
+
+        {/* Period picker */}
+        <div className="flex items-center gap-0.5 p-1 rounded-lg flex-shrink-0" style={{ background: "var(--card-2)" }}>
+          {PERIODS.map(p => (
+            <button key={p.key} onClick={() => setPeriod(p.key)}
+              className="h-7 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap"
+              style={{
+                background: period === p.key ? "var(--pill-active)" : "transparent",
+                color: period === p.key ? "var(--on-dark)" : "var(--on-dark-soft)",
+                boxShadow: period === p.key ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+              }}>
+              {p.label}
             </button>
           ))}
         </div>
