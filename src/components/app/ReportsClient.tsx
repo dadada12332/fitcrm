@@ -306,12 +306,12 @@ function FinanceSection({ payments, prevPayments, bounds }: {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Выручка",      value: `${fmt(revenue)} сум`,   icon: TrendingUp,  delta: revDelta,   sub: undefined },
-          { label: "Прибыль ~70%", value: `${fmt(profit)} сум`,    icon: TrendingUp,  delta: undefined,  sub: undefined },
-          { label: "Расходы ~30%", value: `${fmt(expenses)} сум`,  icon: TrendingDown, delta: undefined, sub: undefined },
-          { label: "Средний чек",  value: `${fmt(avgCheck)} сум`,  icon: CreditCard,  delta: undefined,  sub: undefined },
-          { label: "Платежей",     value: String(payments.length), icon: BarChart2,   delta: undefined,  sub: `~${Math.round(payments.length / days)}/день` },
-        ].map(({ label, value, icon: Icon, delta, sub }, i) => (
+          { label: "Выручка",     value: `${fmt(revenue)} сум`,   icon: TrendingUp,  delta: revDelta,   badge: undefined,  sub: undefined },
+          { label: "Прибыль",     value: `${fmt(profit)} сум`,    icon: TrendingUp,  delta: undefined,  badge: { text: "~70%", color: "#16a34a" }, sub: undefined },
+          { label: "Расходы",     value: `${fmt(expenses)} сум`,  icon: TrendingDown, delta: undefined, badge: { text: "~30%", color: "#dc2626" }, sub: undefined },
+          { label: "Средний чек", value: `${fmt(avgCheck)} сум`,  icon: CreditCard,  delta: undefined,  badge: undefined,  sub: undefined },
+          { label: "Платежей",    value: String(payments.length), icon: BarChart2,   delta: undefined,  badge: undefined,  sub: `~${Math.round(payments.length / days)}/день` },
+        ].map(({ label, value, icon: Icon, delta, badge, sub }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
             style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
             <div className="flex items-start justify-between">
@@ -319,6 +319,15 @@ function FinanceSection({ payments, prevPayments, bounds }: {
               <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
             </div>
             <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+            {badge && (
+              <div className="flex items-center gap-1.5">
+                {badge.color === "#16a34a"
+                  ? <TrendingUp className="w-4 h-4" style={{ color: badge.color }} />
+                  : <TrendingDown className="w-4 h-4" style={{ color: badge.color }} />}
+                <span className="text-xs font-medium" style={{ color: badge.color }}>{badge.text}</span>
+                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>от выручки</span>
+              </div>
+            )}
             {sub && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{sub}</span>}
             {delta !== undefined && (
               <div className="flex items-center gap-1.5">
