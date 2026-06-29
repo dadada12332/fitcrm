@@ -16,25 +16,6 @@ const STATUS_META = {
   fired:    { label: "Уволен",   bg: "#fee2e2", color: "#dc2626" },
 }
 
-// ── KPI Card ─────────────────────────────────────────────────────
-
-function KpiCard({ label, value, sub, icon: Icon, accent }: {
-  label: string; value: string; sub?: string
-  icon: typeof Users; accent: string
-}) {
-  return (
-    <div className="rounded-xl p-5 flex items-start gap-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: accent }}>
-        <Icon className="w-5 h-5" style={{ color: "white" }} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium mb-1" style={{ color: "var(--gray-muted)" }}>{label}</p>
-        <p className="text-2xl font-bold leading-none" style={{ color: "var(--on-dark)" }}>{value}</p>
-        {sub && <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{sub}</p>}
-      </div>
-    </div>
-  )
-}
 
 // ── Add Staff Modal ───────────────────────────────────────────────
 
@@ -153,12 +134,12 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 h-10 rounded-xl text-sm font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              className="flex-1 h-10 rounded-md text-sm font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
               style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
               Отмена
             </button>
             <button type="submit" disabled={pending}
-              className="flex-1 h-10 rounded-xl text-sm font-medium text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+              className="flex-1 h-10 rounded-md text-sm font-medium text-white disabled:opacity-50 transition-opacity hover:opacity-90"
               style={{ background: "#2563eb" }}>
               {pending ? "Добавление..." : "Добавить"}
             </button>
@@ -196,11 +177,26 @@ export function StaffClient({ kpi, rows }: { kpi: StaffKPI; rows: StaffRow[] }) 
   return (
     <>
       {/* KPI */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Всего сотрудников" value={String(kpi.total)}      icon={Users}      accent="#2563eb" />
-        <KpiCard label="Тренеров"           value={String(kpi.trainers)}   icon={UserCheck}  accent="#7c3aed" />
-        <KpiCard label="Администраторов"    value={String(kpi.admins)}     icon={Users}      accent="#0891b2" />
-        <KpiCard label="Зарплата за месяц"  value={fmt(kpi.monthlySalary)} sub="сум / месяц" icon={Wallet} accent="#059669" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Всего сотрудников", icon: Users,      value: String(kpi.total),      sub: undefined },
+          { label: "Тренеров",          icon: UserCheck,  value: String(kpi.trainers),   sub: undefined },
+          { label: "Администраторов",   icon: Users,      value: String(kpi.admins),     sub: undefined },
+          { label: "Зарплата за месяц", icon: Wallet,     value: fmt(kpi.monthlySalary), sub: "сум / месяц" },
+        ].map(({ label, icon: Icon, value, sub }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <div>
+              <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+              {sub && <span className="text-lg font-normal ml-1.5" style={{ color: "var(--gray-muted)" }}>{sub}</span>}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Toolbar */}
@@ -235,7 +231,7 @@ export function StaffClient({ kpi, rows }: { kpi: StaffKPI; rows: StaffRow[] }) 
       </div>
 
       {/* Table */}
-      <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{filtered.length} сотрудников</p>
         </div>

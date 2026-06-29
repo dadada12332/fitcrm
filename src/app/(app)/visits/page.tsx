@@ -4,30 +4,6 @@ import { VisitsQuickCheckin } from "@/components/app/VisitsQuickCheckin"
 import { VisitsTable } from "@/components/app/VisitsTable"
 import { UserCheck, Users, UserX, TrendingUp, Plus } from "lucide-react"
 
-function KPICard({ label, value, icon: Icon, color }: {
-  label: string
-  value: number | string
-  icon: typeof UserCheck
-  color: string
-}) {
-  return (
-    <div
-      className="rounded-xl px-5 py-4 flex items-center gap-4"
-      style={{ background: "var(--card)", border: "1px solid var(--border)" }}
-    >
-      <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ background: color + "18" }}
-      >
-        <Icon className="w-5 h-5" style={{ color }} />
-      </div>
-      <div>
-        <p className="text-2xl font-bold tracking-tight" style={{ color: "var(--on-dark)" }}>{value}</p>
-        <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{label}</p>
-      </div>
-    </div>
-  )
-}
 
 export default async function VisitsPage() {
   const supabase = await createClient()
@@ -45,7 +21,7 @@ export default async function VisitsPage() {
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Быстрый check-in и журнал посещений</p>
         </div>
         <button
-          className="h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 text-white transition-opacity hover:opacity-90"
+          className="h-9 px-4 rounded-md text-sm font-medium flex items-center gap-2 text-white transition-opacity hover:opacity-90"
           style={{ background: "#2563eb" }}
         >
           <Plus className="w-4 h-4" />
@@ -54,15 +30,27 @@ export default async function VisitsPage() {
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KPICard label="Посещений сегодня" value={kpi.today} icon={UserCheck} color="#2563eb" />
-        <KPICard label="Сейчас в зале" value={kpi.inGym} icon={Users} color="#059669" />
-        <KPICard label="Не пришли сегодня" value={kpi.missedToday} icon={UserX} color="#dc2626" />
-        <KPICard label="Средняя загрузка" value={`${kpi.avgLoad}%`} icon={TrendingUp} color="#d97706" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Посещений сегодня", value: kpi.today,              icon: UserCheck },
+          { label: "Сейчас в зале",     value: kpi.inGym,              icon: Users },
+          { label: "Не пришли сегодня", value: kpi.missedToday,        icon: UserX },
+          { label: "Средняя загрузка",  value: `${kpi.avgLoad}%`,      icon: TrendingUp },
+        ].map(({ label, value, icon: Icon }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+          </div>
+        ))}
       </div>
 
       {/* Quick check-in */}
-      <div className="rounded-xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="rounded-lg p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <p className="text-xs font-medium mb-3" style={{ color: "var(--gray-muted)" }}>
           БЫСТРЫЙ CHECK-IN — введите имя или телефон, нажмите на клиента
         </p>

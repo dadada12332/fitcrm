@@ -6,37 +6,6 @@ import { TrendingUp, TrendingDown, DollarSign, Receipt, Users } from "lucide-rea
 
 function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 
-function KPICard({ label, value, unit, pct, icon: Icon, iconColor }: {
-  label: string; value: string; unit?: string; pct?: number; icon: typeof DollarSign; iconColor: string
-}) {
-  const up = pct !== undefined && pct >= 0
-  return (
-    <div className="rounded-lg px-5 py-5 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{label}</p>
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: iconColor + "15" }}>
-          <Icon className="w-4 h-4" style={{ color: iconColor }} />
-        </div>
-      </div>
-      <div>
-        <p className="text-2xl font-bold tracking-tight" style={{ color: "var(--on-dark)" }}>
-          {value}{unit && <span className="text-sm font-normal ml-1" style={{ color: "var(--gray-muted)" }}>{unit}</span>}
-        </p>
-        {pct !== undefined && (
-          <div className="flex items-center gap-1 mt-1">
-            {up
-              ? <TrendingUp className="w-3.5 h-3.5" style={{ color: "#16a34a" }} />
-              : <TrendingDown className="w-3.5 h-3.5" style={{ color: "#dc2626" }} />}
-            <span className="text-xs font-medium" style={{ color: up ? "#16a34a" : "#dc2626" }}>
-              {up ? "+" : ""}{pct}% к прошлому периоду
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 export default async function PaymentsPage() {
   const supabase = await createClient()
   const [kpi, rows, memberships] = await Promise.all([
@@ -54,37 +23,60 @@ export default async function PaymentsPage() {
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KPICard
-          label="Выручка сегодня"
-          value={fmtSum(kpi.todayRevenue)}
-          unit="сум"
-          pct={kpi.todayRevenuePct}
-          icon={DollarSign}
-          iconColor="#2563eb"
-        />
-        <KPICard
-          label="Выручка за месяц"
-          value={fmtSum(kpi.monthRevenue)}
-          unit="сум"
-          pct={kpi.monthRevenuePct}
-          icon={TrendingUp}
-          iconColor="#059669"
-        />
-        <KPICard
-          label="Средний чек"
-          value={fmtSum(kpi.avgCheck)}
-          unit="сум"
-          icon={Receipt}
-          iconColor="#7c3aed"
-        />
-        <KPICard
-          label="Ожидают оплаты"
-          value={String(kpi.unpaidCount)}
-          unit="платежей"
-          icon={Users}
-          iconColor="#d97706"
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          {
+            label: "Выручка сегодня", icon: DollarSign,
+            value: <>{fmtSum(kpi.todayRevenue)} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></>,
+            delta: kpi.todayRevenuePct !== undefined ? (
+              <div className="flex items-center gap-1.5">
+                {kpi.todayRevenuePct >= 0
+                  ? <TrendingUp className="w-4 h-4" style={{ color: "#16a34a" }} />
+                  : <TrendingDown className="w-4 h-4" style={{ color: "#dc2626" }} />}
+                <span className="text-xs font-medium" style={{ color: kpi.todayRevenuePct >= 0 ? "#16a34a" : "#dc2626" }}>
+                  {kpi.todayRevenuePct >= 0 ? "+" : ""}{kpi.todayRevenuePct}%
+                </span>
+                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>к прошлому периоду</span>
+              </div>
+            ) : null,
+          },
+          {
+            label: "Выручка за месяц", icon: TrendingUp,
+            value: <>{fmtSum(kpi.monthRevenue)} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></>,
+            delta: kpi.monthRevenuePct !== undefined ? (
+              <div className="flex items-center gap-1.5">
+                {kpi.monthRevenuePct >= 0
+                  ? <TrendingUp className="w-4 h-4" style={{ color: "#16a34a" }} />
+                  : <TrendingDown className="w-4 h-4" style={{ color: "#dc2626" }} />}
+                <span className="text-xs font-medium" style={{ color: kpi.monthRevenuePct >= 0 ? "#16a34a" : "#dc2626" }}>
+                  {kpi.monthRevenuePct >= 0 ? "+" : ""}{kpi.monthRevenuePct}%
+                </span>
+                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>к прошлому месяцу</span>
+              </div>
+            ) : null,
+          },
+          {
+            label: "Средний чек", icon: Receipt,
+            value: <>{fmtSum(kpi.avgCheck)} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></>,
+            delta: null,
+          },
+          {
+            label: "Ожидают оплаты", icon: Users,
+            value: <>{kpi.unpaidCount} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>платежей</span></>,
+            delta: null,
+          },
+        ].map(({ label, value, icon: Icon, delta }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+            {delta}
+          </div>
+        ))}
       </div>
 
       {/* Table + filters */}
