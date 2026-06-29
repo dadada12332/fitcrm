@@ -297,7 +297,7 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
   const statusColor = isTrial ? "#f59e0b" : "#22c55e"
 
   return (
-    <aside className="hidden md:flex flex-col h-full overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
+    <aside className="hidden md:flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
       style={{ boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
 
       {/* ── Club card ── */}
