@@ -334,61 +334,114 @@ function FinanceSection({ payments, prevPayments, bounds }: {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <SectionCard title="Выручка по дням" action={<span className="text-xs" style={{ color: "var(--gray-muted)" }}>{fmt(revenue)} сум</span>}>
-          <div style={{ height: 220, padding: "8px 8px 0" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Revenue by day */}
+        <SectionCard title="Выручка по дням" action={
+          <div className="flex items-center gap-1.5">
+            {revDelta !== 0 && (
+              <>
+                {revDelta >= 0
+                  ? <TrendingUp className="w-3.5 h-3.5" style={{ color: "#16a34a" }} />
+                  : <TrendingDown className="w-3.5 h-3.5" style={{ color: "#dc2626" }} />}
+                <span className="text-xs font-medium" style={{ color: revDelta >= 0 ? "#16a34a" : "#dc2626" }}>
+                  {revDelta >= 0 ? "+" : ""}{revDelta}%
+                </span>
+              </>
+            )}
+            <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{fmt(revenue)} сум</span>
+          </div>
+        }>
+          <div className="grid grid-cols-3 px-5 py-3 gap-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+            <div>
+              <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Итого</p>
+              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmtShort(revenue)} сум</p>
+            </div>
+            <div>
+              <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>В среднем / день</p>
+              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmtShort(Math.round(revenue / days))} сум</p>
+            </div>
+            <div>
+              <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Платежей</p>
+              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{payments.length} <span className="text-xs font-normal" style={{ color: "var(--gray-muted)" }}>шт.</span></p>
+            </div>
+          </div>
+          <div style={{ height: 280, padding: "12px 8px 4px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="rGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#2563eb" stopOpacity={0.15} />
+                    <stop offset="5%"  stopColor="#2563eb" stopOpacity={0.18} />
                     <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="0" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} interval="preserveStartEnd" />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} width={36} tickFormatter={fmtShort} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} width={40} tickFormatter={fmtShort} />
                 <Tooltip {...chartTooltipStyle} formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, "Выручка"]} />
-                <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} fill="url(#rGrad)" dot={false} activeDot={{ r: 4, fill: "#2563eb", strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2.5} fill="url(#rGrad)" dot={false} activeDot={{ r: 5, fill: "#2563eb", strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </SectionCard>
 
-        <div className="lg:col-span-2">
-          <SectionCard title="Способы оплаты">
-            <div className="flex flex-col lg:flex-row items-center gap-4 p-4">
-              {providerData.length > 0 ? (
-                <>
-                  <div style={{ width: 160, height: 160, flexShrink: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={providerData} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2}>
-                          {providerData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                        </Pie>
-                        <Tooltip formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, ""]} contentStyle={chartTooltipStyle.contentStyle} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex flex-col gap-2 flex-1 w-full">
-                    {providerData.map((p) => (
-                      <div key={p.name} className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: p.color }} />
-                        <span className="text-sm flex-1" style={{ color: "var(--on-dark-soft)" }}>{p.name}</span>
-                        <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmt(p.value)} сум</span>
-                        <span className="text-xs w-10 text-right" style={{ color: "var(--gray-muted)" }}>
-                          {revenue ? Math.round((p.value / revenue) * 100) : 0}%
-                        </span>
+        {/* Payment methods */}
+        <SectionCard title="Способы оплаты" action={
+          <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{providerData.length} метода</span>
+        }>
+          {providerData.length > 0 ? (
+            <div className="flex flex-col">
+              <div style={{ height: 220 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={providerData} dataKey="value"
+                      cx="50%" cy="50%"
+                      innerRadius={65} outerRadius={95}
+                      paddingAngle={3}
+                      startAngle={90} endAngle={-270}
+                    >
+                      {providerData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, ""]}
+                      contentStyle={chartTooltipStyle.contentStyle}
+                      labelStyle={chartTooltipStyle.labelStyle}
+                      itemStyle={chartTooltipStyle.itemStyle}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="px-5 pb-5 flex flex-col gap-3">
+                {providerData.sort((a, b) => b.value - a.value).map((p) => {
+                  const share = revenue ? Math.round((p.value / revenue) * 100) : 0
+                  return (
+                    <div key={p.name}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: p.color }} />
+                          <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{p.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmt(p.value)} сум</span>
+                          <span className="text-xs tabular-nums font-semibold w-8 text-right" style={{ color: p.color }}>{share}%</span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm py-8 text-center w-full" style={{ color: "var(--gray-muted)" }}>Нет данных</p>
-              )}
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card-2)" }}>
+                        <div className="h-full rounded-full" style={{ width: `${share}%`, background: p.color }} />
+                      </div>
+                    </div>
+                  )
+                })}
+                <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                  <span className="text-xs" style={{ color: "var(--gray-muted)" }}>Итого выручка</span>
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmt(revenue)} сум</span>
+                </div>
+              </div>
             </div>
-          </SectionCard>
-        </div>
+          ) : (
+            <p className="text-sm py-16 text-center" style={{ color: "var(--gray-muted)" }}>Нет данных</p>
+          )}
+        </SectionCard>
       </div>
     </div>
   )
