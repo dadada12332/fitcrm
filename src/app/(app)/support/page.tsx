@@ -7,7 +7,7 @@ export default function SupportPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--on-dark)" }}>Поддержка</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Поддержка</h1>
         <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>
           Мы всегда готовы помочь
         </p>

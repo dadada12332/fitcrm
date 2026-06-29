@@ -14,9 +14,9 @@ export default async function StaffPage() {
   ])
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-bold" style={{ color: "var(--on-dark)" }}>Сотрудники</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Сотрудники</h1>
         <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Управление командой, зарплатами и правами доступа</p>
       </div>
       <StaffClient kpi={kpi} rows={list} />

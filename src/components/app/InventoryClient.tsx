@@ -248,7 +248,7 @@ export function InventoryClient({ products, movements, stats }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--on-dark)" }}>Склад</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Склад</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Товары, поставки и инвентаризация</p>
         </div>
         <div className="flex gap-2">
