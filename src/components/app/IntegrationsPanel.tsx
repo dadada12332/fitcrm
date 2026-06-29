@@ -50,7 +50,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
   const primaryFilled = !!(vals[integration.fields[0].key]?.trim())
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center gap-4 p-5">
         <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
           style={{ background: integration.color }}>

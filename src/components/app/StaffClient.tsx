@@ -55,7 +55,7 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
-      <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "var(--card)", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+      <div className="w-full max-w-md rounded-lg overflow-hidden" style={{ background: "var(--card)", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
         <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h2 className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>Добавить сотрудника</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ color: "var(--gray-muted)" }}>✕</button>

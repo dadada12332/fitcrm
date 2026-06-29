@@ -149,7 +149,7 @@ function ArticleView({ articleId, isFav, onToggleFav, onBack, onNavigate, onAiOp
       {tourOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden"
+          <div className="w-full max-w-md rounded-lg overflow-hidden"
             style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <div className="flex items-center justify-between px-4 py-3"
               style={{ borderBottom: "1px solid var(--border)", background: "rgba(37,99,235,0.08)" }}>

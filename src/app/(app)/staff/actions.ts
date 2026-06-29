@@ -1,25 +1,19 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { revalidatePath } from "next/cache"
 import type { StaffSettings } from "@/lib/staff"
 
 type R = { ok?: boolean; error?: string }
-
-async function getClubId(supabase: Awaited<ReturnType<typeof createClient>>) {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  const { data } = await supabase.from("staff").select("club_id").eq("user_id", user.id).single()
-  return data?.club_id ?? null
-}
 
 export async function addStaffAction(data: {
   name: string; email: string; phone: string; role: string
   salaryType: string; salaryFixed: number; salaryPercent: number
 }): Promise<R & { id?: string }> {
   const supabase = await createClient()
-  const clubId = await getClubId(supabase)
-  if (!clubId) return { error: "Клуб не найден" }
+  const club = await getCurrentClub()
+  if (!club) return { error: "Клуб не найден" }
 
   const uid = crypto.randomUUID()
   const { error: ue } = await supabase.from("users").insert({
@@ -39,7 +33,7 @@ export async function addStaffAction(data: {
   }
 
   const { data: staffRow, error: se } = await supabase.from("staff").insert({
-    user_id: uid, club_id: clubId, role: data.role,
+    user_id: uid, club_id: club.clubId, role: data.role,
     salary: data.salaryFixed || null, settings,
   }).select("id").single()
 
@@ -52,8 +46,15 @@ export async function updateStaffBasicAction(staffId: string, data: {
   name: string; phone: string; dob: string; hiredAt: string; role: string
 }): Promise<R> {
   const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
 
-  const { data: staffRow } = await supabase.from("staff").select("user_id, settings").eq("id", staffId).single()
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("user_id, settings")
+    .eq("id", staffId)
+    .eq("club_id", club.clubId)
+    .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}
@@ -76,7 +77,15 @@ export async function updateStaffSalaryAction(staffId: string, data: {
   salaryType: string; salaryFixed: number; salaryPercent: number
 }): Promise<R> {
   const supabase = await createClient()
-  const { data: staffRow } = await supabase.from("staff").select("settings").eq("id", staffId).single()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("settings")
+    .eq("id", staffId)
+    .eq("club_id", club.clubId)
+    .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}
@@ -97,7 +106,15 @@ export async function updateStaffSalaryAction(staffId: string, data: {
 
 export async function payStaffAction(staffId: string, amount: number, note: string): Promise<R> {
   const supabase = await createClient()
-  const { data: staffRow } = await supabase.from("staff").select("settings").eq("id", staffId).single()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("settings")
+    .eq("id", staffId)
+    .eq("club_id", club.clubId)
+    .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}
@@ -115,7 +132,15 @@ export async function payStaffAction(staffId: string, amount: number, note: stri
 
 export async function updateStaffPermissionsAction(staffId: string, permissions: Record<string, boolean>): Promise<R> {
   const supabase = await createClient()
-  const { data: staffRow } = await supabase.from("staff").select("settings").eq("id", staffId).single()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("settings")
+    .eq("id", staffId)
+    .eq("club_id", club.clubId)
+    .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}
@@ -130,7 +155,15 @@ export async function updateStaffPermissionsAction(staffId: string, permissions:
 
 export async function updateStaffStatusAction(staffId: string, status: string): Promise<R> {
   const supabase = await createClient()
-  const { data: staffRow } = await supabase.from("staff").select("settings").eq("id", staffId).single()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("settings")
+    .eq("id", staffId)
+    .eq("club_id", club.clubId)
+    .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}

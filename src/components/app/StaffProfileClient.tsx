@@ -35,7 +35,7 @@ const DAY_LABELS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"]
 
 function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <h3 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{title}</h3>
         {action}
@@ -371,7 +371,7 @@ function SalarySection({ member }: { member: StaffDetail }) {
             </div>
 
             {/* Auto-calculation */}
-            <div className="rounded-xl p-4 space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+            <div className="rounded-lg p-4 space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
               <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--gray-muted)" }}>Автоматический расчёт</p>
               {(salType === "fixed" || salType === "mixed") && (
                 <div className="flex items-center justify-between">

@@ -24,7 +24,7 @@ function Modal({ open, onClose, title, children }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
-      <div className="w-full max-w-md rounded-2xl overflow-hidden"
+      <div className="w-full max-w-md rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between px-5 py-4"
           style={{ borderBottom: "1px solid var(--border)" }}>
@@ -356,7 +356,7 @@ export function InventoryClient({ products, movements, stats }: Props) {
               )}
             </div>
           ) : (
-            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+            <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
               {/* Header */}
               <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium"
                 style={{ background: "var(--card-2)", color: "var(--on-dark-soft)", borderBottom: "1px solid var(--border)" }}>
@@ -409,7 +409,7 @@ export function InventoryClient({ products, movements, stats }: Props) {
       )}
 
       {tab === "movements" && (
-        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+        <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
           {movements.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12" style={{ color: "var(--on-dark-soft)" }}>
               <Package size={24} />

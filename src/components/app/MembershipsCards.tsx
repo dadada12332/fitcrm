@@ -122,7 +122,7 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               return (
                 <div
                   key={row.id}
-                  className="rounded-2xl flex flex-col relative"
+                  className="rounded-lg flex flex-col relative"
                   style={{ border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                 >
                   {/* Menu floats at card level so dropdown isn't clipped by header overflow-hidden */}

@@ -127,7 +127,9 @@ export async function importClientsAction(
 
 export async function deleteClientAction(clientId: string): Promise<{ error?: string; ok?: boolean }> {
   const supabase = await createClient()
-  const { error } = await supabase.from("clients").delete().eq("id", clientId)
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+  const { error } = await supabase.from("clients").delete().eq("id", clientId).eq("club_id", club.clubId)
   if (error) return { error: error.message }
   revalidatePath("/clients")
   return { ok: true }

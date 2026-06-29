@@ -114,7 +114,7 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
   ]
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="flex items-center gap-1">

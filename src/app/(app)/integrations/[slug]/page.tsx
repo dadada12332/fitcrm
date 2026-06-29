@@ -112,7 +112,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+        <div className="w-14 h-14 rounded-lg flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
           style={{ background: meta.color }}>
           {meta.label[0]}
         </div>

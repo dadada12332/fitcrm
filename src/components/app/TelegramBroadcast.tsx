@@ -133,7 +133,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
 
       <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr_360px] gap-4 items-stretch" style={{ minHeight: 600 }}>
         {/* ── LEFT: настройки ── */}
-        <div className="rounded-xl p-4 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="rounded-lg p-4 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: "var(--on-dark)" }}>Получатели</label>
             <div className="relative">
@@ -242,7 +242,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
       </div>
 
       {/* ── История ── */}
-      <div className="rounded-xl p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="rounded-lg p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <p className="text-sm font-medium mb-3" style={{ color: "var(--on-dark)" }}>История рассылок</p>
         {history.length === 0 ? (
           <p className="text-sm py-2" style={{ color: "var(--on-dark-soft)" }}>Рассылок ещё не было</p>

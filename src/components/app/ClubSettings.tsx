@@ -86,7 +86,7 @@ function Input({ value, onChange, placeholder, type = "text", disabled }: {
 
 function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <h3 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{title}</h3>
         {action}
@@ -602,7 +602,7 @@ function IntegrationCard({ integration }: { integration: typeof INTEGRATIONS[0] 
   }
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
+    <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
       <div className="flex items-center gap-4 p-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
           style={{ background: integration.color }}>

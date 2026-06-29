@@ -61,7 +61,7 @@ function ConfirmDialog({
       {/* backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
       <div
-        className="relative w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
+        className="relative w-full max-w-sm rounded-lg p-6 flex flex-col gap-4"
         style={{ background: "var(--card)", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
       >
         <button

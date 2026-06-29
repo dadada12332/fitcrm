@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 
 export type GlobalSearchResult = {
   id: string
@@ -21,21 +22,26 @@ export type AppNotification = {
 export async function globalSearchAction(query: string): Promise<GlobalSearchResult[]> {
   const q = query.trim()
   if (q.length < 2) return []
+
   const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) return []
+
   const { data } = await supabase
     .from("clients")
     .select("id, full_name, phone, subscriptions(status, memberships(name))")
+    .eq("club_id", club.clubId)
     .or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`)
     .limit(8)
 
-  return (data ?? []).map((c: any) => {
-    const subs: any[] = c.subscriptions ?? []
-    const sub = subs.find((s: any) => s.status === "active") ?? subs[0] ?? null
+  return (data ?? []).map((c) => {
+    const subs = (c.subscriptions as Array<{ status: string; memberships: { name: string }[] | null }>) ?? []
+    const sub = subs.find((s) => s.status === "active") ?? subs[0] ?? null
     return {
       id: c.id,
       name: c.full_name,
       phone: c.phone ?? null,
-      membershipName: sub?.memberships?.name ?? null,
+      membershipName: Array.isArray(sub?.memberships) ? (sub.memberships[0]?.name ?? null) : null,
       status: sub?.status ?? null,
     }
   })
@@ -43,14 +49,19 @@ export async function globalSearchAction(query: string): Promise<GlobalSearchRes
 
 export async function getNotificationsAction(): Promise<AppNotification[]> {
   const supabase = await createClient()
-  const now = new Date()
-  const in7 = new Date(now); in7.setDate(now.getDate() + 7)
+  const club = await getCurrentClub()
+  if (!club) return []
+
+  const { clubId } = club
+  const now  = new Date()
+  const in7  = new Date(now); in7.setDate(now.getDate() + 7)
   const ago7 = new Date(now); ago7.setDate(now.getDate() - 7)
 
   const [expiringRes, expiredRes, pendingRes] = await Promise.all([
     supabase
       .from("subscriptions")
       .select("id, expires_at, clients(id, full_name)")
+      .eq("club_id", clubId)
       .eq("status", "active")
       .gte("expires_at", now.toISOString().slice(0, 10))
       .lte("expires_at", in7.toISOString().slice(0, 10))
@@ -58,12 +69,14 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
     supabase
       .from("subscriptions")
       .select("id, expires_at, clients(id, full_name)")
+      .eq("club_id", clubId)
       .eq("status", "expired")
       .gte("expires_at", ago7.toISOString().slice(0, 10))
       .limit(10),
     supabase
       .from("payments")
       .select("id, amount, clients(id, full_name)")
+      .eq("club_id", clubId)
       .eq("status", "pending")
       .limit(10),
   ])
@@ -124,11 +137,11 @@ export async function getBranchesAction(): Promise<Branch[]> {
     .eq("user_id", user.id)
     .eq("is_active", true)
 
-  return (data ?? []).map((s: any) => ({
+  return (data ?? []).map((s) => ({
     clubId: s.club_id,
     role: s.role,
-    name: s.clubs?.name ?? "Клуб",
-    plan: s.clubs?.plan ?? "",
+    name: (s.clubs as unknown as { name: string } | null)?.name ?? "Клуб",
+    plan: (s.clubs as unknown as { plan: string } | null)?.plan ?? "",
   }))
 }
 

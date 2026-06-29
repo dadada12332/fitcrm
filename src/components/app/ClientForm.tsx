@@ -19,7 +19,7 @@ export function ClientForm() {
     <form
       ref={formRef}
       action={formAction}
-      className="rounded-2xl p-6 flex flex-col gap-4"
+      className="rounded-lg p-6 flex flex-col gap-4"
       style={{ background: "var(--card)", border: "1px solid var(--border)" }}
     >
       <h3 className="text-xl" style={{ color: "var(--on-dark)" }}>Новый клиент</h3>

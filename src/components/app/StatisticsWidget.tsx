@@ -53,7 +53,7 @@ export function StatisticsWidget({
 
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden"
+      className="w-full rounded-lg overflow-hidden"
       style={{ background: "var(--card)", border: "1px solid var(--border)" }}
     >
       {/* Header */}
