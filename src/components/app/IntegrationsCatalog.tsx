@@ -150,7 +150,7 @@ function IntegrationCard({ integration, status }: {
 
         {/* Connected stats */}
         {connected && status && (
-          <div className="rounded-xl p-3 space-y-1.5" style={{ background: "var(--card-2)" }}>
+          <div className="rounded-lg p-3 space-y-1.5" style={{ background: "var(--card-2)" }}>
             {status.handle && (
               <div className="flex items-center justify-between text-xs">
                 <span style={{ color: "var(--on-dark-soft)" }}>Аккаунт</span>
