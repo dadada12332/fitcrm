@@ -41,7 +41,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, children }: Pro
   const sidebarProps = { clubId, clubName, plan, stats }
 
   return (
-    <div className="flex h-screen overflow-hidden gap-1 bg-white dark:bg-zinc-950">
+    <div className="flex h-screen overflow-hidden gap-2 bg-white dark:bg-zinc-950">
 
       {/* Mobile overlay drawer */}
       {mobileOpen && (
