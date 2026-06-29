@@ -271,23 +271,21 @@ export function InventoryClient({ products, movements, stats }: Props) {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden mb-5"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Товаров", value: String(stats.totalProducts), icon: Package, color: "#2563eb" },
-          { label: "Мало на складе", value: String(stats.lowStockCount), icon: AlertTriangle, color: stats.lowStockCount > 0 ? "#dc2626" : "#16a34a" },
-          { label: "Стоимость склада", value: fmtSum(stats.totalValue) + " сум", icon: DollarSign, color: "#7c3aed" },
-          { label: "Продаж за месяц", value: fmtSum(stats.totalSalesMonth) + " сум", icon: TrendingUp, color: "#d97706" },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="rounded-lg px-4 py-4 flex items-center gap-3"
-            style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: color + "18" }}>
-              <Icon size={18} style={{ color }} />
+          { label: "Товаров",          value: String(stats.totalProducts),        icon: Package },
+          { label: "Мало на складе",   value: String(stats.lowStockCount),        icon: AlertTriangle },
+          { label: "Стоимость склада", value: fmtSum(stats.totalValue) + " сум",  icon: DollarSign },
+          { label: "Продаж за месяц",  value: fmtSum(stats.totalSalesMonth) + " сум", icon: TrendingUp },
+        ].map(({ label, value, icon: Icon }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
             </div>
-            <div>
-              <div className="text-lg font-bold leading-tight" style={{ color: "var(--on-dark)" }}>{value}</div>
-              <div className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{label}</div>
-            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
           </div>
         ))}
       </div>
