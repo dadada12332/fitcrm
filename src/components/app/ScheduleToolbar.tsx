@@ -1,10 +1,10 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
 import { toISODate, type Room, type ScheduleView } from "@/lib/schedule"
 
-const inputCls = "h-9 rounded-md px-3 text-sm outline-none"
+const inputCls = "h-9 rounded-md pl-3 pr-8 text-sm outline-none appearance-none w-full"
 const inputStyle = { background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" } as const
 
 const VIEWS: { key: ScheduleView; label: string }[] = [
@@ -74,15 +74,21 @@ export function ScheduleToolbar({
           })}
         </div>
 
-        <select value={trainer} onChange={(e) => push({ trainer: e.target.value })} className={inputCls} style={inputStyle}>
-          <option value="">Все тренеры</option>
-          {trainers.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        <div className="relative">
+          <select value={trainer} onChange={(e) => push({ trainer: e.target.value })} className={inputCls} style={inputStyle}>
+            <option value="">Все тренеры</option>
+            {trainers.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
+        </div>
 
-        <select value={room} onChange={(e) => push({ room: e.target.value })} className={inputCls} style={inputStyle}>
-          <option value="">Все залы</option>
-          {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
+        <div className="relative">
+          <select value={room} onChange={(e) => push({ room: e.target.value })} className={inputCls} style={inputStyle}>
+            <option value="">Все залы</option>
+            {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
+        </div>
       </div>
     </div>
   )
