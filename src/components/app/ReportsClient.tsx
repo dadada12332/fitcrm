@@ -476,15 +476,16 @@ function SalesSection({ payments }: { payments: ReportPayment[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-0 rounded-lg overflow-hidden"
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
           { label: "Продано",  value: String(payments.length), icon: CreditCard },
           { label: "Выручка",  value: `${fmt(totalRev)} сум`,  icon: TrendingUp },
           { label: "Тарифов",  value: String(rows.length),     icon: BarChart2 },
         ].map(({ label, value, icon: Icon }, i) => (
-          <div key={label} className="p-5 flex flex-col gap-3"
-            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+          <div key={label}
+            className={`p-5 flex flex-col gap-3 ${i > 0 ? "border-t sm:border-t-0 sm:border-l" : ""}`}
+            style={{ borderColor: "var(--border)" }}>
             <div className="flex items-start justify-between">
               <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
               <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />

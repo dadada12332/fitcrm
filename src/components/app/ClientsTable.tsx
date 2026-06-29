@@ -99,22 +99,22 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
   return (
     <div className="rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 px-6 py-5">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>Список клиентов</span>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+      <div className="flex flex-wrap items-center gap-3 px-4 sm:px-6 py-4 sm:py-5">
+        <span className="text-xl font-medium tracking-[-0.12px] flex-1 min-w-0" style={{ color: "var(--on-dark)" }}>Список клиентов</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative min-w-[160px] flex-1 sm:flex-none">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
             <input
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(0) }}
               placeholder="Поиск"
-              className="h-9 w-[239px] pl-9 pr-3 rounded-md text-sm outline-none"
+              className="h-9 w-full sm:w-[200px] pl-9 pr-3 rounded-md text-sm outline-none"
               style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
             />
           </div>
           <button
             onClick={() => setFilterOpen(true)}
-            className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
+            className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2 flex-shrink-0"
             style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
           >
             <SlidersHorizontal className="w-4 h-4" />

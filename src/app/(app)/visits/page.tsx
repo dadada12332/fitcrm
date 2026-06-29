@@ -15,13 +15,13 @@ export default async function VisitsPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Посещения</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Быстрый check-in и журнал посещений</p>
         </div>
         <button
-          className="h-9 px-4 rounded-md text-sm font-medium flex items-center gap-2 text-white transition-opacity hover:opacity-90"
+          className="h-9 px-4 rounded-md text-sm font-medium flex items-center gap-2 text-white transition-opacity hover:opacity-90 flex-shrink-0"
           style={{ background: "#2563eb" }}
         >
           <Plus className="w-4 h-4" />

@@ -17,14 +17,14 @@ export default async function ClientsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Клиенты</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>
             База клиентов, абонементы, посещения и баланс
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <ExportClientsButton rows={rows} />
           <ImportClientsButton />
           <AddClientButton memberships={memberships} />

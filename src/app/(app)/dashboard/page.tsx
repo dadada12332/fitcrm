@@ -46,7 +46,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-5">
 
       {/* ── Page header (Figma: title + subtitle + buttons) ── */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-semibold tracking-[-0.144px]" style={{ fontSize: 24, color: "var(--on-dark)" }}>
             Дашборд

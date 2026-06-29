@@ -22,7 +22,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Расписание</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Управление загрузкой клуба: занятия, залы, тренеры</p>

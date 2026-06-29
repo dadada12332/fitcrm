@@ -11,7 +11,7 @@ export default async function MembershipsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Абонементы</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>

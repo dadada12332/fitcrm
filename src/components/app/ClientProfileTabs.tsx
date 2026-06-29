@@ -64,7 +64,7 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
   return (
     <div className="flex flex-col gap-5">
       {/* Tab bar */}
-      <div className="grid grid-cols-4 gap-1 p-1 rounded-lg" style={{ background: "var(--card-2)" }}>
+      <div className="flex gap-0.5 p-1 rounded-lg overflow-x-auto" style={{ background: "var(--card-2)" }}>
         {TABS.map((t) => {
           const active = t.key === tab
           const Icon = t.icon
@@ -72,7 +72,7 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className="h-9 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+              className="h-9 px-3 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5 flex-shrink-0"
               style={active
                 ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }
                 : { background: "transparent", color: "var(--on-dark-soft)" }}
@@ -112,7 +112,7 @@ function ProfileTab({ client }: { client: ClientProfile }) {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mt-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
               <Mini label="Осталось дней" value={sub.daysLeft !== null ? String(sub.daysLeft) : "—"} />
               <Mini label="Посещений" value={`${sub.visitsUsed} из ${sub.visitsTotal ?? "∞"}`} />
               <Mini label="Заморозка" value={`${sub.freezeDaysAllowed - sub.freezeDaysUsed} дней`} />
