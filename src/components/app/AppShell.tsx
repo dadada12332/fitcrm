@@ -62,7 +62,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, children }: Pro
 
       {/* Desktop sidebar */}
       <div
-        className="hidden lg:flex flex-shrink-0 p-2 transition-all duration-200"
+        className="hidden lg:flex flex-shrink-0 p-2 pr-0 transition-all duration-200"
         style={{ width: collapsed ? 72 : 272 }}
       >
         <Sidebar {...sidebarProps} collapsed={collapsed} />
