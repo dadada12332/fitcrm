@@ -11,7 +11,6 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts"
 import type { ReportsData, ReportPayment, ReportClient } from "@/lib/reports"
-import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -118,39 +117,6 @@ function buildHeatmap(visits: Array<{ checkedInAt: string }>) {
 
 // ── Shared sub-components ─────────────────────────────────────────────
 
-function KpiCard({ label, value, sub, delta, icon: Icon, accent }: {
-  label: string; value: string; sub?: string; delta?: number
-  icon?: typeof TrendingUp; accent?: string
-}) {
-  const up = delta !== undefined && delta >= 0
-  return (
-    <div className="rounded-xl p-4 flex flex-col gap-2" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{label}</p>
-        {Icon && (
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: accent ? `${accent}18` : "var(--card-2)" }}>
-            <Icon className="w-4 h-4" style={{ color: accent ?? "var(--on-dark-soft)" }} />
-          </div>
-        )}
-      </div>
-      <div>
-        <p className="text-2xl font-bold leading-none" style={{ color: "var(--on-dark)" }}>{value}</p>
-        {sub && <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{sub}</p>}
-      </div>
-      {delta !== undefined && (
-        <div className="flex items-center gap-1">
-          {up ? <TrendingUp className="w-3 h-3" style={{ color: "#16a34a" }} /> : <TrendingDown className="w-3 h-3" style={{ color: "#dc2626" }} />}
-          <span className="text-xs font-semibold" style={{ color: up ? "#16a34a" : "#dc2626" }}>
-            {up ? "+" : ""}{delta}%
-          </span>
-          <span className="text-xs" style={{ color: "var(--gray-muted)" }}>vs пред. период</span>
-        </div>
-      )}
-    </div>
-  )
-}
-
 const chartTooltipStyle = {
   contentStyle: {
     background: "var(--card)", border: "1px solid var(--border)",
@@ -162,7 +128,7 @@ const chartTooltipStyle = {
 
 function SectionCard({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{title}</p>
         {action}
@@ -190,11 +156,11 @@ function AlertItem({ level, text, sub, onClick }: {
     <button
       onClick={onClick}
       disabled={!interactive}
-      className="group flex h-full flex-col gap-3 rounded-2xl p-4 text-left transition-all enabled:hover:-translate-y-0.5 enabled:hover:shadow-md disabled:cursor-default"
+      className="group flex h-full flex-col gap-3 rounded-lg p-4 text-left transition-all enabled:hover:-translate-y-0.5 enabled:hover:shadow-md disabled:cursor-default"
       style={{ background: colors.bg, border: `1px solid ${colors.border}` }}
     >
       <div className="flex items-center justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0" style={{ background: colors.chip }}>
+        <div className="flex h-9 w-9 items-center justify-center rounded-md flex-shrink-0" style={{ background: colors.chip }}>
           <Icon className="h-[18px] w-[18px]" style={{ color: colors.icon }} />
         </div>
         <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: colors.chip, color: colors.icon }}>
@@ -274,11 +240,24 @@ function AlertsSection({ data, bounds, onNavigate }: {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard label="Истекает в 3 дня"   value={String(expiringSoon.length)} icon={AlertTriangle} accent="#dc2626" />
-        <KpiCard label="Не приходили 14+ дн" value={String(atRisk.length)}      icon={Users}          accent="#d97706" />
-        <KpiCard label="Долгов"              value={String(debts.length)}        sub={debts.length ? `${fmt(debtTotal)} сум` : undefined} icon={Wallet} accent="#dc2626" />
-        <KpiCard label="Посещаемость"        value={`${visitsDelta > 0 ? "+" : ""}${visitsDelta}%`} icon={Activity} accent={visitsDelta >= 0 ? "#16a34a" : "#dc2626"} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Истекает в 3 дня",    value: String(expiringSoon.length), icon: AlertTriangle, sub: undefined },
+          { label: "Не приходили 14+ дн", value: String(atRisk.length),       icon: Users,         sub: undefined },
+          { label: "Долгов",              value: String(debts.length),         icon: Wallet,        sub: debts.length ? `${fmt(debtTotal)} сум` : undefined },
+          { label: "Посещаемость",        value: `${visitsDelta > 0 ? "+" : ""}${visitsDelta}%`, icon: Activity, sub: undefined },
+        ].map(({ label, value, icon: Icon, sub }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+            {sub && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{sub}</span>}
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -323,12 +302,36 @@ function FinanceSection({ payments, prevPayments, bounds }: {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <KpiCard label="Выручка"     value={`${fmt(revenue)} сум`}   delta={revDelta} icon={TrendingUp} accent="#2563eb" />
-        <KpiCard label="Прибыль ~70%" value={`${fmt(profit)} сум`}   icon={TrendingUp}  accent="#16a34a" />
-        <KpiCard label="Расходы ~30%" value={`${fmt(expenses)} сум`} icon={TrendingDown} accent="#dc2626" />
-        <KpiCard label="Средний чек" value={`${fmt(avgCheck)} сум`}  icon={CreditCard}  accent="#7c3aed" />
-        <KpiCard label="Платежей"    value={String(payments.length)} sub={`~${Math.round(payments.length / days)}/день`} icon={BarChart2} accent="#059669" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Выручка",      value: `${fmt(revenue)} сум`,   icon: TrendingUp,  delta: revDelta,   sub: undefined },
+          { label: "Прибыль ~70%", value: `${fmt(profit)} сум`,    icon: TrendingUp,  delta: undefined,  sub: undefined },
+          { label: "Расходы ~30%", value: `${fmt(expenses)} сум`,  icon: TrendingDown, delta: undefined, sub: undefined },
+          { label: "Средний чек",  value: `${fmt(avgCheck)} сум`,  icon: CreditCard,  delta: undefined,  sub: undefined },
+          { label: "Платежей",     value: String(payments.length), icon: BarChart2,   delta: undefined,  sub: `~${Math.round(payments.length / days)}/день` },
+        ].map(({ label, value, icon: Icon, delta, sub }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+            {sub && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{sub}</span>}
+            {delta !== undefined && (
+              <div className="flex items-center gap-1.5">
+                {delta >= 0
+                  ? <TrendingUp className="w-4 h-4" style={{ color: "#16a34a" }} />
+                  : <TrendingDown className="w-4 h-4" style={{ color: "#dc2626" }} />}
+                <span className="text-xs font-medium" style={{ color: delta >= 0 ? "#16a34a" : "#dc2626" }}>
+                  {delta >= 0 ? "+" : ""}{delta}%
+                </span>
+                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>vs пред.</span>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -410,10 +413,22 @@ function SalesSection({ payments }: { payments: ReportPayment[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard label="Продано"        value={String(payments.length)} icon={CreditCard} accent="#2563eb" />
-        <KpiCard label="Выручка"        value={`${fmt(totalRev)} сум`}  icon={TrendingUp}  accent="#16a34a" />
-        <KpiCard label="Тарифов"        value={String(rows.length)}    icon={BarChart2}   accent="#7c3aed" />
+      <div className="grid grid-cols-3 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Продано",  value: String(payments.length), icon: CreditCard },
+          { label: "Выручка",  value: `${fmt(totalRev)} сум`,  icon: TrendingUp },
+          { label: "Тарифов",  value: String(rows.length),     icon: BarChart2 },
+        ].map(({ label, value, icon: Icon }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -515,11 +530,34 @@ function AttendanceSection({ visits, prevVisits, bounds }: {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard label="Всего посещений"  value={fmt(total)}                       delta={visitsDelta} icon={Activity} accent="#2563eb" />
-        <KpiCard label="В среднем в день" value={avgPerDay.toFixed(1)}             icon={BarChart2}    accent="#7c3aed" />
-        <KpiCard label="Пиковое время"    value={`${peakHour}:00–${peakHour+1}:00`} icon={TrendingUp} accent="#059669" />
-        <KpiCard label="Тихий день"       value={DOW_LABELS[quietDow] ?? "—"}      icon={TrendingDown} accent="#d97706" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Всего посещений",  value: fmt(total),                          icon: Activity,    delta: visitsDelta },
+          { label: "В среднем в день", value: avgPerDay.toFixed(1),                icon: BarChart2,   delta: undefined },
+          { label: "Пиковое время",    value: `${peakHour}:00–${peakHour+1}:00`,  icon: TrendingUp,  delta: undefined },
+          { label: "Тихий день",       value: DOW_LABELS[quietDow] ?? "—",         icon: TrendingDown, delta: undefined },
+        ].map(({ label, value, icon: Icon, delta }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+            {delta !== undefined && (
+              <div className="flex items-center gap-1.5">
+                {delta >= 0
+                  ? <TrendingUp className="w-4 h-4" style={{ color: "#16a34a" }} />
+                  : <TrendingDown className="w-4 h-4" style={{ color: "#dc2626" }} />}
+                <span className="text-xs font-medium" style={{ color: delta >= 0 ? "#16a34a" : "#dc2626" }}>
+                  {delta >= 0 ? "+" : ""}{delta}%
+                </span>
+                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>vs пред.</span>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -587,11 +625,24 @@ function RenewalsSection({ clients }: { clients: ReportClient[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard label="Истекает до 30 дней" value={String(expiring30.length)} icon={RefreshCw} accent="#d97706" />
-        <KpiCard label="Истекает до 7 дней"  value={String(expiring7.length)}  icon={AlertTriangle} accent="#dc2626" />
-        <KpiCard label="Истёкших"            value={String(expired.length)}    icon={TrendingDown}  accent="#dc2626" />
-        <KpiCard label="Активных"            value={`${convRate}%`}            sub="абонементов активно" icon={TrendingUp} accent="#16a34a" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Истекает до 30 дней", value: String(expiring30.length), icon: RefreshCw,    sub: undefined },
+          { label: "Истекает до 7 дней",  value: String(expiring7.length),  icon: AlertTriangle, sub: undefined },
+          { label: "Истёкших",            value: String(expired.length),    icon: TrendingDown,  sub: undefined },
+          { label: "Активных",            value: `${convRate}%`,            icon: TrendingUp,    sub: "абонементов активно" },
+        ].map(({ label, value, icon: Icon, sub }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+            {sub && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{sub}</span>}
+          </div>
+        ))}
       </div>
 
       <SectionCard title="Ближайшие истечения">
@@ -647,7 +698,7 @@ function GenderCard({ clients }: { clients: ReportClient[] }) {
   const femalePct = total ? Math.round((female / total) * 100) : 0
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>Пол клиентов</p>
       </div>
@@ -665,7 +716,7 @@ function GenderCard({ clients }: { clients: ReportClient[] }) {
 
         {/* Two equal panels — always same size, looks good at any ratio */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl p-4 flex flex-col items-center gap-1.5"
+          <div className="rounded-lg p-4 flex flex-col items-center gap-1.5"
             style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.18)" }}>
             <span className="text-xl leading-none" style={{ color: "#3b82f6" }}>♂</span>
             <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: "#2563eb" }}>{male}</span>
@@ -675,7 +726,7 @@ function GenderCard({ clients }: { clients: ReportClient[] }) {
             <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>мужчин</span>
           </div>
 
-          <div className="rounded-xl p-4 flex flex-col items-center gap-1.5"
+          <div className="rounded-lg p-4 flex flex-col items-center gap-1.5"
             style={{ background: "rgba(236,72,153,0.08)", border: "1px solid rgba(236,72,153,0.18)" }}>
             <span className="text-xl leading-none" style={{ color: "#ec4899" }}>♀</span>
             <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: "#db2777" }}>{female}</span>
@@ -717,11 +768,34 @@ function ClientsSection({ clients, bounds }: { clients: ReportClient[]; bounds: 
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard label="Новых клиентов"  value={String(newInPeriod.length)} delta={newDelta} icon={Users}         accent="#2563eb" />
-        <KpiCard label="Всего клиентов"  value={String(clients.length)}     icon={Users}         accent="#7c3aed" />
-        <KpiCard label="Активных"        value={String(active.length)}      icon={TrendingUp}    accent="#16a34a" />
-        <KpiCard label="С истёкшим"      value={String(expired.length)}     icon={TrendingDown}  accent="#dc2626" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Новых клиентов", value: String(newInPeriod.length), icon: Users,        delta: newDelta },
+          { label: "Всего клиентов", value: String(clients.length),     icon: Users,        delta: undefined },
+          { label: "Активных",       value: String(active.length),      icon: TrendingUp,   delta: undefined },
+          { label: "С истёкшим",     value: String(expired.length),     icon: TrendingDown, delta: undefined },
+        ].map(({ label, value, icon: Icon, delta }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+            {delta !== undefined && (
+              <div className="flex items-center gap-1.5">
+                {delta >= 0
+                  ? <TrendingUp className="w-4 h-4" style={{ color: "#16a34a" }} />
+                  : <TrendingDown className="w-4 h-4" style={{ color: "#dc2626" }} />}
+                <span className="text-xs font-medium" style={{ color: delta >= 0 ? "#16a34a" : "#dc2626" }}>
+                  {delta >= 0 ? "+" : ""}{delta}%
+                </span>
+                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>vs пред.</span>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -836,9 +910,21 @@ function DebtsSection({ debts }: { debts: ReportPayment[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3">
-        <KpiCard label="Должников"   value={String(debts.length)} icon={AlertTriangle} accent="#dc2626" />
-        <KpiCard label="Общий долг"  value={`${fmt(total)} сум`}  icon={Wallet}         accent="#dc2626" />
+      <div className="grid grid-cols-2 gap-0 rounded-lg overflow-hidden"
+        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[
+          { label: "Должников",  value: String(debts.length), icon: AlertTriangle },
+          { label: "Общий долг", value: `${fmt(total)} сум`,  icon: Wallet },
+        ].map(({ label, value, icon: Icon }, i) => (
+          <div key={label} className="p-5 flex flex-col gap-3"
+            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
+            </div>
+            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
+          </div>
+        ))}
       </div>
 
       <SectionCard title="Список долгов"
@@ -948,7 +1034,7 @@ function AiSection({ data, payments, visits, bounds }: {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: "rgba(37,99,235,0.07)", border: "1px solid rgba(37,99,235,0.15)" }}>
+      <div className="flex items-center gap-3 p-4 rounded-lg" style={{ background: "rgba(37,99,235,0.07)", border: "1px solid rgba(37,99,235,0.15)" }}>
         <Sparkles className="w-5 h-5 flex-shrink-0" style={{ color: "#2563eb" }} />
         <div>
           <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>AI Аналитика</p>
@@ -960,7 +1046,7 @@ function AiSection({ data, payments, visits, bounds }: {
         {insights.map((ins, i) => {
           const c = levelColors[ins.level]
           return (
-            <div key={i} className="rounded-xl p-4" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+            <div key={i} className="rounded-lg p-4" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
               <div className="flex items-start gap-3">
                 <span className="text-xl leading-none mt-0.5">{ins.icon}</span>
                 <div className="flex-1 min-w-0">
@@ -973,7 +1059,7 @@ function AiSection({ data, payments, visits, bounds }: {
         })}
       </div>
 
-      <div className="rounded-xl p-5 text-center" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
+      <div className="rounded-lg p-5 text-center" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
         <Sparkles className="w-6 h-6 mx-auto mb-2" style={{ color: "var(--gray-muted)" }} />
         <p className="text-sm font-medium" style={{ color: "var(--on-dark-soft)" }}>Прогноз и рекомендации</p>
         <p className="text-xs mt-1" style={{ color: "var(--gray-muted)" }}>Скоро — AI-прогноз выручки и автоматические рекомендации по развитию клуба</p>
@@ -1266,25 +1352,25 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </div>
 
         {/* Section tabs */}
-        <Tabs value={section} onValueChange={(v) => setSection(v as Section)} className="min-w-0 flex-1">
-          <TabsList className="flex w-full justify-start overflow-x-auto">
-            {SECTIONS.map(s => {
-              const Icon = s.icon
-              return (
-                <TabsTab key={s.key} value={s.key} className="flex-shrink-0">
-                  <Icon className="h-3.5 w-3.5 flex-shrink-0" />
-                  {s.label}
-                  {s.key === "alerts" && alertsCount > 0 && (
-                    <span className="ml-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
-                      style={{ background: "var(--destructive)" }}>
-                      {alertsCount}
-                    </span>
-                  )}
-                </TabsTab>
-              )
-            })}
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-0.5 p-1 rounded-lg min-w-0 flex-1 overflow-x-auto" style={{ background: "var(--card-2)" }}>
+          {SECTIONS.map(s => (
+            <button key={s.key} onClick={() => setSection(s.key)}
+              className="h-7 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1"
+              style={{
+                background: section === s.key ? "var(--pill-active)" : "transparent",
+                color: section === s.key ? "var(--on-dark)" : "var(--on-dark-soft)",
+                boxShadow: section === s.key ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+              }}>
+              {s.label}
+              {s.key === "alerts" && alertsCount > 0 && (
+                <span className="ml-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
+                  style={{ background: "var(--destructive)" }}>
+                  {alertsCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
