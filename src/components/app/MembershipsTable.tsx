@@ -4,11 +4,27 @@ import { useMemo, useState } from "react"
 import { Search, SlidersHorizontal, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { pluralDays, membershipStatus, statusMeta, type MembershipRow } from "@/lib/memberships"
 import { MembershipRowMenu } from "./MembershipRowMenu"
+import { downloadCSV } from "@/lib/csv"
 
 const PAGE_SIZE = 10
 
 function fmtSum(n: number) {
   return n.toLocaleString("ru-RU")
+}
+
+function exportMemberships(rows: MembershipRow[]) {
+  const today = new Date().toISOString().slice(0, 10)
+  downloadCSV(`memberships_${today}.csv`,
+    ["Название", "Цена (сум)", "Срок (дней)", "Посещений", "Активных клиентов", "Статус"],
+    rows.map((r) => [
+      r.name,
+      r.price,
+      r.durationDays,
+      r.visitsLimit ?? "∞",
+      r.activeClients,
+      r.isActive ? "Активен" : r.archived ? "Архивирован" : "Неактивен",
+    ]),
+  )
 }
 
 export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
@@ -46,9 +62,11 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
             style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <SlidersHorizontal className="w-4 h-4" />Фильтр
           </button>
-          <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
-            <Download className="w-4 h-4" />Экспорт в excel
+          <button
+            onClick={() => exportMemberships(filtered)}
+            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
+            <Download className="w-4 h-4" />Экспорт в CSV
           </button>
         </div>
       </div>

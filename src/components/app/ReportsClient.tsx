@@ -11,6 +11,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts"
 import type { ReportsData, ReportPayment, ReportClient } from "@/lib/reports"
+import { downloadCSV } from "@/lib/csv"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -1364,6 +1365,42 @@ export function ReportsClient({ data }: { data: ReportsData }) {
     printPdf(data, paidPayments, periodVisits, debts, period)
   }
 
+  function handleExcel() {
+    const today = new Date().toISOString().slice(0, 10)
+    const revenue = paidPayments.reduce((a, p) => a + p.amount, 0)
+
+    // Sheet 1: payments
+    const paymentRows = paidPayments.map((p) => [
+      p.paidAt ? new Date(p.paidAt).toLocaleDateString("ru-RU") : "—",
+      p.clientName ?? "—",
+      p.clientPhone ?? "—",
+      p.serviceName ?? "—",
+      p.amount,
+      { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }[p.provider] ?? p.provider,
+      { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }[p.status] ?? p.status,
+    ])
+
+    downloadCSV(`report_payments_${period}_${today}.csv`,
+      ["Дата", "Клиент", "Телефон", "Услуга", "Сумма (сум)", "Способ оплаты", "Статус"],
+      paymentRows,
+    )
+
+    // Sheet 2: clients (separate file)
+    setTimeout(() => {
+      downloadCSV(`report_clients_${period}_${today}.csv`,
+        ["Имя", "Телефон", "Статус", "Абонемент", "Дней осталось", "Источник"],
+        data.clients.map((c) => [
+          c.name,
+          c.phone ?? "—",
+          { active: "Активный", expired: "Истёк", frozen: "Заморожен" }[c.status] ?? c.status,
+          c.membershipName ?? "—",
+          c.daysLeft ?? "—",
+          c.source ?? "—",
+        ]),
+      )
+    }, 300)
+  }
+
   return (
     <div className="flex flex-col gap-5">
 
@@ -1374,14 +1411,16 @@ export function ReportsClient({ data }: { data: ReportsData }) {
           <p style={{ fontSize: 15, color: "var(--on-dark-soft)", marginTop: 2 }}>Аналитика и статистика клуба</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 pt-1">
-          <button onClick={handlePdf}
-            className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-            style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
-            <Download className="w-4 h-4" /> Excel
+          <button
+            onClick={handleExcel}
+            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
+            <Download className="w-4 h-4" /> Экспорт в CSV
           </button>
-          <button onClick={handlePdf}
-            className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-            style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
+          <button
+            onClick={handlePdf}
+            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
             <Download className="w-4 h-4" /> PDF
           </button>
         </div>

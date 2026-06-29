@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Search, Plus, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { type PaymentRow, providerMeta, statusMeta } from "@/lib/payments"
 import { NewPaymentModal } from "./NewPaymentModal"
+import { downloadCSV } from "@/lib/csv"
 
 const PAGE_SIZE = 10
 
@@ -71,6 +72,25 @@ function TabGroup<T extends string>({
   )
 }
 
+const PROVIDER_LABELS_RU: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
+const STATUS_LABELS_RU:   Record<string, string> = { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }
+
+function exportPayments(rows: PaymentRow[]) {
+  const today = new Date().toISOString().slice(0, 10)
+  downloadCSV(`payments_${today}.csv`,
+    ["Дата", "Клиент", "Телефон", "Услуга", "Сумма (сум)", "Способ оплаты", "Статус"],
+    rows.map((r) => [
+      r.paidAt ? new Date(r.paidAt).toLocaleDateString("ru-RU") : new Date(r.createdAt).toLocaleDateString("ru-RU"),
+      r.clientName ?? "—",
+      r.clientPhone ?? "—",
+      r.serviceName ?? "—",
+      r.amount,
+      PROVIDER_LABELS_RU[r.provider] ?? r.provider,
+      STATUS_LABELS_RU[r.status] ?? r.status,
+    ]),
+  )
+}
+
 export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memberships: Membership[] }) {
   const [period, setPeriod]     = useState<Period>("month")
   const [prov, setProv]         = useState<ProviderFilter>("all")
@@ -120,11 +140,12 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-              style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
+              onClick={() => exportPayments(filtered)}
+              className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}
             >
               <Download className="w-4 h-4" />
-              Excel
+              Экспорт в CSV
             </button>
             <button
               onClick={() => setModalOpen(true)}

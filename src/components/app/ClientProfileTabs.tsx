@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, SlidersHorizontal, Download, CalendarCheck, CreditCard, UserPlus, Snowflake, User, Clock } from "lucide-react"
+import { Search, Download, SlidersHorizontal, CalendarCheck, CreditCard, UserPlus, Snowflake, User, Clock } from "lucide-react"
 import {
   type ClientProfile,
   type ProfilePayment,
@@ -11,6 +11,7 @@ import {
   paymentStatusMeta,
   visitMethodMeta,
 } from "@/lib/client-profile"
+import { downloadCSV } from "@/lib/csv"
 
 type TabKey = "profile" | "visits" | "payments" | "history"
 
@@ -149,6 +150,19 @@ function Mini({ label, value }: { label: string; value: string }) {
   )
 }
 
+function exportTransactions(payments: ProfilePayment[]) {
+  const today = new Date().toISOString().slice(0, 10)
+  downloadCSV(`transactions_${today}.csv`,
+    ["Дата", "Сумма (сум)", "Способ оплаты", "Статус"],
+    payments.map((p) => [
+      p.paidAt ? new Date(p.paidAt).toLocaleDateString("ru-RU") : "—",
+      p.amount,
+      providerMeta[p.provider]?.label ?? p.provider,
+      paymentStatusMeta[p.status]?.label ?? p.status,
+    ]),
+  )
+}
+
 function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
   const [query, setQuery] = useState("")
   const filtered = useMemo(() => {
@@ -182,9 +196,11 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
             style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <SlidersHorizontal className="w-4 h-4" />Фильтр
           </button>
-          <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
-            <Download className="w-4 h-4" />Экспорт в excel
+          <button
+            onClick={() => exportTransactions(filtered)}
+            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
+            <Download className="w-4 h-4" />Экспорт в CSV
           </button>
         </div>
       </div>
