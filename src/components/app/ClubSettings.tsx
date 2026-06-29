@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useTransition, useRef } from "react"
+import { useState, useTransition, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   Building2, GitBranch, Users, Wallet, Bell,
-  Plug, Shield, Crown, Check, X, Plus,
+  Plug, Shield, Crown, Check, X, Plus, ArrowRight,
   Smartphone, Mail, MessageCircle, Eye, EyeOff,
 } from "lucide-react"
 import {
@@ -11,10 +12,11 @@ import {
   saveNotificationsAction,
   saveFinanceAction,
   changePasswordAction,
-  saveBranchAction,
   inviteStaffAction,
   saveIntegrationAction,
+  createBranchAction,
 } from "@/app/(app)/settings/club/actions"
+import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
 
 export type ClubData = {
   id: string
@@ -225,26 +227,42 @@ function BasicSection({ club }: { club: ClubData }) {
 
 // ── Branches ─────────────────────────────────────────────────────
 
+type BranchItem = { clubId: string; name: string; role: string; plan: string }
+
 function BranchesSection({ club }: { club: ClubData }) {
-  const initial = club.settings.branches ?? [{ name: "Основной зал", address: club.settings.address ?? "—" }]
-  const [branches, setBranches] = useState(initial)
+  const router = useRouter()
+  const [branches, setBranches] = useState<BranchItem[]>([])
+  const [loading, setLoading]   = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [bName, setBName]       = useState("")
   const [bAddr, setBAddr]       = useState("")
   const [msg, setMsg]           = useState<{ text: string; type: "ok" | "err" } | null>(null)
+  const [switching, setSwitching] = useState<string | null>(null)
   const [pending, start]        = useTransition()
+
+  useEffect(() => {
+    getBranchesAction().then((data) => { setBranches(data); setLoading(false) })
+  }, [])
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault()
     if (!bName.trim()) return
     start(async () => {
-      const res = await saveBranchAction({ name: bName.trim(), address: bAddr.trim() })
+      const res = await createBranchAction({ name: bName.trim(), address: bAddr.trim() })
       if (res.error) { setMsg({ text: res.error, type: "err" }); return }
-      setBranches((prev) => [...prev, { name: bName.trim(), address: bAddr.trim() }])
       setBName(""); setBAddr(""); setShowForm(false)
-      setMsg({ text: "Филиал добавлен", type: "ok" })
+      setMsg({ text: "Филиал создан", type: "ok" })
       setTimeout(() => setMsg(null), 2500)
+      const updated = await getBranchesAction()
+      setBranches(updated)
     })
+  }
+
+  async function handleSwitch(clubId: string) {
+    setSwitching(clubId)
+    await switchBranchAction(clubId)
+    router.refresh()
+    setSwitching(null)
   }
 
   return (
@@ -254,41 +272,66 @@ function BranchesSection({ club }: { club: ClubData }) {
       </Btn>
     }>
       {showForm && (
-        <form onSubmit={handleAdd} className="mb-5 p-4 rounded-xl space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+        <form onSubmit={handleAdd} className="mb-5 p-4 rounded-lg space-y-3" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
           <Field label="Название филиала">
             <Input value={bName} onChange={setBName} placeholder="Зал №2" />
           </Field>
-          <Field label="Адрес">
-            <Input value={bAddr} onChange={setBAddr} placeholder="г. Ташкент, ул. ..." />
+          <Field label="Город / адрес">
+            <Input value={bAddr} onChange={setBAddr} placeholder="г. Ташкент" />
           </Field>
           <div className="flex gap-2">
             <Btn type="submit" disabled={pending || !bName.trim()}>
-              {pending ? "Сохранение..." : "Добавить"}
+              {pending ? "Создание..." : "Создать"}
             </Btn>
             <Btn variant="secondary" onClick={() => setShowForm(false)}>Отмена</Btn>
           </div>
         </form>
       )}
       {msg && <div className="mb-4"><Alert msg={msg.text} type={msg.type} /></div>}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-              {["Название","Адрес"].map((h) => (
-                <th key={h} className="py-2 pr-4 text-left text-xs font-medium" style={{ color: "var(--gray-muted)" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {branches.map((b, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                <td className="py-3 pr-4 font-medium" style={{ color: "var(--on-dark)" }}>{b.name}</td>
-                <td className="py-3" style={{ color: "var(--on-dark-soft)" }}>{b.address || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+      {loading ? (
+        <p className="text-sm py-4 text-center" style={{ color: "var(--on-dark-soft)" }}>Загрузка...</p>
+      ) : (
+        <div className="space-y-2">
+          {branches.map((b) => {
+            const isActive = b.clubId === club.id
+            return (
+              <div key={b.clubId} className="flex items-center justify-between p-3 rounded-lg" style={{ background: isActive ? "var(--card-2)" : "transparent", border: `1px solid ${isActive ? "var(--border)" : "var(--border-subtle)"}` }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold"
+                    style={{ background: isActive ? "var(--pill-active)" : "var(--card-2)", color: isActive ? "white" : "var(--on-dark-soft)" }}>
+                    {b.name[0]?.toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{b.name}</span>
+                      {isActive && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-md font-medium" style={{ background: "rgba(22,163,74,0.12)", color: "#16a34a" }}>
+                          Активный
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{b.role}</span>
+                  </div>
+                </div>
+                {!isActive && (
+                  <button
+                    onClick={() => handleSwitch(b.clubId)}
+                    disabled={switching === b.clubId}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium transition-colors hover:opacity-80"
+                    style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
+                  >
+                    {switching === b.clubId ? "..." : <><ArrowRight className="w-3 h-3" />Переключиться</>}
+                  </button>
+                )}
+              </div>
+            )
+          })}
+          {branches.length === 0 && (
+            <p className="text-sm py-2" style={{ color: "var(--on-dark-soft)" }}>Нет филиалов</p>
+          )}
+        </div>
+      )}
     </Card>
   )
 }

@@ -352,13 +352,9 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
               </div>
             )}
             <div className="py-1">
-              <Link href="/onboarding" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
+              <Link href="/settings/branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
                 <GitFork className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                Создать филиал
-              </Link>
-              <Link href="/settings/club" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
-                <Settings className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                Настройки клуба
+                Добавить клуб
               </Link>
             </div>
           </div>

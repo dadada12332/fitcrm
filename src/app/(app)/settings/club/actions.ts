@@ -155,3 +155,23 @@ export async function saveIntegrationAction(key: string, value: string): Promise
   revalidatePath("/settings/club")
   return { ok: true }
 }
+
+export async function createBranchAction(data: {
+  name: string
+  address?: string
+}): Promise<SaveResult & { clubId?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+
+  const { data: clubId, error } = await supabase.rpc("create_club", {
+    p_name: data.name.trim(),
+    p_city: data.address?.trim() || null,
+  })
+
+  if (error) return { error: error.message }
+
+  revalidatePath("/settings/branches")
+  revalidatePath("/")
+  return { ok: true, clubId: clubId as string }
+}
