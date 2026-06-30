@@ -531,7 +531,7 @@ export function RolesSettings({ roles: initialRoles, isOwner }: { roles: RoleRow
 
       <div className="flex gap-4 items-start">
         {/* Left: role list */}
-        <div className="w-56 flex-shrink-0 rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="w-56 flex-shrink-0 rounded-lg overflow-hidden sticky top-0" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--on-dark-soft)" }}>Роли</p>
           </div>
