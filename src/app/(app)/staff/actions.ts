@@ -153,6 +153,24 @@ export async function updateStaffPermissionsAction(staffId: string, permissions:
   return { ok: true }
 }
 
+export async function updateStaffRoleAction(staffId: string, roleKey: string): Promise<R> {
+  const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+  if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав на смену роли" }
+
+  const { error } = await supabase
+    .from("staff")
+    .update({ role: roleKey })
+    .eq("id", staffId)
+    .eq("club_id", club.clubId)
+
+  if (error) return { error: error.message }
+  revalidatePath("/staff")
+  revalidatePath(`/staff/${staffId}`)
+  return { ok: true }
+}
+
 export async function updateStaffStatusAction(staffId: string, status: string): Promise<R> {
   const supabase = await createClient()
   const club = await getCurrentClub()

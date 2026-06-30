@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { Plus, Trash2, Check, ShieldCheck, Users, ChevronRight, X } from "lucide-react"
+import { useState, useTransition, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Plus, Trash2, Check, ShieldCheck, Users, ChevronRight, X, UserCheck } from "lucide-react"
 import {
   saveRoleAction, createRoleAction, deleteRoleAction,
   type RoleRow,
@@ -278,7 +279,15 @@ function PermissionModule({
 
 // ── Create role modal ────────────────────────────────────────────
 
-function CreateRoleModal({ onClose, onCreated }: { onClose: () => void; onCreated: (role: RoleRow) => void }) {
+function CreateRoleModal({
+  onClose, onCreated, assignStaffId, assignStaffName,
+}: {
+  onClose: () => void
+  onCreated: (role: RoleRow) => void
+  assignStaffId?: string
+  assignStaffName?: string
+}) {
+  const router = useRouter()
   const [step, setStep] = useState<"template" | "form">("template")
   const [templateKey, setTemplateKey] = useState<string | null>(null)
   const [name, setName] = useState("")
@@ -302,17 +311,30 @@ function CreateRoleModal({ onClose, onCreated }: { onClose: () => void; onCreate
     start(async () => {
       const baseKey = templateKey !== "custom" ? (templateKey ?? "trainer") : "trainer"
       const permissions = getDefaultPermissions(baseKey)
-      const res = await createRoleAction({ name: name.trim(), description: desc.trim(), permissions, templateKey: baseKey })
+      const res = await createRoleAction({
+        name: name.trim(),
+        description: desc.trim(),
+        permissions,
+        templateKey: baseKey,
+        assignToStaffId: assignStaffId,
+      })
       if (res.error) { setMsg({ text: res.error, type: "err" }); return }
-      onCreated({
+
+      const newRole: RoleRow = {
         id: res.id!,
-        key: `custom_${Date.now()}`,
+        key: res.key ?? `custom_${Date.now()}`,
         name: name.trim(),
         description: desc.trim(),
         permissions,
         isSystem: false,
-        staffCount: 0,
-      })
+        staffCount: assignStaffId ? 1 : 0,
+      }
+      onCreated(newRole)
+
+      // If we came from a staff page, redirect back after assignment
+      if (assignStaffId) {
+        router.push(`/staff/${assignStaffId}`)
+      }
     })
   }
 
@@ -329,6 +351,13 @@ function CreateRoleModal({ onClose, onCreated }: { onClose: () => void; onCreate
         </div>
 
         <div className="p-6">
+          {assignStaffName && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2.5 rounded-lg text-sm"
+              style={{ background: "rgba(37,99,235,0.08)", color: "#2563eb", border: "1px solid rgba(37,99,235,0.2)" }}>
+              <UserCheck className="w-4 h-4 flex-shrink-0" />
+              Роль будет назначена: <span className="font-semibold">{assignStaffName}</span>
+            </div>
+          )}
           {step === "template" ? (
             <div className="space-y-2">
               {TEMPLATES.map((t) => (
@@ -500,10 +529,20 @@ function RoleEditor({
 
 // ── Main component ───────────────────────────────────────────────
 
-export function RolesSettings({ roles: initialRoles, isOwner }: { roles: RoleRow[]; isOwner: boolean }) {
+export function RolesSettings({
+  roles: initialRoles,
+  isOwner,
+  assignStaffId,
+  assignStaffName,
+}: {
+  roles: RoleRow[]
+  isOwner: boolean
+  assignStaffId?: string
+  assignStaffName?: string
+}) {
   const [roles, setRoles] = useState<RoleRow[]>(initialRoles)
   const [selectedId, setSelectedId] = useState<string | null>(initialRoles[0]?.id ?? null)
-  const [showCreate, setShowCreate] = useState(false)
+  const [showCreate, setShowCreate] = useState(!!assignStaffId)
 
   const selected = roles.find((r) => r.id === selectedId) ?? null
 
@@ -596,7 +635,12 @@ export function RolesSettings({ roles: initialRoles, isOwner }: { roles: RoleRow
       </div>
 
       {showCreate && (
-        <CreateRoleModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />
+        <CreateRoleModal
+          onClose={() => setShowCreate(false)}
+          onCreated={handleCreated}
+          assignStaffId={assignStaffId}
+          assignStaffName={assignStaffName}
+        />
       )}
     </div>
   )

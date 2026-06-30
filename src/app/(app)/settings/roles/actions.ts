@@ -69,7 +69,8 @@ export async function createRoleAction(data: {
   description: string
   permissions: RolePermissions
   templateKey?: string
-}): Promise<{ error?: string; id?: string }> {
+  assignToStaffId?: string
+}): Promise<{ error?: string; id?: string; key?: string }> {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
@@ -86,7 +87,16 @@ export async function createRoleAction(data: {
     .single()
 
   if (error) return { error: error.message }
-  return { id: row.id }
+
+  if (data.assignToStaffId) {
+    await supabase
+      .from("staff")
+      .update({ role: key })
+      .eq("id", data.assignToStaffId)
+      .eq("club_id", club.clubId)
+  }
+
+  return { id: row.id, key }
 }
 
 export async function deleteRoleAction(roleId: string): Promise<{ error?: string }> {

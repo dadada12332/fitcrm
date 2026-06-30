@@ -10,12 +10,30 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
 
-  const member = await getStaffMember(supabase, id, club.clubId)
+  const [member, rolesRes] = await Promise.all([
+    getStaffMember(supabase, id, club.clubId),
+    supabase
+      .from("club_roles")
+      .select("id, key, name, is_system")
+      .eq("club_id", club.clubId)
+      .order("created_at"),
+  ])
   if (!member) notFound()
+
+  const roles = (rolesRes.data ?? []).map((r: any) => ({
+    id: r.id as string,
+    key: r.key as string,
+    name: r.name as string,
+    isSystem: r.is_system as boolean,
+  }))
 
   return (
     <div className="p-6">
-      <StaffProfileClient member={member} />
+      <StaffProfileClient
+        member={member}
+        roles={roles}
+        canManageRoles={["owner", "admin"].includes(club.role)}
+      />
     </div>
   )
 }

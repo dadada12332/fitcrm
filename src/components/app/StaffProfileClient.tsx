@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import Link from "next/link"
 import {
-  ArrowLeft, Check, ChevronDown,
+  ArrowLeft, Check, ChevronDown, ChevronRight,
   User, Users, CalendarDays, Wallet, Shield, BarChart2,
 } from "lucide-react"
 import { type StaffDetail, type StaffSettings, ROLE_LABELS } from "@/lib/staff"
@@ -13,7 +13,10 @@ import {
   payStaffAction,
   updateStaffPermissionsAction,
   updateStaffStatusAction,
+  updateStaffRoleAction,
 } from "@/app/(app)/staff/actions"
+
+type SimpleRole = { id: string; key: string; name: string; isSystem: boolean }
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -113,7 +116,13 @@ const TABS: { key: Tab; label: string; icon: typeof User; roles?: string[] }[] =
 
 // ── Section Components ────────────────────────────────────────────
 
-function BasicSection({ member }: { member: StaffDetail }) {
+function BasicSection({
+  member, roles, canManageRoles,
+}: {
+  member: StaffDetail
+  roles: SimpleRole[]
+  canManageRoles: boolean
+}) {
   const s = member.settings
   const [name, setName]     = useState(member.name)
   const [phone, setPhone]   = useState(s.phone ?? "")
@@ -122,9 +131,11 @@ function BasicSection({ member }: { member: StaffDetail }) {
   const [role, setRole]     = useState(member.role)
   const [status, setStatus] = useState(member.status)
   const [saved, setSaved]   = useState(false)
+  const [roleSaved, setRoleSaved] = useState(false)
   const [error, setError]   = useState<string | null>(null)
   const [pending, start]    = useTransition()
   const [stPending, stStart] = useTransition()
+  const [rolePending, roleStart] = useTransition()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(null)
@@ -140,7 +151,20 @@ function BasicSection({ member }: { member: StaffDetail }) {
     stStart(async () => { await updateStaffStatusAction(member.id, s) })
   }
 
+  function handleRoleChange(roleKey: string) {
+    if (!canManageRoles || roleKey === role) return
+    setRole(roleKey)
+    roleStart(async () => {
+      await updateStaffRoleAction(member.id, roleKey)
+      setRoleSaved(true)
+      setTimeout(() => setRoleSaved(false), 2000)
+    })
+  }
+
   const sm = STATUS_META[status] ?? STATUS_META.active
+
+  // current role display name
+  const currentRoleName = roles.find((r) => r.key === role)?.name ?? ROLE_LABELS[role] ?? role
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -185,19 +209,69 @@ function BasicSection({ member }: { member: StaffDetail }) {
         </div>
       </Card>
 
+      {/* Role card */}
       <Card title="Роль">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {Object.entries(ROLE_LABELS).map(([k, v]) => (
-            <button key={k} type="button" onClick={() => setRole(k)}
-              className="h-10 rounded-lg text-sm font-medium transition-all"
-              style={{
-                border: `1.5px solid ${role === k ? "#2563eb" : "var(--border)"}`,
-                background: role === k ? "rgba(37,99,235,0.12)" : "var(--card)",
-                color: role === k ? "#2563eb" : "var(--on-dark-soft)",
-              }}>
-              {v}
-            </button>
-          ))}
+        <div className="space-y-3">
+          {/* Current role */}
+          <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+            <div>
+              <p className="text-xs font-medium mb-0.5" style={{ color: "var(--gray-muted)" }}>Текущая роль</p>
+              <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{currentRoleName}</p>
+            </div>
+            {rolePending && <span className="text-xs" style={{ color: "var(--gray-muted)" }}>Сохранение...</span>}
+            {roleSaved && (
+              <span className="flex items-center gap-1 text-xs font-medium" style={{ color: "#16a34a" }}>
+                <Check className="w-3.5 h-3.5" /> Сохранено
+              </span>
+            )}
+          </div>
+
+          {canManageRoles && (
+            <>
+              {/* Role grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {roles.map((r) => (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => handleRoleChange(r.key)}
+                    disabled={rolePending}
+                    className="flex flex-col items-start p-3 rounded-lg text-left transition-all disabled:opacity-60"
+                    style={{
+                      border: `1.5px solid ${role === r.key ? "#2563eb" : "var(--border)"}`,
+                      background: role === r.key ? "rgba(37,99,235,0.08)" : "var(--card)",
+                    }}
+                  >
+                    <span className="text-sm font-medium" style={{ color: role === r.key ? "#2563eb" : "var(--on-dark)" }}>
+                      {r.name}
+                    </span>
+                    {r.isSystem && (
+                      <span className="text-[10px] mt-0.5" style={{ color: "var(--gray-muted)" }}>Системная</span>
+                    )}
+                    {!r.isSystem && (
+                      <span className="text-[10px] mt-0.5" style={{ color: "#7c3aed" }}>Кастомная</span>
+                    )}
+                    {role === r.key && (
+                      <Check className="w-3 h-3 mt-1 self-end" style={{ color: "#2563eb" }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Manual/custom role button */}
+              <Link
+                href={`/settings/roles?staffId=${member.id}&staffName=${encodeURIComponent(member.name)}`}
+                className="flex items-center justify-between w-full p-3 rounded-lg transition-colors hover:opacity-80"
+                style={{ border: "1px dashed var(--border)", color: "var(--on-dark-soft)" }}
+              >
+                <div>
+                  <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Назначить в ручную</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Создать персональную роль с настройкой прав</p>
+                </div>
+                <ChevronRight className="w-4 h-4 flex-shrink-0" />
+              </Link>
+            </>
+          )}
         </div>
       </Card>
 
@@ -547,7 +621,15 @@ function PerformanceSection({ member }: { member: StaffDetail }) {
 
 // ── Main Component ────────────────────────────────────────────────
 
-export function StaffProfileClient({ member }: { member: StaffDetail }) {
+export function StaffProfileClient({
+  member,
+  roles = [],
+  canManageRoles = false,
+}: {
+  member: StaffDetail
+  roles?: SimpleRole[]
+  canManageRoles?: boolean
+}) {
   const [tab, setTab] = useState<Tab>("basic")
 
   const visibleTabs = TABS.filter((t) => !t.roles || t.roles.includes(member.role))
@@ -556,7 +638,7 @@ export function StaffProfileClient({ member }: { member: StaffDetail }) {
 
   const renderTab = () => {
     switch (tab) {
-      case "basic":       return <BasicSection member={member} />
+      case "basic":       return <BasicSection member={member} roles={roles} canManageRoles={canManageRoles} />
       case "clients":     return <ClientsSection member={member} />
       case "schedule":    return <ScheduleSection member={member} />
       case "salary":      return <SalarySection member={member} />
