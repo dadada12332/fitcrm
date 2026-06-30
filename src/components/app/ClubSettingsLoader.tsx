@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { redirect } from "next/navigation"
 import { ClubSettings, type ClubData } from "./ClubSettings"
 
@@ -9,28 +10,23 @@ export async function ClubSettingsLoader({ section }: { section: Section }) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: staffRow } = await supabase
-    .from("staff")
-    .select("club_id, role")
-    .eq("user_id", user.id)
-    .single()
-
-  if (!staffRow?.club_id) redirect("/dashboard")
+  const club = await getCurrentClub()
+  if (!club) redirect("/dashboard")
 
   const [clubRes, staffListRes] = await Promise.all([
     supabase
       .from("clubs")
       .select("id, name, plan, trial_expires_at, plan_expires_at, settings")
-      .eq("id", staffRow.club_id)
+      .eq("id", club.clubId)
       .single(),
     supabase
       .from("staff")
       .select("id, user_id, role")
-      .eq("club_id", staffRow.club_id),
+      .eq("club_id", club.clubId),
   ])
 
-  const club = clubRes.data
-  if (!club) redirect("/dashboard")
+  const clubRow = clubRes.data
+  if (!clubRow) redirect("/dashboard")
 
   const userIds = (staffListRes.data ?? []).map((s: any) => s.user_id as string)
   const { data: usersData } = userIds.length > 0
@@ -49,12 +45,12 @@ export async function ClubSettingsLoader({ section }: { section: Section }) {
   })
 
   const data: ClubData = {
-    id: club.id,
-    name: club.name,
-    plan: club.plan ?? "trial",
-    trialExpiresAt: club.trial_expires_at ?? null,
-    planExpiresAt: club.plan_expires_at ?? null,
-    settings: (club.settings as ClubData["settings"]) ?? {},
+    id: clubRow.id,
+    name: clubRow.name,
+    plan: clubRow.plan ?? "trial",
+    trialExpiresAt: clubRow.trial_expires_at ?? null,
+    planExpiresAt: clubRow.plan_expires_at ?? null,
+    settings: (clubRow.settings as ClubData["settings"]) ?? {},
     staffList,
   }
 
