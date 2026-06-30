@@ -524,14 +524,14 @@ export function RolesSettings({ roles: initialRoles, isOwner }: { roles: RoleRow
   }
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col" style={{ gap: 20 }}>
       <h1 className="text-2xl font-semibold" style={{ letterSpacing: "-0.144px", color: "var(--on-dark)" }}>
         Роли и права
       </h1>
 
-      <div className="flex gap-4 items-start">
+      <div className="flex gap-4 overflow-hidden" style={{ height: "calc(100svh - 196px)", minHeight: 400 }}>
         {/* Left: role list */}
-        <div className="w-56 flex-shrink-0 rounded-lg overflow-hidden sticky top-0" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="w-56 flex-shrink-0 rounded-lg overflow-y-auto flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--on-dark-soft)" }}>Роли</p>
           </div>
@@ -578,7 +578,7 @@ export function RolesSettings({ roles: initialRoles, isOwner }: { roles: RoleRow
         </div>
 
         {/* Right: role editor */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-y-auto">
           {selected ? (
             <RoleEditor
               key={selected.id}
