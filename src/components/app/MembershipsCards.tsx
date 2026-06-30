@@ -170,7 +170,7 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
                     <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
                       <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                       <span>Посещений — <strong style={{ color: "var(--on-dark)" }}>
-                        {row.visitsLimit === null ? "∞" : row.visitsLimit}
+                        {row.visitsLimit === null ? <span style={{ fontSize: "1.2em", lineHeight: 1 }}>∞</span> : row.visitsLimit}
                       </strong></span>
                     </div>
                     <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
