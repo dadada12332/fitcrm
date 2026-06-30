@@ -64,16 +64,17 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               className="flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium transition-all"
               style={{
                 background: tab === "active" ? "var(--pill-active)" : "transparent",
-                color: tab === "active" ? "var(--on-dark)" : "var(--on-dark-soft)",
+                color: tab === "active" ? "var(--on-dark)" : "var(--on-dark)",
                 boxShadow: tab === "active" ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+                opacity: tab === "active" ? 1 : 0.55,
               }}
             >
               Активные
               <span
                 className="text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center"
                 style={{
-                  background: tab === "active" ? "var(--on-dark)" : "var(--gray-muted)",
-                  color: tab === "active" ? "var(--bg)" : "var(--on-dark-soft)",
+                  background: tab === "active" ? "var(--on-dark)" : "var(--on-dark)",
+                  color: tab === "active" ? "var(--bg)" : "var(--bg)",
                   fontSize: 10,
                 }}
               >
@@ -85,16 +86,17 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
               className="flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium transition-all"
               style={{
                 background: tab === "archived" ? "var(--pill-active)" : "transparent",
-                color: tab === "archived" ? "var(--on-dark)" : "var(--on-dark-soft)",
+                color: tab === "archived" ? "var(--on-dark)" : "var(--on-dark)",
                 boxShadow: tab === "archived" ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+                opacity: tab === "archived" ? 1 : 0.55,
               }}
             >
               Архив
               <span
                 className="text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center"
                 style={{
-                  background: tab === "archived" ? "var(--on-dark)" : "var(--gray-muted)",
-                  color: tab === "archived" ? "var(--bg)" : "var(--on-dark-soft)",
+                  background: tab === "archived" ? "var(--on-dark)" : "var(--on-dark)",
+                  color: tab === "archived" ? "var(--bg)" : "var(--bg)",
                   fontSize: 10,
                 }}
               >
