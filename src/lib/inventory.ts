@@ -32,10 +32,11 @@ export type InventoryStats = {
   totalSalesMonth: number
 }
 
-export async function getInventory(supabase: SupabaseClient): Promise<Product[]> {
+export async function getInventory(supabase: SupabaseClient, clubId: string): Promise<Product[]> {
   const { data } = await supabase
     .from("products")
     .select("id, name, category, unit, sell_price, buy_price, sku, is_active, inventory(quantity, min_quantity, updated_at)")
+    .eq("club_id", clubId)
     .eq("is_active", true)
     .order("name")
 
@@ -57,13 +58,14 @@ export async function getInventory(supabase: SupabaseClient): Promise<Product[]>
   })
 }
 
-export async function getInventoryStats(supabase: SupabaseClient): Promise<InventoryStats> {
-  const products = await getInventory(supabase)
+export async function getInventoryStats(supabase: SupabaseClient, clubId: string): Promise<InventoryStats> {
+  const products = await getInventory(supabase, clubId)
   const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1)
 
   const { data: sales } = await supabase
     .from("stock_movements")
     .select("qty, unit_price")
+    .eq("club_id", clubId)
     .eq("type", "sale")
     .gte("created_at", monthAgo.toISOString())
 
@@ -75,10 +77,11 @@ export async function getInventoryStats(supabase: SupabaseClient): Promise<Inven
   }
 }
 
-export async function getRecentMovements(supabase: SupabaseClient, limit = 30): Promise<StockMovement[]> {
+export async function getRecentMovements(supabase: SupabaseClient, clubId: string, limit = 30): Promise<StockMovement[]> {
   const { data } = await supabase
     .from("stock_movements")
     .select("id, product_id, type, qty, unit_price, created_at, note, products(name)")
+    .eq("club_id", clubId)
     .order("created_at", { ascending: false })
     .limit(limit)
 

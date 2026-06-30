@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { getCurrentClub } from "@/lib/club"
 import { searchClientsForCheckin, type ClientSearchResult } from "@/lib/visits"
 
 export type MarkVisitResult = {
@@ -66,5 +67,7 @@ export async function markVisitAction(
 
 export async function searchClientsAction(query: string): Promise<ClientSearchResult[]> {
   const supabase = await createClient()
-  return searchClientsForCheckin(supabase, query)
+  const club = await getCurrentClub()
+  if (!club) return []
+  return searchClientsForCheckin(supabase, query, club.clubId)
 }

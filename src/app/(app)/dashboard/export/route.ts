@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { getDashboardData } from "@/lib/dashboard"
 
 export const runtime = "nodejs"
@@ -9,11 +10,11 @@ export async function GET() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 })
-  }
+  if (!user) return new Response("Unauthorized", { status: 401 })
+  const club = await getCurrentClub()
+  if (!club) return new Response("Club not found", { status: 403 })
 
-  const d = await getDashboardData(supabase)
+  const d = await getDashboardData(supabase, club.clubId)
 
   const wb = new ExcelJS.Workbook()
   wb.creator = "FitCRM"

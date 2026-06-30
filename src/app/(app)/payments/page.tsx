@@ -1,17 +1,21 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { getPaymentsKPI, getPaymentsList } from "@/lib/payments"
 import { getActiveMemberships } from "@/lib/memberships"
 import { PaymentsClient } from "@/components/app/PaymentsClient"
 import { TrendingUp, TrendingDown, DollarSign, Receipt, Users } from "lucide-react"
+import { redirect } from "next/navigation"
 
 function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 
 export default async function PaymentsPage() {
   const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) redirect("/onboarding")
   const [kpi, rows, memberships] = await Promise.all([
-    getPaymentsKPI(supabase),
-    getPaymentsList(supabase),
-    getActiveMemberships(supabase),
+    getPaymentsKPI(supabase, club.clubId),
+    getPaymentsList(supabase, club.clubId),
+    getActiveMemberships(supabase, club.clubId),
   ])
 
   return (

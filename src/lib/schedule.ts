@@ -84,6 +84,7 @@ function hhmm(t: string | null): string {
 export async function getScheduleData(
   supabase: SupabaseClient,
   opts: { date?: string; view?: ScheduleView; trainer?: string; room?: string },
+  clubId: string,
 ): Promise<ScheduleData> {
   const view: ScheduleView = opts.view ?? "day"
   const anchor = opts.date ? new Date(opts.date + "T00:00:00") : new Date()
@@ -103,10 +104,11 @@ export async function getScheduleData(
     supabase
       .from("classes")
       .select("id, room_id, date, start_time, end_time, seats_total, seats_booked, status, title, trainer_name, price, rooms(name), class_bookings(id, status, clients(id, full_name))")
+      .eq("club_id", clubId)
       .gte("date", toISODate(start))
       .lte("date", toISODate(end))
       .order("start_time", { ascending: true }),
-    supabase.from("rooms").select("id, name").order("name", { ascending: true }),
+    supabase.from("rooms").select("id, name").eq("club_id", clubId).order("name", { ascending: true }),
   ])
 
   const rooms: Room[] = (roomsRes.data ?? []).map((r) => ({ id: r.id as string, name: r.name as string }))

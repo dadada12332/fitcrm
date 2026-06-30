@@ -51,10 +51,11 @@ function daysUntil(dateStr: string | null): number | null {
   return Math.ceil(ms / 86_400_000)
 }
 
-export async function getClientsData(supabase: SupabaseClient): Promise<ClientsData> {
+export async function getClientsData(supabase: SupabaseClient, clubId: string): Promise<ClientsData> {
   const { data } = await supabase
     .from("clients")
     .select("id, full_name, phone, gender, birth_date, source, created_at, subscriptions(status, expires_at, memberships(name))")
+    .eq("club_id", clubId)
     .order("created_at", { ascending: false })
 
   const clients = (data ?? []) as {

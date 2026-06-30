@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { getReportsData } from "@/lib/reports"
 
 export const runtime = "nodejs"
@@ -53,11 +54,13 @@ export async function GET(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return new Response("Unauthorized", { status: 401 })
+  const club = await getCurrentClub()
+  if (!club) return new Response("Club not found", { status: 403 })
 
   const period = new URL(req.url).searchParams.get("period") ?? "30d"
   const { from, to } = periodBounds(period)
 
-  const data = await getReportsData(supabase)
+  const data = await getReportsData(supabase, club.clubId)
 
   const paidPayments = data.payments.filter(
     p => p.status === "paid" && p.paidAt && p.paidAt >= from && p.paidAt <= to

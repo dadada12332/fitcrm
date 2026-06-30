@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { getClientsData } from "@/lib/clients"
 import { getActiveMemberships } from "@/lib/memberships"
 import { ClientsStats } from "@/components/app/ClientsStats"
@@ -6,12 +7,15 @@ import { ClientsTable } from "@/components/app/ClientsTable"
 import { AddClientButton } from "@/components/app/AddClientButton"
 import { ImportClientsButton } from "@/components/app/ImportClientsButton"
 import { ExportClientsButton } from "@/components/app/ExportClientsButton"
+import { redirect } from "next/navigation"
 
 export default async function ClientsPage() {
   const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) redirect("/onboarding")
   const [{ rows, stats }, memberships] = await Promise.all([
-    getClientsData(supabase),
-    getActiveMemberships(supabase),
+    getClientsData(supabase, club.clubId),
+    getActiveMemberships(supabase, club.clubId),
   ])
 
   return (

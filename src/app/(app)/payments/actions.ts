@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { getCurrentClub } from "@/lib/club"
 import { searchClientsForCheckin, type ClientSearchResult } from "@/lib/visits"
 
 export type CreatePaymentInput = {
@@ -71,5 +72,7 @@ export async function createPaymentAction(input: CreatePaymentInput): Promise<Cr
 
 export async function searchClientsPayments(query: string): Promise<ClientSearchResult[]> {
   const supabase = await createClient()
-  return searchClientsForCheckin(supabase, query)
+  const club = await getCurrentClub()
+  if (!club) return []
+  return searchClientsForCheckin(supabase, query, club.clubId)
 }

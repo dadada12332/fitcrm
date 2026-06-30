@@ -62,7 +62,7 @@ function daysUntil(dateStr: string | null): number | null {
   return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000)
 }
 
-export async function getReportsData(supabase: SupabaseClient): Promise<ReportsData> {
+export async function getReportsData(supabase: SupabaseClient, clubId: string): Promise<ReportsData> {
   const yearAgo = new Date()
   yearAgo.setFullYear(yearAgo.getFullYear() - 1)
   const yStr = yearAgo.toISOString()
@@ -71,6 +71,7 @@ export async function getReportsData(supabase: SupabaseClient): Promise<ReportsD
     supabase
       .from("payments")
       .select("id, amount, status, provider, paid_at, created_at, client_id, clients(full_name, phone), subscriptions(memberships(name))")
+      .eq("club_id", clubId)
       .gte("created_at", yStr)
       .order("created_at", { ascending: false })
       .limit(5000),
@@ -78,6 +79,7 @@ export async function getReportsData(supabase: SupabaseClient): Promise<ReportsD
     supabase
       .from("visits")
       .select("id, client_id, checked_in_at")
+      .eq("club_id", clubId)
       .gte("checked_in_at", yStr)
       .order("checked_in_at", { ascending: false })
       .limit(20000),
@@ -85,15 +87,18 @@ export async function getReportsData(supabase: SupabaseClient): Promise<ReportsD
     supabase
       .from("clients")
       .select("id, full_name, phone, gender, source, created_at, subscriptions(status, expires_at, memberships(name))")
+      .eq("club_id", clubId)
       .order("created_at", { ascending: false }),
 
     supabase
       .from("staff")
-      .select("id, user_id, role, salary, is_active, settings"),
+      .select("id, user_id, role, salary, is_active, settings")
+      .eq("club_id", clubId),
 
     supabase
       .from("visits")
       .select("staff_id, client_id")
+      .eq("club_id", clubId)
       .not("staff_id", "is", null),
   ])
 

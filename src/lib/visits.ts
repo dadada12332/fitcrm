@@ -44,19 +44,18 @@ function todayEnd() {
   return new Date().toISOString().slice(0, 10) + "T23:59:59"
 }
 
-export async function getVisitsKPI(supabase: SupabaseClient): Promise<VisitsKPI> {
+export async function getVisitsKPI(supabase: SupabaseClient, clubId: string): Promise<VisitsKPI> {
   const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-  const today = new Date().toISOString().slice(0, 10)
 
   const [{ count: todayCount }, { count: inGymCount }, { data: todayClients }, { count: activeCount }] =
     await Promise.all([
-      supabase.from("visits").select("*", { count: "exact", head: true })
+      supabase.from("visits").select("*", { count: "exact", head: true }).eq("club_id", clubId)
         .gte("checked_in_at", todayStart()).lte("checked_in_at", todayEnd()),
-      supabase.from("visits").select("*", { count: "exact", head: true })
+      supabase.from("visits").select("*", { count: "exact", head: true }).eq("club_id", clubId)
         .gte("checked_in_at", twoHoursAgo),
-      supabase.from("visits").select("client_id")
+      supabase.from("visits").select("client_id").eq("club_id", clubId)
         .gte("checked_in_at", todayStart()).lte("checked_in_at", todayEnd()),
-      supabase.from("subscriptions").select("*", { count: "exact", head: true })
+      supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("club_id", clubId)
         .eq("status", "active"),
     ])
 
@@ -73,7 +72,7 @@ export async function getVisitsKPI(supabase: SupabaseClient): Promise<VisitsKPI>
   }
 }
 
-export async function getTodayVisits(supabase: SupabaseClient): Promise<VisitRow[]> {
+export async function getTodayVisits(supabase: SupabaseClient, clubId: string): Promise<VisitRow[]> {
   const { data } = await supabase
     .from("visits")
     .select(`
@@ -81,6 +80,7 @@ export async function getTodayVisits(supabase: SupabaseClient): Promise<VisitRow
       clients(full_name, phone),
       subscriptions(status, expires_at, visits_total, visits_used, memberships(name))
     `)
+    .eq("club_id", clubId)
     .gte("checked_in_at", todayStart())
     .lte("checked_in_at", todayEnd())
     .order("checked_in_at", { ascending: false })
@@ -106,7 +106,8 @@ export async function getTodayVisits(supabase: SupabaseClient): Promise<VisitRow
 
 export async function searchClientsForCheckin(
   supabase: SupabaseClient,
-  query: string
+  query: string,
+  clubId: string
 ): Promise<ClientSearchResult[]> {
   const q = query.trim()
   if (q.length < 2) return []
@@ -117,6 +118,7 @@ export async function searchClientsForCheckin(
       id, full_name, phone, photo_url,
       subscriptions(id, status, expires_at, visits_total, visits_used, memberships(name))
     `)
+    .eq("club_id", clubId)
     .or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`)
     .limit(8)
 
@@ -126,6 +128,7 @@ export async function searchClientsForCheckin(
   const { data: todayVisits } = await supabase
     .from("visits")
     .select("client_id")
+    .eq("club_id", clubId)
     .in("client_id", clientIds)
     .gte("checked_in_at", todayStart())
 

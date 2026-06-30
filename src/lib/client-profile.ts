@@ -103,11 +103,13 @@ export const visitMethodMeta: Record<VisitMethod, { label: string; bg: string; c
 export async function getClientProfile(
   supabase: SupabaseClient,
   id: string,
+  clubId: string,
 ): Promise<ClientProfile | null> {
   const { data: client } = await supabase
     .from("clients")
     .select("id, full_name, phone, telegram_id, photo_url, tags, notes, created_at")
     .eq("id", id)
+    .eq("club_id", clubId)
     .maybeSingle()
 
   if (!client) return null

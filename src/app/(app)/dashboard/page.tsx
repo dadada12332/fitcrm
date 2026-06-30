@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { getDashboardData } from "@/lib/dashboard"
 import { getPaymentsList } from "@/lib/payments"
+import { redirect } from "next/navigation"
 import { ExportButton } from "@/components/app/ExportButton"
 import { QuickActions } from "@/components/app/QuickActions"
 import { RevenueChart } from "@/components/app/RevenueChart"
@@ -19,14 +21,17 @@ function greetingText() {
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const club = await getCurrentClub()
+  if (!club) redirect("/onboarding")
 
   const [d, userRes, recentPayments, visitsRes] = await Promise.all([
-    getDashboardData(supabase),
+    getDashboardData(supabase, club.clubId),
     supabase.from("users").select("full_name").eq("id", user!.id).maybeSingle(),
-    getPaymentsList(supabase, 8),
+    getPaymentsList(supabase, club.clubId, 8),
     supabase
       .from("visits")
       .select("id, checked_in_at, clients(id, full_name, tags)")
+      .eq("club_id", club.clubId)
       .order("checked_in_at", { ascending: false })
       .limit(10),
   ])

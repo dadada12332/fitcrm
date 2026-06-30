@@ -1,16 +1,17 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { getCurrentClub } from "@/lib/club"
 import { getStaffKPI, getStaffList } from "@/lib/staff"
 import { StaffClient } from "@/components/app/StaffClient"
 
 export default async function StaffPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/login")
+  const club = await getCurrentClub()
+  if (!club) redirect("/onboarding")
 
   const [kpi, list] = await Promise.all([
-    getStaffKPI(supabase),
-    getStaffList(supabase),
+    getStaffKPI(supabase, club.clubId),
+    getStaffList(supabase, club.clubId),
   ])
 
   return (

@@ -51,17 +51,18 @@ export function pluralDays(n: number): string {
   return `${n} дней`
 }
 
-export async function getActiveMemberships(supabase: SupabaseClient): Promise<{ id: string; name: string; price: number }[]> {
+export async function getActiveMemberships(supabase: SupabaseClient, clubId: string): Promise<{ id: string; name: string; price: number }[]> {
   const { data } = await supabase
     .from("memberships")
     .select("id, name, price")
+    .eq("club_id", clubId)
     .eq("is_active", true)
     .eq("archived", false)
     .order("created_at", { ascending: false })
   return (data ?? []).map((m) => ({ id: m.id as string, name: m.name as string, price: Number(m.price ?? 0) }))
 }
 
-export async function getMembershipsData(supabase: SupabaseClient): Promise<MembershipsData> {
+export async function getMembershipsData(supabase: SupabaseClient, clubId: string): Promise<MembershipsData> {
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -70,13 +71,15 @@ export async function getMembershipsData(supabase: SupabaseClient): Promise<Memb
     supabase
       .from("memberships")
       .select("id, name, price, duration_days, visits_limit, is_active, archived, freeze_days_allowed, description, price_per_day, available_days, available_time, valid_until, created_at")
+      .eq("club_id", clubId)
       .order("created_at", { ascending: false }),
-    supabase.from("subscriptions").select("membership_id, status").eq("status", "active"),
-    supabase.from("subscriptions").select("id", { count: "exact", head: true }).gte("created_at", monthStart.toISOString()),
-    supabase.from("payments").select("amount").eq("status", "paid").gte("paid_at", monthStart.toISOString()),
+    supabase.from("subscriptions").select("membership_id, status").eq("club_id", clubId).eq("status", "active"),
+    supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId).gte("created_at", monthStart.toISOString()),
+    supabase.from("payments").select("amount").eq("club_id", clubId).eq("status", "paid").gte("paid_at", monthStart.toISOString()),
     supabase
       .from("payments")
       .select("amount")
+      .eq("club_id", clubId)
       .eq("status", "paid")
       .gte("paid_at", prevMonthStart.toISOString())
       .lt("paid_at", monthStart.toISOString()),

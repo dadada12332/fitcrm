@@ -1,15 +1,18 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { getVisitsKPI, getTodayVisits } from "@/lib/visits"
 import { VisitsQuickCheckin } from "@/components/app/VisitsQuickCheckin"
 import { VisitsTable } from "@/components/app/VisitsTable"
 import { UserCheck, Users, UserX, TrendingUp, Plus } from "lucide-react"
-
+import { redirect } from "next/navigation"
 
 export default async function VisitsPage() {
   const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) redirect("/onboarding")
   const [kpi, visits] = await Promise.all([
-    getVisitsKPI(supabase),
-    getTodayVisits(supabase),
+    getVisitsKPI(supabase, club.clubId),
+    getTodayVisits(supabase, club.clubId),
   ])
 
   return (

@@ -43,7 +43,7 @@ function startOf(d: Date, unit: "day" | "month") {
   return r
 }
 
-export async function getPaymentsKPI(supabase: SupabaseClient): Promise<PaymentsKPI> {
+export async function getPaymentsKPI(supabase: SupabaseClient, clubId: string): Promise<PaymentsKPI> {
   const now = new Date()
   const todayStart    = startOf(now, "day")
   const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1)
@@ -51,15 +51,15 @@ export async function getPaymentsKPI(supabase: SupabaseClient): Promise<Payments
   const prevMonthStart = new Date(monthStart); prevMonthStart.setMonth(prevMonthStart.getMonth() - 1)
 
   const [todayRes, yesterdayRes, monthRes, prevMonthRes, unpaidRes] = await Promise.all([
-    supabase.from("payments").select("amount").eq("status", "paid")
+    supabase.from("payments").select("amount").eq("club_id", clubId).eq("status", "paid")
       .gte("paid_at", todayStart.toISOString()),
-    supabase.from("payments").select("amount").eq("status", "paid")
+    supabase.from("payments").select("amount").eq("club_id", clubId).eq("status", "paid")
       .gte("paid_at", yesterdayStart.toISOString()).lt("paid_at", todayStart.toISOString()),
-    supabase.from("payments").select("amount").eq("status", "paid")
+    supabase.from("payments").select("amount").eq("club_id", clubId).eq("status", "paid")
       .gte("paid_at", monthStart.toISOString()),
-    supabase.from("payments").select("amount").eq("status", "paid")
+    supabase.from("payments").select("amount").eq("club_id", clubId).eq("status", "paid")
       .gte("paid_at", prevMonthStart.toISOString()).lt("paid_at", monthStart.toISOString()),
-    supabase.from("payments").select("client_id", { count: "exact", head: true })
+    supabase.from("payments").select("client_id", { count: "exact", head: true }).eq("club_id", clubId)
       .eq("status", "pending"),
   ])
 
@@ -91,6 +91,7 @@ export async function getPaymentsKPI(supabase: SupabaseClient): Promise<Payments
 
 export async function getPaymentsList(
   supabase: SupabaseClient,
+  clubId: string,
   limit = 200
 ): Promise<PaymentRow[]> {
   const { data } = await supabase
@@ -100,6 +101,7 @@ export async function getPaymentsList(
       clients(full_name, phone),
       subscriptions(memberships(name))
     `)
+    .eq("club_id", clubId)
     .order("created_at", { ascending: false })
     .limit(limit)
 

@@ -34,7 +34,7 @@ export type DashboardData = {
 }
 
 /** Single source of dashboard metrics — reused by the page and the Excel export route. */
-export async function getDashboardData(supabase: SupabaseClient): Promise<DashboardData> {
+export async function getDashboardData(supabase: SupabaseClient, clubId: string): Promise<DashboardData> {
   const now = new Date()
   const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
   const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1)
@@ -56,20 +56,20 @@ export async function getDashboardData(supabase: SupabaseClient): Promise<Dashbo
     visitsPrev7Res,
     newClientsRes,
   ] = await Promise.all([
-    supabase.from("payments").select("paid_at, amount").eq("status", "paid").gte("paid_at", prev60.toISOString()),
-    supabase.from("clients").select("id", { count: "exact", head: true }),
-    supabase.from("clients").select("id", { count: "exact", head: true }).lt("created_at", monthStart.toISOString()),
-    supabase.from("visits").select("id", { count: "exact", head: true }).gte("checked_in_at", todayStart.toISOString()),
-    supabase.from("visits").select("id", { count: "exact", head: true })
+    supabase.from("payments").select("paid_at, amount").eq("club_id", clubId).eq("status", "paid").gte("paid_at", prev60.toISOString()),
+    supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId),
+    supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId).lt("created_at", monthStart.toISOString()),
+    supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", clubId).gte("checked_in_at", todayStart.toISOString()),
+    supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", clubId)
       .gte("checked_in_at", yesterdayStart.toISOString()).lt("checked_in_at", todayStart.toISOString()),
-    supabase.from("subscriptions").select("id", { count: "exact", head: true })
+    supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId)
       .eq("status", "active").gte("expires_at", now.toISOString()).lte("expires_at", next7.toISOString()),
-    supabase.from("subscriptions").select("id", { count: "exact", head: true })
+    supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId)
       .eq("status", "expired").gte("expires_at", prev7.toISOString()).lte("expires_at", now.toISOString()),
-    supabase.from("visits").select("id", { count: "exact", head: true }).gte("checked_in_at", prev7.toISOString()),
-    supabase.from("visits").select("id", { count: "exact", head: true })
+    supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", clubId).gte("checked_in_at", prev7.toISOString()),
+    supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", clubId)
       .gte("checked_in_at", prev14.toISOString()).lt("checked_in_at", prev7.toISOString()),
-    supabase.from("clients").select("id, full_name, tags, created_at").order("created_at", { ascending: false }).limit(6),
+    supabase.from("clients").select("id, full_name, tags, created_at").eq("club_id", clubId).order("created_at", { ascending: false }).limit(6),
   ])
 
   const expiringCount = expiringRes.count ?? 0
@@ -154,6 +154,7 @@ export async function getDashboardData(supabase: SupabaseClient): Promise<Dashbo
     const { data: subs } = await supabase
       .from("subscriptions")
       .select("client_id, status, created_at, memberships(name)")
+      .eq("club_id", clubId)
       .in("client_id", ids)
       .order("created_at", { ascending: false })
     for (const s of subs ?? []) {

@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { ArrowLeft, Phone } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import { getClientProfile } from "@/lib/client-profile"
 import { getActiveMemberships } from "@/lib/memberships"
 import { ClientProfileCard } from "@/components/app/ClientProfileCard"
@@ -11,9 +12,11 @@ import { AddClientButton } from "@/components/app/AddClientButton"
 export default async function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) redirect("/onboarding")
   const [client, memberships] = await Promise.all([
-    getClientProfile(supabase, id),
-    getActiveMemberships(supabase),
+    getClientProfile(supabase, id, club.clubId),
+    getActiveMemberships(supabase, club.clubId),
   ])
 
   if (!client) notFound()
