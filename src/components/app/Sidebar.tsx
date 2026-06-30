@@ -258,7 +258,6 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
   const [clubOpen, setClubOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
   const [branches, setBranches] = useState<any[]>([])
-  const [branchesLoaded, setBranchesLoaded] = useState(false)
   const [, startTransition] = useTransition()
   const clubRef = useRef<HTMLDivElement>(null)
   const userRef = useRef<HTMLDivElement>(null)
@@ -274,11 +273,8 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
 
   const openClub = async () => {
     setClubOpen((v) => !v)
-    if (!branchesLoaded) {
-      const data = await getBranchesAction()
-      setBranches(data)
-      setBranchesLoaded(true)
-    }
+    const data = await getBranchesAction()
+    setBranches(data)
   }
 
   const switchBranch = (branchId: string) => {
