@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Sidebar } from "./Sidebar"
 import { TopBar } from "./TopBar"
 import type { SidebarStats } from "@/lib/sidebar"
+import type { RolePermissions } from "@/lib/permissions"
 
 type Props = {
   clubId: string
@@ -12,18 +13,18 @@ type Props = {
   plan: string
   email: string
   stats: SidebarStats
+  permissions: RolePermissions
+  role: string
   children: React.ReactNode
 }
 
-export function AppShell({ clubId, clubName, plan, email, stats, children }: Props) {
+export function AppShell({ clubId, clubName, plan, email, stats, permissions, role, children }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
 
-  // Close mobile drawer on navigation
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
-  // Close drawer on resize to desktop
   useEffect(() => {
     const fn = () => { if (window.innerWidth >= 1024) setMobileOpen(false) }
     window.addEventListener("resize", fn)
@@ -38,12 +39,11 @@ export function AppShell({ clubId, clubName, plan, email, stats, children }: Pro
     }
   }
 
-  const sidebarProps = { clubId, clubName, plan, stats }
+  const sidebarProps = { clubId, clubName, plan, stats, permissions, role }
 
   return (
     <div className="flex h-screen overflow-hidden gap-2 bg-white dark:bg-zinc-950">
 
-      {/* Mobile overlay drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
@@ -60,7 +60,6 @@ export function AppShell({ clubId, clubName, plan, email, stats, children }: Pro
         </div>
       )}
 
-      {/* Desktop sidebar */}
       <div
         className="hidden lg:flex flex-shrink-0 transition-all duration-200"
         style={{ width: collapsed ? 72 : 300, padding: "8px 0 8px 8px" }}
@@ -68,7 +67,6 @@ export function AppShell({ clubId, clubName, plan, email, stats, children }: Pro
         <Sidebar {...sidebarProps} collapsed={collapsed} />
       </div>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopBar
           email={email}

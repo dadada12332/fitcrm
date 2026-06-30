@@ -4,18 +4,19 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Building2, GitFork, Users, Wallet,
-  Bell, Plug, Shield, Crown,
+  Bell, Plug, Shield, Crown, ShieldCheck,
 } from "lucide-react"
 
 const TABS = [
-  { href: "/settings/club",          label: "Основное",     icon: Building2 },
-  { href: "/settings/branches",      label: "Филиалы",      icon: GitFork   },
-  { href: "/settings/staff",         label: "Сотрудники",   icon: Users     },
-  { href: "/settings/finance",       label: "Финансы",      icon: Wallet    },
-  { href: "/settings/notifications", label: "Уведомления",  icon: Bell      },
-  { href: "/settings/integrations",  label: "Интеграции",   icon: Plug      },
-  { href: "/settings/security",      label: "Безопасность", icon: Shield    },
-  { href: "/settings/subscription",  label: "Подписка",     icon: Crown     },
+  { href: "/settings/club",          label: "Основное",       icon: Building2   },
+  { href: "/settings/branches",      label: "Филиалы",        icon: GitFork     },
+  { href: "/settings/staff",         label: "Сотрудники",     icon: Users       },
+  { href: "/settings/finance",       label: "Финансы",        icon: Wallet      },
+  { href: "/settings/notifications", label: "Уведомления",    icon: Bell        },
+  { href: "/settings/integrations",  label: "Интеграции",     icon: Plug        },
+  { href: "/settings/roles",         label: "Роли и права",   icon: ShieldCheck },
+  { href: "/settings/security",      label: "Безопасность",   icon: Shield      },
+  { href: "/settings/subscription",  label: "Подписка",       icon: Crown       },
 ]
 
 export function SettingsTabs() {
@@ -23,14 +24,14 @@ export function SettingsTabs() {
 
   return (
     <div style={{ borderBottom: "1px solid var(--border)" }}>
-      <nav className="flex items-end" style={{ gap: 0 }}>
+      <nav className="flex items-end overflow-x-auto" style={{ gap: 0, scrollbarWidth: "none" }}>
         {TABS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-2 relative transition-colors"
+              className="flex items-center gap-2 relative transition-colors flex-shrink-0"
               style={{
                 height: 44,
                 paddingLeft: 14,

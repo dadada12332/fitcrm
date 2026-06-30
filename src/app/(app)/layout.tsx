@@ -12,7 +12,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const club = await getCurrentClub(user.id)
   if (!club) redirect("/onboarding")
 
-  // Fetch club's trial_expires_at for days-left calculation
   const { data: clubRow } = await supabase
     .from("clubs")
     .select("trial_expires_at")
@@ -28,6 +27,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       plan={club.plan}
       email={user.email ?? ""}
       stats={stats}
+      permissions={club.permissions}
+      role={club.role}
     >
       {children}
     </AppShell>

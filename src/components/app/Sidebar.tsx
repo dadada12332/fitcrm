@@ -13,6 +13,7 @@ import {
 import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
 import { signOut } from "@/app/(auth)/actions"
 import type { SidebarStats } from "@/lib/sidebar"
+import type { RolePermissions } from "@/lib/permissions"
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный",
@@ -250,10 +251,12 @@ type Props = {
   clubName: string
   plan: string
   stats: SidebarStats
+  permissions: RolePermissions
+  role: string
   collapsed?: boolean
 }
 
-export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Props) {
+export function Sidebar({ clubId, clubName, plan, stats, permissions, role, collapsed = false }: Props) {
   const router = useRouter()
   const [clubOpen, setClubOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
@@ -261,6 +264,9 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
   const [, startTransition] = useTransition()
   const clubRef = useRef<HTMLDivElement>(null)
   const userRef = useRef<HTMLDivElement>(null)
+
+  const isOwner = role === "owner"
+  const p = permissions
 
   useEffect(() => {
     const fn = (e: MouseEvent) => {
@@ -347,12 +353,14 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
                 ))}
               </div>
             )}
-            <div className="py-1">
-              <Link href="/settings/branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
-                <GitFork className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                Добавить клуб
-              </Link>
-            </div>
+            {isOwner && (
+              <div className="py-1">
+                <Link href="/settings/branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
+                  <GitFork className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                  Добавить клуб
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -368,29 +376,55 @@ export function Sidebar({ clubId, clubName, plan, stats, collapsed = false }: Pr
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2">
         <div className="flex flex-col gap-0.5">
           <NavItem href="/dashboard"   icon={LayoutDashboard} label="Дашборд"    collapsed={collapsed} />
-          <NavItem href="/clients"     icon={Users}      label="Клиенты"    collapsed={collapsed} badge={stats.clientCount > 0 ? stats.clientCount : undefined}            badgeType="count" />
-          <NavItem href="/memberships" icon={CreditCard} label="Абонементы" collapsed={collapsed} badge={stats.activeMembershipCount > 0 ? stats.activeMembershipCount : undefined}  badgeType="count" />
+          {p.clients.view && (
+            <NavItem href="/clients" icon={Users} label="Клиенты" collapsed={collapsed} badge={stats.clientCount > 0 ? stats.clientCount : undefined} badgeType="count" />
+          )}
+          {p.memberships.view && (
+            <NavItem href="/memberships" icon={CreditCard} label="Абонементы" collapsed={collapsed} badge={stats.activeMembershipCount > 0 ? stats.activeMembershipCount : undefined} badgeType="count" />
+          )}
         </div>
 
-        <Divider />
+        {(p.visits.view || p.schedule.view || p.payments.view || p.warehouse.view) && (
+          <>
+            <Divider />
+            {!collapsed && <SectionLabel label="Операции" />}
+            <div className="flex flex-col gap-0.5">
+              {p.visits.view && (
+                <NavItem href="/visits" icon={Activity} label="Посещения" collapsed={collapsed} badge={stats.todayVisits > 0 ? "LIVE" : undefined} badgeType="live" />
+              )}
+              {p.schedule.view && (
+                <NavItem href="/schedule" icon={Calendar} label="Расписание" collapsed={collapsed} />
+              )}
+              {p.payments.view && (
+                <NavItem href="/payments" icon={Wallet} label="Оплаты" collapsed={collapsed} />
+              )}
+              {p.warehouse.view && (
+                <NavItem href="/warehouse" icon={Package} label="Склад" collapsed={collapsed} badge={stats.lowStockCount > 0 ? stats.lowStockCount : undefined} badgeType="warn" />
+              )}
+            </div>
+          </>
+        )}
 
-        {!collapsed && <SectionLabel label="Операции" />}
-        <div className="flex flex-col gap-0.5">
-          <NavItem href="/visits"    icon={Activity} label="Посещения"  collapsed={collapsed} badge={stats.todayVisits > 0 ? "LIVE" : undefined}                    badgeType="live" />
-          <NavItem href="/schedule"  icon={Calendar} label="Расписание" collapsed={collapsed} />
-          <NavItem href="/payments"  icon={Wallet}   label="Оплаты"     collapsed={collapsed} />
-          <NavItem href="/warehouse" icon={Package}  label="Склад"      collapsed={collapsed} badge={stats.lowStockCount > 0 ? stats.lowStockCount : undefined} badgeType="warn" />
-        </div>
-
-        <Divider />
-
-        {!collapsed && <SectionLabel label="Управление" />}
-        <div className="flex flex-col gap-0.5">
-          <NavItem href="/staff"                icon={UserCog}   label="Сотрудники"  collapsed={collapsed} />
-          <NavItem href="/reports"              icon={BarChart2} label="Отчёты"      collapsed={collapsed} />
-          <NavItem href="/integrations"          icon={Plug}     label="Интеграции"  collapsed={collapsed} />
-          <AINavItem collapsed={collapsed} />
-        </div>
+        {(p.staff.view || p.reports.view || p.settings.integrations || p.ai.use) && (
+          <>
+            <Divider />
+            {!collapsed && <SectionLabel label="Управление" />}
+            <div className="flex flex-col gap-0.5">
+              {p.staff.view && (
+                <NavItem href="/staff" icon={UserCog} label="Сотрудники" collapsed={collapsed} />
+              )}
+              {p.reports.view && (
+                <NavItem href="/reports" icon={BarChart2} label="Отчёты" collapsed={collapsed} />
+              )}
+              {p.settings.integrations && (
+                <NavItem href="/integrations" icon={Plug} label="Интеграции" collapsed={collapsed} />
+              )}
+              {p.ai.use && (
+                <AINavItem collapsed={collapsed} />
+              )}
+            </div>
+          </>
+        )}
       </nav>
 
       <Divider />
