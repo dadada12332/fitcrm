@@ -61,7 +61,7 @@ export function Hero() {
           style={{ perspective: 1600 }}
         >
           <div className="v3-card rounded-2xl p-1.5" style={{ boxShadow: "0 50px 120px -40px rgba(124,58,237,0.5)" }}>
-            <div className="h-[440px] md:h-[520px]">
+            <div className="h-[560px] md:h-[640px]">
               <MockDashboard />
             </div>
           </div>
