@@ -1,111 +1,95 @@
 import Link from "next/link"
-import { Zap, ArrowRight } from "lucide-react"
+import { Zap, Send, Mail, Globe } from "lucide-react"
 
-const productLinks = [
-  { label: "Возможности", href: "#features" },
-  { label: "Тарифы", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Скачать", href: "#download" },
+const columns = [
+  {
+    title: "Продукт",
+    links: [
+      { label: "Клиенты и абонементы", href: "#features" },
+      { label: "Оплаты", href: "#capabilities" },
+      { label: "Расписание", href: "#features" },
+      { label: "Telegram-бот", href: "#capabilities" },
+    ],
+  },
+  {
+    title: "Возможности",
+    links: [
+      { label: "QR-чекин", href: "#capabilities" },
+      { label: "Аналитика", href: "#capabilities" },
+      { label: "Интеграции", href: "#features" },
+      { label: "Безопасность", href: "#capabilities" },
+    ],
+  },
+  {
+    title: "Применение",
+    links: [
+      { label: "Удержание", href: "#usecases" },
+      { label: "Оплаты", href: "#usecases" },
+      { label: "Ресепшн", href: "#usecases" },
+      { label: "Аналитика", href: "#usecases" },
+    ],
+  },
+  {
+    title: "Компания",
+    links: [
+      { label: "О нас", href: "/about" },
+      { label: "Контакты", href: "/contact" },
+      { label: "Тарифы", href: "#pricing" },
+      { label: "Конфиденциальность", href: "/privacy" },
+    ],
+  },
 ]
 
-const companyLinks = [
-  { label: "О нас", href: "/about" },
-  { label: "Блог", href: "/blog" },
-  { label: "Контакты", href: "/contact" },
-  { label: "Конфиденциальность", href: "/privacy" },
-]
-
-const socialLinks = [
-  { label: "Telegram", href: "https://t.me/fitcrm_uz" },
-  { label: "Instagram", href: "#" },
-  { label: "info@fitcrm.uz", href: "mailto:info@fitcrm.uz" },
+const socials = [
+  { icon: Send, href: "https://t.me/fitcrm_uz" },
+  { icon: Mail, href: "mailto:info@fitcrm.uz" },
+  { icon: Globe, href: "#" },
 ]
 
 export function Footer() {
   return (
-    <footer className="px-4 pb-10 pt-16" style={{ background: "var(--bg)" }}>
-      <div
-        className="max-w-[1500px] mx-auto rounded-3xl p-10 md:p-14"
-        style={{ background: "var(--card)", border: "1px solid var(--border)" }}
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr_1fr_1.5fr] gap-12 mb-14">
+    <footer className="px-4 pb-12 pt-20" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="max-w-[1200px] mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] gap-10">
           {/* Brand */}
-          <div>
+          <div className="col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <span className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: "var(--orange)" }}>
+              <span className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "var(--accent-strong)" }}>
                 <Zap className="w-4 h-4 text-white" fill="white" />
               </span>
-              <span className="text-lg text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase" }}>
-                FitCRM
-              </span>
+              <span className="text-lg font-semibold text-white">FitCRM</span>
             </div>
-            <p className="text-sm leading-relaxed max-w-xs" style={{ color: "var(--on-dark-soft)" }}>
-              CRM-система для фитнес-клубов Узбекистана. Управляйте бизнесом умнее.
+            <p className="text-sm text-white/50 leading-relaxed max-w-xs">
+              CRM-система для фитнес-клубов Узбекистана. Управляйте клиентами, оплатами и расписанием умнее.
             </p>
+            <div className="flex items-center gap-3 mt-5">
+              {socials.map((s, i) => (
+                <Link key={i} href={s.href} className="w-9 h-9 rounded-lg flex items-center justify-center sol-chip text-white/60 hover:text-white transition-colors">
+                  <s.icon className="w-4 h-4" />
+                </Link>
+              ))}
+            </div>
           </div>
 
-          {/* Links */}
-          {[
-            { title: "Продукт", links: productLinks },
-            { title: "Компания", links: companyLinks },
-          ].map((col) => (
+          {/* Columns */}
+          {columns.map((col) => (
             <div key={col.title}>
-              <h4 className="text-sm mb-5 text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                {col.title}
-              </h4>
+              <h4 className="text-sm text-white/50 mb-4">{col.title}</h4>
               <ul className="flex flex-col gap-3">
-                {col.links.map((item) => (
-                  <li key={item.label}>
-                    <Link href={item.href} className="text-sm transition-colors hover:text-white" style={{ color: "var(--on-dark-soft)" }}>
-                      {item.label}
+                {col.links.map((l) => (
+                  <li key={l.label}>
+                    <Link href={l.href} className="text-sm text-white/75 hover:text-white transition-colors">
+                      {l.label}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
-
-          {/* Subscribe */}
-          <div>
-            <h4 className="text-sm mb-3 text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Подпишитесь на обновления
-            </h4>
-            <p className="text-sm mb-4" style={{ color: "var(--on-dark-soft)" }}>
-              Новости продукта и подборки фич.
-            </p>
-            <form className="flex items-center gap-2 p-1 rounded-full" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
-              <input
-                type="email"
-                placeholder="Ваш email"
-                className="flex-1 bg-transparent px-4 py-2 text-sm outline-none"
-                style={{ color: "var(--on-dark)" }}
-              />
-              <button
-                type="submit"
-                aria-label="Подписаться"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                style={{ background: "var(--orange)" }}
-              >
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
         </div>
 
-        <div
-          className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-          style={{ borderTop: "1px solid var(--border)" }}
-        >
-          <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
-            © 2026 FitCRM. Все права защищены. · Ташкент, Узбекистан
-          </p>
-          <div className="flex gap-5">
-            {socialLinks.map((s) => (
-              <Link key={s.label} href={s.href} className="text-xs transition-colors hover:text-white" style={{ color: "var(--on-dark-soft)" }}>
-                {s.label}
-              </Link>
-            ))}
-          </div>
+        <div className="mt-16 pt-6 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <p className="text-xs text-white/40">© 2026 FitCRM · Ташкент, Узбекистан</p>
         </div>
       </div>
     </footer>

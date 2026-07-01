@@ -196,83 +196,89 @@
   }
 }
 
-/* ── Landing: «Тёмный премиум» ──────────────────────────────────────
+/* ── Landing: концепт «Solaris» (тёмный, синий акцент) ──────────────
    Scoped под .landing-premium (marketing layout). В приложение не течёт. */
 .landing-premium {
-  --lp-bg: #08080b;
-  --lp-accent: #3b82f6;
-  --lp-accent-2: #8b5cf6;
-  background: var(--lp-bg);
+  --accent: #3b82f6;          /* синий текст-акцент */
+  --accent-strong: #2563eb;   /* синие кнопки / выделенная карта */
+  background: #060608;
   color: #fff;
   position: relative;
   overflow-x: clip;
 }
 
-/* Фиксированный слой градиент-свечений за контентом */
-.lp-glows {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.lp-glows::before,
-.lp-glows::after {
-  content: "";
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(130px);
-}
-.lp-glows::before {
-  width: 620px; height: 620px;
-  top: -160px; left: -140px;
-  background: radial-gradient(circle, rgba(59,130,246,0.50), transparent 70%);
-}
-.lp-glows::after {
-  width: 760px; height: 760px;
-  top: 22%; right: -260px;
-  background: radial-gradient(circle, rgba(139,92,246,0.42), transparent 70%);
-}
+/* Синий текст-акцент в заголовках */
+.text-accent { color: var(--accent); }
 
-/* Стеклянная карточка */
-.glass {
-  background: rgba(255,255,255,0.045);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
+/* Тонкая карточка Solaris */
+.sol-card {
+  background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 24px 48px -24px rgba(0,0,0,0.65);
+  border-radius: 16px;
 }
-.glass-hover { transition: border-color .3s ease, box-shadow .3s ease, transform .3s ease; }
-.glass-hover:hover {
-  border-color: rgba(99,102,241,0.45);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 30px 60px -22px rgba(99,102,241,0.40);
-}
-
-/* Неоновый градиент-текст */
-.text-gradient {
-  background: linear-gradient(100deg, #60a5fa, #a78bfa 55%, #f0abfc);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+.sol-hover { transition: border-color .3s ease, background .3s ease, transform .3s ease; }
+.sol-hover:hover {
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.035);
 }
 
-/* Неоновая кнопка */
-.btn-neon {
-  background: linear-gradient(100deg, #3b82f6, #8b5cf6);
-  box-shadow: 0 10px 34px -8px rgba(99,102,241,0.65);
-  transition: box-shadow .25s ease, transform .25s ease;
-}
-.btn-neon:hover {
-  box-shadow: 0 14px 44px -6px rgba(99,102,241,0.85);
-  transform: translateY(-1px);
+/* Иконочный чип */
+.sol-chip {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
-/* Локальный blur-блоб для акцентов секций */
+/* Кнопки */
+.btn-primary {
+  background: var(--accent-strong);
+  color: #fff;
+  transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+  box-shadow: 0 8px 30px -10px rgba(37,99,235,0.7);
+}
+.btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+.btn-secondary {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  transition: background .2s ease, border-color .2s ease;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); }
+
+/* Пилюля навбара */
+.nav-pill {
+  background: rgba(16,16,20,0.72);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* Верхний спотлайт Hero */
+.hero-spotlight {
+  position: absolute;
+  top: -160px; left: 50%;
+  transform: translateX(-50%);
+  width: 1100px; height: 640px;
+  background: radial-gradient(ellipse at top, rgba(59,130,246,0.28), rgba(59,130,246,0.06) 40%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Локальный blur-блоб */
 .glow-blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(90px);
+  filter: blur(100px);
   pointer-events: none;
   z-index: 0;
+}
+
+/* Фоновая сетка (секция отзывов) */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 76px 76px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, #000 30%, transparent 75%);
 }
