@@ -253,29 +253,18 @@
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 
-/* Верхний спотлайт Hero — луч света сверху */
+/* Верхний спотлайт Hero — широкое мягкое синее свечение сверху */
 .hero-spotlight {
   position: absolute;
-  top: -260px; left: 50%;
+  top: -140px; left: 50%;
   transform: translateX(-50%);
-  width: 1500px; height: 900px;
-  max-width: 140vw;
+  width: 1600px; height: 900px;
+  max-width: 150vw;
   background:
-    radial-gradient(ellipse 42% 50% at 50% 0%, rgba(147,180,255,0.30), transparent 60%),
-    radial-gradient(ellipse 60% 60% at 50% 0%, rgba(59,130,246,0.32), rgba(59,130,246,0.08) 45%, transparent 72%);
+    radial-gradient(ellipse 30% 26% at 50% 16%, rgba(147,180,255,0.20), transparent 60%),
+    radial-gradient(ellipse 50% 44% at 50% 18%, rgba(59,130,246,0.26), rgba(37,99,235,0.09) 46%, transparent 74%);
   pointer-events: none;
   z-index: 0;
-}
-/* Мягкий конический луч поверх */
-.hero-spotlight::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 620px; height: 720px;
-  background: linear-gradient(180deg, rgba(180,205,255,0.22), transparent 65%);
-  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
-  filter: blur(40px);
 }
 
 /* Локальный blur-блоб */

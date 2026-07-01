@@ -46,8 +46,8 @@ export function Hero() {
           variants={fadeUp}
           initial="hidden"
           animate="show"
-          className="mt-7 text-center mx-auto max-w-4xl font-semibold text-white"
-          style={{ fontSize: "clamp(38px, 5.6vw, 72px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}
+          className="mt-6 text-center mx-auto max-w-3xl font-semibold text-white"
+          style={{ fontSize: "clamp(34px, 4.4vw, 60px)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
         >
           Ваша <span className="text-accent">CRM для фитнеса,</span>
           <br />готовая к работе.
@@ -59,8 +59,8 @@ export function Hero() {
           variants={fadeUp}
           initial="hidden"
           animate="show"
-          className="mt-5 text-center mx-auto max-w-2xl text-white/55 leading-relaxed"
-          style={{ fontSize: "clamp(15px, 1.5vw, 18px)" }}
+          className="mt-5 text-center mx-auto max-w-xl text-white/55 leading-relaxed"
+          style={{ fontSize: "clamp(15px, 1.4vw, 17px)" }}
         >
           Хватит вести клуб в тетрадях и Excel. FitCRM объединяет клиентов, абонементы,
           оплаты, расписание и Telegram-бота — в одной системе, которая растёт вместе с вами.
@@ -72,7 +72,7 @@ export function Hero() {
           variants={fadeUp}
           initial="hidden"
           animate="show"
-          className="mt-8 flex flex-wrap items-center justify-center gap-3"
+          className="mt-7 flex flex-wrap items-center justify-center gap-3"
         >
           <Link href="/register" className="btn-primary inline-flex items-center h-11 px-6 rounded-full text-sm font-medium">
             Начать бесплатно
@@ -83,23 +83,19 @@ export function Hero() {
         </motion.div>
 
         {/* Dashboard mockup — крупный, «выезжает из-за экрана» */}
-        <div ref={dashRef} className="mt-12 md:mt-16" style={{ perspective: 2200 }}>
+        <div ref={dashRef} className="mt-10" style={{ perspective: 2200 }}>
           <motion.div
-            initial={{ opacity: 0, y: 70, scale: 0.97 }}
+            initial={{ opacity: 0, y: 60, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 1, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="mx-auto max-w-[1360px]"
-            style={{
-              WebkitMaskImage: "linear-gradient(180deg, #000 80%, transparent 100%)",
-              maskImage: "linear-gradient(180deg, #000 80%, transparent 100%)",
-            }}
+            className="mx-auto max-w-[1440px]"
           >
             <motion.div style={{ rotateX, transformOrigin: "center 12%" }}>
               <div
                 className="rounded-2xl p-1.5"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 60px 160px -40px rgba(37,99,235,0.45)" }}
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 60px 180px -40px rgba(37,99,235,0.45)" }}
               >
-                <div className="h-[620px] md:h-[780px]">
+                <div className="h-[640px] md:h-[820px]">
                   <MockDashboard />
                 </div>
               </div>
