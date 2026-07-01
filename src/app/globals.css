@@ -256,13 +256,14 @@
 /* Верхний спотлайт Hero — широкое мягкое синее свечение сверху */
 .hero-spotlight {
   position: absolute;
-  top: -140px; left: 50%;
+  top: -160px; left: 50%;
   transform: translateX(-50%);
-  width: 1600px; height: 900px;
-  max-width: 150vw;
+  width: 1750px; height: 1020px;
+  max-width: 155vw;
   background:
-    radial-gradient(ellipse 30% 26% at 50% 16%, rgba(147,180,255,0.20), transparent 60%),
-    radial-gradient(ellipse 50% 44% at 50% 18%, rgba(59,130,246,0.26), rgba(37,99,235,0.09) 46%, transparent 74%);
+    radial-gradient(ellipse 26% 20% at 50% 14%, rgba(170,198,255,0.28), transparent 60%),
+    radial-gradient(ellipse 55% 50% at 50% 16%, rgba(59,130,246,0.32), rgba(37,99,235,0.11) 45%, transparent 72%),
+    radial-gradient(ellipse 82% 62% at 50% 6%, rgba(37,99,235,0.12), transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
