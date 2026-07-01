@@ -318,3 +318,53 @@ html.lenis, html.lenis body { height: auto; }
   html { scroll-behavior: auto; }
   .marquee-track { animation: none; }
 }
+
+/* ── Landing v2 (концепт «Reframe» — светлый premium agency) ───────── */
+.landing-v2 {
+  --v2-accent: #2563eb;
+  background: #f4f4f5;
+  color: #0a0a0a;
+  position: relative;
+  overflow-x: clip;
+}
+.v2-navbar {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+}
+.v2-btn-primary {
+  background: #2563eb; color: #fff;
+  transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+  box-shadow: 0 6px 20px -6px rgba(37,99,235,0.5);
+}
+.v2-btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+.v2-btn-secondary {
+  background: #fff; color: #0a0a0a; border: 1px solid rgba(0,0,0,0.10);
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.v2-btn-secondary:hover { background: #fafafa; border-color: rgba(0,0,0,0.18); transform: translateY(-1px); }
+.v2-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: box-shadow .3s ease, transform .3s ease, border-color .3s ease;
+}
+.v2-card-hover:hover {
+  box-shadow: 0 24px 60px -24px rgba(0,0,0,0.22);
+  border-color: rgba(0,0,0,0.12);
+}
+.v2-chip {
+  background: #fff; border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.v2-muted { color: rgba(10,10,10,0.55); }
+/* мягкое затухание по краям горизонтальной ленты */
+.v2-fade-x {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
