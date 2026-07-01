@@ -32,7 +32,7 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public paths — everything else requires auth
-  const publicPaths = ["/", "/login", "/register", "/auth", "/api/auth", "/api/telegram"]
+  const publicPaths = ["/", "/v2", "/v3", "/login", "/register", "/auth", "/api/auth", "/api/telegram"]
   const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith(p + "/"))
     || pathname.startsWith("/_next")
     || /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/.test(pathname)
