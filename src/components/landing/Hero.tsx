@@ -20,11 +20,9 @@ export function Hero() {
   const dashRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: dashRef,
-    offset: ["start end", "start 0.3"],
+    offset: ["start 0.85", "start 0.15"],
   })
-  const rotateX = useTransform(scrollYProgress, [0, 1], [24, 0])
-  const scale = useTransform(scrollYProgress, [0, 1], [0.92, 1])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [0.5, 1])
+  const rotateX = useTransform(scrollYProgress, [0, 1], [18, 0])
 
   return (
     <section className="relative pt-36 pb-16 px-4 overflow-hidden">
@@ -84,20 +82,28 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Dashboard mockup — 3D tilt-to-flat on scroll */}
-        <div ref={dashRef} className="mt-14" style={{ perspective: 1600 }}>
+        {/* Dashboard mockup — крупный, «выезжает из-за экрана» */}
+        <div ref={dashRef} className="mt-12 md:mt-16" style={{ perspective: 2200 }}>
           <motion.div
-            style={{ rotateX, scale, opacity, transformOrigin: "center top" }}
-            className="rounded-2xl p-1.5"
+            initial={{ opacity: 0, y: 70, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 1, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="mx-auto max-w-[1360px]"
+            style={{
+              WebkitMaskImage: "linear-gradient(180deg, #000 80%, transparent 100%)",
+              maskImage: "linear-gradient(180deg, #000 80%, transparent 100%)",
+            }}
           >
-            <div
-              className="rounded-2xl p-1.5"
-              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 40px 120px -30px rgba(37,99,235,0.35)" }}
-            >
-              <div className="h-[560px] sm:h-[600px]">
-                <MockDashboard />
+            <motion.div style={{ rotateX, transformOrigin: "center 12%" }}>
+              <div
+                className="rounded-2xl p-1.5"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 60px 160px -40px rgba(37,99,235,0.45)" }}
+              >
+                <div className="h-[620px] md:h-[780px]">
+                  <MockDashboard />
+                </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
