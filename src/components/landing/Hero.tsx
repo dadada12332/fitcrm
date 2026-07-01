@@ -45,33 +45,35 @@ function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
 
 export function Hero() {
   return (
-    <section className="pt-28 pb-12 px-4" style={{ background: "var(--bg)" }}>
+    <section className="pt-28 pb-12 px-4">
       <div className="max-w-[1500px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 auto-rows-[minmax(0,auto)]">
-        {/* Big cream hero card */}
+        {/* Big hero card — glass */}
         <motion.div
           custom={0}
           variants={fadeUp}
           initial="hidden"
           animate="show"
           whileHover={hoverLift}
-          className="relative overflow-hidden lg:col-span-2 rounded-3xl p-8 md:p-12 flex flex-col justify-between min-h-[420px]"
-          style={{ background: "#ffffff", color: "#0a0a0a" }}
+          className="glass glass-hover relative overflow-hidden lg:col-span-2 rounded-3xl p-8 md:p-12 flex flex-col justify-between min-h-[420px]"
         >
+          {/* inner glow */}
+          <div className="glow-blob" style={{ width: 380, height: 380, top: -120, right: -80, background: "radial-gradient(circle, rgba(139,92,246,0.35), transparent 70%)" }} />
+
           <div className="relative z-10">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-8"
-              style={{ background: "rgba(10,10,10,0.06)", color: "#0a0a0a", fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "var(--orange)" }} />
+            <span className="glass inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-8"
+              style={{ color: "rgba(255,255,255,0.85)", fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <Sparkles className="w-3.5 h-3.5 text-gradient" />
               Множество решений
             </span>
             <h1
-              className="leading-[1.04] mb-5"
-              style={{ fontSize: "clamp(40px, 6vw, 76px)", color: "#0a0a0a" }}
+              className="leading-[1.04] mb-5 text-white"
+              style={{ fontSize: "clamp(40px, 6vw, 76px)" }}
             >
               Управляй клубом
               <br />
-              <span style={{ color: "var(--orange)" }}>проще</span> и быстрее
+              <span className="text-gradient">проще</span> и быстрее
             </h1>
-            <p className="max-w-md text-base md:text-lg leading-relaxed" style={{ color: "rgba(10,10,10,0.6)" }}>
+            <p className="max-w-md text-base md:text-lg leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
               Клиенты, абонементы, QR-чекин, расписание и Telegram-бот —
               всё в одной системе для вашего фитнес-клуба.
             </p>
@@ -80,8 +82,8 @@ export function Hero() {
           <div className="relative z-10 flex flex-wrap items-center gap-4 mt-8">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 h-12 px-7 rounded-full text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
-              style={{ background: "#0a0a0a", fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.03em" }}
+              className="btn-neon inline-flex items-center gap-2 h-12 px-7 rounded-full text-sm font-semibold text-white"
+              style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", letterSpacing: "0.03em" }}
             >
               Начать с FitCRM
               <ArrowUpRight className="w-4 h-4" />
@@ -89,63 +91,67 @@ export function Hero() {
           </div>
         </motion.div>
 
-        {/* Dark mockup card */}
+        {/* Dark mockup card — glass with glow */}
         <motion.div
           custom={1}
           variants={fadeUp}
           initial="hidden"
           animate="show"
           whileHover={hoverLift}
-          className="rounded-3xl p-4 min-h-[420px]"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+          className="glass glass-hover relative overflow-hidden rounded-3xl p-4 min-h-[420px]"
         >
-          <MockDashboard />
+          <div className="glow-blob" style={{ width: 320, height: 320, bottom: -100, left: -60, background: "radial-gradient(circle, rgba(59,130,246,0.30), transparent 70%)" }} />
+          <div className="relative z-10 h-full">
+            <MockDashboard />
+          </div>
         </motion.div>
 
-        {/* Blue accent card */}
+        {/* Gradient accent card */}
         <motion.div
           custom={2}
           variants={fadeUp}
           initial="hidden"
           animate="show"
           whileHover={hoverLift}
-          className="rounded-3xl p-7 flex flex-col justify-between min-h-[200px] relative overflow-hidden"
-          style={{ background: "var(--orange)", color: "#fff" }}
+          className="rounded-3xl p-7 flex flex-col justify-between min-h-[200px] relative overflow-hidden text-white"
+          style={{
+            background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+            boxShadow: "0 30px 60px -24px rgba(99,102,241,0.5)",
+          }}
         >
           <div
             className="absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none"
-            style={{ background: "rgba(255,255,255,0.12)" }}
+            style={{ background: "rgba(255,255,255,0.14)" }}
           />
           <div className="flex items-center gap-3 relative z-10">
             <div className="flex -space-x-2">
               {["#fbbf24", "#f472b6", "#34d399"].map((c) => (
-                <div key={c} className="w-8 h-8 rounded-full border-2" style={{ background: c, borderColor: "var(--orange)" }} />
+                <div key={c} className="w-8 h-8 rounded-full border-2" style={{ background: c, borderColor: "rgba(255,255,255,0.9)" }} />
               ))}
             </div>
-            <span className="text-xs font-medium opacity-80 uppercase tracking-wider" style={{ fontFamily: "var(--font-display)" }}>
+            <span className="text-xs font-medium opacity-90 uppercase tracking-wider" style={{ fontFamily: "var(--font-display)" }}>
               Свежие обновления
             </span>
           </div>
-          <h3 className="relative z-10 leading-tight" style={{ fontSize: "clamp(22px, 2.5vw, 30px)", color: "#fff" }}>
+          <h3 className="relative z-10 leading-tight text-white" style={{ fontSize: "clamp(22px, 2.5vw, 30px)" }}>
             Расширенные<br />возможности доступны
           </h3>
         </motion.div>
 
-        {/* Stats card */}
+        {/* Stats card — glass */}
         <motion.div
           custom={3}
           variants={fadeUp}
           initial="hidden"
           animate="show"
           whileHover={hoverLift}
-          className="lg:col-span-2 rounded-3xl p-7 md:p-8 flex flex-col sm:flex-row gap-8 items-center min-h-[200px]"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+          className="glass glass-hover lg:col-span-2 rounded-3xl p-7 md:p-8 flex flex-col sm:flex-row gap-8 items-center min-h-[200px]"
         >
           <div className="flex-shrink-0 text-center sm:text-left">
-            <div className="leading-none" style={{ fontSize: "clamp(52px, 7vw, 84px)", color: "var(--on-dark)", fontFamily: "var(--font-display)" }}>
+            <div className="leading-none text-gradient" style={{ fontSize: "clamp(52px, 7vw, 84px)", fontFamily: "var(--font-display)" }}>
               <CountUp to={89} suffix="%" />
             </div>
-            <p className="text-sm mt-2 max-w-[180px]" style={{ color: "var(--on-dark-soft)" }}>
+            <p className="text-sm mt-2 max-w-[180px]" style={{ color: "rgba(255,255,255,0.6)" }}>
               клубов повысили эффективность с FitCRM
             </p>
           </div>
@@ -154,7 +160,7 @@ export function Hero() {
               <span
                 key={t}
                 className="px-4 py-2 rounded-full text-xs font-medium"
-                style={{ background: "var(--card-2)", color: "var(--on-dark-soft)", border: "1px solid var(--border)" }}
+                style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.10)" }}
               >
                 {t}
               </span>
