@@ -35,10 +35,10 @@ export function UseCases() {
     <section id="usecases" className="py-24 px-4">
       <div className="max-w-[1200px] mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-12"
         >
           <h2 className="font-semibold text-white mx-auto max-w-3xl" style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}>
@@ -53,10 +53,11 @@ export function UseCases() {
           {cases.map((c, i) => (
             <motion.div
               key={c.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.45, delay: (i % 2) * 0.08 }}
+              transition={{ duration: 0.6, delay: (i % 2) * 0.1, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 22 } }}
               className="sol-card sol-hover p-7 md:p-8 min-h-[220px] flex flex-col"
             >
               <span className="self-start text-xs px-2.5 py-1 rounded-full mb-4"

@@ -7,10 +7,11 @@ import { Check, ArrowRight } from "lucide-react"
 function Card({ children, i }: { children: React.ReactNode; i: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, delay: i * 0.08 }}
+      transition={{ duration: 0.65, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 22 } }}
       className="sol-card sol-hover relative overflow-hidden p-7 md:p-8 min-h-[280px] flex flex-col"
     >
       {children}
@@ -102,10 +103,10 @@ export function Features() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
           <div>
             <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
               className="font-semibold text-white"
               style={{ fontSize: "clamp(30px, 4vw, 52px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}
             >

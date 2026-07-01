@@ -1,20 +1,31 @@
 "use client"
 
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { useRef } from "react"
+import { motion, useScroll, useTransform } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import { MockDashboard } from "./MockDashboard"
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 24, filter: "blur(10px)" },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] as const },
+    filter: "blur(0px)",
+    transition: { duration: 0.75, delay: 0.05 + i * 0.12, ease: [0.16, 1, 0.3, 1] as const },
   }),
 }
 
 export function Hero() {
+  const dashRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: dashRef,
+    offset: ["start end", "start 0.3"],
+  })
+  const rotateX = useTransform(scrollYProgress, [0, 1], [24, 0])
+  const scale = useTransform(scrollYProgress, [0, 1], [0.92, 1])
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [0.5, 1])
+
   return (
     <section className="relative pt-36 pb-16 px-4 overflow-hidden">
       <div className="hero-spotlight" />
@@ -22,7 +33,7 @@ export function Hero() {
       <div className="relative z-10 max-w-[1200px] mx-auto">
         {/* Badge */}
         <motion.div custom={0} variants={fadeUp} initial="hidden" animate="show" className="flex justify-center">
-          <Link href="#capabilities" className="inline-flex items-center gap-2 h-8 pl-1.5 pr-3 rounded-full text-xs sol-chip">
+          <Link href="#capabilities" className="inline-flex items-center gap-2 h-8 pl-1.5 pr-3 rounded-full text-xs sol-chip transition-transform hover:scale-[1.03]">
             <span className="px-2 py-0.5 rounded-full text-white text-[11px] font-medium" style={{ background: "var(--accent-strong)" }}>
               Новое
             </span>
@@ -73,18 +84,22 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Dashboard mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-14 rounded-2xl p-1.5"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 40px 120px -30px rgba(37,99,235,0.35)" }}
-        >
-          <div className="h-[560px] sm:h-[600px]">
-            <MockDashboard />
-          </div>
-        </motion.div>
+        {/* Dashboard mockup — 3D tilt-to-flat on scroll */}
+        <div ref={dashRef} className="mt-14" style={{ perspective: 1600 }}>
+          <motion.div
+            style={{ rotateX, scale, opacity, transformOrigin: "center top" }}
+            className="rounded-2xl p-1.5"
+          >
+            <div
+              className="rounded-2xl p-1.5"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 40px 120px -30px rgba(37,99,235,0.35)" }}
+            >
+              <div className="h-[560px] sm:h-[600px]">
+                <MockDashboard />
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   )

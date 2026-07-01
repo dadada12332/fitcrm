@@ -7,10 +7,10 @@ export function CtaBand() {
   return (
     <section className="py-24 px-4">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className="max-w-3xl mx-auto text-center"
       >
         <h2 className="font-semibold text-white mx-auto" style={{ fontSize: "clamp(30px, 4.5vw, 56px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}>

@@ -58,10 +58,10 @@ export function Pricing() {
 
       <div className="relative z-10 max-w-[1100px] mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-10"
         >
           <h2 className="font-semibold text-white mx-auto max-w-2xl" style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}>
@@ -95,10 +95,11 @@ export function Pricing() {
             return (
               <motion.div
                 key={plan.name}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
+                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
+                transition={{ duration: 0.65, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 22 } }}
                 className={`relative rounded-2xl p-7 flex flex-col ${hl ? "" : "sol-card"}`}
                 style={hl ? { background: "var(--accent-strong)", boxShadow: "0 40px 90px -30px rgba(37,99,235,0.7)" } : undefined}
               >
