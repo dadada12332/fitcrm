@@ -368,3 +368,81 @@ html.lenis, html.lenis body { height: auto; }
 }
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ── Landing v3 (концепт Linear/Raycast — тёмный, aurora-градиент) ──── */
+.landing-v3 {
+  /* акцент для переиспользуемого MockDashboard (.btn-primary / var(--accent-strong)) */
+  --accent: #a5b4fc;
+  --accent-strong: #7c3aed;
+  background: #08070d;
+  color: #fff;
+  position: relative;
+  overflow-x: clip;
+}
+/* Живой aurora-градиент за hero */
+.v3-aurora {
+  position: absolute;
+  top: -320px; left: 50%;
+  transform: translateX(-50%);
+  width: 1500px; height: 1100px;
+  max-width: 150vw;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(90px);
+  opacity: 0.6;
+  background:
+    radial-gradient(closest-side at 30% 35%, rgba(139,92,246,0.55), transparent),
+    radial-gradient(closest-side at 68% 30%, rgba(37,99,235,0.50), transparent),
+    radial-gradient(closest-side at 50% 62%, rgba(236,72,153,0.38), transparent),
+    radial-gradient(closest-side at 78% 60%, rgba(34,211,238,0.34), transparent);
+  animation: v3-aurora-move 18s ease-in-out infinite alternate;
+}
+@keyframes v3-aurora-move {
+  0%   { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+  100% { transform: translateX(-50%) translateY(30px) rotate(8deg) scale(1.08); }
+}
+.v3-grid {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, #000 20%, transparent 70%);
+  mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, #000 20%, transparent 70%);
+}
+.v3-text-gradient {
+  background: linear-gradient(100deg, #c4b5fd, #93c5fd 45%, #67e8f9);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.v3-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color .3s ease, background .3s ease, box-shadow .3s ease;
+}
+.v3-card-hover:hover {
+  border-color: rgba(167,139,250,0.45);
+  background: rgba(255,255,255,0.045);
+  box-shadow: 0 30px 60px -28px rgba(139,92,246,0.45);
+}
+.v3-chip {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.v3-btn {
+  background: linear-gradient(100deg, #7c3aed, #2563eb);
+  color: #fff;
+  transition: box-shadow .25s ease, transform .25s ease;
+  box-shadow: 0 10px 34px -8px rgba(124,58,237,0.6);
+}
+.v3-btn:hover { box-shadow: 0 14px 44px -6px rgba(124,58,237,0.8); transform: translateY(-1px); }
+.v3-btn-ghost {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  transition: background .2s ease, border-color .2s ease;
+}
+.v3-btn-ghost:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); }
