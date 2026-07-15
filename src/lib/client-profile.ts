@@ -36,6 +36,13 @@ export type ClientProfile = {
   name: string
   phone: string | null
   telegram: string | null
+  email: string | null
+  birthDate: string | null
+  gender: string | null
+  source: string | null
+  trainer: string | null
+  balance: number
+  debt: number
   notes: string | null
   tags: string[]
   photoUrl: string | null
@@ -105,12 +112,25 @@ export async function getClientProfile(
   id: string,
   clubId: string,
 ): Promise<ClientProfile | null> {
-  const { data: client } = await supabase
+  // Try full select (incl. balance/debt/trainer); fall back if columns not migrated
+  const full = await supabase
     .from("clients")
-    .select("id, full_name, phone, telegram_id, photo_url, tags, notes, created_at")
+    .select("id, full_name, phone, telegram_id, photo_url, tags, notes, created_at, email, birth_date, gender, source, balance, debt, trainer_name")
     .eq("id", id)
     .eq("club_id", clubId)
     .maybeSingle()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let client: any = full.data
+  if (!client) {
+    const fb = await supabase
+      .from("clients")
+      .select("id, full_name, phone, telegram_id, photo_url, tags, notes, created_at, email, birth_date, gender, source")
+      .eq("id", id)
+      .eq("club_id", clubId)
+      .maybeSingle()
+    client = fb.data
+  }
 
   if (!client) return null
 
@@ -171,15 +191,24 @@ export async function getClientProfile(
     method: (v.method as VisitMethod) ?? "manual",
   }))
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c = client as any
   return {
-    id: client.id as string,
-    name: client.full_name as string,
-    phone: (client.phone as string | null) ?? null,
-    telegram: client.telegram_id ? `@${client.telegram_id}` : null,
-    notes: (client.notes as string | null) ?? null,
-    tags: (client.tags as string[] | null) ?? [],
-    photoUrl: (client.photo_url as string | null) ?? null,
-    createdAt: client.created_at as string,
+    id: c.id as string,
+    name: c.full_name as string,
+    phone: (c.phone as string | null) ?? null,
+    telegram: c.telegram_id ? `@${c.telegram_id}` : null,
+    email: (c.email as string | null) ?? null,
+    birthDate: (c.birth_date as string | null) ?? null,
+    gender: (c.gender as string | null) ?? null,
+    source: (c.source as string | null) ?? null,
+    trainer: (c.trainer_name as string | null) ?? null,
+    balance: c.balance != null ? Number(c.balance) : 0,
+    debt: c.debt != null ? Number(c.debt) : 0,
+    notes: (c.notes as string | null) ?? null,
+    tags: (c.tags as string[] | null) ?? [],
+    photoUrl: (c.photo_url as string | null) ?? null,
+    createdAt: c.created_at as string,
     status,
     subscription,
     payments,

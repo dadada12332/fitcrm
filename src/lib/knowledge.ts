@@ -941,6 +941,40 @@ export function searchKnowledge(q: string) {
   return results.slice(0, 12)
 }
 
+// ── RAG-ретривер: токенное скорение для support-AI ─────────────────────────
+const STOP = new Set(["как","что","где","при","для","это","мне","или","the","and","почему","нужно","можно","есть","не","на","в","с","по","и","а","у","о"])
+
+export type RetrievedArticle = {
+  id: string
+  title: string
+  categoryTitle: string
+  text: string          // плоский текст статьи (шаги + FAQ) для контекста модели
+}
+
+/** Возвращает наиболее релевантные статьи по вопросу пользователя (для RAG). */
+export function retrieveKnowledge(query: string, limit = 4): RetrievedArticle[] {
+  const tokens = query.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter((t) => t.length > 2 && !STOP.has(t))
+  if (!tokens.length) return []
+  const scored: { art: RetrievedArticle; score: number }[] = []
+  for (const cat of KB_CATEGORIES) {
+    for (const art of cat.articles) {
+      const hay = [art.title, ...art.tags, ...art.steps.map((s) => s.text), ...(art.faq?.flatMap((f) => [f.q, f.a]) ?? [])].join(" ").toLowerCase()
+      let score = 0
+      for (const t of tokens) {
+        if (art.title.toLowerCase().includes(t)) score += 3
+        else if (art.tags.some((tag) => tag.toLowerCase().includes(t))) score += 2
+        else if (hay.includes(t)) score += 1
+      }
+      if (score > 0) {
+        const steps = art.steps.map((s, i) => `${i + 1}. ${s.text}${s.tip ? ` (${s.tip})` : ""}`).join("\n")
+        const faq = (art.faq ?? []).map((f) => `В: ${f.q}\nО: ${f.a}`).join("\n")
+        scored.push({ art: { id: art.id, title: art.title, categoryTitle: cat.title, text: [steps, faq].filter(Boolean).join("\n") }, score })
+      }
+    }
+  }
+  return scored.sort((a, b) => b.score - a.score).slice(0, limit).map((s) => s.art)
+}
+
 export function getPopularArticles() {
   return KB_CATEGORIES
     .flatMap(cat => cat.articles.map(a => ({ ...a, categoryId: cat.id, categoryTitle: cat.title, categoryIcon: cat.icon })))

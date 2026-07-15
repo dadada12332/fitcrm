@@ -37,7 +37,7 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (debRef.current) clearTimeout(debRef.current)
-    if (query.trim().length < 2) { setResults([]); return }
+    if (query.trim().length < 1) { setResults([]); return }
     setLoading(true)
     debRef.current = setTimeout(async () => {
       const res = await globalSearchAction(query)
@@ -62,7 +62,7 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
   return (
     <div
       className="fixed inset-0 z-[200] flex flex-col items-center pt-[12vh] px-4"
-      style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(2px)" }}
+      style={{ background: "rgba(2,6,23,0.4)" }}
       onClick={onClose}
     >
       <div
@@ -147,7 +147,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
     return <CardIcon className="w-4 h-4" style={{ color: "#2563eb" }} />
   }
   const bgFor = (type: AppNotification["type"]) =>
-    type === "expiring" ? "#fef3c7" : type === "expired" ? "#fee2e2" : "#dbeafe"
+    type === "expiring" ? "rgba(217,119,6,0.14)" : type === "expired" ? "rgba(220,38,38,0.14)" : "rgba(37,99,235,0.14)"
 
   return (
     <div
@@ -158,7 +158,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
       <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>Уведомления</p>
         {notifs && notifs.length > 0 && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#fee2e2", color: "#dc2626" }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(220,38,38,0.14)", color: "#dc2626" }}>
             {notifs.length}
           </span>
         )}
@@ -366,7 +366,7 @@ export function AppNavbar({ clubName, email }: Props) {
                     </div>
 
                     {[
-                      { href: "/settings/club",  icon: Settings,          label: "Настройки клуба" },
+                      { href: "/settings",       icon: Settings,          label: "Настройки клуба" },
                       { href: "/staff",          icon: UserCog,           label: "Сотрудники" },
                       { href: "/settings",       icon: SlidersHorizontal, label: "Настройки CRM" },
                       { href: "/support",        icon: HelpCircle,        label: "Поддержка" },

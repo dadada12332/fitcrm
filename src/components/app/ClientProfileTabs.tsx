@@ -33,10 +33,13 @@ function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
 }
 
-function Badge({ meta }: { meta: { label: string; bg: string; color: string } }) {
+const UNKNOWN_META = { label: "—", bg: "var(--card-2)", color: "var(--on-dark-soft)" }
+
+function Badge({ meta }: { meta?: { label: string; bg: string; color: string } | null }) {
+  const m = meta ?? UNKNOWN_META
   return (
-    <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: meta.bg, color: meta.color }}>
-      {meta.label}
+    <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: m.bg, color: m.color }}>
+      {m.label}
     </span>
   )
 }
@@ -103,7 +106,7 @@ function ProfileTab({ client }: { client: ClientProfile }) {
         {sub ? (
           <>
             <div className="flex flex-col items-center text-center">
-              <span className="px-3 py-0.5 rounded-full text-xs font-medium mb-2" style={{ background: "#dbeafe", color: "#2563eb" }}>
+              <span className="px-3 py-0.5 rounded-full text-xs font-medium mb-2" style={{ background: "rgba(37,99,235,0.14)", color: "#2563eb" }}>
                 Текущий
               </span>
               <h3 className="text-3xl font-bold tracking-tight" style={{ color: "var(--on-dark)" }}>{sub.name}</h3>
@@ -169,8 +172,8 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
     const q = query.trim().toLowerCase()
     if (!q) return payments
     return payments.filter((p) =>
-      providerMeta[p.provider].label.toLowerCase().includes(q) ||
-      paymentStatusMeta[p.status].label.toLowerCase().includes(q) ||
+      (providerMeta[p.provider]?.label ?? p.provider).toLowerCase().includes(q) ||
+      (paymentStatusMeta[p.status]?.label ?? p.status).toLowerCase().includes(q) ||
       String(p.amount).includes(q),
     )
   }, [payments, query])
@@ -222,8 +225,8 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
             <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
             <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
             <span style={{ color: "var(--on-dark-soft)" }}>Абонемент</span>
-            <span><Badge meta={providerMeta[p.provider]} /></span>
-            <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status]} /></span>
+            <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
+            <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
           </div>
         ))
       )}
@@ -256,7 +259,7 @@ function VisitsTab({ visits }: { visits: ProfileVisit[] }) {
           <div key={v.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 56, borderBottom: "1px solid var(--border-subtle)" }}>
             <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(v.checkedInAt)}</span>
             <span style={{ color: "var(--on-dark-soft)" }}>{fmtTime(v.checkedInAt)}</span>
-            <span className="flex justify-end"><Badge meta={visitMethodMeta[v.method]} /></span>
+            <span className="flex justify-end"><Badge meta={visitMethodMeta[v.method] ?? null} /></span>
           </div>
         ))
       )}
@@ -289,8 +292,8 @@ function PaymentsTab({ payments }: { payments: ProfilePayment[] }) {
           <div key={p.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 60, borderBottom: "1px solid var(--border-subtle)" }}>
             <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
             <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
-            <span><Badge meta={providerMeta[p.provider]} /></span>
-            <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status]} /></span>
+            <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
+            <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
           </div>
         ))
       )}
@@ -307,13 +310,13 @@ function HistoryTab({ client }: { client: ClientProfile }) {
     const arr: TimelineItem[] = []
     arr.push({
       id: "created", ts: new Date(client.createdAt).getTime(),
-      icon: UserPlus, color: "#16a34a", bg: "#dcfce7",
+      icon: UserPlus, color: "#16a34a", bg: "rgba(22,163,74,0.14)",
       title: "Клиент зарегистрирован", sub: fmtDate(client.createdAt),
     })
     if (client.subscription) {
       arr.push({
         id: "sub", ts: new Date(client.subscription.startsAt ?? client.createdAt).getTime(),
-        icon: Snowflake, color: "#2563eb", bg: "#dbeafe",
+        icon: Snowflake, color: "#2563eb", bg: "rgba(37,99,235,0.14)",
         title: `Оформлен абонемент «${client.subscription.name}»`,
         sub: `${fmtDate(client.subscription.startsAt)} — ${fmtDate(client.subscription.expiresAt)}`,
       })

@@ -7,10 +7,10 @@ function fmt(n: number) {
 
 export function ClientsStats({ stats }: { stats: Stats }) {
   const cards = [
-    { label: "Всего клиентов", value: fmt(stats.total), icon: Users, delta: "10.2", pct: "+1.01% this week", up: true },
-    { label: "Активные", value: fmt(stats.active), icon: BadgeCheck, delta: "3.1", pct: "+0.49% this week", up: true },
-    { label: "Заканчиваются", value: fmt(stats.expiring), icon: CalendarClock, delta: "2.56", pct: "-0.91% this week", up: false },
-    { label: "С долгом", value: fmt(stats.debt), icon: Wallet, delta: "7.2", pct: "+1.51% this week", up: true },
+    { label: "Всего клиентов", value: fmt(stats.total), icon: Users, delta: "10.2", pct: "+1.01% за неделю", up: true },
+    { label: "Активные", value: fmt(stats.active), icon: BadgeCheck, delta: "3.1", pct: "+0.49% за неделю", up: true },
+    { label: "Заканчиваются", value: fmt(stats.expiring), icon: CalendarClock, delta: "2.56", pct: "-0.91% за неделю", up: false },
+    { label: "С долгом", value: fmt(stats.debt), icon: Wallet, delta: "7.2", pct: "+1.51% за неделю", up: true },
   ]
 
   return (

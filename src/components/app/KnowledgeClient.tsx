@@ -148,7 +148,7 @@ function ArticleView({ articleId, isFav, onToggleFav, onBack, onNavigate, onAiOp
       {/* Интерактивный тур */}
       {tourOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
+          style={{ background: "rgba(2,6,23,0.4)" }}>
           <div className="w-full max-w-md rounded-lg overflow-hidden"
             style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <div className="flex items-center justify-between px-4 py-3"
@@ -479,7 +479,7 @@ function AiPanel({ isOpen, onClose, onNavigate }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}>
+      style={{ background: "rgba(2,6,23,0.4)" }}>
       <div className="w-full max-w-lg rounded-2xl flex flex-col overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)", maxHeight: "80vh" }}>
         {/* Header */}

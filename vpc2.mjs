@@ -1,0 +1,18 @@
+import { chromium } from 'playwright';
+const PROD='https://fitcrm-three.vercel.app';
+const b=await chromium.launch(); const p=await (await b.newContext({viewport:{width:1400,height:1000}})).newPage();
+p.setDefaultNavigationTimeout(60000);
+const err=[]; p.on('pageerror',e=>err.push(e.message.slice(0,120)));
+const cons=[]; p.on('console',m=>{if(m.type()==='error')cons.push(m.text().slice(0,120));});
+await p.goto(`${PROD}/login`,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(2000);
+await p.fill('input[name=email]','qa.autotest@fitcrm.uz'); await p.fill('input[name=password]','QaTest-2026x');
+await p.getByRole('button',{name:/^Войти/}).click(); await p.waitForTimeout(4500);
+await p.goto(`${PROD}/settings/finance`,{waitUntil:'commit'});
+await p.waitForTimeout(6000);
+const t=await p.evaluate(()=>document.body?document.body.innerText:'NO BODY');
+console.log('есть "Приём онлайн-оплат":', t.includes('Приём онлайн-оплат'));
+console.log('есть "Payme":', t.includes('Payme'), '| "Подключено":', t.includes('Подключено'), '| "На рассмотрении":', t.includes('На рассмотрении'), '| "Подключить":', t.includes('Подключить'));
+console.log('pageerrors:', JSON.stringify([...new Set(err)]));
+console.log('console errors:', JSON.stringify([...new Set(cons)].slice(0,3)));
+await p.screenshot({path:'/Users/amiran/fitcrm/vpc2.png'});
+await b.close();

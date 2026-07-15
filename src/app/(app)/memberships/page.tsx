@@ -10,6 +10,7 @@ export default async function MembershipsPage() {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
+  if (!club.permissions.memberships.view) redirect("/dashboard")
   const { rows, stats } = await getMembershipsData(supabase, club.clubId)
 
   return (

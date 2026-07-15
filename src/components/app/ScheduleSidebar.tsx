@@ -11,10 +11,10 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const recMeta = {
-  overload: { icon: TrendingUp, color: "#dc2626", bg: "#fee2e2" },
-  underload: { icon: TrendingDown, color: "#d97706", bg: "#fef3c7" },
-  suggest: { icon: Plus, color: "#16a34a", bg: "#dcfce7" },
-  move: { icon: ArrowRightLeft, color: "#2563eb", bg: "#dbeafe" },
+  overload: { icon: TrendingUp, color: "#dc2626", bg: "rgba(220,38,38,0.14)" },
+  underload: { icon: TrendingDown, color: "#d97706", bg: "rgba(217,119,6,0.14)" },
+  suggest: { icon: Plus, color: "#16a34a", bg: "rgba(22,163,74,0.14)" },
+  move: { icon: ArrowRightLeft, color: "#2563eb", bg: "rgba(37,99,235,0.14)" },
 } as const
 
 export function ScheduleSidebar({ summary, recommendations }: { summary: DaySummary; recommendations: AiRecommendation[] }) {

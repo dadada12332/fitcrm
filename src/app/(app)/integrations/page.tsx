@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
+import { redirect } from "next/navigation"
 import { IntegrationsCatalog, type IntegrationStatus } from "@/components/app/IntegrationsCatalog"
 
 export const metadata = { title: "Интеграции — FitCRM" }
@@ -7,10 +8,12 @@ export const metadata = { title: "Интеграции — FitCRM" }
 export default async function IntegrationsPage() {
   const supabase = await createClient()
   const club = await getCurrentClub()
+  if (!club) redirect("/onboarding")
+  if (!club.permissions.settings.integrations) redirect("/dashboard")
 
   const statuses: IntegrationStatus[] = []
 
-  if (club) {
+  {
     const { data } = await supabase
       .from("clubs")
       .select("tg_token, settings")
@@ -35,12 +38,16 @@ export default async function IntegrationsPage() {
         })
       }
 
-      if (integrations.click) {
-        statuses.push({ key: "click", connected: true, handle: `ID: ${integrations.click}` })
-      }
-
-      if (integrations.payme) {
-        statuses.push({ key: "payme", connected: true, handle: `ID: ${integrations.payme}` })
+      // Click/Payme — статус из флоу заявок (payment_connection_requests), а не из settings.
+      const { data: pcr } = await supabase
+        .from("payment_connection_requests")
+        .select("provider, status")
+        .eq("club_id", club.clubId)
+        .in("status", ["new", "active"])
+      for (const pv of ["click", "payme"] as const) {
+        const r = (pcr ?? []).find((x) => x.provider === pv)
+        if (r?.status === "active") statuses.push({ key: pv, connected: true, handle: "Активно" })
+        else if (r?.status === "new") statuses.push({ key: pv, connected: false, handle: "Заявка на рассмотрении" })
       }
     }
   }

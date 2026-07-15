@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { unstable_cache } from "next/cache"
+import { createServiceClient } from "@/lib/supabase/service"
 
 export type ReportPayment = {
   id: string
@@ -62,44 +64,62 @@ function daysUntil(dateStr: string | null): number | null {
   return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000)
 }
 
+// PostgREST отдаёт максимум 1000 строк на запрос — тянем всё страницами по 1000,
+// иначе отчёты считались по первым 1000 строкам (недоучёт на больших клубах).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchAllRows(build: (from: number, to: number) => any): Promise<any[]> {
+  const PAGE = 1000
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const acc: any[] = []
+  for (let from = 0; from < 200 * PAGE; from += PAGE) {
+    const { data, error } = await build(from, from + PAGE - 1)
+    if (error) break
+    if (data) acc.push(...data)
+    if (!data || data.length < PAGE) break
+  }
+  return acc
+}
+
 export async function getReportsData(supabase: SupabaseClient, clubId: string): Promise<ReportsData> {
   const yearAgo = new Date()
   yearAgo.setFullYear(yearAgo.getFullYear() - 1)
   const yStr = yearAgo.toISOString()
 
   const [paymentsRes, visitsRes, clientsRes, staffRes, staffVisitsRes] = await Promise.all([
-    supabase
+    fetchAllRows((f, t) => supabase
       .from("payments")
       .select("id, amount, status, provider, paid_at, created_at, client_id, clients(full_name, phone), subscriptions(memberships(name))")
       .eq("club_id", clubId)
       .gte("created_at", yStr)
       .order("created_at", { ascending: false })
-      .limit(5000),
+      .range(f, t)).then((data) => ({ data })),
 
-    supabase
+    fetchAllRows((f, t) => supabase
       .from("visits")
       .select("id, client_id, checked_in_at")
       .eq("club_id", clubId)
       .gte("checked_in_at", yStr)
       .order("checked_in_at", { ascending: false })
-      .limit(20000),
+      .range(f, t)).then((data) => ({ data })),
 
-    supabase
+    fetchAllRows((f, t) => supabase
       .from("clients")
       .select("id, full_name, phone, gender, source, created_at, subscriptions(status, expires_at, memberships(name))")
       .eq("club_id", clubId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(f, t)).then((data) => ({ data })),
 
     supabase
       .from("staff")
-      .select("id, user_id, role, salary, is_active, settings")
+      .select("id, user_id, role, salary, is_active, settings, users(id, email, full_name)")
       .eq("club_id", clubId),
 
-    supabase
+    fetchAllRows((f, t) => supabase
       .from("visits")
       .select("staff_id, client_id")
       .eq("club_id", clubId)
-      .not("staff_id", "is", null),
+      .not("staff_id", "is", null)
+      .range(f, t)).then((data) => ({ data })),
   ])
 
   const payments: ReportPayment[] = (paymentsRes.data ?? []).map((p: any) => ({
@@ -143,18 +163,9 @@ export async function getReportsData(supabase: SupabaseClient, clubId: string): 
 
   const staffRows: any[] = staffRes.data ?? []
   const allStaffVisits: any[] = staffVisitsRes.data ?? []
-  const userIds = [...new Set(staffRows.map((s: any) => s.user_id as string))]
-  const usersMap = new Map<string, { email: string; full_name: string | null }>()
-  if (userIds.length > 0) {
-    const { data: usersData } = await supabase
-      .from("users")
-      .select("id, email, full_name")
-      .in("id", userIds)
-    for (const u of usersData ?? []) usersMap.set(u.id, u)
-  }
 
   const staff: ReportStaffRow[] = staffRows.map((s: any) => {
-    const u = usersMap.get(s.user_id)
+    const u = s.users as { email: string; full_name: string | null } | null
     const settings = (s.settings ?? {}) as any
     const myVisits = allStaffVisits.filter((v: any) => v.staff_id === s.id)
     const clientCount = new Set(myVisits.map((v: any) => v.client_id)).size
@@ -169,4 +180,281 @@ export async function getReportsData(supabase: SupabaseClient, clubId: string): 
   })
 
   return { payments, visits, clients, staff }
+}
+
+/**
+ * Кешированные данные отчётов (per-club, 120 c). Использует service-role клиент,
+ * поэтому вызывать ТОЛЬКО после проверки прав (reports.view) в экшене.
+ * Повторные открытия/переключения периодов в пределах 2 минут — из кеша.
+ */
+export async function getReportsDataCached(clubId: string): Promise<ReportsData> {
+  const run = unstable_cache(
+    async () => getReportsData(createServiceClient(), clubId),
+    ["reports-data", clubId],
+    { revalidate: 120, tags: [`reports-${clubId}`] },
+  )
+  return run()
+}
+
+// ── Серверная агрегация вкладок (поэтапная миграция) ──────────
+export type FinanceAgg = {
+  revenue: number
+  count: number
+  prevRevenue: number
+  byProvider: { provider: string; amount: number }[]
+  byDay: { day: string; amount: number }[]
+}
+
+/** Финансовая агрегация за период (RPC reports_finance, кеш per-club+период). */
+export async function getReportsFinance(
+  clubId: string, from: string, to: string, prevFrom: string, prevTo: string,
+): Promise<FinanceAgg> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_finance", {
+        p_club_id: clubId, p_from: from, p_to: to, p_prev_from: prevFrom, p_prev_to: prevTo,
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = (data ?? {}) as any
+      return {
+        revenue: Number(d.revenue ?? 0),
+        count: Number(d.count ?? 0),
+        prevRevenue: Number(d.prevRevenue ?? 0),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        byProvider: (d.byProvider ?? []).map((x: any) => ({ provider: x.provider, amount: Number(x.amount) })),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        byDay: (d.byDay ?? []).map((x: any) => ({ day: x.day, amount: Number(x.amount) })),
+      } as FinanceAgg
+    },
+    ["reports-finance", clubId, from, to, prevFrom, prevTo],
+    { revalidate: 120 },
+  )
+  return run()
+}
+
+export type SalesAgg = {
+  sold: number
+  totalRevenue: number
+  byService: { name: string; count: number; revenue: number }[]
+}
+
+/** Агрегация продаж за период (RPC reports_sales, кеш per-club+период). */
+export async function getReportsSales(
+  clubId: string, from: string, to: string,
+): Promise<SalesAgg> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_sales", { p_club_id: clubId, p_from: from, p_to: to })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = (data ?? {}) as any
+      return {
+        sold: Number(d.sold ?? 0),
+        totalRevenue: Number(d.totalRevenue ?? 0),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        byService: (d.byService ?? []).map((x: any) => ({ name: x.name, count: Number(x.count), revenue: Number(x.revenue) })),
+      } as SalesAgg
+    },
+    ["reports-sales", clubId, from, to],
+    { revalidate: 120 },
+  )
+  return run()
+}
+
+export type VisitsAgg = {
+  total: number
+  prevTotal: number
+  byDay: { day: string; count: number }[]
+  heatmap: number[][] // [7][24], Пн=0, час 0-23 (таймзона клуба)
+}
+
+/** Агрегация посещений за период (RPC reports_visits, кеш per-club+период). */
+export async function getReportsVisits(
+  clubId: string, from: string, to: string, prevFrom: string, prevTo: string,
+): Promise<VisitsAgg> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_visits", {
+        p_club_id: clubId, p_from: from, p_to: to, p_prev_from: prevFrom, p_prev_to: prevTo,
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = (data ?? {}) as any
+      const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const cell of (d.heatmap ?? []) as any[]) {
+        const dow = Number(cell.d), hr = Number(cell.h)
+        if (dow >= 0 && dow < 7 && hr >= 0 && hr < 24) grid[dow][hr] = Number(cell.c)
+      }
+      return {
+        total: Number(d.total ?? 0),
+        prevTotal: Number(d.prevTotal ?? 0),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        byDay: (d.byDay ?? []).map((x: any) => ({ day: x.day, count: Number(x.count) })),
+        heatmap: grid,
+      } as VisitsAgg
+    },
+    ["reports-visits", clubId, from, to, prevFrom, prevTo],
+    { revalidate: 120 },
+  )
+  return run()
+}
+
+export type ClientsAgg = {
+  total: number
+  active: number
+  expired: number
+  newInPeriod: number
+  prevNew: number
+  gender: { total: number; male: number; female: number }
+  bySource: { key: string; count: number }[]
+  byDayNew: { day: string; count: number }[]
+}
+
+/** Агрегация клиентов за период (RPC reports_clients, кеш per-club+период). */
+export async function getReportsClients(
+  clubId: string, from: string, to: string, prevFrom: string, prevTo: string,
+): Promise<ClientsAgg> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_clients", {
+        p_club_id: clubId, p_from: from, p_to: to, p_prev_from: prevFrom, p_prev_to: prevTo,
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = (data ?? {}) as any
+      const g = d.gender ?? {}
+      return {
+        total: Number(d.total ?? 0),
+        active: Number(d.active ?? 0),
+        expired: Number(d.expired ?? 0),
+        newInPeriod: Number(d.newInPeriod ?? 0),
+        prevNew: Number(d.prevNew ?? 0),
+        gender: { total: Number(g.total ?? 0), male: Number(g.male ?? 0), female: Number(g.female ?? 0) },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        bySource: (d.bySource ?? []).map((x: any) => ({ key: x.key, count: Number(x.count) })),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        byDayNew: (d.byDayNew ?? []).map((x: any) => ({ day: x.day, count: Number(x.count) })),
+      } as ClientsAgg
+    },
+    ["reports-clients", clubId, from, to, prevFrom, prevTo],
+    { revalidate: 120 },
+  )
+  return run()
+}
+
+export type RenewalsAgg = {
+  active: number
+  expired: number
+  expiring30: number
+  expiring7: number
+  top: { id: string; name: string; membershipName: string | null; daysLeft: number }[]
+}
+
+/** Агрегация продлений (RPC reports_renewals). Не зависит от периода — кеш per-club. */
+export async function getReportsRenewals(clubId: string): Promise<RenewalsAgg> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_renewals", { p_club_id: clubId })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = (data ?? {}) as any
+      return {
+        active: Number(d.active ?? 0),
+        expired: Number(d.expired ?? 0),
+        expiring30: Number(d.expiring30 ?? 0),
+        expiring7: Number(d.expiring7 ?? 0),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        top: (d.top ?? []).map((x: any) => ({ id: x.id, name: x.name, membershipName: x.membershipName ?? null, daysLeft: Number(x.daysLeft) })),
+      } as RenewalsAgg
+    },
+    ["reports-renewals", clubId],
+    { revalidate: 120 },
+  )
+  return run()
+}
+
+export type DebtsAgg = {
+  count: number
+  total: number
+  list: { id: string; clientName: string | null; clientPhone: string | null; amount: number; createdAt: string }[]
+}
+
+/** Агрегация долгов (RPC reports_debts). Не зависит от периода — кеш per-club. */
+export async function getReportsDebts(clubId: string): Promise<DebtsAgg> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_debts", { p_club_id: clubId })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = (data ?? {}) as any
+      return {
+        count: Number(d.count ?? 0),
+        total: Number(d.total ?? 0),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        list: (d.list ?? []).map((x: any) => ({
+          id: x.id, clientName: x.clientName ?? null, clientPhone: x.clientPhone ?? null,
+          amount: Number(x.amount), createdAt: x.createdAt,
+        })),
+      } as DebtsAgg
+    },
+    ["reports-debts", clubId],
+    { revalidate: 120 },
+  )
+  return run()
+}
+
+/** Агрегация персонала (RPC reports_staff). Не зависит от периода — кеш per-club. */
+export async function getReportsStaff(clubId: string): Promise<ReportStaffRow[]> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_staff", { p_club_id: clubId })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return ((data ?? []) as any[]).map((x) => ({
+        id: x.id,
+        name: x.name,
+        role: x.role,
+        salary: Number(x.salary) || 0,
+        clientCount: Number(x.clientCount) || 0,
+        status: x.status,
+      })) as ReportStaffRow[]
+    },
+    ["reports-staff", clubId],
+    { revalidate: 120 },
+  )
+  return run()
+}
+
+export type AlertsAgg = {
+  expiringSoonCount: number
+  expiringSoonNames: string[]
+  expiring7Count: number
+  atRiskCount: number
+  debtsCount: number
+  debtTotal: number
+}
+
+/** Агрегация «Внимание» (RPC reports_alerts). Период-независимая — кеш per-club. */
+export async function getReportsAlerts(clubId: string): Promise<AlertsAgg> {
+  const run = unstable_cache(
+    async () => {
+      const s = createServiceClient()
+      const { data } = await s.rpc("reports_alerts", { p_club_id: clubId })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const d = (data ?? {}) as any
+      return {
+        expiringSoonCount: Number(d.expiringSoonCount ?? 0),
+        expiringSoonNames: (d.expiringSoonNames ?? []) as string[],
+        expiring7Count: Number(d.expiring7Count ?? 0),
+        atRiskCount: Number(d.atRiskCount ?? 0),
+        debtsCount: Number(d.debtsCount ?? 0),
+        debtTotal: Number(d.debtTotal ?? 0),
+      } as AlertsAgg
+    },
+    ["reports-alerts", clubId],
+    { revalidate: 120 },
+  )
+  return run()
 }

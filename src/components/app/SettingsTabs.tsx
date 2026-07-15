@@ -7,25 +7,41 @@ import {
   Bell, Plug, Shield, Crown, ShieldCheck,
 } from "lucide-react"
 
-const TABS = [
-  { href: "/settings/club",          label: "Основное",       icon: Building2   },
-  { href: "/settings/branches",      label: "Филиалы",        icon: GitFork     },
-  { href: "/settings/staff",         label: "Сотрудники",     icon: Users       },
-  { href: "/settings/finance",       label: "Финансы",        icon: Wallet      },
-  { href: "/settings/notifications", label: "Уведомления",    icon: Bell        },
-  { href: "/settings/integrations",  label: "Интеграции",     icon: Plug        },
-  { href: "/settings/roles",         label: "Роли и права",   icon: ShieldCheck },
-  { href: "/settings/security",      label: "Безопасность",   icon: Shield      },
-  { href: "/settings/subscription",  label: "Подписка",       icon: Crown       },
+type AllowedTabs = {
+  club?: boolean
+  branches?: boolean
+  staff?: boolean
+  finance?: boolean
+  notifications?: boolean
+  integrations?: boolean
+  roles?: boolean
+  security?: boolean
+  subscription?: boolean
+}
+
+const ALL_TABS = [
+  { key: "club",          href: "/settings/club",          label: "Основное",       icon: Building2   },
+  { key: "branches",      href: "/settings/branches",      label: "Филиалы",        icon: GitFork     },
+  { key: "staff",         href: "/settings/staff",         label: "Сотрудники",     icon: Users       },
+  { key: "finance",       href: "/settings/finance",       label: "Финансы",        icon: Wallet      },
+  { key: "notifications", href: "/settings/notifications", label: "Уведомления",    icon: Bell        },
+  { key: "integrations",  href: "/settings/integrations",  label: "Интеграции",     icon: Plug        },
+  { key: "roles",         href: "/settings/roles",         label: "Роли и права",   icon: ShieldCheck },
+  { key: "security",      href: "/settings/security",      label: "Безопасность",   icon: Shield      },
+  { key: "subscription",  href: "/settings/subscription",  label: "Подписка",       icon: Crown       },
 ]
 
-export function SettingsTabs() {
+export function SettingsTabs({ allowedTabs }: { allowedTabs?: AllowedTabs }) {
   const pathname = usePathname()
+
+  const tabs = allowedTabs
+    ? ALL_TABS.filter((t) => allowedTabs[t.key as keyof AllowedTabs] !== false)
+    : ALL_TABS
 
   return (
     <div style={{ borderBottom: "1px solid var(--border)" }}>
       <nav className="flex items-end overflow-x-auto" style={{ gap: 0, scrollbarWidth: "none" }}>
-        {TABS.map(({ href, label, icon: Icon }) => {
+        {tabs.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
             <Link

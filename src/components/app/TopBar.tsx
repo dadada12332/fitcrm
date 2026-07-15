@@ -3,14 +3,13 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
-  Search, Bell, LogOut,
+  Search, Bell,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
-  Settings, UserCog, HelpCircle, PanelLeft, Sun, Moon,
+  PanelLeft, Sun, Moon, Inbox, CheckCircle2, Loader2,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useTheme } from "next-themes"
-import { signOut } from "@/app/(auth)/actions"
-import { globalSearchAction, getNotificationsAction, type GlobalSearchResult, type AppNotification } from "@/app/(app)/actions"
+import { globalSearchAction, getNotificationsAction, getRequestsAction, type GlobalSearchResult, type AppNotification, type AppRequest } from "@/app/(app)/actions"
 import { Breadcrumbs } from "./Breadcrumbs"
 
 type Props = { clubName: string; email: string; onToggleSidebar?: () => void }
@@ -28,7 +27,7 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (debRef.current) clearTimeout(debRef.current)
-    if (query.trim().length < 2) { setResults([]); return }
+    if (query.trim().length < 1) { setResults([]); return }
     setLoading(true)
     debRef.current = setTimeout(async () => {
       const res = await globalSearchAction(query)
@@ -50,7 +49,7 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex flex-col items-center pt-[12vh] px-4"
-      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(2,6,23,0.4)" }}
       onClick={onClose}>
       <div className="w-full max-w-2xl rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700"
         style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.3)" }}
@@ -95,21 +94,23 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
   )
 }
 
-// ── Notifications Panel ──────────────────────────────────────────
+// ── Notifications Drawer (2 таба: Уведомления / Заявки) ───────────
+function fmtReqDate(iso: string) {
+  return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+}
+
 function NotificationsPanel({ onClose }: { onClose: () => void }) {
+  const [tab, setTab] = useState<"notifs" | "requests">("notifs")
   const [notifs, setNotifs] = useState<AppNotification[] | null>(null)
+  const [requests, setRequests] = useState<AppRequest[] | null>(null)
   const [, start] = useTransition()
-  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    start(async () => { setNotifs(await getNotificationsAction()) })
+    start(async () => {
+      const [n, r] = await Promise.all([getNotificationsAction(), getRequestsAction()])
+      setNotifs(n); setRequests(r)
+    })
   }, [])
-
-  useEffect(() => {
-    const fn = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
-    document.addEventListener("mousedown", fn)
-    return () => document.removeEventListener("mousedown", fn)
-  }, [onClose])
 
   const iconFor = (type: AppNotification["type"]) => {
     if (type === "expiring") return <Clock className="w-4 h-4" style={{ color: "#d97706" }} />
@@ -117,37 +118,90 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
     return <CardIcon className="w-4 h-4" style={{ color: "#2563eb" }} />
   }
   const bgFor = (type: AppNotification["type"]) =>
-    type === "expiring" ? "#fef3c7" : type === "expired" ? "#fee2e2" : "#dbeafe"
+    type === "expiring" ? "rgba(217,119,6,0.14)" : type === "expired" ? "rgba(220,38,38,0.14)" : "rgba(37,99,235,0.14)"
+
+  const TabBtn = ({ id, label, count }: { id: "notifs" | "requests"; label: string; count: number | null }) => {
+    const active = tab === id
+    return (
+      <button onClick={() => setTab(id)}
+        className="flex-1 flex items-center justify-center gap-1.5 h-10 text-sm font-medium transition-colors relative"
+        style={{ color: active ? "var(--on-dark)" : "var(--on-dark-soft)" }}>
+        {label}
+        {count !== null && count > 0 && (
+          <span className="text-[11px] px-1.5 rounded-full font-semibold"
+            style={{ background: active ? "#2563eb" : "var(--card-2)", color: active ? "white" : "var(--on-dark-soft)" }}>{count}</span>
+        )}
+        {active && <span className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: "#2563eb" }} />}
+      </button>
+    )
+  }
 
   return (
-    <div ref={ref} className="absolute right-0 top-11 z-20 w-80 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700"
-      style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}>
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800">
-        <p className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Уведомления</p>
-        {notifs && notifs.length > 0 && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#fee2e2", color: "#dc2626" }}>
-            {notifs.length}
-          </span>
-        )}
-      </div>
-      <div className="max-h-[360px] overflow-y-auto">
-        {notifs === null ? (
-          <div className="py-8 text-center text-xs text-zinc-400 dark:text-zinc-500">Загрузка...</div>
-        ) : notifs.length === 0 ? (
-          <div className="py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">Нет уведомлений</div>
-        ) : notifs.map((n) => (
-          <Link key={n.id} href={`/clients/${n.clientId}`} onClick={onClose}
-            className="flex items-start gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-50 dark:border-zinc-800">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{ background: bgFor(n.type) }}>
-              {iconFor(n.type)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-zinc-950 dark:text-zinc-50">{n.clientName}</p>
-              <p className="text-xs mt-0.5 text-zinc-500 dark:text-zinc-400">{n.detail}</p>
-            </div>
-          </Link>
-        ))}
+    <div className="fixed inset-0 z-[200] flex justify-end" onClick={onClose} style={{ background: "rgba(2,6,23,0.4)" }}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm h-full flex flex-col" style={{ background: "var(--card)", borderLeft: "1px solid var(--border)", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+          <p className="text-lg font-semibold" style={{ color: "var(--on-dark)" }}>Уведомления</p>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800">
+            <X className="w-4 h-4" style={{ color: "var(--on-dark-soft)" }} />
+          </button>
+        </div>
+        {/* Tabs */}
+        <div className="flex shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+          <TabBtn id="notifs" label="Уведомления" count={notifs?.length ?? null} />
+          <TabBtn id="requests" label="Заявки" count={requests?.length ?? null} />
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto">
+          {tab === "notifs" && (
+            notifs === null ? (
+              <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--gray-muted)" }} /></div>
+            ) : notifs.length === 0 ? (
+              <div className="py-16 text-center">
+                <CheckCircle2 className="w-8 h-8 mx-auto mb-2" style={{ color: "#16a34a" }} />
+                <p className="text-sm" style={{ color: "var(--gray-muted)" }}>Нет уведомлений</p>
+              </div>
+            ) : notifs.map((n) => (
+              <Link key={n.id} href={`/clients/${n.clientId}`} onClick={onClose}
+                className="flex items-start gap-3 px-5 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: bgFor(n.type) }}>
+                  {iconFor(n.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: "var(--on-dark)" }}>{n.clientName}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{n.detail}</p>
+                </div>
+              </Link>
+            ))
+          )}
+
+          {tab === "requests" && (
+            requests === null ? (
+              <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--gray-muted)" }} /></div>
+            ) : requests.length === 0 ? (
+              <div className="py-16 text-center">
+                <Inbox className="w-8 h-8 mx-auto mb-2" style={{ color: "var(--gray-muted)" }} />
+                <p className="text-sm" style={{ color: "var(--gray-muted)" }}>Заявок пока нет</p>
+                <p className="text-xs mt-1 px-8" style={{ color: "var(--gray-muted)" }}>Здесь появятся заявки на подключение платёжек и смену тарифа с их статусом.</p>
+              </div>
+            ) : requests.map((r) => (
+              <div key={r.id} className="flex items-start gap-3 px-5 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "var(--card-2)" }}>
+                  {r.kind === "payment" ? <CardIcon className="w-4 h-4" style={{ color: "#2563eb" }} /> : <Inbox className="w-4 h-4" style={{ color: "#7c3aed" }} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{r.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }} suppressHydrationWarning>{fmtReqDate(r.createdAt)}</p>
+                </div>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap mt-0.5"
+                  style={{ background: `color-mix(in srgb, ${r.statusColor} 14%, transparent)`, color: r.statusColor }}>
+                  {r.statusLabel}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
@@ -155,7 +209,6 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 
 // ── TopBar ───────────────────────────────────────────────────────
 export function TopBar({ clubName, email, onToggleSidebar }: Props) {
-  const [profileOpen, setProfileOpen] = useState(false)
   const [searchOpen, setSearchOpen]   = useState(false)
   const [notifOpen, setNotifOpen]     = useState(false)
   const [notifCount, setNotifCount]   = useState<number | null>(null)
@@ -175,8 +228,6 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
     document.addEventListener("keydown", fn)
     return () => document.removeEventListener("keydown", fn)
   }, [])
-
-  const initials = email.charAt(0).toUpperCase()
 
   return (
     <>
@@ -204,12 +255,12 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
         <div className="flex items-center flex-shrink-0" style={{ gap: 4 }}>
 
           {/* Search */}
-          <button onClick={() => { setSearchOpen(true); setNotifOpen(false); setProfileOpen(false) }}
-            className="flex items-center gap-2 rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700"
-            style={{ height: 28, paddingLeft: 12, paddingRight: 12, fontSize: 13 }}>
-            <Search style={{ width: 14, height: 14 }} />
-            <span className="hidden sm:block">Поиск</span>
-            <span className="hidden sm:block px-1 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500" style={{ fontSize: 10 }}>⌘K</span>
+          <button onClick={() => { setSearchOpen(true); setNotifOpen(false) }}
+            className="flex items-center gap-2.5 rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700"
+            style={{ height: 36, width: 260, paddingLeft: 12, paddingRight: 10, fontSize: 13 }}>
+            <Search style={{ width: 15, height: 15, flexShrink: 0 }} />
+            <span className="flex-1 text-left">Поиск</span>
+            <span className="flex-shrink-0 px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 font-mono" style={{ fontSize: 11 }}>⌘K</span>
           </button>
 
           {/* Theme toggle */}
@@ -227,7 +278,7 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
 
           {/* Bell */}
           <div ref={notifRef} className="relative">
-            <button onClick={() => { setNotifOpen((v) => !v); setProfileOpen(false) }}
+            <button onClick={() => { setNotifOpen((v) => !v) }}
               className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 relative"
               style={{ width: 32, height: 32 }}>
               <Bell style={{ width: 20, height: 20 }} />
@@ -241,46 +292,6 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
             {notifOpen && <NotificationsPanel onClose={() => setNotifOpen(false)} />}
           </div>
 
-          {/* Avatar */}
-          <div className="relative">
-            <button onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false) }}
-              className="flex items-center justify-center rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-80"
-              style={{ width: 28, height: 28, background: "var(--on-dark)" }}>
-              {initials}
-            </button>
-
-            {profileOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
-                <div className="absolute right-0 top-9 z-20 w-52 rounded-xl py-2 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700"
-                  style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
-                  <div className="px-3 py-2.5 mb-1 border-b border-zinc-100 dark:border-zinc-800">
-                    <p className="font-medium truncate text-sm text-zinc-900 dark:text-zinc-50">{clubName}</p>
-                    <p className="text-xs truncate text-zinc-400 dark:text-zinc-500">{email}</p>
-                  </div>
-
-                  {([
-                    { href: "/settings/club", icon: Settings, label: "Настройки клуба" },
-                    { href: "/staff",         icon: UserCog,  label: "Сотрудники" },
-                    { href: "/support",       icon: HelpCircle, label: "Поддержка" },
-                  ] as const).map(({ href, icon: Icon, label }) => (
-                    <Link key={href} href={href} onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                      <Icon className="w-4 h-4 flex-shrink-0 text-zinc-400 dark:text-zinc-500" />
-                      {label}
-                    </Link>
-                  ))}
-
-                  <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
-                  <form action={signOut}>
-                    <button type="submit" className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 text-red-500 dark:text-red-400">
-                      <LogOut className="w-4 h-4" />Выйти
-                    </button>
-                  </form>
-                </div>
-              </>
-            )}
-          </div>
         </div>
       </header>
 

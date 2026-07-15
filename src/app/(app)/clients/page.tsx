@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
-import { getClientsData } from "@/lib/clients"
+import { getClientsPage, CLIENTS_PAGE_SIZE } from "@/lib/clients"
 import { getActiveMemberships } from "@/lib/memberships"
+import { getTrainers } from "@/lib/staff"
 import { ClientsStats } from "@/components/app/ClientsStats"
 import { ClientsTable } from "@/components/app/ClientsTable"
 import { AddClientButton } from "@/components/app/AddClientButton"
@@ -9,13 +10,36 @@ import { ImportClientsButton } from "@/components/app/ImportClientsButton"
 import { ExportClientsButton } from "@/components/app/ExportClientsButton"
 import { redirect } from "next/navigation"
 
-export default async function ClientsPage() {
+export default async function ClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
-  const [{ rows, stats }, memberships] = await Promise.all([
-    getClientsData(supabase, club.clubId),
+  if (!club.permissions.clients.view) redirect("/dashboard")
+
+  const sp = await searchParams
+  const arr = (v: string | string[] | undefined): string[] =>
+    v === undefined ? [] : Array.isArray(v) ? v : [v]
+  const one = (v: string | string[] | undefined): string | undefined =>
+    Array.isArray(v) ? v[0] : v
+
+  const query = {
+    search: one(sp.q) ?? "",
+    status: arr(sp.status),
+    membership: arr(sp.membership),
+    days: arr(sp.days),
+    sort: one(sp.sort),
+    page: Math.max(0, parseInt(one(sp.page) ?? "0", 10) || 0),
+    pageSize: CLIENTS_PAGE_SIZE,
+  }
+
+  const [result, memberships, trainers] = await Promise.all([
+    getClientsPage(supabase, club.clubId, query),
     getActiveMemberships(supabase, club.clubId),
+    getTrainers(supabase, club.clubId),
   ])
 
   return (
@@ -29,17 +53,23 @@ export default async function ClientsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <ExportClientsButton rows={rows} />
+          <ExportClientsButton />
           <ImportClientsButton />
-          <AddClientButton memberships={memberships} />
+          <AddClientButton memberships={memberships} trainers={trainers} />
         </div>
       </div>
 
       {/* Stat tiles */}
-      <ClientsStats stats={stats} />
+      <ClientsStats stats={result.stats} />
 
-      {/* Clients table */}
-      <ClientsTable rows={rows} />
+      {/* Clients table (серверная пагинация) */}
+      <ClientsTable
+        rows={result.rows}
+        total={result.total}
+        page={result.page}
+        pageSize={result.pageSize}
+        membershipNames={result.membershipNames}
+      />
     </div>
   )
 }

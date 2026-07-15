@@ -8,10 +8,19 @@ export type Product = {
   sellPrice: number
   buyPrice: number
   sku: string | null
+  barcode: string | null
+  description: string | null
+  photoUrl: string | null
   isActive: boolean
   quantity: number
   minQuantity: number
   updatedAt: string
+}
+
+/** Товар витрины: + агрегаты продаж для «Хит»/«Часто продаваемые». */
+export type PosProduct = Product & {
+  salesCount: number
+  lastSoldAt: string | null
 }
 
 export type StockMovement = {
@@ -35,7 +44,7 @@ export type InventoryStats = {
 export async function getInventory(supabase: SupabaseClient, clubId: string): Promise<Product[]> {
   const { data } = await supabase
     .from("products")
-    .select("id, name, category, unit, sell_price, buy_price, sku, is_active, inventory(quantity, min_quantity, updated_at)")
+    .select("id, name, category, unit, sell_price, buy_price, sku, barcode, description, photo_url, is_active, inventory(quantity, min_quantity, updated_at)")
     .eq("club_id", clubId)
     .eq("is_active", true)
     .order("name")
@@ -50,11 +59,27 @@ export async function getInventory(supabase: SupabaseClient, clubId: string): Pr
       sellPrice: Number(p.sell_price),
       buyPrice: Number(p.buy_price),
       sku: p.sku ?? null,
+      barcode: p.barcode ?? null,
+      description: p.description ?? null,
+      photoUrl: p.photo_url ?? null,
       isActive: p.is_active,
       quantity: Number(inv?.quantity ?? 0),
       minQuantity: Number(inv?.min_quantity ?? 0),
       updatedAt: inv?.updated_at ?? new Date().toISOString(),
     }
+  })
+}
+
+/** Товары для витрины (POS): базовый список + агрегаты продаж за 90 дней. */
+export async function getPosProducts(supabase: SupabaseClient, clubId: string): Promise<PosProduct[]> {
+  const products = await getInventory(supabase, clubId)
+  const since = new Date(Date.now() - 90 * 86_400_000).toISOString()
+  const { data: stats } = await supabase.rpc("product_sales_counts", { p_club_id: clubId, p_since: since })
+  const map = new Map<string, { cnt: number; last: string | null }>()
+  for (const r of (stats ?? []) as any[]) map.set(r.product_id, { cnt: Number(r.cnt), last: r.last_sold ?? null })
+  return products.map((p) => {
+    const s = map.get(p.id)
+    return { ...p, salesCount: s?.cnt ?? 0, lastSoldAt: s?.last ?? null }
   })
 }
 

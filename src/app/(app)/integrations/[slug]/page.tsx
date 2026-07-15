@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
@@ -7,6 +7,8 @@ import { IntegrationManage } from "@/components/app/IntegrationManage"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { resolveAudienceOptions, getRecipientsDataset, type AudienceOption, type Recipient } from "@/lib/broadcast"
 import type { BroadcastHistoryItem } from "@/components/app/TelegramBroadcast"
+
+export const dynamic = "force-dynamic"
 
 const META: Record<string, { label: string; description: string; color: string }> = {
   telegram: { label: "Telegram Bot", description: "Личный кабинет клиентов, QR-чекин и уведомления", color: "#2AABEE" },
@@ -18,6 +20,10 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   const { slug } = await params
   const meta = META[slug]
   if (!meta) notFound()
+
+  // Click/Payme подключаются через рабочий блок «Приём онлайн-оплат» в Настройках → Финансы
+  // (единый флоу заявок). Ведём туда из маркетплейса интеграций.
+  if (slug === "click" || slug === "payme") redirect("/settings/finance")
 
   const supabase = await createClient()
   const club = await getCurrentClub()
@@ -51,12 +57,6 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
         botFirstName = tgBot.firstName ?? "Telegram Bot"
         connectedAt = tgBot.connected_at ?? null
         tgSettings = { ...DEFAULT_TG_SETTINGS, ...(settings?.tg_settings ?? {}) }
-      } else {
-        const integrations = (data.settings as any)?.integrations ?? {}
-        if (integrations[slug]) {
-          connected = true
-          currentValue = integrations[slug]
-        }
       }
     }
 

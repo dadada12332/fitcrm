@@ -2,10 +2,12 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "@/lib/use-action"
 import { Plus, X, ChevronDown, Calendar } from "lucide-react"
 import { createClientAction, type ClientFormState } from "@/app/(app)/clients/actions"
 
 export type MembershipOption = { id: string; name: string; price: number }
+export type TrainerOption = { id: string; name: string }
 
 /* ─── Masking helpers ─── */
 
@@ -92,7 +94,7 @@ const GENDER_OPTIONS = [
 
 /* ─── Main component ─── */
 
-export function AddClientButton({ memberships }: { memberships: MembershipOption[] }) {
+export function AddClientButton({ memberships, trainers = [] }: { memberships: MembershipOption[]; trainers?: TrainerOption[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -106,6 +108,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
   const [gender,    setGender]      = useState("")
   const [email,     setEmail]       = useState("")
   const [membershipId, setMembershipId] = useState("")
+  const [trainerId, setTrainerId]   = useState("")
   const [source,    setSource]      = useState("")
   const [notes,     setNotes]       = useState("")
 
@@ -114,7 +117,7 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
 
   function reset() {
     setFirstName(""); setLastName(""); setPhoneDig(""); setDateDig("")
-    setGender(""); setEmail(""); setMembershipId(""); setSource(""); setNotes("")
+    setGender(""); setEmail(""); setMembershipId(""); setTrainerId(""); setSource(""); setNotes("")
     setError(null)
   }
 
@@ -132,6 +135,8 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
     fd.set("gender", gender)
     fd.set("email", email.trim())
     fd.set("membership_id", membershipId)
+    fd.set("trainer_id", trainerId)
+    fd.set("trainer_name", trainers.find((t) => t.id === trainerId)?.name ?? "")
     fd.set("source", source)
     fd.set("notes", notes.trim())
 
@@ -139,8 +144,10 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
       const res: ClientFormState = await createClientAction({}, fd)
       if (res.error) {
         setError(res.error)
+        toast.error(res.error)
       } else {
         close()
+        toast.success("Клиент создан")
         router.refresh()
       }
     })
@@ -295,16 +302,21 @@ export function AddClientButton({ memberships }: { memberships: MembershipOption
                     </SelectWrapper>
                   </div>
 
-                  {/* Персональный тренер — placeholder */}
+                  {/* Персональный тренер */}
                   <div>
                     <Label>Персональный тренер</Label>
                     <SelectWrapper>
                       <select
                         className={SELECT_CLS}
-                        style={{ ...INPUT_STYLE, color: PLACEHOLDER_COLOR }}
-                        disabled
+                        style={{ ...INPUT_STYLE, color: trainerId ? "var(--on-dark)" : PLACEHOLDER_COLOR }}
+                        value={trainerId}
+                        onChange={(e) => setTrainerId(e.target.value)}
+                        disabled={trainers.length === 0}
                       >
-                        <option value="">Выберите тренера</option>
+                        <option value="">{trainers.length === 0 ? "Нет тренеров" : "Выберите тренера"}</option>
+                        {trainers.map((t) => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
                       </select>
                     </SelectWrapper>
                   </div>

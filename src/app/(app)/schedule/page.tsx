@@ -6,6 +6,7 @@ import { ScheduleKPIs } from "@/components/app/ScheduleKPIs"
 import { ScheduleCalendar } from "@/components/app/ScheduleCalendar"
 import { ScheduleSidebar } from "@/components/app/ScheduleSidebar"
 import { AddClassButton } from "@/components/app/AddClassButton"
+import { getTrainers } from "@/lib/staff"
 import { redirect } from "next/navigation"
 
 type SP = { date?: string; view?: string; trainer?: string; room?: string }
@@ -17,9 +18,11 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
-  const [data, clientsRes] = await Promise.all([
+  if (!club.permissions.schedule.view) redirect("/dashboard")
+  const [data, clientsRes, trainers] = await Promise.all([
     getScheduleData(supabase, { date: sp.date, view, trainer: sp.trainer, room: sp.room }, club.clubId),
     supabase.from("clients").select("id, full_name").eq("club_id", club.clubId).order("full_name", { ascending: true }),
+    getTrainers(supabase, club.clubId),
   ])
 
   const clients = (clientsRes.data ?? []).map((c) => ({ id: c.id as string, name: c.full_name as string }))
@@ -31,7 +34,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Расписание</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Управление загрузкой клуба: занятия, залы, тренеры</p>
         </div>
-        <AddClassButton rooms={data.rooms} defaultDate={data.date} />
+        <AddClassButton rooms={data.rooms} defaultDate={data.date} trainers={trainers} />
       </div>
 
       <ScheduleToolbar

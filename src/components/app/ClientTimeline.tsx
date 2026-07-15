@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { MoreHorizontal } from "lucide-react"
+
 import type { PeriodKey, PeriodStat } from "@/lib/dashboard"
 
 export type TimelineVisit = {
@@ -22,7 +22,7 @@ type Props = {
   churnCount: number
 }
 
-const PERIODS: PeriodKey[] = ["1Ч", "1Д", "7Д", "1М"]
+const PERIODS: PeriodKey[] = ["Сегодня", "7Д", "30Д", "3М", "Год"]
 
 function initials(name: string) {
   return name
@@ -56,7 +56,7 @@ export function ClientTimeline({
   expiringCount,
   churnCount,
 }: Props) {
-  const [period, setPeriod] = useState<PeriodKey>("1Д")
+  const [period, setPeriod] = useState<PeriodKey>("Сегодня")
   const cur = periods[period]
 
   return (
@@ -85,9 +85,7 @@ export function ClientTimeline({
               {p}
             </button>
           ))}
-          <button className="ml-1 w-7 h-7 flex items-center justify-center rounded transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 dark:text-zinc-500">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+
         </div>
       </div>
 
@@ -95,7 +93,7 @@ export function ClientTimeline({
       <div className="flex items-center gap-6 px-5 py-3 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-100 dark:border-zinc-800">
         <div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            Выручка · {period === "1Д" ? "сегодня" : `за ${cur.unit}`}
+            Выручка · {period === "Сегодня" ? "сегодня" : `за ${cur.unit}`}
           </p>
           <p className="font-semibold tabular-nums text-[15px] text-zinc-950 dark:text-zinc-50">
             {Math.round(cur.revenue).toLocaleString("ru-RU")} сум

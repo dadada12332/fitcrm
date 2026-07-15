@@ -7,11 +7,13 @@ import {
   LayoutDashboard, Users, CreditCard, Activity,
   Calendar, Wallet, Package, UserCog, BarChart2,
   Settings, HelpCircle, BookOpen, Plug,
-  ChevronDown, Check, Plus, LogOut,
-  GitFork, User, ShieldCheck,
+  ChevronDown, Check, LogOut,
+  GitFork,
 } from "lucide-react"
 import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
 import { signOut } from "@/app/(auth)/actions"
+import { QuickActionsDrawer } from "@/components/app/QuickActionsDrawer"
+import { resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
 
@@ -194,56 +196,7 @@ function Divider() {
   return <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1.5" />
 }
 
-// ── QuickAction ──────────────────────────────────────────────────
-const QUICK_ACTIONS = [
-  { href: "/clients",     icon: Users,    label: "Новый клиент" },
-  { href: "/payments",    icon: Wallet,   label: "Новая оплата" },
-  { href: "/memberships", icon: CreditCard, label: "Новый абонемент" },
-  { href: "/visits",      icon: Activity, label: "Отметить посещение" },
-  { href: "/staff",       icon: UserCog,  label: "Добавить сотрудника" },
-]
-
-function QuickAction({ collapsed }: { collapsed?: boolean }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const fn = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener("mousedown", fn)
-    return () => document.removeEventListener("mousedown", fn)
-  }, [open])
-
-  return (
-    <div ref={ref} className="relative px-2 pb-2">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-center gap-2 rounded-md transition-colors bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200"
-        style={{ height: 32, fontSize: 13, fontWeight: 500 }}
-      >
-        <Plus style={{ width: 14, height: 14 }} />
-        {!collapsed && "Быстрое действие"}
-      </button>
-
-      {open && (
-        <div className="absolute left-2 right-2 top-full mt-1 rounded-lg overflow-hidden z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700"
-          style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
-          {QUICK_ACTIONS.map(({ href, icon: Icon, label }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-800 dark:text-zinc-200"
-            >
-              <Icon className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" style={{ width: 15, height: 15 }} />
-              {label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+// ── QuickAction removed — replaced by QuickActionsDrawer ─────────
 
 // ── Main Sidebar ─────────────────────────────────────────────────
 type Props = {
@@ -259,11 +212,9 @@ type Props = {
 export function Sidebar({ clubId, clubName, plan, stats, permissions, role, collapsed = false }: Props) {
   const router = useRouter()
   const [clubOpen, setClubOpen] = useState(false)
-  const [userOpen, setUserOpen] = useState(false)
   const [branches, setBranches] = useState<any[]>([])
   const [, startTransition] = useTransition()
   const clubRef = useRef<HTMLDivElement>(null)
-  const userRef = useRef<HTMLDivElement>(null)
 
   const isOwner = role === "owner"
   const p = permissions
@@ -271,7 +222,6 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
   useEffect(() => {
     const fn = (e: MouseEvent) => {
       if (clubRef.current && !clubRef.current.contains(e.target as Node)) setClubOpen(false)
-      if (userRef.current && !userRef.current.contains(e.target as Node)) setUserOpen(false)
     }
     document.addEventListener("mousedown", fn)
     return () => document.removeEventListener("mousedown", fn)
@@ -355,7 +305,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
             )}
             {isOwner && (
               <div className="py-1">
-                <Link href="/settings/branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
+                <Link href="/settings?tab=branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
                   <GitFork className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
                   Добавить клуб
                 </Link>
@@ -367,7 +317,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
 
       {/* ── Quick action ── */}
       <div className="pt-2 flex-shrink-0">
-        <QuickAction collapsed={collapsed} />
+        <QuickActionsDrawer collapsed={collapsed} />
       </div>
 
       <Divider />
@@ -431,60 +381,53 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
 
       <div className="flex-shrink-0 px-2 pb-1">
         <div className="flex flex-col gap-0.5">
-          <NavItem href="/settings/club" icon={Settings}   label="Настройки клуба" collapsed={collapsed} />
-          <NavItem href="/support"       icon={HelpCircle} label="Поддержка"        collapsed={collapsed} />
-          <NavItem href="/knowledge"     icon={BookOpen}   label="База знаний"      collapsed={collapsed} />
+          <NavItem href="/settings"      icon={Settings}   label="Настройки клуба" collapsed={collapsed} />
+          <NavItem href="/support"       icon={HelpCircle} label="Поддержка"        collapsed={collapsed} badge={stats.supportUnread > 0 ? stats.supportUnread : undefined} badgeType="warn" />
+          <NavItem href="/support?tab=kb" icon={BookOpen}  label="База знаний"      collapsed={collapsed} />
         </div>
       </div>
 
       <Divider />
 
       {/* ── User profile ── */}
-      <div ref={userRef} className="relative px-2 pb-2 flex-shrink-0">
-        <button
-          onClick={() => setUserOpen((v) => !v)}
-          className="w-full flex items-center rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      <div className="px-2 pb-2 flex-shrink-0 flex items-center gap-1">
+        <Link
+          href="/profile"
+          className="flex-1 flex items-center rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 min-w-0"
           style={{ padding: "8px 10px", gap: 10, justifyContent: collapsed ? "center" : "flex-start" }}
         >
-          <div className="flex-shrink-0 flex items-center justify-center font-semibold text-white"
-            style={{ width: 32, height: 32, background: "#6366f1", borderRadius: "50%", fontSize: 13 }}>
-            {stats.userName.charAt(0).toUpperCase()}
-          </div>
-          {!collapsed && (
-            <>
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50 truncate">{stats.userName}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{stats.userRole}</p>
+          {(() => {
+            const avatarMeta: AvatarMeta = { preset: stats.avatarPreset, url: stats.avatarUrl }
+            const initials = stats.userName.split(" ").filter(Boolean).map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?"
+            if (avatarMeta.url) {
+              return (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarMeta.url} alt="avatar" className="flex-shrink-0 object-cover"
+                  style={{ width: 32, height: 32, borderRadius: "50%" }} />
+              )
+            }
+            return (
+              <div className="flex-shrink-0 flex items-center justify-center font-semibold text-white"
+                style={{ width: 32, height: 32, borderRadius: "50%", fontSize: 13, background: resolveAvatarBackground(avatarMeta) }}>
+                {initials}
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-            </>
+            )
+          })()}
+          {!collapsed && (
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50 truncate">{stats.userName}</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{stats.userRole}</p>
+            </div>
           )}
-        </button>
-
-        {userOpen && (
-          <div className="absolute left-2 right-2 bottom-full mb-1 rounded-lg overflow-hidden z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700"
-            style={{ boxShadow: "0 -8px 24px rgba(0,0,0,0.15)" }}>
-            <div className="py-1">
-              <Link href="/profile" onClick={() => setUserOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
-                <User className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                Профиль
-              </Link>
-              <Link href="/settings/security" onClick={() => setUserOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
-                <ShieldCheck className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                Настройки аккаунта
-              </Link>
-            </div>
-            <div className="py-1 border-t border-zinc-100 dark:border-zinc-800">
-              <form action={signOut}>
-                <button type="submit" className="w-full flex items-center gap-3 px-3 py-2 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 text-sm text-red-500 dark:text-red-400">
-                  <LogOut className="w-3.5 h-3.5" />
-                  Выйти
-                </button>
-              </form>
-            </div>
-          </div>
+        </Link>
+        {!collapsed && (
+          <form action={signOut}>
+            <button type="submit" title="Выйти"
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 flex-shrink-0"
+              style={{ color: "#ef4444" }}>
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </form>
         )}
       </div>
     </aside>

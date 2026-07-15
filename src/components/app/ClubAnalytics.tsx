@@ -24,7 +24,7 @@ export function ClubAnalytics({ attendanceChangePct, churnCount, expiringCount, 
         </p>
       ),
       tint: "#ecfdf5",
-      btnBg: "#dcfce7",
+      btnBg: "rgba(22,163,74,0.14)",
       btnColor: "#15803d",
       iconColor: "#16a34a",
     },

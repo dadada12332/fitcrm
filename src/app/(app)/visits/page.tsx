@@ -1,18 +1,30 @@
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
-import { getVisitsKPI, getTodayVisits } from "@/lib/visits"
+import { getVisitsKPI, getVisitsPage, VISITS_PAGE_SIZE } from "@/lib/visits"
 import { VisitsQuickCheckin } from "@/components/app/VisitsQuickCheckin"
 import { VisitsTable } from "@/components/app/VisitsTable"
-import { UserCheck, Users, UserX, TrendingUp, Plus } from "lucide-react"
+import { ManualVisitModal } from "@/components/app/ManualVisitModal"
+import { UserCheck, Users, UserX, TrendingUp } from "lucide-react"
 import { redirect } from "next/navigation"
 
-export default async function VisitsPage() {
+export default async function VisitsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
-  const [kpi, visits] = await Promise.all([
+
+  const sp = await searchParams
+  const [kpi, result] = await Promise.all([
     getVisitsKPI(supabase, club.clubId),
-    getTodayVisits(supabase, club.clubId),
+    getVisitsPage(supabase, club.clubId, {
+      status: sp.status,
+      sort: sp.sort,
+      page: Math.max(0, parseInt(sp.page ?? "0", 10) || 0),
+      pageSize: VISITS_PAGE_SIZE,
+    }),
   ])
 
   return (
@@ -23,13 +35,7 @@ export default async function VisitsPage() {
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Посещения</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Быстрый check-in и журнал посещений</p>
         </div>
-        <button
-          className="h-9 px-4 rounded-md text-sm font-medium flex items-center gap-2 text-white transition-opacity hover:opacity-90 flex-shrink-0"
-          style={{ background: "#2563eb" }}
-        >
-          <Plus className="w-4 h-4" />
-          Отметить вручную
-        </button>
+        <ManualVisitModal role={club.role} />
       </div>
 
       {/* KPI */}
@@ -60,8 +66,13 @@ export default async function VisitsPage() {
         <VisitsQuickCheckin />
       </div>
 
-      {/* Visits table */}
-      <VisitsTable rows={visits} />
+      {/* Visits table (серверная пагинация) */}
+      <VisitsTable
+        rows={result.rows}
+        total={result.total}
+        page={result.page}
+        pageSize={result.pageSize}
+      />
     </div>
   )
 }

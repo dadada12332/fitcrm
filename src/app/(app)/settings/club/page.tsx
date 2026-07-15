@@ -1,5 +1,5 @@
-import { ClubSettingsLoader } from "@/components/app/ClubSettingsLoader"
+import { SettingsView } from "../SettingsView"
 
 export default function Page() {
-  return <ClubSettingsLoader section="basic" />
+  return <SettingsView tab="club" />
 }

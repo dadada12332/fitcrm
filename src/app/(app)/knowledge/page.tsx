@@ -1,7 +1,5 @@
-import { KnowledgeClient } from "@/components/app/KnowledgeClient"
-
-export const metadata = { title: "База знаний — FitCRM" }
+import { redirect } from "next/navigation"
 
 export default function KnowledgePage() {
-  return <KnowledgeClient />
+  redirect("/support?tab=kb")
 }

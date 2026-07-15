@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
-import { getPaymentsKPI, getPaymentsList } from "@/lib/payments"
+import { getPaymentsKPI, getPaymentsPage, PAYMENTS_PAGE_SIZE } from "@/lib/payments"
 import { getActiveMemberships } from "@/lib/memberships"
 import { PaymentsClient } from "@/components/app/PaymentsClient"
 import { TrendingUp, TrendingDown, DollarSign, Receipt, Users } from "lucide-react"
@@ -8,15 +8,48 @@ import { redirect } from "next/navigation"
 
 function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 
-export default async function PaymentsPage() {
+function periodFrom(period: string): string {
+  const d = new Date()
+  if (period === "today") d.setHours(0, 0, 0, 0)
+  else if (period === "week") d.setDate(d.getDate() - 7)
+  else if (period === "year") { d.setMonth(0); d.setDate(1); d.setHours(0, 0, 0, 0) }
+  else { d.setDate(1); d.setHours(0, 0, 0, 0) } // month (default)
+  return d.toISOString()
+}
+
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
-  const [kpi, rows, memberships] = await Promise.all([
+  if (!club.permissions.payments.view) redirect("/dashboard")
+
+  const sp = await searchParams
+  const period = sp.period ?? "month"
+  const query = {
+    search: sp.q ?? "",
+    from: periodFrom(period),
+    provider: sp.provider,
+    status: sp.status,
+    sort: sp.sort,
+    page: Math.max(0, parseInt(sp.page ?? "0", 10) || 0),
+    pageSize: PAYMENTS_PAGE_SIZE,
+  }
+
+  const [kpi, result, memberships] = await Promise.all([
     getPaymentsKPI(supabase, club.clubId),
-    getPaymentsList(supabase, club.clubId),
+    getPaymentsPage(supabase, club.clubId, query),
     getActiveMemberships(supabase, club.clubId),
   ])
+
+  // Какие онлайн-платёжки подключены (для опции «онлайн-оплата»).
+  const { createServiceClient } = await import("@/lib/supabase/service")
+  const { data: creds } = await createServiceClient()
+    .from("club_payment_credentials").select("provider, enabled").eq("club_id", club.clubId).eq("enabled", true)
+  const connectedProviders = (creds ?? []).map((c: { provider: string }) => c.provider)
 
   return (
     <div className="space-y-5">
@@ -83,8 +116,16 @@ export default async function PaymentsPage() {
         ))}
       </div>
 
-      {/* Table + filters */}
-      <PaymentsClient rows={rows} memberships={memberships} />
+      {/* Table + filters (серверная пагинация) */}
+      <PaymentsClient
+        rows={result.rows}
+        total={result.total}
+        totalAmount={result.totalAmount}
+        page={result.page}
+        pageSize={result.pageSize}
+        memberships={memberships}
+        connectedProviders={connectedProviders}
+      />
     </div>
   )
 }

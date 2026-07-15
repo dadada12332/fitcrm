@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useMemo, useState } from "react"
+import { useEffect, useRef, useState, useCallback, useTransition } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Clock, CheckCircle2, AlertCircle, AlertTriangle, MoreHorizontal, History, RefreshCw } from "lucide-react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { Clock, CheckCircle2, AlertCircle, AlertTriangle, MoreHorizontal, History, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import type { VisitRow } from "@/lib/visits"
+import { EmptyState } from "./EmptyState"
 
 function RowMenu({ row }: { row: VisitRow }) {
   const [open, setOpen] = useState(false)
@@ -98,13 +99,40 @@ function getFilter(row: VisitRow): Filter {
   return "active"
 }
 
-export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
-  const [filter, setFilter] = useState<Filter>("all")
+export function VisitsTable({
+  rows, total, page, pageSize,
+}: {
+  rows: VisitRow[]
+  total: number
+  page: number
+  pageSize: number
+}) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [optFilter, setOptFilter] = useState<Filter | null>(null)
+  const [, startTransition] = useTransition()
+  useEffect(() => { setOptFilter(null) }, [searchParams])
+  const filter = (optFilter ?? searchParams.get("status") ?? "all") as Filter
 
-  const rows = useMemo(() => {
-    if (filter === "all") return initialRows
-    return initialRows.filter((r) => getFilter(r) === filter)
-  }, [initialRows, filter])
+  const pushParams = useCallback((mutate: (p: URLSearchParams) => void, resetPage = true) => {
+    const p = new URLSearchParams(searchParams.toString())
+    mutate(p)
+    if (resetPage) p.delete("page")
+    const qs = p.toString()
+    startTransition(() => router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false }))
+  }, [router, pathname, searchParams])
+
+  function setFilter(v: Filter) {
+    setOptFilter(v)
+    pushParams((p) => { if (v && v !== "all") p.set("status", v); else p.delete("status") })
+  }
+
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const current = Math.min(page, pageCount - 1)
+  function goTo(pnum: number) {
+    pushParams((p) => { if (pnum <= 0) p.delete("page"); else p.set("page", String(pnum)) }, false)
+  }
 
   const tabs: { key: Filter; label: string }[] = [
     { key: "all", label: "Все" },
@@ -143,9 +171,11 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
 
       {/* Table */}
       {rows.length === 0 ? (
-        <div className="py-14 text-center text-sm" style={{ color: "var(--gray-muted)" }}>
-          Посещений нет
-        </div>
+        <EmptyState
+          icon={<CheckCircle2 className="w-6 h-6" style={{ color: "#2563eb" }} />}
+          title="Пока нет посещений"
+          subtitle="Отметьте приход клиента через поиск или QR-код выше — посещения появятся здесь."
+        />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -189,7 +219,7 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
 
                   {/* Time */}
                   <td className="px-5 py-3">
-                    <span className="font-mono text-sm" style={{ color: "var(--on-dark-soft)" }}>
+                    <span className="font-mono text-sm" style={{ color: "var(--on-dark-soft)" }} suppressHydrationWarning>
                       {fmtTime(row.checkedInAt)}
                     </span>
                   </td>
@@ -217,11 +247,30 @@ export function VisitsTable({ rows: initialRows }: { rows: VisitRow[] }) {
         </div>
       )}
 
-      {rows.length > 0 && (
-        <div className="px-5 py-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-          <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{rows.length} посещений</span>
-        </div>
-      )}
+      <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+        <span className="text-xs" style={{ color: "var(--gray-muted)" }}>
+          {total === 0 ? "0 посещений" : `${current * pageSize + 1}–${Math.min(total, current * pageSize + rows.length)} из ${total.toLocaleString("ru-RU")}`}
+        </span>
+        {pageCount > 1 && (
+          <div className="flex items-center gap-4">
+            <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>Стр {current + 1} из {pageCount}</span>
+            <div className="flex items-center gap-1">
+              {[
+                { icon: ChevronsLeft,  to: 0,             dis: current === 0 },
+                { icon: ChevronLeft,   to: current - 1,   dis: current === 0 },
+                { icon: ChevronRight,  to: current + 1,   dis: current >= pageCount - 1 },
+                { icon: ChevronsRight, to: pageCount - 1, dis: current >= pageCount - 1 },
+              ].map(({ icon: Icon, to, dis }, i) => (
+                <button key={i} onClick={() => goTo(to)} disabled={dis}
+                  className="w-7 h-7 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                  style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
+                  <Icon className="w-3.5 h-3.5" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

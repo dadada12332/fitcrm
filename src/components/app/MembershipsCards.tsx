@@ -10,11 +10,11 @@ function fmtSum(n: number) {
 }
 
 const CARD_PALETTES = [
-  { from: "#2563eb", to: "#3b82f6", accent: "#bfdbfe" },  // blue
+  { from: "#2563eb", to: "#3b82f6", accent: "rgba(37,99,235,0.3)" },  // blue
   { from: "#059669", to: "#10b981", accent: "#a7f3d0" },  // emerald
   { from: "#7c3aed", to: "#8b5cf6", accent: "#ddd6fe" },  // violet
   { from: "#d97706", to: "#f59e0b", accent: "#fde68a" },  // amber
-  { from: "#dc2626", to: "#ef4444", accent: "#fecaca" },  // red
+  { from: "#dc2626", to: "#ef4444", accent: "rgba(220,38,38,0.3)" },  // red
   { from: "#0891b2", to: "#06b6d4", accent: "#a5f3fc" },  // cyan
   { from: "#4338ca", to: "#6366f1", accent: "#c7d2fe" },  // indigo
   { from: "#0f766e", to: "#14b8a6", accent: "#99f6e4" },  // teal

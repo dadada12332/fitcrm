@@ -12,9 +12,9 @@ export function ClubHealthCard({ score, expiringCount, churnCount, lowStockCount
     "#dc2626"
 
   const bg =
-    score >= 80 ? "#f0fdf4" :
+    score >= 80 ? "rgba(22,163,74,0.1)" :
     score >= 60 ? "#fffbeb" :
-    "#fef2f2"
+    "rgba(220,38,38,0.1)"
 
   const issues = [
     expiringCount > 0 && `${expiringCount} абонементов истекают`,

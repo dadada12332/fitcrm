@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
+import { toast } from "@/lib/use-action"
 import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
 import { updateMembershipAction, type MembershipFormState } from "@/app/(app)/memberships/actions"
@@ -9,6 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { DateField } from "@/components/ui/date-field"
 import { inputCls, inputStyle, Label, DurationField, AvailableDays, AvailableTime } from "./membership-fields"
 import { membershipStatus, type MembershipRow } from "@/lib/memberships"
+import { MoneyInput } from "./MoneyInput"
 
 function isoToMask(iso: string | null): string {
   if (!iso) return ""
@@ -22,7 +24,8 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
   const [state, formAction, pending] = useActionState<MembershipFormState, FormData>(updateMembershipAction, {})
 
   useEffect(() => {
-    if (state.ok) { router.refresh(); onClose() }
+    if (state.ok) { toast.success("Абонемент сохранён"); router.refresh(); onClose() }
+    else if (state.error) toast.error(state.error)
   }, [state, router, onClose])
 
   return (
@@ -72,7 +75,7 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
 
               <div>
                 <Label required>Цена</Label>
-                <input name="price" type="number" min="0" required defaultValue={row.price} placeholder="Например 450 000" className={inputCls} style={inputStyle} />
+                <MoneyInput name="price" required defaultValue={row.price} placeholder="Например 450 000" className={inputCls} style={inputStyle} />
               </div>
 
               <div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
+import { toast } from "@/lib/use-action"
 import { useRouter } from "next/navigation"
 import { MoreHorizontal, Pencil, Copy, Users, Ban, Power, Archive, ArchiveRestore, Trash2 } from "lucide-react"
 import {
@@ -46,7 +47,8 @@ export function MembershipRowMenu({ row, onDark }: { row: MembershipRow; onDark?
     setError(null)
     start(async () => {
       const res = await fn()
-      if (res.error) { setError(res.error); return }
+      if (res.error) { setError(res.error); toast.error(res.error); return }
+      toast.success("Готово")
       router.refresh()
       if (!keepOpen) close()
     })

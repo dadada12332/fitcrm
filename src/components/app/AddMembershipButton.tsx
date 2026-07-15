@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
+import { toast } from "@/lib/use-action"
 import { useRouter } from "next/navigation"
 import { Plus, X } from "lucide-react"
 import { createMembershipAction, type MembershipFormState } from "@/app/(app)/memberships/actions"
@@ -8,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, S
 import { Switch } from "@/components/ui/switch"
 import { DateField } from "@/components/ui/date-field"
 import { inputCls, inputStyle, Label, DurationField, AvailableDays, AvailableTime } from "./membership-fields"
+import { MoneyInput } from "./MoneyInput"
 
 export function AddMembershipButton() {
   const [open, setOpen] = useState(false)
@@ -18,8 +20,9 @@ export function AddMembershipButton() {
   useEffect(() => {
     if (state.ok) {
       setOpen(false)
+      toast.success("Абонемент создан")
       router.refresh()
-    }
+    } else if (state.error) toast.error(state.error)
   }, [state, router])
 
   return (
@@ -79,7 +82,7 @@ export function AddMembershipButton() {
 
                 <div>
                   <Label required>Цена</Label>
-                  <input name="price" type="number" min="0" required placeholder="Например 450 000" className={inputCls} style={inputStyle} />
+                  <MoneyInput name="price" required placeholder="Например 450 000" className={inputCls} style={inputStyle} />
                 </div>
 
                 <div>

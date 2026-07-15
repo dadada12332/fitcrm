@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentClub } from "@/lib/club"
 import type { TelegramSettings } from "./types"
 
 export type TelegramBotInfo = { username: string; firstName: string; id: number }
@@ -27,10 +28,10 @@ export async function connectTelegramAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Не авторизован" }
 
-  const { data: staff } = await supabase.from("staff").select("club_id").eq("user_id", user.id).single()
-  if (!staff?.club_id) return { error: "Клуб не найден" }
+  const cc = await getCurrentClub()
+  if (!cc) return { error: "Клуб не найден" }
 
-  const { data: club } = await supabase.from("clubs").select("settings").eq("id", staff.club_id).single()
+  const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
   const cur = (club?.settings as Record<string, unknown>) ?? {}
 
   const { error } = await supabase.from("clubs").update({
@@ -39,7 +40,7 @@ export async function connectTelegramAction(
       ...cur,
       tg_bot: { username: bot.username, firstName: bot.firstName, id: bot.id, connected_at: new Date().toISOString() },
     },
-  }).eq("id", staff.club_id)
+  }).eq("id", cc.clubId)
 
   if (error) return { error: error.message }
 
@@ -53,14 +54,14 @@ export async function disconnectTelegramAction(): Promise<{ error?: string; ok?:
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Не авторизован" }
 
-  const { data: staff } = await supabase.from("staff").select("club_id").eq("user_id", user.id).single()
-  if (!staff?.club_id) return { error: "Клуб не найден" }
+  const cc = await getCurrentClub()
+  if (!cc) return { error: "Клуб не найден" }
 
-  const { data: club } = await supabase.from("clubs").select("settings").eq("id", staff.club_id).single()
+  const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
   const cur = (club?.settings as Record<string, unknown>) ?? {}
   const { tg_bot: _removed, tg_settings: _settings, ...rest } = cur as any
 
-  const { error } = await supabase.from("clubs").update({ tg_token: null, settings: rest }).eq("id", staff.club_id)
+  const { error } = await supabase.from("clubs").update({ tg_token: null, settings: rest }).eq("id", cc.clubId)
   if (error) return { error: error.message }
 
   revalidatePath("/integrations")
@@ -77,14 +78,14 @@ async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Не авторизован" }
 
-  const { data: staff } = await supabase.from("staff").select("club_id").eq("user_id", user.id).single()
-  if (!staff?.club_id) return { error: "Клуб не найден" }
+  const cc = await getCurrentClub()
+  if (!cc) return { error: "Клуб не найден" }
 
-  const { data: club } = await supabase.from("clubs").select("name, tg_token").eq("id", staff.club_id).single()
+  const { data: club } = await supabase.from("clubs").select("name, tg_token").eq("id", cc.clubId).single()
   const token = club?.tg_token as string | null
   if (!token) return { error: "Сначала подключите бота на вкладке «Основное»" }
 
-  return { ctx: { clubId: staff.club_id, clubName: club?.name ?? "Клуб", token, userId: user.id } }
+  return { ctx: { clubId: cc.clubId, clubName: club?.name ?? "Клуб", token, userId: user.id } }
 }
 
 /** Загружает картинку рассылки в storage и возвращает public URL. */
@@ -207,15 +208,15 @@ export async function saveTelegramSettingsAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Не авторизован" }
 
-  const { data: staff } = await supabase.from("staff").select("club_id").eq("user_id", user.id).single()
-  if (!staff?.club_id) return { error: "Клуб не найден" }
+  const cc = await getCurrentClub()
+  if (!cc) return { error: "Клуб не найден" }
 
-  const { data: club } = await supabase.from("clubs").select("settings").eq("id", staff.club_id).single()
+  const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
   const cur = (club?.settings as Record<string, unknown>) ?? {}
 
   const { error } = await supabase.from("clubs").update({
     settings: { ...cur, tg_settings: settings },
-  }).eq("id", staff.club_id)
+  }).eq("id", cc.clubId)
 
   if (error) return { error: error.message }
 

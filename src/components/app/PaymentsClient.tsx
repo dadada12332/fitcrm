@@ -1,57 +1,50 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState, useEffect, useRef, useCallback, useTransition } from "react"
 import Link from "next/link"
-import { Search, Plus, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { Search, Plus, Download, Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CreditCard, ArrowUp, ArrowDown, Scale } from "lucide-react"
 import { type PaymentRow, providerMeta, statusMeta } from "@/lib/payments"
 import { NewPaymentModal } from "./NewPaymentModal"
-import { downloadCSV } from "@/lib/csv"
-
-const PAGE_SIZE = 10
+import { EmptyState } from "./EmptyState"
+import { exportPaymentsCsvAction } from "@/app/(app)/payments/actions"
 
 type Membership = { id: string; name: string; price: number }
-type Period = "today" | "week" | "month" | "year"
-type ProviderFilter = "all" | "cash" | "click" | "payme" | "uzum"
-type StatusFilter = "all" | "paid" | "pending" | "refunded"
 
 function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit" })
 }
-
-function periodStart(p: Period): Date {
+function periodFrom(period: string): string {
   const d = new Date()
-  if (p === "today") { d.setHours(0, 0, 0, 0); return d }
-  if (p === "week")  { d.setDate(d.getDate() - 7); return d }
-  if (p === "month") { d.setDate(1); d.setHours(0, 0, 0, 0); return d }
-  d.setMonth(0); d.setDate(1); d.setHours(0, 0, 0, 0); return d
+  if (period === "today") d.setHours(0, 0, 0, 0)
+  else if (period === "week") d.setDate(d.getDate() - 7)
+  else if (period === "year") { d.setMonth(0); d.setDate(1); d.setHours(0, 0, 0, 0) }
+  else { d.setDate(1); d.setHours(0, 0, 0, 0) }
+  return d.toISOString()
 }
 
-const PERIOD_LABELS: { key: Period; label: string }[] = [
+const PERIOD_LABELS = [
   { key: "today", label: "Сегодня" },
   { key: "week",  label: "Неделя" },
   { key: "month", label: "Месяц" },
   { key: "year",  label: "Год" },
 ]
-
-const PROVIDER_LABELS: { key: ProviderFilter; label: string }[] = [
+const PROVIDER_LABELS = [
   { key: "all",   label: "Все" },
   { key: "cash",  label: "Наличные" },
   { key: "click", label: "Click" },
   { key: "payme", label: "Payme" },
   { key: "uzum",  label: "Uzum" },
 ]
-
-const STATUS_LABELS: { key: StatusFilter; label: string }[] = [
+const STATUS_LABELS = [
   { key: "all",      label: "Все" },
   { key: "paid",     label: "Оплачено" },
   { key: "pending",  label: "Ожидает" },
   { key: "refunded", label: "Возврат" },
 ]
 
-function TabGroup<T extends string>({
-  items, value, onChange,
-}: { items: { key: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+function TabGroup({ items, value, onChange }: { items: { key: string; label: string }[]; value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex items-center gap-0.5 p-1 rounded-lg flex-wrap" style={{ background: "var(--card-2)" }}>
       {items.map((t) => (
@@ -72,79 +65,126 @@ function TabGroup<T extends string>({
   )
 }
 
-const PROVIDER_LABELS_RU: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
-const STATUS_LABELS_RU:   Record<string, string> = { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }
+export function PaymentsClient({
+  rows, total, totalAmount, page, pageSize, memberships, connectedProviders = [],
+}: {
+  rows: PaymentRow[]
+  total: number
+  totalAmount: number
+  page: number
+  pageSize: number
+  memberships: Membership[]
+  connectedProviders?: string[]
+}) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
-function exportPayments(rows: PaymentRow[]) {
-  const today = new Date().toISOString().slice(0, 10)
-  downloadCSV(`payments_${today}.csv`,
-    ["Дата", "Клиент", "Телефон", "Услуга", "Сумма (сум)", "Способ оплаты", "Статус"],
-    rows.map((r) => [
-      r.paidAt ? new Date(r.paidAt).toLocaleDateString("ru-RU") : new Date(r.createdAt).toLocaleDateString("ru-RU"),
-      r.clientName ?? "—",
-      r.clientPhone ?? "—",
-      r.serviceName ?? "—",
-      r.amount,
-      PROVIDER_LABELS_RU[r.provider] ?? r.provider,
-      STATUS_LABELS_RU[r.status] ?? r.status,
-    ]),
-  )
-}
+  // Оптимистичные значения фильтров: подсвечиваем выбранный таб мгновенно,
+  // не дожидаясь серверного перехода (иначе клик «висит» ~2с без реакции).
+  const [optimistic, setOptimistic] = useState<Record<string, string>>({})
+  const [isPending, startTransition] = useTransition()
+  useEffect(() => { setOptimistic({}) }, [searchParams])
 
-export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memberships: Membership[] }) {
-  const [period, setPeriod]     = useState<Period>("month")
-  const [prov, setProv]         = useState<ProviderFilter>("all")
-  const [status, setStatus]     = useState<StatusFilter>("all")
-  const [query, setQuery]       = useState("")
-  const [page, setPage]         = useState(0)
+  const period = optimistic.period ?? searchParams.get("period") ?? "month"
+  const prov   = optimistic.provider ?? searchParams.get("provider") ?? "all"
+  const status = optimistic.status ?? searchParams.get("status") ?? "all"
+  const sort   = searchParams.get("sort") ?? ""
+  const urlQuery = searchParams.get("q") ?? ""
+
   const [modalOpen, setModalOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
-  function resetPage() { setPage(0) }
+  const pushParams = useCallback((mutate: (p: URLSearchParams) => void, resetPage = true) => {
+    const p = new URLSearchParams(searchParams.toString())
+    mutate(p)
+    if (resetPage) p.delete("page")
+    const qs = p.toString()
+    startTransition(() => router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false }))
+  }, [router, pathname, searchParams])
 
-  const filtered = useMemo(() => {
-    const start = periodStart(period)
-    return rows.filter((r) => {
-      const date = new Date(r.paidAt ?? r.createdAt)
-      if (date < start) return false
-      if (prov !== "all" && r.provider !== prov) return false
-      if (status !== "all" && r.status !== status) return false
-      const q = query.trim().toLowerCase()
-      if (q && !r.clientName?.toLowerCase().includes(q) && !r.serviceName?.toLowerCase().includes(q)) return false
-      return true
-    })
-  }, [rows, period, prov, status, query])
+  function setParam(key: string, value: string, defaultVal: string) {
+    setOptimistic((o) => ({ ...o, [key]: value }))
+    pushParams((p) => { if (value && value !== defaultVal) p.set(key, value); else p.delete(key) })
+  }
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const current   = Math.min(page, pageCount - 1)
-  const pageRows  = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
-  const totalFiltered = filtered.reduce((a, r) => a + r.amount, 0)
+  // Поиск (debounce)
+  const [search, setSearch] = useState(urlQuery)
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => { setSearch(urlQuery) }, [urlQuery])
+  useEffect(() => {
+    if (debounce.current) clearTimeout(debounce.current)
+    debounce.current = setTimeout(() => {
+      if (search === urlQuery) return
+      pushParams((p) => { if (search.trim()) p.set("q", search.trim()); else p.delete("q") })
+    }, 350)
+    return () => { if (debounce.current) clearTimeout(debounce.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search])
+
+  function toggleAmountSort() {
+    pushParams((p) => {
+      if (sort === "amount_desc") p.set("sort", "amount_asc")
+      else if (sort === "amount_asc") p.delete("sort")
+      else p.set("sort", "amount_desc")
+    }, false)
+  }
+
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const current = Math.min(page, pageCount - 1)
+  function goTo(pnum: number) {
+    pushParams((p) => { if (pnum <= 0) p.delete("page"); else p.set("page", String(pnum)) }, false)
+  }
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const res = await exportPaymentsCsvAction({ search: urlQuery, provider: prov, status, from: periodFrom(period), sort })
+      if (res.error || !res.csv) return
+      const blob = new Blob(["﻿" + res.csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url; a.download = `payments_${new Date().toISOString().slice(0, 10)}.csv`; a.click()
+      URL.revokeObjectURL(url)
+    } finally { setExporting(false) }
+  }
+
+  const hasFilters = urlQuery.trim() || prov !== "all" || status !== "all"
 
   return (
     <>
       {/* Toolbar */}
-      <div
-        className="rounded-lg px-5 py-4 flex flex-col gap-3"
-        style={{ background: "var(--card)", border: "1px solid var(--border)" }}
-      >
+      <div className="rounded-lg px-5 py-4 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {/* Row 1: search + actions */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--gray-muted)" }} />
             <input
-              value={query}
-              onChange={(e) => { setQuery(e.target.value); resetPage() }}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск клиента или услуги..."
               className="w-full h-9 pl-9 pr-3 rounded-md text-sm outline-none"
               style={{ border: "1px solid var(--border)", background: "var(--card)", color: "var(--on-dark)" }}
             />
           </div>
           <div className="flex items-center gap-2">
+            {connectedProviders.length > 0 && (
+              <Link
+                href="/payments/reconcile"
+                className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}
+              >
+                <Scale className="w-4 h-4" />
+                Сверка
+              </Link>
+            )}
             <button
-              onClick={() => exportPayments(filtered)}
-              className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60"
               style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}
             >
-              <Download className="w-4 h-4" />
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               Экспорт в CSV
             </button>
             <button
@@ -160,9 +200,9 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
 
         {/* Row 2: filters */}
         <div className="flex items-center gap-3 flex-wrap">
-          <TabGroup items={PERIOD_LABELS} value={period} onChange={(v) => { setPeriod(v); resetPage() }} />
-          <TabGroup items={PROVIDER_LABELS} value={prov} onChange={(v) => { setProv(v); resetPage() }} />
-          <TabGroup items={STATUS_LABELS} value={status} onChange={(v) => { setStatus(v); resetPage() }} />
+          <TabGroup items={PERIOD_LABELS} value={period} onChange={(v) => setParam("period", v, "month")} />
+          <TabGroup items={PROVIDER_LABELS} value={prov} onChange={(v) => setParam("provider", v, "all")} />
+          <TabGroup items={STATUS_LABELS} value={status} onChange={(v) => setParam("status", v, "all")} />
         </div>
       </div>
 
@@ -170,31 +210,54 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
       <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>
-            {filtered.length} платежей
+            {total.toLocaleString("ru-RU")} платежей
           </p>
-          {filtered.length > 0 && (
+          {total > 0 && (
             <p className="text-sm font-semibold" style={{ color: "#2563eb" }}>
-              Итого: {fmtSum(totalFiltered)} сум
+              Итого: {fmtSum(totalAmount)} сум
             </p>
           )}
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="py-14 text-center text-sm" style={{ color: "var(--gray-muted)" }}>Платежей нет</div>
+        {rows.length === 0 ? (
+          hasFilters ? (
+            <EmptyState
+              icon={<Search className="w-6 h-6" style={{ color: "var(--gray-muted)" }} />}
+              title="Ничего не найдено"
+              subtitle="Попробуйте изменить период, фильтр или поисковый запрос."
+            />
+          ) : (
+            <EmptyState
+              icon={<CreditCard className="w-6 h-6" style={{ color: "#2563eb" }} />}
+              title="Пока нет оплат"
+              subtitle="Здесь будут все платежи клуба. Создайте первую оплату, чтобы начать вести финансы."
+              action={
+                <button onClick={() => setModalOpen(true)} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium text-white" style={{ background: "#2563eb" }}>
+                  <Plus className="w-4 h-4" /> Новая оплата
+                </button>
+              }
+            />
+          )
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                  {["Клиент", "Дата", "Услуга", "Сумма", "Метод", "Статус"].map((h) => (
-                    <th key={h} className="px-5 py-3 text-left text-xs font-medium" style={{ color: "var(--gray-muted)" }}>
-                      {h}
+                  {["Клиент", "Дата", "Услуга", "", "Метод", "Статус"].map((h, i) => (
+                    <th key={i} className="px-5 py-3 text-left text-xs font-medium" style={{ color: "var(--gray-muted)" }}>
+                      {i === 3 ? (
+                        <button onClick={toggleAmountSort} className="flex items-center hover:text-[var(--on-dark)] transition-colors">
+                          Сумма
+                          {sort === "amount_desc" && <ArrowDown className="w-3 h-3 ml-1" />}
+                          {sort === "amount_asc" && <ArrowUp className="w-3 h-3 ml-1" />}
+                        </button>
+                      ) : h}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {pageRows.map((row) => {
+                {rows.map((row) => {
                   const pm = providerMeta[row.provider] ?? providerMeta.cash
                   const sm = statusMeta[row.status] ?? statusMeta.pending
                   return (
@@ -202,36 +265,18 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
                       <td className="px-5 py-3">
                         {row.clientId ? (
                           <Link href={`/clients/${row.clientId}`} className="group">
-                            <p className="font-medium group-hover:underline" style={{ color: "var(--on-dark)" }}>
-                              {row.clientName ?? "—"}
-                            </p>
-                            {row.clientPhone && (
-                              <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{row.clientPhone}</p>
-                            )}
+                            <p className="font-medium group-hover:underline" style={{ color: "var(--on-dark)" }}>{row.clientName ?? "—"}</p>
+                            {row.clientPhone && <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{row.clientPhone}</p>}
                           </Link>
-                        ) : (
-                          <span style={{ color: "var(--gray-muted)" }}>—</span>
-                        )}
+                        ) : (<span style={{ color: "var(--gray-muted)" }}>—</span>)}
                       </td>
-                      <td className="px-5 py-3 whitespace-nowrap" style={{ color: "var(--on-dark-soft)" }}>
-                        {fmtDate(row.paidAt ?? row.createdAt)}
-                      </td>
-                      <td className="px-5 py-3" style={{ color: row.serviceName ? "var(--on-dark)" : "var(--gray-muted)" }}>
-                        {row.serviceName ?? "—"}
-                      </td>
+                      <td className="px-5 py-3 whitespace-nowrap" style={{ color: "var(--on-dark-soft)" }} suppressHydrationWarning>{fmtDate(row.paidAt ?? row.createdAt)}</td>
+                      <td className="px-5 py-3" style={{ color: row.serviceName ? "var(--on-dark)" : "var(--gray-muted)" }}>{row.serviceName ?? "—"}</td>
                       <td className="px-5 py-3 font-semibold whitespace-nowrap" style={{ color: "var(--on-dark)" }}>
                         {fmtSum(row.amount)} <span className="font-normal text-xs" style={{ color: "var(--gray-muted)" }}>сум</span>
                       </td>
-                      <td className="px-5 py-3">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: pm.bg, color: pm.color }}>
-                          {pm.label}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: sm.bg, color: sm.color }}>
-                          {sm.label}
-                        </span>
-                      </td>
+                      <td className="px-5 py-3"><span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: pm.bg, color: pm.color }}>{pm.label}</span></td>
+                      <td className="px-5 py-3"><span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: sm.bg, color: sm.color }}>{sm.label}</span></td>
                     </tr>
                   )
                 })}
@@ -242,7 +287,9 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
 
         {/* Pagination */}
         <div className="flex items-center justify-between px-5 py-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-          <span className="text-sm" style={{ color: "var(--gray-muted)" }}>{filtered.length} платежей</span>
+          <span className="text-sm" style={{ color: "var(--gray-muted)" }}>
+            {total === 0 ? "0 платежей" : `${current * pageSize + 1}–${Math.min(total, current * pageSize + rows.length)} из ${total.toLocaleString("ru-RU")}`}
+          </span>
           <div className="flex items-center gap-4">
             <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Стр {current + 1} из {pageCount}</span>
             <div className="flex items-center gap-1">
@@ -252,13 +299,9 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
                 { icon: ChevronRight,  to: current + 1,   dis: current >= pageCount - 1 },
                 { icon: ChevronsRight, to: pageCount - 1, dis: current >= pageCount - 1 },
               ].map(({ icon: Icon, to, dis }, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(to)}
-                  disabled={dis}
+                <button key={i} onClick={() => goTo(to)} disabled={dis}
                   className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                  style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
-                >
+                  style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
                   <Icon className="w-4 h-4" />
                 </button>
               ))}
@@ -267,9 +310,7 @@ export function PaymentsClient({ rows, memberships }: { rows: PaymentRow[]; memb
         </div>
       </div>
 
-      {modalOpen && (
-        <NewPaymentModal memberships={memberships} onClose={() => setModalOpen(false)} />
-      )}
+      {modalOpen && <NewPaymentModal memberships={memberships} connectedProviders={connectedProviders} onClose={() => setModalOpen(false)} />}
     </>
   )
 }

@@ -2,8 +2,11 @@
   "permissions": {
     "allow": [
       "PowerShell(Get-ChildItem -Path \"E:\\\\crm-temp\" -Force | ForEach-Object { Move-Item -Path $_.FullName -Destination \"E:\\\\crm\\\\\" -Force }; Write-Host \"Done\")",
-      "PowerShell(npx tsc --noEmit)"
+      "PowerShell(npx tsc --noEmit)",
+      "Bash(awk '/^diff --git/{print NR\": \"$0}' /Users/amiran/.claude/projects/-Users-amiran-fitcrm/492714c6-d4a7-44ff-bdca-654c3f9757ef/tool-results/begzgidkl.txt)"
     ]
   },
-  "enabledMcpjsonServers": ["figma"]
+  "enabledMcpjsonServers": [
+    "figma"
+  ]
 }

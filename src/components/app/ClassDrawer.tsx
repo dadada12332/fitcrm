@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useMemo, useTransition } from "react"
+import { toast } from "@/lib/use-action"
 import { useRouter } from "next/navigation"
 import { X, Clock, MapPin, User, Users, Wallet, CalendarClock } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, SheetClose } from "@/components/ui/sheet"
@@ -28,6 +29,12 @@ export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; 
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [pickClient, setPickClient] = useState("")
+  const [clientQuery, setClientQuery] = useState("")
+  const filteredClients = useMemo(() => {
+    const q = clientQuery.trim().toLowerCase()
+    if (!q) return []
+    return clients.filter((c) => c.name.toLowerCase().includes(q)).slice(0, 8)
+  }, [clients, clientQuery])
   const [showResched, setShowResched] = useState(false)
   const [rDate, setRDate] = useState(cls?.date ?? "")
   const [rStart, setRStart] = useState(cls?.startTime ?? "")
@@ -39,7 +46,8 @@ export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; 
     setError(null)
     start(async () => {
       const res = await fn()
-      if (res.error) { setError(res.error); return }
+      if (res.error) { setError(res.error); toast.error(res.error); return }
+      if (close) toast.success("Сохранено")
       router.refresh()
       if (close) onClose()
     })
@@ -86,7 +94,7 @@ export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; 
                         <div key={b.bookingId} className="flex items-center gap-2 py-2" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                           <span className="text-sm flex-1" style={{ color: "var(--on-dark-soft)" }}>{b.name}</span>
                           {b.attended ? (
-                            <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "#dcfce7", color: "#16a34a" }}>Пришёл</span>
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "rgba(22,163,74,0.14)", color: "#16a34a" }}>Пришёл</span>
                           ) : (
                             <button disabled={pending} onClick={() => run(() => markAttendanceAction(b.bookingId))}
                               className="text-xs font-medium px-2 py-1 rounded-md flex items-center gap-1 hover:bg-red-50 disabled:opacity-50" style={{ color: "#dc2626" }}>
@@ -104,14 +112,24 @@ export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; 
                   <div className="mt-4">
                     <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: "var(--gray-muted)" }}>Добавить клиента</p>
                     <div className="flex items-center gap-2">
-                      <select value={pickClient} onChange={(e) => setPickClient(e.target.value)}
-                        className="h-10 flex-1 rounded-md px-3 text-sm outline-none" style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
-                        <option value="">Выберите клиента</option>
-                        {clients.map((cl) => <option key={cl.id} value={cl.id}>{cl.name}</option>)}
-                      </select>
+                      <div className="relative flex-1">
+                        <input value={clientQuery} onChange={(e) => { setClientQuery(e.target.value); setPickClient("") }}
+                          placeholder="Поиск клиента по имени…"
+                          className="h-10 w-full rounded-md px-3 text-sm outline-none" style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }} />
+                        {clientQuery.trim() && !pickClient && filteredClients.length > 0 && (
+                          <div className="absolute z-10 left-0 right-0 mt-1 rounded-md overflow-hidden max-h-52 overflow-y-auto" style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
+                            {filteredClients.map((cl) => (
+                              <button key={cl.id} onClick={() => { setPickClient(cl.id); setClientQuery(cl.name) }}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ color: "var(--on-dark)" }}>
+                                {cl.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <button disabled={pending || !pickClient}
-                        onClick={() => run(() => addClientToClassAction(cls.id, pickClient))}
-                        className="h-10 px-4 rounded-md text-sm font-medium text-white disabled:opacity-50" style={{ background: "var(--on-dark)" }}>
+                        onClick={() => { run(() => addClientToClassAction(cls.id, pickClient)); setPickClient(""); setClientQuery("") }}
+                        className="h-10 px-4 rounded-md text-sm font-medium text-white disabled:opacity-50 shrink-0" style={{ background: "var(--on-dark)" }}>
                         Записать
                       </button>
                     </div>

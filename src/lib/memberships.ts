@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { unstable_cache } from "next/cache"
 
 export type MembershipStatus = "active" | "inactive" | "archived"
 
@@ -51,7 +52,7 @@ export function pluralDays(n: number): string {
   return `${n} дней`
 }
 
-export async function getActiveMemberships(supabase: SupabaseClient, clubId: string): Promise<{ id: string; name: string; price: number }[]> {
+async function _getActiveMemberships(supabase: SupabaseClient, clubId: string) {
   const { data } = await supabase
     .from("memberships")
     .select("id, name, price")
@@ -60,6 +61,18 @@ export async function getActiveMemberships(supabase: SupabaseClient, clubId: str
     .eq("archived", false)
     .order("created_at", { ascending: false })
   return (data ?? []).map((m) => ({ id: m.id as string, name: m.name as string, price: Number(m.price ?? 0) }))
+}
+
+/**
+ * Cached for 60 s per club — memberships list rarely changes mid-session.
+ * Next.js will automatically revalidate after the TTL expires.
+ */
+export async function getActiveMemberships(supabase: SupabaseClient, clubId: string) {
+  return unstable_cache(
+    () => _getActiveMemberships(supabase, clubId),
+    ["active-memberships", clubId],
+    { revalidate: 60 },
+  )()
 }
 
 export async function getMembershipsData(supabase: SupabaseClient, clubId: string): Promise<MembershipsData> {

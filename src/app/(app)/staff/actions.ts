@@ -1,8 +1,10 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
 import type { StaffSettings } from "@/lib/staff"
 
 type R = { ok?: boolean; error?: string }
@@ -10,16 +12,15 @@ type R = { ok?: boolean; error?: string }
 export async function addStaffAction(data: {
   name: string; email: string; phone: string; role: string
   salaryType: string; salaryFixed: number; salaryPercent: number
-}): Promise<R & { id?: string }> {
+}): Promise<R & { id?: string; invited?: boolean }> {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.create)) return { error: "Недостаточно прав" }
+  if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
 
-  const uid = crypto.randomUUID()
-  const { error: ue } = await supabase.from("users").insert({
-    id: uid, email: data.email, full_name: data.name,
-  })
-  if (ue) return { error: ue.message }
+  const email = data.email.toLowerCase().trim()
+  const origin = (await headers()).get("origin") ?? ""
 
   const settings: StaffSettings = {
     phone:          data.phone,
@@ -32,14 +33,55 @@ export async function addStaffAction(data: {
     salary_history: [],
   }
 
-  const { data: staffRow, error: se } = await supabase.from("staff").insert({
-    user_id: uid, club_id: club.clubId, role: data.role,
-    salary: data.salaryFixed || null, settings,
-  }).select("id").single()
+  // Check if user already exists in auth (via public.users mirror)
+  const { data: existingUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle()
 
-  if (se) return { error: se.message }
+  if (existingUser) {
+    // User already has an account — link them directly as staff
+    const { data: staffRow, error: se } = await supabase.from("staff").insert({
+      user_id: existingUser.id, club_id: club.clubId, role: data.role,
+      salary: data.salaryFixed || null, settings,
+    }).select("id").single()
+
+    if (se) return { error: se.message }
+    revalidatePath("/staff")
+    return { ok: true, id: staffRow?.id }
+  }
+
+  // User doesn't exist — send email invite via Supabase Auth Admin
+  await supabase.from("staff_invitations")
+    .delete()
+    .eq("club_id", club.clubId)
+    .eq("email", email)
+    .is("accepted_at", null)
+
+  const { data: invite, error: dbErr } = await supabase
+    .from("staff_invitations")
+    .insert({ club_id: club.clubId, email, role: data.role })
+    .select("id, token")
+    .single()
+
+  if (dbErr) return { error: dbErr.message }
+
+  const redirectTo = `${origin}/auth/callback?next=/accept-invite/${invite.token}`
+  const service = createServiceClient()
+
+  const { error: inviteErr } = await service.auth.admin.inviteUserByEmail(email, {
+    redirectTo,
+    data: { full_name: data.name, club_id: club.clubId, role: data.role, invite_token: invite.token },
+  })
+
+  if (inviteErr) {
+    await supabase.from("staff_invitations").delete().eq("id", invite.id)
+    return { error: inviteErr.message }
+  }
+
   revalidatePath("/staff")
-  return { ok: true, id: staffRow?.id }
+  return { ok: true, invited: true }
 }
 
 export async function updateStaffBasicAction(staffId: string, data: {
@@ -48,14 +90,18 @@ export async function updateStaffBasicAction(staffId: string, data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.edit)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
     .from("staff")
-    .select("user_id, settings")
+    .select("user_id, role, settings")
     .eq("id", staffId)
     .eq("club_id", club.clubId)
     .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
+  // Защита от эскалации: владельца может менять только владелец, и назначить owner может только владелец
+  if (staffRow.role === "owner" && club.role !== "owner") return { error: "Нельзя изменить владельца" }
+  if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}
 
@@ -79,6 +125,7 @@ export async function updateStaffSalaryAction(staffId: string, data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.salaries)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
     .from("staff")
@@ -108,6 +155,7 @@ export async function payStaffAction(staffId: string, amount: number, note: stri
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.salaries)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
     .from("staff")
@@ -134,14 +182,16 @@ export async function updateStaffPermissionsAction(staffId: string, permissions:
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!["owner", "admin"].includes(club.role)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
     .from("staff")
-    .select("settings")
+    .select("role, settings")
     .eq("id", staffId)
     .eq("club_id", club.clubId)
     .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
+  if (staffRow.role === "owner" && club.role !== "owner") return { error: "Нельзя изменить права владельца" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}
   const { error } = await supabase.from("staff").update({
@@ -159,6 +209,17 @@ export async function updateStaffRoleAction(staffId: string, roleKey: string): P
   if (!club) return { error: "Не авторизован" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав на смену роли" }
 
+  // Fetch current role for audit log
+  const { data: current } = await supabase
+    .from("staff")
+    .select("role, user_id")
+    .eq("id", staffId)
+    .eq("club_id", club.clubId)
+    .single()
+  if (!current) return { error: "Сотрудник не найден" }
+  if (current.role === "owner" && club.role !== "owner") return { error: "Нельзя изменить роль владельца" }
+  if (roleKey === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
+
   const { error } = await supabase
     .from("staff")
     .update({ role: roleKey })
@@ -166,6 +227,21 @@ export async function updateStaffRoleAction(staffId: string, roleKey: string): P
     .eq("club_id", club.clubId)
 
   if (error) return { error: error.message }
+
+  // Write audit log
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user && current) {
+    await supabase.from("audit_logs").insert({
+      club_id:    club.clubId,
+      user_id:    user.id,
+      action:     "role_change",
+      table_name: "staff",
+      record_id:  staffId,
+      old_data:   { role: current.role, staff_user_id: current.user_id },
+      new_data:   { role: roleKey, staff_user_id: current.user_id },
+    })
+  }
+
   revalidatePath("/staff")
   revalidatePath(`/staff/${staffId}`)
   return { ok: true }
@@ -175,14 +251,16 @@ export async function updateStaffStatusAction(staffId: string, status: string): 
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.edit || club.permissions.staff.delete)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
     .from("staff")
-    .select("settings")
+    .select("role, settings")
     .eq("id", staffId)
     .eq("club_id", club.clubId)
     .single()
   if (!staffRow) return { error: "Сотрудник не найден" }
+  if (staffRow.role === "owner") return { error: "Нельзя изменить статус владельца" }
 
   const cur = (staffRow.settings as StaffSettings) ?? {}
   const { error } = await supabase.from("staff").update({

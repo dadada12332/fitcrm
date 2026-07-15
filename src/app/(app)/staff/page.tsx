@@ -8,6 +8,7 @@ export default async function StaffPage() {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
+  if (!club.permissions.staff.view) redirect("/dashboard")
 
   const [kpi, list] = await Promise.all([
     getStaffKPI(supabase, club.clubId),

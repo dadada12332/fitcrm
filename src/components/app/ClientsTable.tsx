@@ -1,12 +1,11 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Search, SlidersHorizontal, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { useEffect, useState, useCallback, useRef } from "react"
+import Link from "next/link"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowDown } from "lucide-react"
 import type { ClientRow, ClientStatus } from "@/lib/clients"
 import { ClientsFilterDrawer, type FilterSection } from "./ClientsFilterDrawer"
-
-const PAGE_SIZE = 10
 
 const statusMeta: Record<ClientStatus, { label: string; bg: string; color: string }> = {
   active:  { label: "Активный",  bg: "rgba(22,163,74,0.12)",  color: "#16a34a" },
@@ -15,86 +14,99 @@ const statusMeta: Record<ClientStatus, { label: string; bg: string; color: strin
   none:    { label: "Нет",       bg: "var(--card-2)",          color: "var(--on-dark-soft)" },
 }
 
-const genderLabel: Record<string, string> = { male: "Мужской", female: "Женский" }
-
-function fmtBirthDate(iso: string | null): string {
+function fmtDate(iso: string | null): string {
   if (!iso) return "—"
-  const [y, m, d] = iso.split("-")
-  return `${d}.${m}.${y}`
+  const d = new Date(iso)
+  return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
-function inDaysBucket(days: number | null, bucket: string): boolean {
-  if (days === null) return false
-  switch (bucket) {
-    case "0-3":  return days >= 0 && days <= 3
-    case "4-7":  return days >= 4 && days <= 7
-    case "8-14": return days >= 8 && days <= 14
-    case "14+":  return days > 14
-    default:     return false
-  }
-}
-
-function matchStatus(r: ClientRow, sel: Set<string>): boolean {
-  for (const key of sel) {
-    if (key === "active"   && r.status === "active") return true
-    if (key === "expiring" && r.status === "active" && r.daysLeft !== null && r.daysLeft <= 7) return true
-    if (key === "expired"  && r.status === "expired") return true
-    if (key === "frozen"   && r.status === "frozen") return true
-  }
-  return false
-}
-
-export function ClientsTable({ rows }: { rows: ClientRow[] }) {
+export function ClientsTable({
+  rows,
+  total,
+  page,
+  pageSize,
+  membershipNames,
+}: {
+  rows: ClientRow[]
+  total: number
+  page: number
+  pageSize: number
+  membershipNames: string[]
+}) {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [query, setQuery] = useState("")
-  const [page, setPage] = useState(0)
+
   const [filterOpen, setFilterOpen] = useState(false)
-  const [statusSet, setStatusSet] = useState<Set<string>>(new Set())
-  const [typeSet, setTypeSet] = useState<Set<string>>(() => {
-    const m = searchParams.get("membership")
-    return m ? new Set([m]) : new Set()
-  })
-  const [daysSet, setDaysSet] = useState<Set<string>>(new Set())
 
-  const typeOptions = useMemo(
-    () => Array.from(new Set(rows.map((r) => r.membership).filter((m): m is string => !!m))),
-    [rows],
-  )
-
+  const statusSet = new Set(searchParams.getAll("status"))
+  const typeSet   = new Set(searchParams.getAll("membership"))
+  const daysSet   = new Set(searchParams.getAll("days"))
+  const sort      = searchParams.get("sort") ?? ""
+  const urlQuery  = searchParams.get("q") ?? ""
   const activeFilterCount = statusSet.size + typeSet.size + daysSet.size
 
+  // Обновление URL — сервер перерисует страницу с новой выборкой.
+  const pushParams = useCallback((mutate: (p: URLSearchParams) => void, resetPage = true) => {
+    const p = new URLSearchParams(searchParams.toString())
+    mutate(p)
+    if (resetPage) p.delete("page")
+    const qs = p.toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [router, pathname, searchParams])
+
+  // ── Поиск (debounce) ──
+  const [search, setSearch] = useState(urlQuery)
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => { setSearch(urlQuery) }, [urlQuery])
+  useEffect(() => {
+    if (debounce.current) clearTimeout(debounce.current)
+    debounce.current = setTimeout(() => {
+      if (search === urlQuery) return
+      pushParams((p) => { if (search.trim()) p.set("q", search.trim()); else p.delete("q") })
+    }, 350)
+    return () => { if (debounce.current) clearTimeout(debounce.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search])
+
+  // ── Фильтры (мультивыбор через повторяющиеся параметры) ──
   function toggle(section: FilterSection, value: string) {
-    const setter = section === "status" ? setStatusSet : section === "type" ? setTypeSet : setDaysSet
-    setter((prev) => {
-      const next = new Set(prev)
-      if (next.has(value)) next.delete(value)
-      else next.add(value)
-      return next
+    const key = section === "status" ? "status" : section === "type" ? "membership" : "days"
+    pushParams((p) => {
+      const cur = p.getAll(key)
+      p.delete(key)
+      const next = cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value]
+      next.forEach((v) => p.append(key, v))
     })
-    setPage(0)
   }
-
   function clearFilters() {
-    setStatusSet(new Set()); setTypeSet(new Set()); setDaysSet(new Set()); setPage(0)
+    pushParams((p) => { p.delete("status"); p.delete("membership"); p.delete("days") })
   }
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return rows.filter((r) => {
-      if (q && !(r.name.toLowerCase().includes(q) || (r.phone ?? "").toLowerCase().includes(q))) return false
-      if (statusSet.size && !matchStatus(r, statusSet)) return false
-      if (typeSet.size && !(r.membership && typeSet.has(r.membership))) return false
-      if (daysSet.size && !Array.from(daysSet).some((b) => inDaysBucket(r.daysLeft, b))) return false
-      return true
-    })
-  }, [rows, query, statusSet, typeSet, daysSet])
+  // ── Сортировка (серверная, в URL) ──
+  function toggleSort(asc: string, desc: string) {
+    pushParams((p) => {
+      if (sort === asc) p.set("sort", desc)
+      else if (sort === desc) p.delete("sort")
+      else p.set("sort", asc)
+    }, false)
+  }
+  function SortIcon({ asc, desc }: { asc: string; desc: string }) {
+    if (sort === asc) return <ArrowUp className="w-3 h-3 inline ml-1" />
+    if (sort === desc) return <ArrowDown className="w-3 h-3 inline ml-1" />
+    return null
+  }
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  // ── Пагинация ──
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const current = Math.min(page, pageCount - 1)
-  const pageRows = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
+  function goTo(p: number) {
+    pushParams((sp) => { if (p <= 0) sp.delete("page"); else sp.set("page", String(p)) }, false)
+  }
+  const from = total === 0 ? 0 : current * pageSize + 1
+  const to = Math.min(total, current * pageSize + rows.length)
 
-  const cols = "minmax(160px,1.1fr) minmax(160px,1fr) minmax(110px,0.9fr) minmax(110px,0.9fr) minmax(140px,1fr) minmax(120px,1fr) minmax(110px,0.9fr)"
+  const cols = "minmax(140px,1.2fr) minmax(130px,1fr) minmax(130px,1fr) minmax(110px,0.9fr) minmax(140px,1fr) minmax(120px,0.9fr) minmax(110px,0.9fr) minmax(90px,0.7fr)"
 
   return (
     <div className="rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
@@ -105,8 +117,8 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
           <div className="relative min-w-[160px] flex-1 sm:flex-none">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
             <input
-              value={query}
-              onChange={(e) => { setQuery(e.target.value); setPage(0) }}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск"
               className="h-9 w-full sm:w-[200px] pl-9 pr-3 rounded-md text-sm outline-none"
               style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
@@ -129,50 +141,67 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
         </div>
       </div>
 
-      {/* Header row */}
-      <div className="grid items-center px-6 h-12 text-sm"
-        style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
-        <span>Клиент</span>
-        <span>Телефон</span>
-        <span>Дата рожд.</span>
-        <span>Пол</span>
-        <span>Абонемент</span>
-        <span>Источник</span>
-        <span className="text-right">Статус</span>
-      </div>
+      {/* Table wrapper */}
+      <div className="overflow-x-auto">
+        {/* Header row */}
+        <div className="grid items-center px-6 h-12 text-sm min-w-[960px]"
+          style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
+          <button onClick={() => toggleSort("name_asc", "name_desc")} className="text-left flex items-center hover:text-[var(--on-dark)] transition-colors">
+            Имя <SortIcon asc="name_asc" desc="name_desc" />
+          </button>
+          <span>Телефон</span>
+          <span>Абонемент</span>
+          <span>Статус</span>
+          <span>Последнее посещение</span>
+          <span>Осталось посещений</span>
+          <span>Источник</span>
+          <button onClick={() => toggleSort("debt_asc", "debt_desc")} className="text-right flex items-center justify-end hover:text-[var(--on-dark)] transition-colors">
+            Долг <SortIcon asc="debt_asc" desc="debt_desc" />
+          </button>
+        </div>
 
-      {/* Data rows */}
-      {pageRows.length === 0 ? (
-        <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Клиенты не найдены</div>
-      ) : (
-        pageRows.map((r) => {
-          const sm = statusMeta[r.status]
-          return (
-            <div
-              key={r.id}
-              onClick={() => router.push(`/clients/${r.id}`)}
-              className="group grid items-center px-6 text-sm cursor-pointer transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:shadow-[inset_3px_0_0_#2563eb]"
-              style={{ gridTemplateColumns: cols, height: 65, borderBottom: "1px solid var(--border-subtle)" }}
-            >
-              <span className="font-medium truncate transition-colors text-[var(--on-dark)] group-hover:text-[#2563eb]">{r.name}</span>
-              <span style={{ color: "var(--on-dark-soft)" }}>{r.phone ?? "—"}</span>
-              <span style={{ color: "var(--on-dark-soft)" }}>{fmtBirthDate(r.birthDate)}</span>
-              <span style={{ color: "var(--on-dark-soft)" }}>{r.gender ? genderLabel[r.gender] ?? "—" : "—"}</span>
-              <span style={{ color: "var(--on-dark-soft)" }}>{r.membership ?? "—"}</span>
-              <span style={{ color: "var(--on-dark-soft)" }}>{r.source ?? "—"}</span>
-              <span className="flex justify-end">
-                <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: sm.bg, color: sm.color }}>
-                  {sm.label}
+        {/* Data rows */}
+        {rows.length === 0 ? (
+          <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>
+            {urlQuery || activeFilterCount > 0 ? "Клиенты не найдены" : "Пока нет клиентов"}
+          </div>
+        ) : (
+          rows.map((r) => {
+            const sm = statusMeta[r.status] ?? statusMeta.none
+            return (
+              <Link
+                key={r.id}
+                href={`/clients/${r.id}`}
+                className="group grid items-center px-6 text-sm cursor-pointer transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:shadow-[inset_3px_0_0_#2563eb] min-w-[960px] focus-visible:outline-none focus-visible:shadow-[inset_3px_0_0_#2563eb] focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-800/80"
+                style={{ gridTemplateColumns: cols, height: 65, borderBottom: "1px solid var(--border-subtle)" }}
+              >
+                <span className="font-medium truncate transition-colors text-[var(--on-dark)] group-hover:text-[#2563eb]">{r.name}</span>
+                <span style={{ color: "var(--on-dark-soft)" }}>{r.phone ?? "—"}</span>
+                <span className="truncate" style={{ color: "var(--on-dark-soft)" }}>{r.membership ?? "—"}</span>
+                <span>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: sm.bg, color: sm.color }}>
+                    {sm.label}
+                  </span>
                 </span>
-              </span>
-            </div>
-          )
-        })
-      )}
+                <span style={{ color: "var(--on-dark-soft)" }} suppressHydrationWarning>{fmtDate(r.lastVisit)}</span>
+                <span style={{ color: r.visitsLeft !== null && r.visitsLeft <= 2 ? "#dc2626" : "var(--on-dark-soft)" }}>
+                  {r.visitsLeft !== null ? r.visitsLeft : "—"}
+                </span>
+                <span style={{ color: "var(--on-dark-soft)" }}>{r.source ?? "—"}</span>
+                <span className="text-right font-medium" style={{ color: r.debt > 0 ? "#dc2626" : "var(--on-dark-soft)" }}>
+                  {r.debt > 0 ? `${r.debt.toLocaleString("ru-RU")} сум` : "—"}
+                </span>
+              </Link>
+            )
+          })
+        )}
+      </div>
 
       {/* Pagination */}
       <div className="flex items-center justify-between px-6 py-4">
-        <span className="text-sm" style={{ color: "var(--gray-muted)" }}>{filtered.length} клиентов</span>
+        <span className="text-sm" style={{ color: "var(--gray-muted)" }}>
+          {total === 0 ? "0 клиентов" : `${from}–${to} из ${total.toLocaleString("ru-RU")}`}
+        </span>
         <div className="flex items-center gap-4">
           <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Стр {current + 1} из {pageCount}</span>
           <div className="flex items-center gap-1">
@@ -181,10 +210,10 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
               { icon: ChevronLeft,   to: current - 1,    dis: current === 0 },
               { icon: ChevronRight,  to: current + 1,    dis: current >= pageCount - 1 },
               { icon: ChevronsRight, to: pageCount - 1,  dis: current >= pageCount - 1 },
-            ].map(({ icon: Icon, to, dis }, i) => (
+            ].map(({ icon: Icon, to: dest, dis }, i) => (
               <button
                 key={i}
-                onClick={() => setPage(to)}
+                onClick={() => goTo(dest)}
                 disabled={dis}
                 className="w-8 h-8 flex items-center justify-center rounded-md disabled:opacity-40 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
                 style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
@@ -202,7 +231,7 @@ export function ClientsTable({ rows }: { rows: ClientRow[] }) {
         status={statusSet}
         type={typeSet}
         days={daysSet}
-        typeOptions={typeOptions}
+        typeOptions={membershipNames}
         onToggle={toggle}
         onClear={clearFilters}
       />

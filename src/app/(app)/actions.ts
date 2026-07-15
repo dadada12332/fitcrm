@@ -1,5 +1,6 @@
 "use server"
 
+import { sanitizeSearchTerm } from "@/lib/search"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 
@@ -21,7 +22,7 @@ export type AppNotification = {
 
 export async function globalSearchAction(query: string): Promise<GlobalSearchResult[]> {
   const q = query.trim()
-  if (q.length < 2) return []
+  if (q.length < 1) return []
 
   const supabase = await createClient()
   const club = await getCurrentClub()
@@ -31,7 +32,7 @@ export async function globalSearchAction(query: string): Promise<GlobalSearchRes
     .from("clients")
     .select("id, full_name, phone, subscriptions(status, memberships(name))")
     .eq("club_id", club.clubId)
-    .or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`)
+    .or(`full_name.ilike.%${sanitizeSearchTerm(q)}%,phone.ilike.%${sanitizeSearchTerm(q)}%`)
     .limit(8)
 
   return (data ?? []).map((c) => {
@@ -123,6 +124,76 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
   return result
 }
 
+// ── Заявки клуба (для 2-й вкладки уведомлений) ───────────────────────
+export type AppRequest = {
+  id: string
+  kind: "payment" | "billing"
+  title: string
+  status: string
+  statusLabel: string
+  statusColor: string
+  createdAt: string
+}
+
+const PLAN_LABELS: Record<string, string> = { starter: "Старт", standard: "Стандарт", business: "Бизнес", trial: "Пробный" }
+
+function requestStatusMeta(kind: "payment" | "billing", status: string): { statusLabel: string; statusColor: string } {
+  const done = kind === "payment" ? "active" : "approved"
+  if (status === done) return { statusLabel: kind === "payment" ? "Подключено" : "Одобрено", statusColor: "#16a34a" }
+  if (status === "rejected") return { statusLabel: "Отклонено", statusColor: "#dc2626" }
+  if (status === "cancelled") return { statusLabel: "Отменено", statusColor: "var(--gray-muted)" }
+  return { statusLabel: "На рассмотрении", statusColor: "#d97706" } // new / pending
+}
+
+export async function getRequestsAction(): Promise<AppRequest[]> {
+  const club = await getCurrentClub()
+  if (!club) return []
+  const supabase = await createClient()
+
+  const [pcr, pbr] = await Promise.all([
+    supabase.from("payment_connection_requests")
+      .select("id, provider, status, created_at").eq("club_id", club.clubId)
+      .order("created_at", { ascending: false }).limit(20),
+    supabase.from("platform_billing_requests")
+      .select("id, plan, months, amount, status, created_at").eq("club_id", club.clubId)
+      .order("created_at", { ascending: false }).limit(20),
+  ])
+
+  const out: AppRequest[] = []
+  for (const r of pcr.data ?? []) {
+    out.push({
+      id: `pcr-${r.id}`, kind: "payment",
+      title: `Подключение ${r.provider === "click" ? "Click" : "Payme"}`,
+      status: r.status, ...requestStatusMeta("payment", r.status), createdAt: r.created_at,
+    })
+  }
+  for (const r of pbr.data ?? []) {
+    const months = Number(r.months) || 1
+    out.push({
+      id: `pbr-${r.id}`, kind: "billing",
+      title: `Тариф «${PLAN_LABELS[r.plan] ?? r.plan}»${months > 1 ? ` · ${months} мес` : ""}`,
+      status: r.status, ...requestStatusMeta("billing", r.status), createdAt: r.created_at,
+    })
+  }
+  return out.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+// ── Quick actions: memberships for client/payment forms ──────────────
+export type QuickMembership = { id: string; name: string; price: number }
+
+export async function getMembershipsForDrawer(): Promise<QuickMembership[]> {
+  const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) return []
+  const { data } = await supabase
+    .from("memberships")
+    .select("id, name, price")
+    .eq("club_id", club.clubId)
+    .eq("is_active", true)
+    .order("name")
+  return (data ?? []).map((m) => ({ id: m.id, name: m.name, price: m.price ?? 0 }))
+}
+
 // ── Branch switcher ────────────────────────────────────────────────
 export type Branch = { clubId: string; name: string; plan: string; role: string }
 
@@ -145,8 +216,28 @@ export async function getBranchesAction(): Promise<Branch[]> {
   }))
 }
 
-export async function switchBranchAction(clubId: string): Promise<void> {
+export async function switchBranchAction(clubId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+
+  // Verify the requesting user actually belongs to this club
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("club_id", clubId)
+    .eq("is_active", true)
+    .maybeSingle()
+
+  if (!staffRow) return { error: "Нет доступа к этому клубу" }
+
   const { cookies } = await import("next/headers")
   const store = await cookies()
   store.set("selected_club_id", clubId, { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" })
+  // Явный выбор своего клуба ВСЕГДА выходит из режима impersonation —
+  // иначе pa_impersonate (у него приоритет в getCurrentClub) продолжил бы
+  // показывать данные чужого клуба поверх выбранного. Критично для изоляции.
+  store.set("pa_impersonate", "", { path: "/", maxAge: 0 })
+  return {}
 }

@@ -1,0 +1,21 @@
+import { chromium } from 'playwright';
+const PROD='https://fitcrm-three.vercel.app';
+const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:1440,height:900}}); const p=await ctx.newPage();
+p.setDefaultNavigationTimeout(60000); p.setDefaultTimeout(60000);
+const err=[]; p.on('pageerror',e=>err.push(e.message.slice(0,50)));
+await p.goto(`${PROD}/login`,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(2500);
+await p.fill('input[name=email]','qa.autotest@fitcrm.uz'); await p.fill('input[name=password]','QaTest-2026x');
+await p.getByRole('button',{name:/^Войти/}).click(); await p.waitForTimeout(4500);
+await p.goto(`${PROD}/reports`,{waitUntil:'commit'});
+await p.waitForFunction(()=>/Финансы/.test(document.body.innerText),{timeout:50000}).catch(()=>{});
+await p.getByRole('button',{name:/^Финансы$/}).click().catch(()=>{});
+await p.waitForFunction(()=>/Средний чек|Выручка/.test(document.body.innerText),{timeout:30000}).catch(()=>{});
+await p.waitForTimeout(2500);
+const grab=()=>p.locator('body').innerText();
+let t=await grab();
+// Выручка KPI value is the first "N сум" after "Выручка"
+const m30=t.match(/Выручка\s*([\d\s]+)\s*сум/); console.log('Finance 30d Выручка:', m30?m30[1].replace(/\s+/g,''):'?', '(expect 119200000)');
+await p.getByRole('button',{name:/^Год$/}).click(); await p.waitForFunction(()=>/1[\s ]?4/.test(document.body.innerText),{timeout:20000}).catch(()=>{}); await p.waitForTimeout(2500);
+t=await grab(); const mY=t.match(/Выручка\s*([\d\s]+)\s*сум/); console.log('Finance year Выручка:', mY?mY[1].replace(/\s+/g,''):'?', '(expect 1416225000)');
+console.log('svg charts:', await p.locator('svg').count(), '| pageerrors:', JSON.stringify([...new Set(err)]));
+await b.close();

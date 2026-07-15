@@ -28,7 +28,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   }))
 
   return (
-    <div className="p-6">
+    <div className="space-y-5">
       <StaffProfileClient
         member={member}
         roles={roles}

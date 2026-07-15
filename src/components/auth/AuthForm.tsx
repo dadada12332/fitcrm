@@ -73,7 +73,7 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
 /* ─── Main form ─── */
 type Method = "email" | "phone"
 
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
+export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: string }) {
   const isLogin = mode === "login"
   const action = isLogin ? signIn : signUp
   const [emailState, formAction, emailPending] = useActionState<AuthState, FormData>(action, {})
@@ -157,6 +157,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       {/* ── Email / password ── */}
       {method === "email" && (
         <form action={formAction} className="flex flex-col gap-4">
+          {next && <input type="hidden" name="next" value={next} />}
           <div>
             <label className="block text-xs mb-2 uppercase tracking-wider" style={{ color: "var(--on-dark-soft)" }}>Email</label>
             <Input name="email" type="email" placeholder="you@example.com" autoComplete="email" required />
@@ -256,7 +257,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
       <p className="text-sm mt-6 text-center" style={{ color: "var(--on-dark-soft)" }}>
         {isLogin ? "Нет аккаунта? " : "Уже есть аккаунт? "}
-        <Link href={isLogin ? "/register" : "/login"} className="font-semibold" style={{ color: "var(--orange)" }}>
+        <Link
+          href={isLogin
+            ? `/register${next ? `?next=${encodeURIComponent(next)}` : ""}`
+            : `/login${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+          className="font-semibold"
+          style={{ color: "var(--orange)" }}
+        >
           {isLogin ? "Регистрация" : "Вход"}
         </Link>
       </p>

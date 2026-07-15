@@ -1,5 +1,6 @@
 import { cache } from "react"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { cookies } from "next/headers"
 import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions } from "@/lib/permissions"
@@ -10,6 +11,7 @@ export type CurrentClub = {
   clubName: string
   plan: string
   permissions: RolePermissions
+  impersonating?: boolean
 } | null
 
 export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub> => {
@@ -23,6 +25,34 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
   }
 
   const cookieStore = await cookies()
+
+  // ── Режим администратора платформы (impersonation) ──
+  // Если стоит cookie pa_impersonate И текущий пользователь — админ платформы,
+  // загружаем целевой клуб через service-role (bypass RLS) с правами владельца.
+  const impersonateId = cookieStore.get("pa_impersonate")?.value
+  if (impersonateId) {
+    try {
+      const service = createServiceClient()
+      const { data: u } = await service.from("users").select("platform_role").eq("id", uid).maybeSingle()
+      const isAdmin = u?.platform_role === "platform_admin" || u?.platform_role === "super_admin"
+      if (isAdmin) {
+        const { data: club } = await service.from("clubs").select("name, plan").eq("id", impersonateId).maybeSingle()
+        if (club) {
+          return {
+            clubId: impersonateId,
+            role: "owner",
+            clubName: club.name,
+            plan: club.plan ?? "",
+            permissions: getDefaultPermissions("owner"),
+            impersonating: true,
+          }
+        }
+      }
+    } catch {
+      // колонка platform_role отсутствует — игнорируем impersonation
+    }
+  }
+
   const selectedClubId = cookieStore.get("selected_club_id")?.value
 
   let query = supabase

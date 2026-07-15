@@ -8,12 +8,14 @@ import { getActiveMemberships } from "@/lib/memberships"
 import { ClientProfileCard } from "@/components/app/ClientProfileCard"
 import { ClientProfileTabs } from "@/components/app/ClientProfileTabs"
 import { AddClientButton } from "@/components/app/AddClientButton"
+import { EditClientButton } from "@/components/app/EditClientButton"
 
 export default async function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
+  if (!club.permissions.clients.view) redirect("/dashboard")
   const [client, memberships] = await Promise.all([
     getClientProfile(supabase, id, club.clubId),
     getActiveMemberships(supabase, club.clubId),
@@ -37,19 +39,28 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             {client.phone && (
               <>
                 <span>•</span>
-                {client.phone}
-                <Phone className="w-3.5 h-3.5" />
+                <a
+                  href={`tel:${client.phone}`}
+                  className="flex items-center gap-1 underline underline-offset-2 hover:opacity-80 transition-opacity"
+                  style={{ color: "#2563eb" }}
+                >
+                  {client.phone}
+                  <Phone className="w-3.5 h-3.5" />
+                </a>
               </>
             )}
           </p>
         </div>
-        <AddClientButton memberships={memberships} />
+        <div className="flex items-center gap-2">
+          <EditClientButton client={client} />
+          <AddClientButton memberships={memberships} />
+        </div>
       </div>
 
       {/* Body */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-5 items-start">
         <ClientProfileTabs client={client} />
-        <ClientProfileCard client={client} />
+        <ClientProfileCard client={client} memberships={memberships} />
       </div>
     </div>
   )

@@ -4,22 +4,25 @@ import { useState, useMemo, useTransition } from "react"
 import Link from "next/link"
 import { Search, Plus, Users, UserCheck, Wallet, ChevronRight } from "lucide-react"
 import { type StaffRow, type StaffKPI, ROLE_LABELS } from "@/lib/staff"
+import { toast } from "@/lib/use-action"
 import { addStaffAction } from "@/app/(app)/staff/actions"
+import { MoneyInput } from "./MoneyInput"
 
 // ── Helpers ──────────────────────────────────────────────────────
 
 function fmt(n: number) { return n.toLocaleString("ru-RU") }
 
 const STATUS_META = {
-  active:   { label: "Активен",  bg: "#dcfce7", color: "#16a34a" },
-  vacation: { label: "Отпуск",   bg: "#fef9c3", color: "#ca8a04" },
-  fired:    { label: "Уволен",   bg: "#fee2e2", color: "#dc2626" },
+  active:   { label: "Активен",  bg: "rgba(22,163,74,0.14)", color: "#16a34a" },
+  vacation: { label: "Отпуск",   bg: "rgba(202,138,4,0.14)", color: "#ca8a04" },
+  fired:    { label: "Уволен",   bg: "rgba(220,38,38,0.14)", color: "#dc2626" },
 }
 
 
 // ── Add Staff Modal ───────────────────────────────────────────────
 
 const SALARY_TYPES = [
+  { key: "none",    label: "Без зарплаты" },
   { key: "fixed",   label: "Фикс" },
   { key: "percent", label: "Процент" },
   { key: "mixed",   label: "Фикс + Процент" },
@@ -44,7 +47,14 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
         name: name.trim(), email: email.trim(), phone: phone.trim(), role,
         salaryType: salType, salaryFixed: Number(fixed) || 0, salaryPercent: Number(pct) || 0,
       })
-      if (res.error) { setError(res.error); return }
+      if (res.error) { setError(res.error); toast.error(res.error); return }
+      if (res.invited) {
+        // New user — invite sent, they'll appear in the list after accepting
+        toast.success(`Приглашение отправлено на ${email.trim()}`)
+        onClose()
+        return
+      }
+      toast.success("Сотрудник добавлен")
       onAdded({ id: res.id, name: name.trim(), email: email.trim(), role, status: "active", clientCount: 0, revenue: 0, salary: Number(fixed) || 0, settings: {} })
       onClose()
     })
@@ -54,13 +64,13 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
   const inpStyle = { border: "1.5px solid var(--border)", color: "var(--on-dark)" }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
-      <div className="w-full max-w-md rounded-lg overflow-hidden" style={{ background: "var(--card)", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-        <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-          <h2 className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>Добавить сотрудника</h2>
+    <div className="fixed inset-0 z-[200] flex justify-end" onClick={onClose} style={{ background: "rgba(2,6,23,0.4)" }}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md h-full flex flex-col" style={{ background: "var(--card)", borderLeft: "1px solid var(--border)", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }}>
+        <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+          <h2 className="text-lg font-semibold" style={{ color: "var(--on-dark)" }}>Добавить сотрудника</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ color: "var(--gray-muted)" }}>✕</button>
         </div>
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="block text-xs font-medium mb-1" style={{ color: "var(--on-dark-soft)" }}>Имя и фамилия</label>
@@ -98,10 +108,10 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
 
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Тип зарплаты</label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {SALARY_TYPES.map(({ key, label }) => (
                 <button key={key} type="button" onClick={() => setSalType(key)}
-                  className="flex-1 h-9 rounded-lg text-xs font-medium transition-all"
+                  className="h-9 rounded-lg text-xs font-medium transition-all"
                   style={{
                     border: `1.5px solid ${salType === key ? "#2563eb" : "var(--border)"}`,
                     background: salType === key ? "rgba(37,99,235,0.12)" : "var(--card)",
@@ -116,8 +126,8 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
           <div className="grid grid-cols-2 gap-3">
             {(salType === "fixed" || salType === "mixed") && (
               <div className={salType === "fixed" ? "col-span-2" : ""}>
-                <label className="block text-xs font-medium mb-1" style={{ color: "var(--on-dark-soft)" }}>Фикс (сум)</label>
-                <input value={fixed} onChange={(e) => setFixed(e.target.value)} placeholder="4 000 000" type="number"
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--on-dark-soft)" }}>Фикс</label>
+                <MoneyInput value={fixed} onChange={(n) => setFixed(String(n))} placeholder="4 000 000"
                   className={inp} style={inpStyle} />
               </div>
             )}

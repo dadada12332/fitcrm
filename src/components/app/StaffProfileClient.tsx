@@ -15,6 +15,7 @@ import {
   updateStaffStatusAction,
   updateStaffRoleAction,
 } from "@/app/(app)/staff/actions"
+import { MoneyInput } from "./MoneyInput"
 
 type SimpleRole = { id: string; key: string; name: string; isSystem: boolean }
 
@@ -27,9 +28,9 @@ function fmtDate(iso?: string) {
 }
 
 const STATUS_META = {
-  active:   { label: "Активен",  bg: "#dcfce7", color: "#16a34a" },
-  vacation: { label: "Отпуск",   bg: "#fef9c3", color: "#ca8a04" },
-  fired:    { label: "Уволен",   bg: "#fee2e2", color: "#dc2626" },
+  active:   { label: "Активен",  bg: "rgba(22,163,74,0.14)", color: "#16a34a" },
+  vacation: { label: "Отпуск",   bg: "rgba(202,138,4,0.14)", color: "#ca8a04" },
+  fired:    { label: "Уволен",   bg: "rgba(220,38,38,0.14)", color: "#dc2626" },
 }
 
 const DAY_LABELS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"]
@@ -313,7 +314,7 @@ function ClientsSection({ member }: { member: StaffDetail }) {
                     <td className="px-2 py-3" style={{ color: "var(--on-dark-soft)" }}>{c.membershipName ?? "—"}</td>
                     <td className="px-2 py-3">
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: c.status === "active" ? "#dcfce7" : "var(--card-2)", color: c.status === "active" ? "#16a34a" : "var(--on-dark-soft)" }}>
+                        style={{ background: c.status === "active" ? "rgba(22,163,74,0.14)" : "var(--card-2)", color: c.status === "active" ? "#16a34a" : "var(--on-dark-soft)" }}>
                         {c.status === "active" ? "Активен" : c.status === "expired" ? "Истёк" : c.status}
                       </span>
                     </td>
@@ -364,7 +365,7 @@ function ScheduleSection({ member }: { member: StaffDetail }) {
 
 function SalarySection({ member }: { member: StaffDetail }) {
   const s = member.settings
-  const [salType, setSalType]   = useState<"fixed" | "percent" | "mixed">(s.salary_type ?? "fixed")
+  const [salType, setSalType]   = useState<"none" | "fixed" | "percent" | "mixed">(s.salary_type ?? "fixed")
   const [fixed, setFixed]       = useState(String(s.salary_fixed ?? member.salary ?? 0))
   const [pct, setPct]           = useState(String(s.salary_percent ?? 20))
   const [payAmount, setPayAmount] = useState(String(s.salary_fixed ?? member.salary ?? 0))
@@ -380,7 +381,7 @@ function SalarySection({ member }: { member: StaffDetail }) {
   const pctNum    = Number(pct) || 0
   const revenue   = member.personalRevenue || 0
   const pctAmount = Math.round(revenue * pctNum / 100)
-  const total     = salType === "fixed" ? fixedNum : salType === "percent" ? pctAmount : fixedNum + pctAmount
+  const total     = salType === "none" ? 0 : salType === "fixed" ? fixedNum : salType === "percent" ? pctAmount : fixedNum + pctAmount
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -400,6 +401,7 @@ function SalarySection({ member }: { member: StaffDetail }) {
   }
 
   const SALARY_TYPES = [
+    { key: "none",    label: "Без зарплаты" },
     { key: "fixed",   label: "Фикс" },
     { key: "percent", label: "Процент" },
     { key: "mixed",   label: "Фикс + Процент" },
@@ -412,10 +414,10 @@ function SalarySection({ member }: { member: StaffDetail }) {
           <div className="space-y-5">
             <div>
               <label className="block text-xs font-medium mb-2" style={{ color: "var(--on-dark-soft)" }}>Тип оплаты</label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {SALARY_TYPES.map(({ key, label }) => (
-                  <button key={key} type="button" onClick={() => setSalType(key as "fixed" | "percent" | "mixed")}
-                    className="flex-1 h-9 rounded-lg text-xs font-medium transition-all"
+                  <button key={key} type="button" onClick={() => setSalType(key as "none" | "fixed" | "percent" | "mixed")}
+                    className="h-9 rounded-lg text-xs font-medium transition-all"
                     style={{
                       border: `1.5px solid ${salType === key ? "#2563eb" : "var(--border)"}`,
                       background: salType === key ? "rgba(37,99,235,0.12)" : "var(--card)",
@@ -430,8 +432,8 @@ function SalarySection({ member }: { member: StaffDetail }) {
             <div className="grid grid-cols-2 gap-4">
               {(salType === "fixed" || salType === "mixed") && (
                 <div>
-                  <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Фикс (сум)</label>
-                  <input value={fixed} onChange={(e) => setFixed(e.target.value)} type="number" placeholder="4 000 000"
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Фикс</label>
+                  <MoneyInput value={fixed} onChange={(n) => setFixed(String(n))} placeholder="4 000 000"
                     className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
                 </div>
               )}
@@ -479,7 +481,7 @@ function SalarySection({ member }: { member: StaffDetail }) {
       </div>
 
       {showPay && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(2,6,23,0.4)" }}>
           <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "var(--card)" }}>
             <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
               <h2 className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>Выплата зарплаты</h2>
@@ -487,8 +489,8 @@ function SalarySection({ member }: { member: StaffDetail }) {
             </div>
             <form onSubmit={handlePay} className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Сумма (сум)</label>
-                <input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} type="number"
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Сумма</label>
+                <MoneyInput value={payAmount} onChange={(n) => setPayAmount(String(n))}
                   className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
               </div>
               <div>

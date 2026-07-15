@@ -1,13 +1,13 @@
-import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
-import { getReportsData } from "@/lib/reports"
-import { ReportsClient } from "@/components/app/ReportsClient"
+import { ReportsShell } from "./ReportsShell"
 import { redirect } from "next/navigation"
 
 export default async function ReportsPage() {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
-  const data = await getReportsData(supabase, club.clubId)
-  return <ReportsClient data={data} />
+  if (!club.permissions.reports.view) redirect("/dashboard")
+
+  // Auth check only — heavy data is loaded client-side in ReportsShell
+  // This makes the initial page render instant (~50ms) vs 2-3s with SSR data fetch
+  return <ReportsShell />
 }

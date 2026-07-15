@@ -15,7 +15,7 @@ type Props = {
   churnCount: number
 }
 
-const PERIODS: PeriodKey[] = ["1Ч", "1Д", "7Д", "1М"]
+const PERIODS: PeriodKey[] = ["Сегодня", "7Д", "30Д", "3М", "Год"]
 
 function pct(curr: number, prev: number) {
   if (!prev) return curr > 0 ? 100 : 0
@@ -47,7 +47,7 @@ export function DashboardKPIs({
   expiringCount,
   churnCount,
 }: Props) {
-  const [period, setPeriod] = useState<PeriodKey>("1Д")
+  const [period, setPeriod] = useState<PeriodKey>("Сегодня")
   const cur = periods[period]
 
   const revPct = pct(cur.revenue, cur.prevRevenue)
@@ -78,7 +78,7 @@ export function DashboardKPIs({
         {/* Выручка */}
         <div className="rounded-lg p-5 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#eff6ff" }}>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(37,99,235,0.1)" }}>
               <DollarSign className="w-4 h-4" style={{ color: "#2563eb" }} />
             </div>
             <Trend value={revPct} />
@@ -88,7 +88,7 @@ export function DashboardKPIs({
               {Math.round(cur.revenue).toLocaleString("ru-RU")}
             </p>
             <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>
-              Выручка · {period === "1Д" ? "сегодня" : `за ${cur.unit}`}
+              Выручка · {period === "Сегодня" ? "сегодня" : `за ${cur.unit}`}
             </p>
           </div>
         </div>
@@ -96,7 +96,7 @@ export function DashboardKPIs({
         {/* Клиенты */}
         <div className="rounded-lg p-5 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#f0fdf4" }}>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(22,163,74,0.1)" }}>
               <Users className="w-4 h-4" style={{ color: "#16a34a" }} />
             </div>
             <Trend value={clientPct} />
@@ -136,14 +136,14 @@ export function DashboardKPIs({
           <div className="flex items-center justify-between">
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ background: alertsCount > 0 ? "#fef3c7" : "var(--card-2)" }}
+              style={{ background: alertsCount > 0 ? "rgba(217,119,6,0.14)" : "var(--card-2)" }}
             >
               <AlertTriangle className="w-4 h-4" style={{ color: alertsCount > 0 ? "#d97706" : "var(--on-dark-soft)" }} />
             </div>
             {alertsCount > 0 && (
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: "#fef3c7", color: "#d97706" }}
+                style={{ background: "rgba(217,119,6,0.14)", color: "#d97706" }}
               >
                 Внимание
               </span>

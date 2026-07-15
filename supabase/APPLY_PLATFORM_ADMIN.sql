@@ -1,0 +1,66 @@
+-- ============================================================
+-- Запустить ОДИН РАЗ в Supabase → SQL Editor → Run
+-- Проект: bqnhslauxvukejtquavp
+-- Platform Admin (admin.fitcrm.uz). Идемпотентно — безопасно повторно.
+-- ============================================================
+
+alter table public.users
+  add column if not exists platform_role text
+    check (platform_role in ('platform_admin','super_admin'));
+
+alter table public.clubs
+  add column if not exists status         text not null default 'active'
+    check (status in ('active','suspended','deleted')),
+  add column if not exists health_score   int,
+  add column if not exists admin_notes    text,
+  add column if not exists suspended_at   timestamptz;
+
+create table if not exists public.platform_admin_logs (
+  id          uuid primary key default gen_random_uuid(),
+  admin_id    uuid references public.users(id) on delete set null,
+  admin_email text,
+  action      text not null,
+  club_id     uuid references public.clubs(id) on delete set null,
+  target_user uuid references public.users(id) on delete set null,
+  meta        jsonb not null default '{}',
+  ip          text,
+  user_agent  text,
+  created_at  timestamptz not null default now()
+);
+create index if not exists idx_pa_logs_created on public.platform_admin_logs(created_at desc);
+create index if not exists idx_pa_logs_club    on public.platform_admin_logs(club_id);
+alter table public.platform_admin_logs enable row level security;
+
+create table if not exists public.platform_promo_codes (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  description text not null default '',
+  discount_pct int,
+  free_days int,
+  max_uses int,
+  used_count int not null default 0,
+  expires_at timestamptz,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.platform_promo_codes enable row level security;
+
+create table if not exists public.platform_tickets (
+  id uuid primary key default gen_random_uuid(),
+  club_id uuid references public.clubs(id) on delete set null,
+  user_id uuid references public.users(id) on delete set null,
+  subject text not null,
+  body text not null default '',
+  status text not null default 'open' check (status in ('open','pending','closed')),
+  priority text not null default 'normal' check (priority in ('low','normal','high','urgent')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_tickets_status on public.platform_tickets(status);
+alter table public.platform_tickets enable row level security;
+
+-- Назначить супер-админа платформы:
+update public.users set platform_role = 'super_admin' where email = 'opadasebe@gmail.com';
+
+-- Проверка:
+-- select email, platform_role from public.users where platform_role is not null;

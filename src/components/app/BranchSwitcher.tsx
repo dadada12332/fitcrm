@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { Building2, Check, Plus, ChevronsUpDown } from "lucide-react"
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 
@@ -23,7 +22,6 @@ export function BranchSwitcher({ clubId, clubName, collapsed = false }: Props) {
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(false)
   const [, startTransition] = useTransition()
-  const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
 
   // Close on outside click
@@ -52,7 +50,10 @@ export function BranchSwitcher({ clubId, clubName, collapsed = false }: Props) {
     setOpen(false)
     startTransition(async () => {
       await switchBranchAction(branch.clubId)
-      router.refresh()
+      // Полная перезагрузка (не router.refresh): смена клуба обязана сбросить
+      // клиентский Router Cache целиком, иначе префетч-страницы прошлого клуба
+      // «протекают» в новый (критично для изоляции данных между клубами).
+      window.location.assign("/dashboard")
     })
   }
 

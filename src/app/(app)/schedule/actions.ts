@@ -8,21 +8,17 @@ export type ClassFormState = { error?: string; ok?: boolean }
 export type ActionResult = { error?: string; ok?: boolean }
 
 export async function createClassAction(_prev: ClassFormState, formData: FormData): Promise<ClassFormState> {
-  const title = String(formData.get("title") ?? "").trim()
+  // Все поля необязательные — подставляем разумные значения по умолчанию.
+  const title = String(formData.get("title") ?? "").trim() || "Занятие"
   const trainer = String(formData.get("trainer_name") ?? "").trim()
   const roomId = String(formData.get("room_id") ?? "").trim()
-  const date = String(formData.get("date") ?? "").trim()
-  const start = String(formData.get("start_time") ?? "").trim()
-  const end = String(formData.get("end_time") ?? "").trim()
-  const seats = Number(formData.get("seats_total") ?? 0)
-  const price = Number(formData.get("price") ?? 0)
-
-  if (!title) return { error: "Введите название занятия" }
-  if (!roomId) return { error: "Выберите зал" }
-  if (!date) return { error: "Укажите дату" }
-  if (!start || !end) return { error: "Укажите время начала и конца" }
-  if (!Number.isFinite(seats) || seats <= 0) return { error: "Некорректное число мест" }
-  if (!Number.isFinite(price) || price < 0) return { error: "Некорректная цена" }
+  const date = String(formData.get("date") ?? "").trim() || new Date().toISOString().slice(0, 10)
+  const start = String(formData.get("start_time") ?? "").trim() || "08:00"
+  const end = String(formData.get("end_time") ?? "").trim() || "09:00"
+  let seats = Number(formData.get("seats_total") ?? 0)
+  if (!Number.isFinite(seats) || seats <= 0) seats = 10
+  let price = Number(formData.get("price") ?? 0)
+  if (!Number.isFinite(price) || price < 0) price = 0
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
@@ -30,7 +26,7 @@ export async function createClassAction(_prev: ClassFormState, formData: FormDat
   const supabase = await createClient()
   const { error } = await supabase.from("classes").insert({
     club_id: club.clubId,
-    room_id: roomId,
+    room_id: roomId || null,
     date,
     start_time: start,
     end_time: end,

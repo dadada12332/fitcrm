@@ -16,7 +16,7 @@ type Props = {
   churnCount: number
 }
 
-const PERIODS: PeriodKey[] = ["1Ч", "1Д", "7Д", "1М"]
+const PERIODS: PeriodKey[] = ["Сегодня", "7Д", "30Д", "3М", "Год"]
 
 function pct(curr: number, prev: number) {
   if (!prev) return 0
@@ -33,7 +33,7 @@ export function StatisticsWidget({
   expiringCount,
   churnCount,
 }: Props) {
-  const [period, setPeriod] = useState<PeriodKey>("1Д")
+  const [period, setPeriod] = useState<PeriodKey>("Сегодня")
 
   const cur = periods[period]
   const todayRevenue = cur.revenue
@@ -86,7 +86,7 @@ export function StatisticsWidget({
           {/* Text */}
           <div className="flex flex-col gap-3 px-4 py-5">
             <p className="text-base font-normal leading-6" style={{ color: "var(--on-dark-soft)" }}>
-              Выручка за {period === "1Д" ? "сегодня" : cur.unit}
+              Выручка за {period === "Сегодня" ? "сегодня" : cur.unit}
             </p>
             <div className="flex items-center gap-3">
               <p className="text-4xl font-medium leading-none tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>

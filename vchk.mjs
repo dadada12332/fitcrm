@@ -1,0 +1,14 @@
+import { chromium } from 'playwright';
+const PROD='https://fitcrm-three.vercel.app';
+const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:1440,height:900}}); const p=await ctx.newPage();
+p.setDefaultNavigationTimeout(90000);
+const err=[]; p.on('pageerror',e=>err.push(e.message.slice(0,70)));
+await p.goto(`${PROD}/login`,{waitUntil:'domcontentloaded'}); await p.waitForTimeout(2000);
+await p.fill('input[name=email]','qa.autotest@fitcrm.uz'); await p.fill('input[name=password]','QaTest-2026x');
+await p.getByRole('button',{name:/^Войти/}).click(); await p.waitForTimeout(4000);
+const t0=Date.now();
+await p.goto(`${PROD}/reports`,{waitUntil:'commit'});
+const appeared=await p.getByRole('button',{name:/^Финансы$/}).waitFor({timeout:80000}).then(()=>true).catch(()=>false);
+console.log('reports UI rendered:', appeared, 'in', ((Date.now()-t0)/1000).toFixed(0),'s');
+console.log('pageerrors:', JSON.stringify([...new Set(err)]));
+await b.close();

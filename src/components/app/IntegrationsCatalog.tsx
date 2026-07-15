@@ -188,7 +188,10 @@ function IntegrationCard({ integration, status }: {
       {/* Footer button */}
       <div className="px-5 pb-5">
         {integration.available ? (
-          <Link href={`/integrations/${integration.key}`}
+          <Link
+            href={integration.key === "click" || integration.key === "payme"
+              ? "/settings/finance"                       // платёжки — через рабочий блок «Приём онлайн-оплат»
+              : `/integrations/${integration.key}`}
             className="w-full h-9 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-all hover:opacity-90"
             style={connected
               ? { background: "var(--card-2)", color: "var(--on-dark)", border: "1px solid var(--border)" }

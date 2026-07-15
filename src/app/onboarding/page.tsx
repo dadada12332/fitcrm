@@ -1,41 +1,23 @@
 import { redirect } from "next/navigation"
-import Link from "next/link"
-import { Zap } from "lucide-react"
+import { getAuthUser } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
-import { OnboardingForm } from "./OnboardingForm"
+import { OnboardingWizard } from "./OnboardingWizard"
 
 export default async function OnboardingPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const user = await getAuthUser()
   if (!user) redirect("/login")
 
-  const club = await getCurrentClub(user.id)
-  if (club) redirect("/dashboard")
+  // Прямой запрос к staff — не зависит от RPC get_layout_context
+  const supabase = await createClient()
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("club_id")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle()
 
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg)" }}>
-      <div className="w-full max-w-md">
-        <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-          <span className="w-8 h-8 rounded-md flex items-center justify-center" style={{ background: "var(--orange)" }}>
-            <Zap className="w-5 h-5 text-white" fill="white" />
-          </span>
-          <span className="text-xl text-white" style={{ fontFamily: "var(--font-display)", textTransform: "uppercase" }}>
-            FitCRM
-          </span>
-        </Link>
+  if (staffRow?.club_id) redirect("/dashboard")
 
-        <div className="rounded-3xl p-8 md:p-10" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h1 className="text-3xl mb-2" style={{ color: "var(--on-dark)" }}>Создайте клуб</h1>
-          <p className="text-sm mb-8" style={{ color: "var(--on-dark-soft)" }}>
-            Один шаг до старта — добавьте свой фитнес-клуб.
-          </p>
-          <OnboardingForm />
-        </div>
-      </div>
-    </div>
-  )
+  return <OnboardingWizard clubName="" />
 }

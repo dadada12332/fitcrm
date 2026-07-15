@@ -91,7 +91,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
 
           {msg && (
             <div className="text-sm px-4 py-2 rounded-lg"
-              style={{ background: msg.ok ? "#f0fdf4" : "#fef2f2", color: msg.ok ? "#16a34a" : "#dc2626" }}>
+              style={{ background: msg.ok ? "rgba(22,163,74,0.1)" : "rgba(220,38,38,0.1)", color: msg.ok ? "#16a34a" : "#dc2626" }}>
               {msg.text}
             </div>
           )}
@@ -110,7 +110,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
       {msg && !open && (
         <div className="px-5 pb-4">
           <div className="text-sm px-4 py-2 rounded-lg"
-            style={{ background: "#f0fdf4", color: "#16a34a" }}>
+            style={{ background: "rgba(22,163,74,0.1)", color: "#16a34a" }}>
             {msg.text}
           </div>
         </div>

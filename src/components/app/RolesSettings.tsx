@@ -33,7 +33,7 @@ function Btn({
   const styles: Record<string, React.CSSProperties> = {
     primary:   { background: "#2563eb", color: "white" },
     secondary: { border: "1px solid var(--border)", color: "var(--on-dark-soft)", background: "var(--card)" },
-    danger:    { background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" },
+    danger:    { background: "rgba(220,38,38,0.1)", color: "#dc2626", border: "1px solid rgba(220,38,38,0.3)" },
   }
   return (
     <button type="button" onClick={onClick} disabled={disabled}
@@ -47,7 +47,7 @@ function Btn({
 function Alert({ msg, type }: { msg: string; type: "ok" | "err" }) {
   return (
     <div className="text-sm px-4 py-2 rounded-lg"
-      style={{ background: type === "ok" ? "#f0fdf4" : "#fef2f2", color: type === "ok" ? "#16a34a" : "#dc2626" }}>
+      style={{ background: type === "ok" ? "rgba(22,163,74,0.1)" : "rgba(220,38,38,0.1)", color: type === "ok" ? "#16a34a" : "#dc2626" }}>
       {msg}
     </div>
   )
@@ -339,7 +339,7 @@ function CreateRoleModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(2,6,23,0.4)" }}>
       <div className="w-full max-w-md rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h3 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>

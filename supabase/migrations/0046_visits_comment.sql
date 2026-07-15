@@ -1,0 +1,1 @@
+alter table public.visits add column if not exists comment text;

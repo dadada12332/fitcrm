@@ -1,3 +1,4 @@
+import { sanitizeSearchTerm } from "@/lib/search"
 import { Bot, InlineKeyboard, Keyboard, InputFile } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 
@@ -421,7 +422,7 @@ function setupHandlers(bot: Bot) {
         .from("clients")
         .select("id, full_name, phone")
         .eq("club_id", clubId)
-        .or(`full_name.ilike.%${query}%,phone.ilike.%${query}%`)
+        .or(`full_name.ilike.%${sanitizeSearchTerm(query)}%,phone.ilike.%${sanitizeSearchTerm(query)}%`)
         .limit(5)
 
       if (!found?.length) {

@@ -1,18 +1,25 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { toast } from "@/lib/use-action"
 import { useRouter } from "next/navigation"
 import { Snowflake, Trash2, X } from "lucide-react"
 import type { ClientProfile } from "@/lib/client-profile"
 import type { ClientStatus } from "@/lib/clients"
 import { deleteClientAction, toggleFreezeAction } from "@/app/(app)/clients/actions"
+import { NewPaymentModal } from "./NewPaymentModal"
+import { RenewSubscriptionButton } from "./RenewSubscriptionButton"
+
+type Membership = { id: string; name: string; price: number }
 
 const statusMeta: Record<ClientStatus, { label: string; bg: string; color: string }> = {
-  active:  { label: "Активный",       bg: "#dcfce7", color: "#16a34a" },
-  expired: { label: "Истёк",          bg: "#fee2e2", color: "#dc2626" },
-  frozen:  { label: "Заморожен",      bg: "#dbeafe", color: "#2563eb" },
+  active:  { label: "Активный",       bg: "rgba(22,163,74,0.14)", color: "#16a34a" },
+  expired: { label: "Истёк",          bg: "rgba(220,38,38,0.14)", color: "#dc2626" },
+  frozen:  { label: "Заморожен",      bg: "rgba(37,99,235,0.14)", color: "#2563eb" },
   none:    { label: "Без абонемента", bg: "var(--card-2)", color: "var(--on-dark-soft)" },
 }
+
+const genderLabel: Record<string, string> = { male: "Мужской", female: "Женский" }
 
 function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("")
@@ -21,6 +28,10 @@ function initials(name: string) {
 function fmtDate(iso: string | null) {
   if (!iso) return "—"
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
+}
+
+function fmtMoney(v: number) {
+  return `${Math.round(v).toLocaleString("ru-RU")} сум`
 }
 
 function Field({ label, value, link }: { label: string; value: string | null; link?: string }) {
@@ -45,6 +56,7 @@ function ConfirmDialog({
   onConfirm,
   onCancel,
   loading,
+  error,
 }: {
   open: boolean
   title: string
@@ -54,11 +66,11 @@ function ConfirmDialog({
   onConfirm: () => void
   onCancel: () => void
   loading: boolean
+  error?: string | null
 }) {
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
       <div
         className="relative w-full max-w-sm rounded-lg p-6 flex flex-col gap-4"
@@ -77,6 +89,12 @@ function ConfirmDialog({
           <p className="text-sm leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>{description}</p>
         </div>
 
+        {error && (
+          <p className="text-sm px-3 py-2 rounded-lg" style={{ background: "rgba(220,38,38,0.08)", color: "#dc2626", border: "1px solid rgba(220,38,38,0.25)" }}>
+            {error}
+          </p>
+        )}
+
         <div className="flex gap-2 mt-1">
           <button
             onClick={onCancel}
@@ -91,7 +109,7 @@ function ConfirmDialog({
             className="flex-1 h-10 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             style={{ background: confirmDanger ? "#dc2626" : "var(--on-dark)" }}
           >
-            {loading ? "..." : "Да"}
+            {loading ? "..." : confirmLabel}
           </button>
         </div>
       </div>
@@ -99,7 +117,7 @@ function ConfirmDialog({
   )
 }
 
-export function ClientProfileCard({ client }: { client: ClientProfile }) {
+export function ClientProfileCard({ client, memberships }: { client: ClientProfile; memberships: Membership[] }) {
   const sm = statusMeta[client.status]
   const comment = client.notes && client.notes !== "[demo]" ? client.notes : ""
   const isFrozen = client.status === "frozen"
@@ -108,10 +126,15 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [dialog, setDialog] = useState<"delete" | "freeze" | null>(null)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   function handleDelete() {
+    setDeleteError(null)
     startTransition(async () => {
-      await deleteClientAction(client.id)
+      const res = await deleteClientAction(client.id)
+      if (res?.error) { setDeleteError(res.error); toast.error(res.error); return }
+      toast.success("Клиент удалён")
       router.push("/clients")
     })
   }
@@ -120,6 +143,7 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
     startTransition(async () => {
       await toggleFreezeAction(client.id, client.status)
       setDialog(null)
+      toast.success(client.status === "frozen" ? "Клиент разморожен" : "Клиент заморожен")
       router.refresh()
     })
   }
@@ -133,24 +157,16 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
           border: isFrozen ? "1.5px solid #93c5fd" : "1px solid var(--border)",
         }}
       >
-        {/* Эффект заморозки — ледяной оверлей */}
         {isFrozen && (
-          <>
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: "linear-gradient(135deg, rgba(219,234,254,0.35) 0%, rgba(191,219,254,0.15) 100%)",
-              }}
-            />
-            <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full pointer-events-none"
-              style={{ background: "#dbeafe", border: "1px solid #93c5fd" }}>
-              <Snowflake className="w-3 h-3" style={{ color: "#2563eb" }} />
-              <span className="text-xs font-medium" style={{ color: "#2563eb" }}>Заморожен</span>
-            </div>
-          </>
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, rgba(219,234,254,0.35) 0%, rgba(191,219,254,0.15) 100%)",
+            }}
+          />
         )}
 
-        {/* Аватар + имя в ряд */}
+        {/* Аватар + имя */}
         <div className="flex items-center gap-4 mb-4 relative">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-semibold text-white flex-shrink-0 relative"
@@ -174,7 +190,25 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
                 {sm.label}
               </span>
             </div>
-            <p className="text-sm mt-0.5" style={{ color: "var(--on-dark-soft)" }}>Баланс: 0 сум</p>
+            <p className="text-sm mt-0.5" style={{ color: "var(--on-dark-soft)" }}>
+              ID: {client.id.slice(0, 8)}
+            </p>
+          </div>
+        </div>
+
+        {/* Финансы */}
+        <div className="grid grid-cols-2 gap-2 relative mb-1">
+          <div className="rounded-lg px-3 py-2.5" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
+            <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Баланс</p>
+            <p className="text-base font-semibold tabular-nums" style={{ color: client.balance > 0 ? "#16a34a" : "var(--on-dark)" }}>
+              {fmtMoney(client.balance)}
+            </p>
+          </div>
+          <div className="rounded-lg px-3 py-2.5" style={{ background: client.debt > 0 ? "rgba(220,38,38,0.06)" : "var(--card-2)", border: `1px solid ${client.debt > 0 ? "rgba(220,38,38,0.25)" : "var(--border)"}` }}>
+            <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Долг</p>
+            <p className="text-base font-semibold tabular-nums" style={{ color: client.debt > 0 ? "#dc2626" : "var(--on-dark)" }}>
+              {fmtMoney(client.debt)}
+            </p>
           </div>
         </div>
 
@@ -182,11 +216,12 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
         <div className="flex flex-col relative">
           <Field label="Телефон" value={client.phone} link={client.phone ? `tel:${client.phone}` : undefined} />
           <Field label="Телеграм" value={client.telegram} />
-          <Field label="Источник" value={null} />
-          <Field label="Цель" value={null} />
-          <Field label="Тренер" value={null} />
+          <Field label="Email" value={client.email} link={client.email ? `mailto:${client.email}` : undefined} />
+          <Field label="Дата рождения" value={fmtDate(client.birthDate)} />
+          <Field label="Пол" value={client.gender ? (genderLabel[client.gender] ?? client.gender) : null} />
+          <Field label="Тренер" value={client.trainer} />
+          <Field label="Источник" value={client.source} />
           <Field label="Дата регистрации" value={fmtDate(client.createdAt)} />
-          <Field label="Пол" value={null} />
         </div>
 
         {/* Комментарий */}
@@ -205,18 +240,21 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
         {/* Действия */}
         <div className="flex flex-col gap-2 mt-2 relative">
           <button
+            onClick={() => setPaymentOpen(true)}
             className="h-11 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90"
             style={{ background: "var(--on-dark)" }}
           >
             Добавить оплату
           </button>
 
+          <RenewSubscriptionButton clientId={client.id} clientName={client.name} subscription={client.subscription} memberships={memberships} />
+
           {canFreeze && (
             <button
               onClick={() => setDialog("freeze")}
               className="h-11 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors"
               style={{
-                background: isFrozen ? "#eff6ff" : "var(--card)",
+                background: isFrozen ? "rgba(37,99,235,0.1)" : "var(--card)",
                 border: isFrozen ? "1px solid #93c5fd" : "1px solid var(--border)",
                 color: isFrozen ? "#2563eb" : "var(--on-dark)",
               }}
@@ -229,7 +267,7 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
           <button
             onClick={() => setDialog("delete")}
             className="h-11 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-red-50"
-            style={{ background: "var(--card)", border: "1px solid #fecaca", color: "#dc2626" }}
+            style={{ background: "var(--card)", border: "1px solid rgba(220,38,38,0.3)", color: "#dc2626" }}
           >
             <Trash2 className="w-4 h-4" />
             Удалить клиента
@@ -237,19 +275,25 @@ export function ClientProfileCard({ client }: { client: ClientProfile }) {
         </div>
       </div>
 
-      {/* Диалог удаления */}
+      {paymentOpen && (
+        <NewPaymentModal
+          memberships={memberships}
+          onClose={() => setPaymentOpen(false)}
+        />
+      )}
+
       <ConfirmDialog
         open={dialog === "delete"}
         title="Удалить клиента?"
-        description={`Вы действительно хотите удалить «${client.name}»? Это действие необратимо — все данные клиента будут удалены.`}
+        description={`Вы действительно хотите удалить «${client.name}»? Абонементы и посещения будут удалены, история оплат сохранится (без привязки к клиенту).`}
         confirmLabel="Удалить"
         confirmDanger
+        error={deleteError}
         onConfirm={handleDelete}
-        onCancel={() => setDialog(null)}
+        onCancel={() => { setDialog(null); setDeleteError(null) }}
         loading={pending}
       />
 
-      {/* Диалог заморозки */}
       <ConfirmDialog
         open={dialog === "freeze"}
         title={isFrozen ? "Разморозить клиента?" : "Заморозить клиента?"}

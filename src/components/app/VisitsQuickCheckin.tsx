@@ -12,15 +12,15 @@ function SubBadge({ result }: { result: ClientSearchResult }) {
     return <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "var(--card-2)", color: "var(--gray-muted)" }}>Нет абонемента</span>
   }
   if (result.subscriptionStatus === "expired" || (result.daysLeft !== null && result.daysLeft < 0)) {
-    return <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: "#fee2e2", color: "#dc2626" }}>Истёк</span>
+    return <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: "rgba(220,38,38,0.14)", color: "#dc2626" }}>Истёк</span>
   }
   if (result.visitsLeft !== null && result.visitsLeft <= 3) {
-    return <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: "#fef3c7", color: "#d97706" }}>Осталось {result.visitsLeft} посещений</span>
+    return <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: "rgba(217,119,6,0.14)", color: "#d97706" }}>Осталось {result.visitsLeft} посещений</span>
   }
   if (result.daysLeft !== null && result.daysLeft <= 5) {
-    return <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: "#fef3c7", color: "#d97706" }}>Истекает через {result.daysLeft} дн.</span>
+    return <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: "rgba(217,119,6,0.14)", color: "#d97706" }}>Истекает через {result.daysLeft} дн.</span>
   }
-  return <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "#dcfce7", color: "#16a34a" }}>Активен</span>
+  return <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "rgba(22,163,74,0.14)", color: "#16a34a" }}>Активен</span>
 }
 
 export function VisitsQuickCheckin() {
@@ -36,7 +36,7 @@ export function VisitsQuickCheckin() {
 
   const search = useCallback((q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (q.trim().length < 2) { setResults([]); setOpen(false); return }
+    if (q.trim().length < 1) { setResults([]); setOpen(false); return }
     setLoading(true)
     debounceRef.current = setTimeout(async () => {
       const res = await searchClientsAction(q)
@@ -118,62 +118,45 @@ export function VisitsQuickCheckin() {
         )}
       </div>
 
-      {/* Dropdown results */}
-      {open && results.length > 0 && (
-        <div
-          className="absolute left-0 right-0 top-14 z-50 rounded-xl py-1.5 overflow-hidden"
-          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
-        >
-          {results.map((client) => (
-            <button
-              key={client.id}
-              onClick={() => handleMark(client)}
-              disabled={marking}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
-            >
-              {/* Avatar */}
-              <div
-                className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-semibold text-white"
-                style={{ background: "#3b82f6" }}
-              >
-                {client.name.charAt(0).toUpperCase()}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{client.name}</span>
-                  {client.visitedToday && (
-                    <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "#f0fdf4", color: "#16a34a" }}>
-                      Уже был сегодня
-                    </span>
-                  )}
+      {/* Результаты — карточками */}
+      {results.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+          {results.map((client) => {
+            const expired = client.subscriptionStatus === "expired" || (client.daysLeft !== null && client.daysLeft < 0)
+            return (
+              <div key={client.id} className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-semibold text-white" style={{ background: "#3b82f6" }}>
+                    {client.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold truncate" style={{ color: "var(--on-dark)" }}>{client.name}</span>
+                      {client.visitedToday && (
+                        <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: "rgba(22,163,74,0.1)", color: "#16a34a" }}>Уже был</span>
+                      )}
+                    </div>
+                    {client.phone && <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{client.phone}</p>}
+                    {client.membershipName && <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{client.membershipName}</p>}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  {client.phone && (
-                    <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{client.phone}</span>
-                  )}
-                  {client.membershipName && (
-                    <span className="text-xs" style={{ color: "var(--gray-muted)" }}>· {client.membershipName}</span>
-                  )}
-                </div>
+                <div><SubBadge result={client} /></div>
+                <button
+                  onClick={() => handleMark(client)}
+                  disabled={marking || expired}
+                  className="h-10 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90 disabled:opacity-45 disabled:cursor-not-allowed mt-auto"
+                  style={{ background: expired ? "var(--gray-muted)" : "#16a34a" }}
+                >
+                  <CheckCircle2 className="w-4 h-4" /> {expired ? "Абонемент истёк" : "Отметить"}
+                </button>
               </div>
-
-              {/* Status + action hint */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <SubBadge result={client} />
-                <span className="text-xs hidden sm:block" style={{ color: "var(--gray-muted)" }}>↵ Отметить</span>
-              </div>
-            </button>
-          ))}
+            )
+          })}
         </div>
       )}
 
-      {open && query.trim().length >= 2 && !loading && results.length === 0 && (
-        <div
-          className="absolute left-0 right-0 top-14 z-50 rounded-xl px-4 py-5 text-center text-sm"
-          style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", color: "var(--gray-muted)" }}
-        >
+      {query.trim().length >= 2 && !loading && results.length === 0 && (
+        <div className="mt-4 rounded-xl px-4 py-8 text-center text-sm" style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--gray-muted)" }}>
           Клиент не найден
         </div>
       )}
@@ -183,8 +166,8 @@ export function VisitsQuickCheckin() {
         <div
           className="absolute left-0 right-0 top-14 z-50 flex items-center gap-3 px-4 py-3 rounded-xl"
           style={{
-            background: toast.type === "ok" ? "#f0fdf4" : toast.type === "warn" ? "#fffbeb" : "#fef2f2",
-            border: `1px solid ${toast.type === "ok" ? "#bbf7d0" : toast.type === "warn" ? "#fde68a" : "#fecaca"}`,
+            background: toast.type === "ok" ? "rgba(22,163,74,0.1)" : toast.type === "warn" ? "#fffbeb" : "rgba(220,38,38,0.1)",
+            border: `1px solid ${toast.type === "ok" ? "rgba(22,163,74,0.3)" : toast.type === "warn" ? "#fde68a" : "rgba(220,38,38,0.3)"}`,
             boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
           }}
         >

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 export type StaffStatus = "active" | "vacation" | "fired"
-export type SalaryType  = "fixed" | "percent" | "mixed"
+export type SalaryType  = "none" | "fixed" | "percent" | "mixed"
 
 export type StaffSettings = {
   phone?:        string
@@ -74,6 +74,23 @@ const ROLE_LABELS: Record<string, string> = {
 
 export { ROLE_LABELS }
 
+export type TrainerOption = { id: string; name: string }
+
+/** Активные тренеры клуба (для выбора персонального тренера). */
+export async function getTrainers(supabase: SupabaseClient, clubId: string): Promise<TrainerOption[]> {
+  const { data } = await supabase
+    .from("staff")
+    .select("id, role, is_active, users(full_name, email)")
+    .eq("club_id", clubId)
+    .eq("role", "trainer")
+    .eq("is_active", true)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((s: any) => ({
+    id: s.id as string,
+    name: (s.users?.full_name as string) || (s.users?.email as string)?.split("@")[0] || "Тренер",
+  })).sort((a, b) => a.name.localeCompare(b.name, "ru"))
+}
+
 export async function getStaffKPI(supabase: SupabaseClient, clubId: string): Promise<StaffKPI> {
   const { data: staffData } = await supabase
     .from("staff")
@@ -93,25 +110,17 @@ export async function getStaffKPI(supabase: SupabaseClient, clubId: string): Pro
 
 export async function getStaffList(supabase: SupabaseClient, clubId: string): Promise<StaffRow[]> {
   const [staffRes, visitsRes] = await Promise.all([
-    supabase.from("staff").select("id, user_id, role, salary, is_active, settings").eq("club_id", clubId),
+    supabase.from("staff")
+      .select("id, user_id, role, salary, is_active, settings, users(id, email, full_name)")
+      .eq("club_id", clubId),
     supabase.from("visits").select("staff_id, client_id").eq("club_id", clubId).not("staff_id", "is", null),
   ])
 
   const staffRows: any[] = staffRes.data ?? []
   const visits: any[]    = visitsRes.data ?? []
 
-  const userIds = [...new Set(staffRows.map((s: any) => s.user_id as string))]
-  const usersMap = new Map<string, { email: string; full_name: string | null }>()
-  if (userIds.length > 0) {
-    const { data: usersData } = await supabase
-      .from("users")
-      .select("id, email, full_name")
-      .in("id", userIds)
-    for (const u of usersData ?? []) usersMap.set(u.id, u)
-  }
-
   return staffRows.map((s: any) => {
-    const u        = usersMap.get(s.user_id)
+    const u        = s.users as { email: string; full_name: string | null } | null
     const settings: StaffSettings = (s.settings as StaffSettings) ?? {}
     const myVisits  = visits.filter((v: any) => v.staff_id === s.id)
     const clientIds = [...new Set(myVisits.map((v: any) => v.client_id as string))]

@@ -72,6 +72,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─── Плавный дрейф облаков в Hero V2 ─── */
+@keyframes cloudsDrift {
+  0%   { transform: scale(1.16) translate3d(0, 0, 0); }
+  50%  { transform: scale(1.22) translate3d(-2.4%, -1.2%, 0); }
+  100% { transform: scale(1.16) translate3d(0, 0, 0); }
+}
+.clouds-anim { animation: cloudsDrift 42s ease-in-out infinite; will-change: transform; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) { .clouds-anim { animation: none; transform: scale(1.05); } }
+
+/* ─── POS-плитка товара: цветной фон, адаптируется под тему (--tile-h = hue) ─── */
+.pos-tile { background: hsl(var(--tile-h) 55% 92%); }
+.dark .pos-tile { background: hsl(var(--tile-h) 22% 15%); }
+
 /* ─── Dark mode (zinc) ─── */
 .dark {
   color-scheme: dark;
@@ -166,6 +179,52 @@
   --radius: var(--radius);
 }
 
+/* ── Landing page keyframe animations ── */
+@keyframes spin-slow      { to { transform: rotate(360deg); } }
+@keyframes scroll-left    { from { transform: translateX(0); }    to { transform: translateX(-50%); } }
+@keyframes scroll-right   { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+@keyframes fade-in-up     { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade-in        { from { opacity: 0; } to { opacity: 1; } }
+@keyframes accordion-down { from { height: 0; } to { height: var(--radix-accordion-content-height); } }
+@keyframes accordion-up   { from { height: var(--radix-accordion-content-height); } to { height: 0; } }
+
+@keyframes marquee         { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes marquee-reverse { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+@keyframes lp-fadein       { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer-rotate  { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* Переливающаяся синяя обводка */
+.shimmer-border {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-border::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  aspect-ratio: 1;
+  background: conic-gradient(from 0deg, #001f6b 0%, #003b99 20%, #0065fc 40%, #4da3ff 50%, #0065fc 60%, #003b99 80%, #001f6b 100%);
+  animation: shimmer-rotate 3s linear infinite;
+  transform: translate(-50%, -50%);
+}
+
+.animate-spin-slow    { animation: spin-slow 3s linear infinite; }
+.animate-scroll-left  { animation: scroll-left 35s linear infinite; }
+.animate-scroll-right { animation: scroll-right 35s linear infinite; }
+.animate-fade-in-up   { animation: fade-in-up 0.6s ease-out forwards; }
+.animate-fade-in      { animation: fade-in 0.4s ease-out forwards; }
+
+.marquee-track { display: flex; width: max-content; animation: marquee 32s linear infinite; will-change: transform; }
+.marquee-track.reverse { animation-name: marquee-reverse; }
+.marquee-pause:hover .marquee-track { animation-play-state: paused; }
+.animate-lp-fadein { animation: lp-fadein 0.2s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -193,5 +252,34 @@
   select, textarea {
     background-color: var(--card);
     color-scheme: light dark;
+  }
+
+  /* Landing page: mask dashboard screenshot edges */
+  .hero-image-mask {
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, black 20%, black 100%);
+    mask-image:
+      linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, black 20%, black 100%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  /* Fix browser autofill blue background on all inputs */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: #020617 !important;
+    caret-color: #020617;
+    transition: background-color 9999s ease-in-out 0s;
   }
 }

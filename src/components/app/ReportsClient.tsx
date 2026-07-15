@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   AlertTriangle, TrendingUp, TrendingDown, CreditCard,
   Activity, Users, UserCog, Wallet, Sparkles, RefreshCw,
@@ -10,7 +10,8 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts"
-import type { ReportsData, ReportPayment, ReportClient } from "@/lib/reports"
+import type { ReportsData, ReportPayment, ReportClient, ReportStaffRow, FinanceAgg, SalesAgg, VisitsAgg, ClientsAgg, RenewalsAgg, DebtsAgg, AlertsAgg } from "@/lib/reports"
+import { loadReportsDataAction, loadFinanceAction, loadSalesAction, loadVisitsAction, loadClientsAction, loadRenewalsAction, loadDebtsAction, loadStaffAction, loadAlertsAction, getReportsForecastAction, type ForecastInput } from "@/app/(app)/reports/actions"
 import { downloadCSV } from "@/lib/csv"
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -80,40 +81,14 @@ function daysBetween(from: string, to: string) {
   return Math.max(1, Math.ceil((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000))
 }
 
-function aggregateByDay(
-  items: Array<{ date: string; amount: number }>,
-  from: string,
-  to: string,
-): Array<{ label: string; value: number }> {
-  const days: Record<string, number> = {}
-  const cur = new Date(from.slice(0, 10))
-  const end = new Date(to.slice(0, 10))
-  while (cur <= end) {
-    const key = cur.toISOString().slice(0, 10)
-    days[key] = 0
-    cur.setDate(cur.getDate() + 1)
-  }
-  for (const item of items) {
-    const key = item.date.slice(0, 10)
-    if (key in days) days[key] = (days[key] || 0) + item.amount
-  }
-  const total = Object.keys(days).length
+// Сэмплирование готового daily-ряда (из RPC) в точки графика — та же логика,
+// что и в aggregateByDay (шаг 1/2/7 по числу дней, метка MM.DD).
+function chartFromByDay(byDay: Array<{ day: string; amount: number }>): Array<{ label: string; value: number }> {
+  const total = byDay.length
   const step = total <= 14 ? 1 : total <= 60 ? 2 : 7
-  return Object.entries(days)
-    .filter((_, i) => i % step === 0 || i === Object.keys(days).length - 1)
-    .map(([date, value]) => ({ label: date.slice(5).replace("-", "."), value }))
-}
-
-// heatmap: grid[dow][hour] = count, dow 0=Mon, hour 0-23
-function buildHeatmap(visits: Array<{ checkedInAt: string }>) {
-  const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0))
-  for (const v of visits) {
-    const d = new Date(v.checkedInAt)
-    const dow = (d.getDay() + 6) % 7 // Mon=0
-    const h   = d.getHours()
-    grid[dow][h]++
-  }
-  return grid
+  return byDay
+    .filter((_, i) => i % step === 0 || i === total - 1)
+    .map(({ day, amount }) => ({ label: day.slice(5).replace("-", "."), value: amount }))
 }
 
 // ── Shared sub-components ─────────────────────────────────────────────
@@ -141,177 +116,134 @@ function SectionCard({ title, children, action }: { title: string; children: Rea
 
 // ── 1. Alerts Section ────────────────────────────────────────────────
 
-function AlertItem({ level, text, sub, onClick }: {
-  level: "high" | "medium" | "low"
-  text: string; sub?: string; onClick?: () => void
+function AlertsSection({ agg, visitsDelta, onNavigate }: {
+  agg: AlertsAgg
+  visitsDelta: number
+  onNavigate: (s: Section) => void
 }) {
-  const colors = {
-    high:   { bg: "rgba(220,38,38,0.06)",  border: "rgba(220,38,38,0.22)", icon: "#dc2626", chip: "rgba(220,38,38,0.12)", label: "Срочно" },
-    medium: { bg: "rgba(217,119,6,0.06)",  border: "rgba(217,119,6,0.22)", icon: "#d97706", chip: "rgba(217,119,6,0.12)", label: "Внимание" },
-    low:    { bg: "rgba(22,163,74,0.06)",  border: "rgba(22,163,74,0.20)", icon: "#16a34a", chip: "rgba(22,163,74,0.12)", label: "В норме" },
-  }[level]
-  const Icon = level === "low" ? CheckCircle2 : AlertTriangle
-  const interactive = !!onClick
+  const expiringSoonCount = agg.expiringSoonCount
+  const atRiskCount       = agg.atRiskCount
+  const debtsCount        = agg.debtsCount
+  const debtTotal         = agg.debtTotal
+
+  // Единые карточки: метрика + смысл + действие в одной плашке (без дублирования).
+  const LVL = {
+    high:   { color: "#dc2626", label: "Срочно" },
+    medium: { color: "#d97706", label: "Внимание" },
+    low:    { color: "#16a34a", label: "В норме" },
+  } as const
+  type Card = { label: string; value: string; sub?: string; icon: typeof AlertTriangle; level: keyof typeof LVL; section?: Section }
+  const cards: Card[] = [
+    {
+      label: "Истекает в 3 дня", value: String(expiringSoonCount), icon: AlertTriangle,
+      level: expiringSoonCount > 0 ? "high" : "low",
+      sub: expiringSoonCount > 0 ? (agg.expiringSoonNames.slice(0, 2).join(", ") + (expiringSoonCount > 2 ? ` и ещё ${expiringSoonCount - 2}` : "")) : "Нет истекающих",
+      section: expiringSoonCount > 0 ? "renewals" : undefined,
+    },
+    {
+      label: "Не приходили 14+ дн", value: String(atRiskCount), icon: Users,
+      level: atRiskCount > 0 ? "medium" : "low",
+      sub: atRiskCount > 0 ? "Риск оттока — стоит связаться" : "Все активны",
+      section: atRiskCount > 0 ? "clients" : undefined,
+    },
+    {
+      label: "Долги", value: String(debtsCount), icon: Wallet,
+      level: debtsCount > 0 ? "high" : "low",
+      sub: debtsCount > 0 ? `${fmt(debtTotal)} сум · требуют напоминания` : "Нет задолженностей",
+      section: debtsCount > 0 ? "debts" : undefined,
+    },
+    {
+      label: "Посещаемость", value: `${visitsDelta > 0 ? "+" : ""}${visitsDelta}%`, icon: Activity,
+      level: visitsDelta < -10 ? "medium" : "low",
+      sub: visitsDelta < -10 ? "Снижение к прошлому периоду" : visitsDelta > 15 ? "Отличная динамика!" : "Стабильно",
+      section: "visits",
+    },
+  ]
 
   return (
-    <button
-      onClick={onClick}
-      disabled={!interactive}
-      className="group flex h-full flex-col gap-3 rounded-lg p-4 text-left transition-all enabled:hover:-translate-y-0.5 enabled:hover:shadow-md disabled:cursor-default"
-      style={{ background: colors.bg, border: `1px solid ${colors.border}` }}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md flex-shrink-0" style={{ background: colors.chip }}>
-          <Icon className="h-[18px] w-[18px]" style={{ color: colors.icon }} />
-        </div>
-        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: colors.chip, color: colors.icon }}>
-          {colors.label}
-        </span>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-semibold leading-snug" style={{ color: "var(--on-dark)" }}>{text}</p>
-        {sub && <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>{sub}</p>}
-      </div>
-      {interactive && (
-        <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: colors.icon }}>
-          Открыть
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </span>
-      )}
-    </button>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {cards.map((c) => {
+        const lvl = LVL[c.level]
+        const Icon = c.icon
+        const interactive = !!c.section
+        return (
+          <button key={c.label} onClick={interactive ? () => onNavigate(c.section!) : undefined} disabled={!interactive}
+            className="group flex h-full flex-col gap-3 rounded-lg p-5 text-left transition-all enabled:hover:-translate-y-0.5 enabled:hover:shadow-md disabled:cursor-default"
+            style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <div className="flex items-start justify-between">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md flex-shrink-0" style={{ background: `color-mix(in srgb, ${lvl.color} 12%, transparent)` }}>
+                <Icon className="h-[18px] w-[18px]" style={{ color: lvl.color }} />
+              </div>
+              {c.level !== "low" && (
+                <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: `color-mix(in srgb, ${lvl.color} 12%, transparent)`, color: lvl.color }}>{lvl.label}</span>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{c.label}</p>
+              <p className="text-3xl font-semibold tracking-[-0.27px] mt-0.5" style={{ color: "var(--on-dark)" }}>{c.value}</p>
+              {c.sub && <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>{c.sub}</p>}
+            </div>
+            {interactive && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: lvl.color }}>
+                Открыть <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            )}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
-function AlertsSection({ data, bounds, onNavigate }: {
-  data: ReportsData
-  bounds: ReturnType<typeof periodBounds>
-  onNavigate: (s: Section) => void
-}) {
-  const lastVisitByClient = useMemo(() => {
-    const map: Record<string, string> = {}
-    for (const v of data.visits) {
-      if (!map[v.clientId] || v.checkedInAt > map[v.clientId]) {
-        map[v.clientId] = v.checkedInAt
-      }
-    }
-    return map
-  }, [data.visits])
-
-  const expiringSoon = data.clients.filter(c =>
-    c.status === "active" && c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 3
-  )
-  const expiring7   = data.clients.filter(c =>
-    c.status === "active" && c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 7
-  )
-
-  const cutoff14 = new Date(Date.now() - 14 * 86_400_000).toISOString()
-  const atRisk = data.clients.filter(c => {
-    if (c.status !== "active") return false
-    const lv = lastVisitByClient[c.id]
-    return !lv || lv < cutoff14
-  })
-
-  const debts = data.payments.filter(p => p.status === "pending")
-  const debtTotal = debts.reduce((a, p) => a + p.amount, 0)
-
-  const curVisits  = data.visits.filter(v => v.checkedInAt >= bounds.from && v.checkedInAt <= bounds.to)
-  const prevVisits = data.visits.filter(v => v.checkedInAt >= bounds.prevFrom && v.checkedInAt < bounds.prevTo)
-  const visitsDelta = pct(curVisits.length, prevVisits.length)
-
-  const alerts: Array<{ level: "high" | "medium" | "low"; text: string; sub?: string; section?: Section }> = []
-
-  if (expiringSoon.length > 0)
-    alerts.push({ level: "high", text: `${expiringSoon.length} абонементов истекает в ближайшие 3 дня`, sub: expiringSoon.slice(0, 3).map(c => c.name).join(", ") + (expiringSoon.length > 3 ? ` и ещё ${expiringSoon.length - 3}` : ""), section: "renewals" })
-  else if (expiring7.length > 0)
-    alerts.push({ level: "medium", text: `${expiring7.length} абонементов истекает в ближайшие 7 дней`, section: "renewals" })
-
-  if (atRisk.length > 0)
-    alerts.push({ level: "medium", text: `${atRisk.length} клиентов не приходили более 14 дней`, sub: "Риск оттока — стоит связаться", section: "clients" })
-
-  if (debts.length > 0)
-    alerts.push({ level: "high", text: `${debts.length} неоплаченных счетов на ${fmt(debtTotal)} сум`, sub: "Требуют напоминания", section: "debts" })
-
-  if (visitsDelta < -10)
-    alerts.push({ level: "medium", text: `Посещаемость снизилась на ${Math.abs(visitsDelta)}%`, sub: "По сравнению с предыдущим периодом", section: "visits" })
-  else if (visitsDelta > 15)
-    alerts.push({ level: "low", text: `Посещаемость выросла на ${visitsDelta}%`, sub: "Отличная динамика!", section: "visits" })
-
-  if (alerts.length === 0)
-    alerts.push({ level: "low", text: "Всё в порядке", sub: "Критических событий нет" })
-
+// Скелетон вкладки на время загрузки серверной агрегации.
+function SectionLoading() {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
-        style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-        {[
-          { label: "Истекает в 3 дня",    value: String(expiringSoon.length), icon: AlertTriangle, sub: undefined },
-          { label: "Не приходили 14+ дн", value: String(atRisk.length),       icon: Users,         sub: undefined },
-          { label: "Долгов",              value: String(debts.length),         icon: Wallet,        sub: debts.length ? `${fmt(debtTotal)} сум` : undefined },
-          { label: "Посещаемость",        value: `${visitsDelta > 0 ? "+" : ""}${visitsDelta}%`, icon: Activity, sub: undefined },
-        ].map(({ label, value, icon: Icon, sub }, i) => (
-          <div key={label} className="p-5 flex flex-col gap-3"
-            style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
-            <div className="flex items-start justify-between">
-              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
-              <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
-            </div>
-            <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
-            {sub && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{sub}</span>}
+    <div className="flex flex-col gap-4 animate-pulse">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="p-5 flex flex-col gap-3" style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
+            <div className="h-4 w-24 rounded" style={{ background: "var(--card-2)" }} />
+            <div className="h-8 w-28 rounded" style={{ background: "var(--card-2)" }} />
           </div>
         ))}
       </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {alerts.map((a, i) => (
-          <AlertItem key={i} level={a.level} text={a.text} sub={a.sub}
-            onClick={a.section ? () => onNavigate(a.section!) : undefined} />
-        ))}
-      </div>
+      <div className="h-64 rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }} />
     </div>
   )
 }
 
 // ── 2. Finance Section ────────────────────────────────────────────────
 
-function FinanceSection({ payments, prevPayments, bounds }: {
-  payments: ReportPayment[]
-  prevPayments: ReportPayment[]
+function FinanceSection({ agg, bounds }: {
+  agg: FinanceAgg
   bounds: ReturnType<typeof periodBounds>
 }) {
-  const revenue     = payments.reduce((a, p) => a + p.amount, 0)
-  const prevRevenue = prevPayments.reduce((a, p) => a + p.amount, 0)
+  const revenue     = agg.revenue
+  const count       = agg.count
+  const prevRevenue = agg.prevRevenue
   const revDelta    = pct(revenue, prevRevenue)
-  const profit      = Math.round(revenue * 0.7)
-  const expenses    = revenue - profit
-  const avgCheck    = payments.length ? Math.round(revenue / payments.length) : 0
+  const avgCheck    = count ? Math.round(revenue / count) : 0
   const days        = daysBetween(bounds.from, bounds.to)
+  const revenuePerDay = days > 0 ? Math.round(revenue / days) : 0
 
-  const chartData = aggregateByDay(
-    payments.map(p => ({ date: p.paidAt ?? p.createdAt, amount: p.amount })),
-    bounds.from, bounds.to,
-  )
+  const chartData = chartFromByDay(agg.byDay)
 
-  const byProvider: Record<string, number> = {}
-  for (const p of payments) {
-    byProvider[p.provider] = (byProvider[p.provider] || 0) + p.amount
-  }
   const PROVIDER_LABELS: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
   const PROVIDER_COLORS: Record<string, string> = { cash: "#059669", click: "#2563eb", payme: "#7c3aed", uzum: "#d97706" }
-  const providerData = Object.entries(byProvider).map(([key, val]) => ({
-    name: PROVIDER_LABELS[key] ?? key, value: val, color: PROVIDER_COLORS[key] ?? "#6b7280",
+  const providerData = agg.byProvider.map(({ provider, amount }) => ({
+    name: PROVIDER_LABELS[provider] ?? provider, value: amount, color: PROVIDER_COLORS[provider] ?? "#6b7280",
   }))
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-0 rounded-lg overflow-hidden"
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Выручка",     value: `${fmt(revenue)} сум`,   icon: TrendingUp,  delta: revDelta,   badge: undefined,  sub: undefined },
-          { label: "Прибыль",     value: `${fmt(profit)} сум`,    icon: TrendingUp,  delta: undefined,  badge: { text: "~70%", color: "#16a34a" }, sub: undefined },
-          { label: "Расходы",     value: `${fmt(expenses)} сум`,  icon: TrendingDown, delta: undefined, badge: { text: "~30%", color: "#dc2626" }, sub: undefined },
-          { label: "Средний чек", value: `${fmt(avgCheck)} сум`,  icon: CreditCard,  delta: undefined,  badge: undefined,  sub: undefined },
-          { label: "Платежей",    value: String(payments.length), icon: BarChart2,   delta: undefined,  badge: undefined,  sub: `~${Math.round(payments.length / days)}/день` },
-        ].map(({ label, value, icon: Icon, delta, badge, sub }, i) => (
+          { label: "Выручка",     value: `${fmt(revenue)} сум`,       icon: TrendingUp, delta: revDelta,  sub: undefined },
+          { label: "В день",      value: `${fmt(revenuePerDay)} сум`,  icon: TrendingUp, delta: undefined, sub: `за ${days} дн.` },
+          { label: "Средний чек", value: `${fmt(avgCheck)} сум`,       icon: CreditCard, delta: undefined, sub: undefined },
+          { label: "Платежей",    value: String(count),                icon: BarChart2,  delta: undefined, sub: `~${days > 0 ? Math.round(count / days) : 0}/день` },
+        ].map(({ label, value, icon: Icon, delta, sub }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
             style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
             <div className="flex items-start justify-between">
@@ -319,15 +251,6 @@ function FinanceSection({ payments, prevPayments, bounds }: {
               <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
             </div>
             <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
-            {badge && (
-              <div className="flex items-center gap-1.5">
-                {badge.color === "#16a34a"
-                  ? <TrendingUp className="w-4 h-4" style={{ color: badge.color }} />
-                  : <TrendingDown className="w-4 h-4" style={{ color: badge.color }} />}
-                <span className="text-xs font-medium" style={{ color: badge.color }}>{badge.text}</span>
-                <span className="text-xs" style={{ color: "var(--gray-muted)" }}>от выручки</span>
-              </div>
-            )}
             {sub && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{sub}</span>}
             {delta !== undefined && (
               <div className="flex items-center gap-1.5">
@@ -372,7 +295,7 @@ function FinanceSection({ payments, prevPayments, bounds }: {
             </div>
             <div>
               <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Платежей</p>
-              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{payments.length} <span className="text-xs font-normal" style={{ color: "var(--gray-muted)" }}>шт.</span></p>
+              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{count} <span className="text-xs font-normal" style={{ color: "var(--gray-muted)" }}>шт.</span></p>
             </div>
           </div>
           <div style={{ height: 280, padding: "12px 8px 4px" }}>
@@ -459,18 +382,11 @@ function FinanceSection({ payments, prevPayments, bounds }: {
 
 // ── 3. Sales Section ─────────────────────────────────────────────────
 
-function SalesSection({ payments }: { payments: ReportPayment[] }) {
-  const byService: Record<string, { count: number; revenue: number }> = {}
-  for (const p of payments) {
-    const key = p.serviceName ?? "Без абонемента"
-    if (!byService[key]) byService[key] = { count: 0, revenue: 0 }
-    byService[key].count++
-    byService[key].revenue += p.amount
-  }
-  const totalRev = payments.reduce((a, p) => a + p.amount, 0)
-  const rows = Object.entries(byService)
-    .map(([name, { count, revenue }]) => ({ name, count, revenue, share: totalRev ? Math.round((revenue / totalRev) * 100) : 0 }))
-    .sort((a, b) => b.revenue - a.revenue)
+function SalesSection({ agg }: { agg: SalesAgg }) {
+  const totalRev = agg.totalRevenue
+  // byService уже отсортирован по revenue desc сервером; долю считаем так же, как раньше.
+  const rows = agg.byService
+    .map(({ name, count, revenue }) => ({ name, count, revenue, share: totalRev ? Math.round((revenue / totalRev) * 100) : 0 }))
 
   const CHART_COLORS = ["#2563eb", "#7c3aed", "#059669", "#d97706", "#dc2626", "#0891b2"]
 
@@ -479,9 +395,9 @@ function SalesSection({ payments }: { payments: ReportPayment[] }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Продано",  value: String(payments.length), icon: CreditCard },
-          { label: "Выручка",  value: `${fmt(totalRev)} сум`,  icon: TrendingUp },
-          { label: "Тарифов",  value: String(rows.length),     icon: BarChart2 },
+          { label: "Продано",  value: String(agg.sold),      icon: CreditCard },
+          { label: "Выручка",  value: `${fmt(totalRev)} сум`, icon: TrendingUp },
+          { label: "Тарифов",  value: String(rows.length),    icon: BarChart2 },
         ].map(({ label, value, icon: Icon }, i) => (
           <div key={label}
             className={`p-5 flex flex-col gap-3 ${i > 0 ? "border-t sm:border-t-0 sm:border-l" : ""}`}
@@ -562,35 +478,30 @@ function SalesSection({ payments }: { payments: ReportPayment[] }) {
 const DOW_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
 const HOURS_SHOW = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
 
-function AttendanceSection({ visits, prevVisits, bounds }: {
-  visits: Array<{ clientId: string; checkedInAt: string }>
-  prevVisits: Array<{ clientId: string; checkedInAt: string }>
+function AttendanceSection({ agg, bounds }: {
+  agg: VisitsAgg
   bounds: ReturnType<typeof periodBounds>
 }) {
   const days = daysBetween(bounds.from, bounds.to)
-  const total = visits.length
-  const prevTotal = prevVisits.length
+  const total = agg.total
+  const prevTotal = agg.prevTotal
   const avgPerDay = total / days
 
-  const heatmap = useMemo(() => buildHeatmap(visits), [visits])
+  const heatmap = agg.heatmap
   const maxCell = Math.max(1, ...heatmap.flatMap(row => row))
 
-  // Busiest hour
+  // Busiest hour — суммируем heatmap по дням недели (эквивалент старому hourTotals)
   const hourTotals = Array(24).fill(0)
-  for (const v of visits) hourTotals[new Date(v.checkedInAt).getHours()]++
+  for (let h = 0; h < 24; h++) for (let d = 0; d < 7; d++) hourTotals[h] += heatmap[d][h]
   const peakHour = hourTotals.indexOf(Math.max(...hourTotals))
 
-  // Quietest dow
-  const dowTotals = Array(7).fill(0)
-  for (const v of visits) dowTotals[(new Date(v.checkedInAt).getDay() + 6) % 7]++
+  // Quietest dow — суммируем heatmap по часам (эквивалент старому dowTotals)
+  const dowTotals = heatmap.map(row => row.reduce((a, b) => a + b, 0))
   const quietDow = dowTotals.indexOf(Math.min(...dowTotals.filter(x => x > 0)))
 
   const visitsDelta = pct(total, prevTotal)
 
-  const chartData = aggregateByDay(
-    visits.map(v => ({ date: v.checkedInAt, amount: 1 })),
-    bounds.from, bounds.to,
-  )
+  const chartData = chartFromByDay(agg.byDay.map(d => ({ day: d.day, amount: d.count })))
 
   return (
     <div className="flex flex-col gap-4">
@@ -674,28 +585,22 @@ function AttendanceSection({ visits, prevVisits, bounds }: {
 
 // ── 5. Renewals Section ───────────────────────────────────────────────
 
-function RenewalsSection({ clients }: { clients: ReportClient[] }) {
-  const activeClients    = clients.filter(c => c.status === "active")
-  const expiring30       = activeClients.filter(c => c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 30)
-  const expiring7        = activeClients.filter(c => c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 7)
-  const expired          = clients.filter(c => c.status === "expired")
-  const convRate         = expiring30.length + expired.length
-    ? Math.round((activeClients.length / (activeClients.length + expired.length)) * 100)
+function RenewalsSection({ agg }: { agg: RenewalsAgg }) {
+  const convRate = agg.expiring30 + agg.expired
+    ? Math.round((agg.active / (agg.active + agg.expired)) * 100)
     : 100
 
-  const expiryRows = expiring30
-    .sort((a, b) => (a.daysLeft ?? 0) - (b.daysLeft ?? 0))
-    .slice(0, 10)
+  const expiryRows = agg.top
 
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Истекает до 30 дней", value: String(expiring30.length), icon: RefreshCw,    sub: undefined },
-          { label: "Истекает до 7 дней",  value: String(expiring7.length),  icon: AlertTriangle, sub: undefined },
-          { label: "Истёкших",            value: String(expired.length),    icon: TrendingDown,  sub: undefined },
-          { label: "Активных",            value: `${convRate}%`,            icon: TrendingUp,    sub: "абонементов активно" },
+          { label: "Истекает до 30 дней", value: String(agg.expiring30), icon: RefreshCw,    sub: undefined },
+          { label: "Истекает до 7 дней",  value: String(agg.expiring7),  icon: AlertTriangle, sub: undefined },
+          { label: "Истёкших",            value: String(agg.expired),    icon: TrendingDown,  sub: undefined },
+          { label: "Активных",            value: `${convRate}%`,         icon: TrendingUp,    sub: "абонементов активно" },
         ].map(({ label, value, icon: Icon, sub }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
             style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
@@ -752,10 +657,10 @@ function RenewalsSection({ clients }: { clients: ReportClient[] }) {
 
 // ── 6. Clients Section ────────────────────────────────────────────────
 
-function GenderCard({ clients }: { clients: ReportClient[] }) {
-  const total   = clients.length
-  const male    = clients.filter(c => c.gender === "male").length
-  const female  = clients.filter(c => c.gender === "female").length
+function GenderCard({ gender }: { gender: { total: number; male: number; female: number } }) {
+  const total   = gender.total
+  const male    = gender.male
+  const female  = gender.female
   const unknown = total - male - female
 
   const malePct   = total ? Math.round((male   / total) * 100) : 0
@@ -813,32 +718,21 @@ function GenderCard({ clients }: { clients: ReportClient[] }) {
   )
 }
 
-function ClientsSection({ clients, bounds }: { clients: ReportClient[]; bounds: ReturnType<typeof periodBounds> }) {
-  const newInPeriod = clients.filter(c => c.createdAt >= bounds.from && c.createdAt <= bounds.to)
-  const prevNew     = clients.filter(c => c.createdAt >= bounds.prevFrom && c.createdAt < bounds.prevTo)
-  const newDelta    = pct(newInPeriod.length, prevNew.length)
+function ClientsSection({ agg }: { agg: ClientsAgg }) {
+  const newDelta    = pct(agg.newInPeriod, agg.prevNew)
 
-  const expired     = clients.filter(c => c.status === "expired")
-  const active      = clients.filter(c => c.status === "active")
-
-  const sources: Record<string, number> = {}
-  for (const c of newInPeriod) {
-    const src = c.source ?? "other"
-    sources[src] = (sources[src] || 0) + 1
-  }
-  const sourceRows = Object.entries(sources)
-    .map(([key, count]) => ({ key, label: SOURCE_LABELS[key] ?? key, count, color: SOURCE_COLORS[key] ?? "#6b7280" }))
-    .sort((a, b) => b.count - a.count)
+  const sourceRows = agg.bySource
+    .map(({ key, count }) => ({ key, label: SOURCE_LABELS[key] ?? key, count, color: SOURCE_COLORS[key] ?? "#6b7280" }))
 
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Новых клиентов", value: String(newInPeriod.length), icon: Users,        delta: newDelta },
-          { label: "Всего клиентов", value: String(clients.length),     icon: Users,        delta: undefined },
-          { label: "Активных",       value: String(active.length),      icon: TrendingUp,   delta: undefined },
-          { label: "С истёкшим",     value: String(expired.length),     icon: TrendingDown, delta: undefined },
+          { label: "Новых клиентов", value: String(agg.newInPeriod), icon: Users,        delta: newDelta },
+          { label: "Всего клиентов", value: String(agg.total),       icon: Users,        delta: undefined },
+          { label: "Активных",       value: String(agg.active),      icon: TrendingUp,   delta: undefined },
+          { label: "С истёкшим",     value: String(agg.expired),     icon: TrendingDown, delta: undefined },
         ].map(({ label, value, icon: Icon, delta }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
             style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
@@ -864,10 +758,10 @@ function ClientsSection({ clients, bounds }: { clients: ReportClient[]; bounds: 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Gender */}
-        <GenderCard clients={clients} />
+        <GenderCard gender={agg.gender} />
 
         {/* Sources */}
-        <SectionCard title={`Источники (${newInPeriod.length} новых)`}>
+        <SectionCard title={`Источники (${agg.newInPeriod} новых)`}>
           {sourceRows.length === 0 ? (
             <p className="text-sm text-center py-8" style={{ color: "var(--gray-muted)" }}>Нет данных об источниках</p>
           ) : (
@@ -883,7 +777,7 @@ function ClientsSection({ clients, bounds }: { clients: ReportClient[]; bounds: 
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card-2)" }}>
                     <div className="h-full rounded-full transition-all"
-                      style={{ width: `${newInPeriod.length ? (s.count / newInPeriod.length) * 100 : 0}%`, background: s.color }} />
+                      style={{ width: `${agg.newInPeriod ? (s.count / agg.newInPeriod) * 100 : 0}%`, background: s.color }} />
                   </div>
                 </div>
               ))}
@@ -896,10 +790,7 @@ function ClientsSection({ clients, bounds }: { clients: ReportClient[]; bounds: 
           <div style={{ height: 260, padding: "8px 8px 0" }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={aggregateByDay(
-                  newInPeriod.map(c => ({ date: c.createdAt, amount: 1 })),
-                  bounds.from, bounds.to,
-                )}
+                data={chartFromByDay(agg.byDayNew.map(d => ({ day: d.day, amount: d.count })))}
                 margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="0" stroke="var(--border)" vertical={false} />
@@ -969,15 +860,15 @@ function StaffSection({ staff }: { staff: ReportClient[] | any[] }) {
 
 // ── 8. Debts Section ──────────────────────────────────────────────────
 
-function DebtsSection({ debts }: { debts: ReportPayment[] }) {
-  const total = debts.reduce((a, p) => a + p.amount, 0)
+function DebtsSection({ agg }: { agg: DebtsAgg }) {
+  const total = agg.total
 
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Должников",  value: String(debts.length), icon: AlertTriangle },
+          { label: "Должников",  value: String(agg.count), icon: AlertTriangle },
           { label: "Общий долг", value: `${fmt(total)} сум`,  icon: Wallet },
         ].map(({ label, value, icon: Icon }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
@@ -998,7 +889,7 @@ function DebtsSection({ debts }: { debts: ReportPayment[] }) {
           </button>
         }
       >
-        {debts.length === 0 ? (
+        {agg.count === 0 ? (
           <p className="text-sm text-center py-8" style={{ color: "var(--gray-muted)" }}>Долгов нет</p>
         ) : (
           <div className="overflow-x-auto">
@@ -1011,7 +902,7 @@ function DebtsSection({ debts }: { debts: ReportPayment[] }) {
                 </tr>
               </thead>
               <tbody>
-                {debts.slice(0, 20).map((p) => (
+                {agg.list.map((p) => (
                   <tr key={p.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                     <td className="px-5 py-3 font-medium" style={{ color: "var(--on-dark)" }}>{p.clientName ?? "—"}</td>
                     <td className="px-5 py-3" style={{ color: "var(--on-dark-soft)" }}>{p.clientPhone ?? "—"}</td>
@@ -1032,74 +923,77 @@ function DebtsSection({ debts }: { debts: ReportPayment[] }) {
 
 // ── 9. AI Section ─────────────────────────────────────────────────────
 
-function AiSection({ data, payments, visits, bounds }: {
-  data: ReportsData
-  payments: ReportPayment[]
-  visits: Array<{ clientId: string; checkedInAt: string }>
+function AiSection({ finance, sales, visits, alerts, bounds }: {
+  finance: FinanceAgg
+  sales: SalesAgg
+  visits: VisitsAgg
+  alerts: AlertsAgg
   bounds: ReturnType<typeof periodBounds>
 }) {
   const insights = useMemo(() => {
     const result: Array<{ icon: string; title: string; detail: string; level: "info" | "warning" | "success" }> = []
 
-    const revenue = payments.reduce((a, p) => a + p.amount, 0)
+    const revenue = finance.revenue
 
-    // Most popular membership
-    const byService: Record<string, number> = {}
-    for (const p of payments) {
-      const k = p.serviceName ?? "Без абонемента"
-      byService[k] = (byService[k] || 0) + 1
-    }
-    const topService = Object.entries(byService).sort((a, b) => b[1] - a[1])[0]
-    if (topService) result.push({ icon: "🏆", title: `Топ тариф: ${topService[0]}`, detail: `Продан ${topService[1]} раз — самый популярный в выбранном периоде`, level: "success" })
+    // Most popular membership (по числу продаж)
+    const topService = [...sales.byService].sort((a, b) => b.count - a.count)[0]
+    if (topService) result.push({ icon: "🏆", title: `Топ тариф: ${topService.name}`, detail: `Продан ${topService.count} раз — самый популярный в выбранном периоде`, level: "success" })
 
-    // Peak hour
+    // Peak hour — из heatmap (сумма по дням недели)
     const hourTotals = Array(24).fill(0)
-    for (const v of visits) hourTotals[new Date(v.checkedInAt).getHours()]++
+    for (let h = 0; h < 24; h++) for (let d = 0; d < 7; d++) hourTotals[h] += visits.heatmap[d][h]
     const peakH = hourTotals.indexOf(Math.max(...hourTotals))
-    if (visits.length > 0) result.push({ icon: "⏰", title: `Пиковое время: ${peakH}:00–${peakH + 1}:00`, detail: `${hourTotals[peakH]} посещений в этот час — планируйте персонал заранее`, level: "info" })
+    if (visits.total > 0) result.push({ icon: "⏰", title: `Пиковое время: ${peakH}:00–${peakH + 1}:00`, detail: `${hourTotals[peakH]} посещений в этот час — планируйте персонал заранее`, level: "info" })
 
     // At-risk clients
-    const lastVisit: Record<string, string> = {}
-    for (const v of data.visits) {
-      if (!lastVisit[v.clientId] || v.checkedInAt > lastVisit[v.clientId]) lastVisit[v.clientId] = v.checkedInAt
-    }
-    const cutoff = new Date(Date.now() - 14 * 86_400_000).toISOString()
-    const atRisk = data.clients.filter(c => c.status === "active" && (!lastVisit[c.id] || lastVisit[c.id] < cutoff))
-    if (atRisk.length > 0) result.push({ icon: "⚠️", title: `${atRisk.length} клиентов под угрозой оттока`, detail: `Активный абонемент, но не приходили 14+ дней. Свяжитесь с ними.`, level: "warning" })
+    if (alerts.atRiskCount > 0) result.push({ icon: "⚠️", title: `${alerts.atRiskCount} клиентов под угрозой оттока`, detail: `Активный абонемент, но не приходили 14+ дней. Свяжитесь с ними.`, level: "warning" })
 
     // Payment method
-    const byProvider: Record<string, number> = {}
-    for (const p of payments) byProvider[p.provider] = (byProvider[p.provider] || 0) + p.amount
-    const topProvider = Object.entries(byProvider).sort((a, b) => b[1] - a[1])[0]
+    const topProvider = [...finance.byProvider].sort((a, b) => b.amount - a.amount)[0]
     if (topProvider) {
-      const share = revenue ? Math.round((topProvider[1] / revenue) * 100) : 0
+      const share = revenue ? Math.round((topProvider.amount / revenue) * 100) : 0
       const PROVIDER_LABELS: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
-      result.push({ icon: "💳", title: `${PROVIDER_LABELS[topProvider[0]] ?? topProvider[0]}: ${share}% выручки`, detail: `Основной способ оплаты в выбранном периоде`, level: "info" })
+      result.push({ icon: "💳", title: `${PROVIDER_LABELS[topProvider.provider] ?? topProvider.provider}: ${share}% выручки`, detail: `Основной способ оплаты в выбранном периоде`, level: "info" })
     }
 
     // Expiring
-    const exp3 = data.clients.filter(c => c.status === "active" && c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 3)
-    if (exp3.length > 0) result.push({ icon: "🔔", title: `${exp3.length} абонементов истекают через 3 дня`, detail: `Отправьте напоминание для продления`, level: "warning" })
+    if (alerts.expiringSoonCount > 0) result.push({ icon: "🔔", title: `${alerts.expiringSoonCount} абонементов истекают через 3 дня`, detail: `Отправьте напоминание для продления`, level: "warning" })
 
     // Revenue insight
     if (revenue > 0) {
       const avgPerDay = revenue / daysBetween(bounds.from, bounds.to)
-      result.push({ icon: "📈", title: `Средняя выручка в день: ${fmt(Math.round(avgPerDay))} сум`, detail: `На основе периода ${payments.length} платежей`, level: "success" })
+      result.push({ icon: "📈", title: `Средняя выручка в день: ${fmt(Math.round(avgPerDay))} сум`, detail: `На основе периода ${finance.count} платежей`, level: "success" })
     }
 
     return result
-  }, [data, payments, visits, bounds])
+  }, [finance, sales, visits, alerts, bounds])
 
-  const levelColors = {
-    info:    { bg: "rgba(37,99,235,0.07)",    border: "rgba(37,99,235,0.15)",  tag: "rgba(37,99,235,0.12)",  tagText: "#2563eb" },
-    warning: { bg: "rgba(217,119,6,0.07)",    border: "rgba(217,119,6,0.2)",  tag: "rgba(217,119,6,0.12)",  tagText: "#d97706" },
-    success: { bg: "rgba(22,163,74,0.07)",    border: "rgba(22,163,74,0.2)",  tag: "rgba(22,163,74,0.12)",  tagText: "#16a34a" },
-  }
+  // Вход для AI-прогноза (те же деривации, что и в insights)
+  const forecastInput = useMemo<ForecastInput>(() => {
+    const hourTotals = Array(24).fill(0)
+    for (let h = 0; h < 24; h++) for (let d = 0; d < 7; d++) hourTotals[h] += visits.heatmap[d][h]
+    const peakH = visits.total > 0 ? hourTotals.indexOf(Math.max(...hourTotals)) : null
+    const topService = [...sales.byService].sort((a, b) => b.count - a.count)[0]
+    const topProvider = [...finance.byProvider].sort((a, b) => b.amount - a.amount)[0]
+    const PROVIDER_LABELS: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
+    const days = daysBetween(bounds.from, bounds.to)
+    return {
+      periodLabel: `${days} дн.`, days,
+      revenue: finance.revenue, prevRevenue: finance.prevRevenue, payments: finance.count,
+      avgPerDay: finance.revenue / Math.max(1, days),
+      topService: topService?.name ?? null,
+      peakHour: peakH,
+      atRisk: alerts.atRiskCount, expiringSoon: alerts.expiringSoonCount, visits: visits.total,
+      topProvider: topProvider ? (PROVIDER_LABELS[topProvider.provider] ?? topProvider.provider) : null,
+    }
+  }, [finance, sales, visits, alerts, bounds])
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3 p-4 rounded-lg" style={{ background: "rgba(37,99,235,0.07)", border: "1px solid rgba(37,99,235,0.15)" }}>
-        <Sparkles className="w-5 h-5 flex-shrink-0" style={{ color: "#2563eb" }} />
+      <div className="flex items-center gap-3 p-4 rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--card-2)" }}>
+          <Sparkles className="w-5 h-5" style={{ color: "#7c3aed" }} />
+        </div>
         <div>
           <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>AI Аналитика</p>
           <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>Выводы на основе реальных данных за выбранный период</p>
@@ -1107,26 +1001,75 @@ function AiSection({ data, payments, visits, bounds }: {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {insights.map((ins, i) => {
-          const c = levelColors[ins.level]
-          return (
-            <div key={i} className="rounded-lg p-4" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
-              <div className="flex items-start gap-3">
-                <span className="text-xl leading-none mt-0.5">{ins.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{ins.title}</p>
-                  <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{ins.detail}</p>
-                </div>
+        {insights.map((ins, i) => (
+          <div key={i} className="rounded-lg p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <div className="flex items-start gap-3">
+              <span className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0" style={{ background: "var(--card-2)" }}>{ins.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{ins.title}</p>
+                <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{ins.detail}</p>
               </div>
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
 
-      <div className="rounded-lg p-5 text-center" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
-        <Sparkles className="w-6 h-6 mx-auto mb-2" style={{ color: "var(--gray-muted)" }} />
-        <p className="text-sm font-medium" style={{ color: "var(--on-dark-soft)" }}>Прогноз и рекомендации</p>
-        <p className="text-xs mt-1" style={{ color: "var(--gray-muted)" }}>Скоро — AI-прогноз выручки и автоматические рекомендации по развитию клуба</p>
+      <ForecastBlock input={forecastInput} />
+    </div>
+  )
+}
+
+// ── AI-прогноз и рекомендации (Gemini) ───────────────────────────────────
+function ForecastBlock({ input }: { input: ForecastInput }) {
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<{ forecast: string; recommendations: string[] } | null>(null)
+
+  async function generate() {
+    setLoading(true)
+    const res = await getReportsForecastAction(input)
+    if (!res.error) setData({ forecast: res.forecast, recommendations: res.recommendations })
+    setLoading(false)
+  }
+
+  if (!data) {
+    return (
+      <div className="rounded-lg p-6 text-center flex flex-col items-center gap-2"
+        style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
+        <Sparkles className="w-6 h-6" style={{ color: "#7c3aed" }} />
+        <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>AI-прогноз выручки и рекомендации</p>
+        <p className="text-xs" style={{ color: "var(--gray-muted)" }}>На основе ваших данных за выбранный период</p>
+        <button onClick={generate} disabled={loading}
+          className="mt-2 inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          style={{ background: "linear-gradient(135deg,#7c3aed,#2563eb)" }}>
+          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+          {loading ? "Анализирую…" : "Сгенерировать прогноз"}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-lg p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--card-2)" }}>
+            <Sparkles className="w-5 h-5" style={{ color: "#7c3aed" }} />
+          </div>
+          <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>Прогноз и рекомендации</p>
+        </div>
+        <button onClick={generate} disabled={loading} title="Обновить"
+          className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10">
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} style={{ color: "var(--on-dark-soft)" }} />
+        </button>
+      </div>
+      <p className="text-sm mb-4 leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>{data.forecast}</p>
+      <div className="flex flex-col gap-2">
+        {data.recommendations.map((r, i) => (
+          <div key={i} className="flex items-start gap-2.5 p-3 rounded-lg" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
+            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0 mt-0.5" style={{ background: "rgba(124,58,237,0.12)", color: "#7c3aed" }}>{i + 1}</span>
+            <span className="text-sm" style={{ color: "var(--on-dark)" }}>{r}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -1337,47 +1280,136 @@ ${tbl(
   win.document.close()
 }
 
-export function ReportsClient({ data }: { data: ReportsData }) {
+export function ReportsClient() {
   const [period,  setPeriod]  = useState<Period>("30d")
   const [section, setSection] = useState<Section>("alerts")
 
   const bounds = useMemo(() => periodBounds(period), [period])
 
-  const paidPayments = useMemo(() =>
-    data.payments.filter(p => p.status === "paid" && p.paidAt && p.paidAt >= bounds.from && p.paidAt <= bounds.to),
-    [data.payments, bounds])
+  // Stage 1: финансовая вкладка — серверная агрегация (RPC), загрузка per-период.
+  // Серверная агрегация вкладок — ленивая загрузка при открытии вкладки + смене периода.
+  const [financeAgg, setFinanceAgg] = useState<FinanceAgg | null>(null)
+  useEffect(() => {
+    if (section !== "finance" && section !== "ai") return
+    let cancelled = false
+    setFinanceAgg(null)
+    loadFinanceAction(bounds.from, bounds.to, bounds.prevFrom, bounds.prevTo)
+      .then((a) => { if (!cancelled) setFinanceAgg(a) })
+      .catch(() => { if (!cancelled) setFinanceAgg(null) })
+    return () => { cancelled = true }
+  }, [section, bounds])
 
-  const prevPaidPayments = useMemo(() =>
-    data.payments.filter(p => p.status === "paid" && p.paidAt && p.paidAt >= bounds.prevFrom && p.paidAt < bounds.prevTo),
-    [data.payments, bounds])
+  const [salesAgg, setSalesAgg] = useState<SalesAgg | null>(null)
+  useEffect(() => {
+    if (section !== "sales" && section !== "ai") return
+    let cancelled = false
+    setSalesAgg(null)
+    loadSalesAction(bounds.from, bounds.to)
+      .then((a) => { if (!cancelled) setSalesAgg(a) })
+      .catch(() => { if (!cancelled) setSalesAgg(null) })
+    return () => { cancelled = true }
+  }, [section, bounds])
 
-  const periodVisits = useMemo(() =>
-    data.visits.filter(v => v.checkedInAt >= bounds.from && v.checkedInAt <= bounds.to),
-    [data.visits, bounds])
+  const [visitsAgg, setVisitsAgg] = useState<VisitsAgg | null>(null)
+  useEffect(() => {
+    if (section !== "visits" && section !== "alerts" && section !== "ai") return
+    let cancelled = false
+    setVisitsAgg(null)
+    loadVisitsAction(bounds.from, bounds.to, bounds.prevFrom, bounds.prevTo)
+      .then((a) => { if (!cancelled) setVisitsAgg(a) })
+      .catch(() => { if (!cancelled) setVisitsAgg(null) })
+    return () => { cancelled = true }
+  }, [section, bounds])
 
-  const prevVisits = useMemo(() =>
-    data.visits.filter(v => v.checkedInAt >= bounds.prevFrom && v.checkedInAt < bounds.prevTo),
-    [data.visits, bounds])
+  const [clientsAgg, setClientsAgg] = useState<ClientsAgg | null>(null)
+  useEffect(() => {
+    if (section !== "clients") return
+    let cancelled = false
+    setClientsAgg(null)
+    loadClientsAction(bounds.from, bounds.to, bounds.prevFrom, bounds.prevTo)
+      .then((a) => { if (!cancelled) setClientsAgg(a) })
+      .catch(() => { if (!cancelled) setClientsAgg(null) })
+    return () => { cancelled = true }
+  }, [section, bounds])
 
-  const debts = useMemo(() =>
-    data.payments.filter(p => p.status === "pending"),
-    [data.payments])
+  // Продления не зависят от периода (текущий срез).
+  const [renewalsAgg, setRenewalsAgg] = useState<RenewalsAgg | null>(null)
+  useEffect(() => {
+    if (section !== "renewals") return
+    let cancelled = false
+    setRenewalsAgg(null)
+    loadRenewalsAction()
+      .then((a) => { if (!cancelled) setRenewalsAgg(a) })
+      .catch(() => { if (!cancelled) setRenewalsAgg(null) })
+    return () => { cancelled = true }
+  }, [section])
 
-  const alertsCount = useMemo(() => {
-    const exp3 = data.clients.filter(c => c.status === "active" && c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= 3).length
-    const debtCount = debts.length
-    return exp3 + (debtCount > 0 ? 1 : 0)
-  }, [data.clients, debts])
+  // Долги не зависят от периода.
+  const [debtsAgg, setDebtsAgg] = useState<DebtsAgg | null>(null)
+  useEffect(() => {
+    if (section !== "debts") return
+    let cancelled = false
+    setDebtsAgg(null)
+    loadDebtsAction()
+      .then((a) => { if (!cancelled) setDebtsAgg(a) })
+      .catch(() => { if (!cancelled) setDebtsAgg(null) })
+    return () => { cancelled = true }
+  }, [section])
+
+  // Персонал не зависит от периода.
+  const [staffAgg, setStaffAgg] = useState<ReportStaffRow[] | null>(null)
+  useEffect(() => {
+    if (section !== "staff") return
+    let cancelled = false
+    setStaffAgg(null)
+    loadStaffAction()
+      .then((a) => { if (!cancelled) setStaffAgg(a) })
+      .catch(() => { if (!cancelled) setStaffAgg(null) })
+    return () => { cancelled = true }
+  }, [section])
+
+  // «Внимание» — период-независимое ядро; грузим на маунте (нужно и для бейджа вкладки).
+  const [alertsAgg, setAlertsAgg] = useState<AlertsAgg | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    loadAlertsAction()
+      .then((a) => { if (!cancelled) setAlertsAgg(a) })
+      .catch(() => { if (!cancelled) setAlertsAgg(null) })
+    return () => { cancelled = true }
+  }, [])
+
+  const alertsCount = alertsAgg
+    ? alertsAgg.expiringSoonCount + (alertsAgg.debtsCount > 0 ? 1 : 0)
+    : 0
 
   function navigate(s: Section) { setSection(s); window.scrollTo({ top: 0, behavior: "smooth" }) }
 
-  function handlePdf() {
-    printPdf(data, paidPayments, periodVisits, debts, period)
+  // Экспорт грузит сырые данные по требованию (не на каждый заход в отчёты).
+  const [exporting, setExporting] = useState<null | "pdf" | "csv">(null)
+
+  async function handlePdf() {
+    if (exporting) return
+    setExporting("pdf")
+    try {
+      const data = await loadReportsDataAction()
+      if (!data) { alert("Не удалось загрузить данные для экспорта"); return }
+      const paidPayments = data.payments.filter(p => p.status === "paid" && p.paidAt && p.paidAt >= bounds.from && p.paidAt <= bounds.to)
+      const periodVisits = data.visits.filter(v => v.checkedInAt >= bounds.from && v.checkedInAt <= bounds.to)
+      const debts = data.payments.filter(p => p.status === "pending")
+      printPdf(data, paidPayments, periodVisits, debts, period)
+    } finally {
+      setExporting(null)
+    }
   }
 
-  function handleExcel() {
-    const today = new Date().toISOString().slice(0, 10)
-    const revenue = paidPayments.reduce((a, p) => a + p.amount, 0)
+  async function handleExcel() {
+    if (exporting) return
+    setExporting("csv")
+    try {
+      const data = await loadReportsDataAction()
+      if (!data) { alert("Не удалось загрузить данные для экспорта"); return }
+      const paidPayments = data.payments.filter(p => p.status === "paid" && p.paidAt && p.paidAt >= bounds.from && p.paidAt <= bounds.to)
+      const today = new Date().toISOString().slice(0, 10)
 
     // Sheet 1: payments
     const paymentRows = paidPayments.map((p) => [
@@ -1409,6 +1441,9 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         ]),
       )
     }, 300)
+    } finally {
+      setExporting(null)
+    }
   }
 
   return (
@@ -1423,15 +1458,17 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         <div className="flex items-center gap-2 flex-shrink-0 pt-1">
           <button
             onClick={handleExcel}
-            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            disabled={exporting !== null}
+            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60 disabled:cursor-default"
             style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
-            <Download className="w-4 h-4" /> Экспорт в CSV
+            <Download className="w-4 h-4" /> {exporting === "csv" ? "Готовим…" : "Экспорт в CSV"}
           </button>
           <button
             onClick={handlePdf}
-            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            disabled={exporting !== null}
+            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60 disabled:cursor-default"
             style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
-            <Download className="w-4 h-4" /> PDF
+            <Download className="w-4 h-4" /> {exporting === "pdf" ? "Готовим…" : "PDF"}
           </button>
         </div>
       </div>
@@ -1476,15 +1513,19 @@ export function ReportsClient({ data }: { data: ReportsData }) {
       </div>
 
       {/* Content */}
-      {section === "alerts"   && <AlertsSection data={data} bounds={bounds} onNavigate={navigate} />}
-      {section === "finance"  && <FinanceSection payments={paidPayments} prevPayments={prevPaidPayments} bounds={bounds} />}
-      {section === "sales"    && <SalesSection payments={paidPayments} />}
-      {section === "visits"   && <AttendanceSection visits={periodVisits} prevVisits={prevVisits} bounds={bounds} />}
-      {section === "renewals" && <RenewalsSection clients={data.clients} />}
-      {section === "clients"  && <ClientsSection clients={data.clients} bounds={bounds} />}
-      {section === "staff"    && <StaffSection staff={data.staff} />}
-      {section === "debts"    && <DebtsSection debts={debts} />}
-      {section === "ai"       && <AiSection data={data} payments={paidPayments} visits={periodVisits} bounds={bounds} />}
+      {section === "alerts"   && (alertsAgg && visitsAgg
+        ? <AlertsSection agg={alertsAgg} visitsDelta={pct(visitsAgg.total, visitsAgg.prevTotal)} onNavigate={navigate} />
+        : <SectionLoading />)}
+      {section === "finance"  && (financeAgg ? <FinanceSection agg={financeAgg} bounds={bounds} /> : <SectionLoading />)}
+      {section === "sales"    && (salesAgg ? <SalesSection agg={salesAgg} /> : <SectionLoading />)}
+      {section === "visits"   && (visitsAgg ? <AttendanceSection agg={visitsAgg} bounds={bounds} /> : <SectionLoading />)}
+      {section === "renewals" && (renewalsAgg ? <RenewalsSection agg={renewalsAgg} /> : <SectionLoading />)}
+      {section === "clients"  && (clientsAgg ? <ClientsSection agg={clientsAgg} /> : <SectionLoading />)}
+      {section === "staff"    && (staffAgg ? <StaffSection staff={staffAgg} /> : <SectionLoading />)}
+      {section === "debts"    && (debtsAgg ? <DebtsSection agg={debtsAgg} /> : <SectionLoading />)}
+      {section === "ai"       && (financeAgg && salesAgg && visitsAgg && alertsAgg
+        ? <AiSection finance={financeAgg} sales={salesAgg} visits={visitsAgg} alerts={alertsAgg} bounds={bounds} />
+        : <SectionLoading />)}
 
     </div>
   )
