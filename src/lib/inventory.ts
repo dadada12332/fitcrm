@@ -1,3 +1,4 @@
+import { cache } from "react"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 export type Product = {
@@ -41,7 +42,7 @@ export type InventoryStats = {
   totalSalesMonth: number
 }
 
-export async function getInventory(supabase: SupabaseClient, clubId: string): Promise<Product[]> {
+export const getInventory = cache(async (supabase: SupabaseClient, clubId: string): Promise<Product[]> => {
   const { data } = await supabase
     .from("products")
     .select("id, name, category, unit, sell_price, buy_price, sku, barcode, description, photo_url, is_active, inventory(quantity, min_quantity, updated_at)")
@@ -68,7 +69,7 @@ export async function getInventory(supabase: SupabaseClient, clubId: string): Pr
       updatedAt: inv?.updated_at ?? new Date().toISOString(),
     }
   })
-}
+})
 
 /** Товары для витрины (POS): базовый список + агрегаты продаж за 90 дней. */
 export async function getPosProducts(supabase: SupabaseClient, clubId: string): Promise<PosProduct[]> {

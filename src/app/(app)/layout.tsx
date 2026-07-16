@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getAuthUser } from "@/lib/auth"
 import { getCurrentClub } from "@/lib/club"
 import { getSidebarStats } from "@/lib/sidebar"
 import { AppShell } from "@/components/app/AppShell"
@@ -8,10 +9,10 @@ import { RealtimeProvider } from "@/components/app/RealtimeProvider"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect("/login")
 
-  const club = await getCurrentClub(user.id)
+  const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
 
   // status добавлен миграцией платформы; при её отсутствии — fallback без него.

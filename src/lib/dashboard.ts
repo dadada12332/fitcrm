@@ -167,9 +167,8 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
   const todayISO  = today.toISOString()
   const todayMMDD = today.toISOString().slice(5, 10)
 
-  const { data, error } = await supabase.rpc("get_dashboard_stats", { p_club_id: clubId })
-
-  const [debtRes, todayClientsRes, todayPaymentsRes, birthdaysRes, oldPaymentsRes] = await Promise.all([
+  const [statsRes, debtRes, todayClientsRes, todayPaymentsRes, birthdaysRes, oldPaymentsRes] = await Promise.all([
+    supabase.rpc("get_dashboard_stats", { p_club_id: clubId }),
     supabase.from("clients").select("debt").eq("club_id", clubId).gt("debt", 0),
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId).gte("created_at", todayISO),
     supabase.from("payments").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "paid").gte("paid_at", todayISO),
@@ -180,6 +179,7 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
       .lt("paid_at", new Date(now - 60 * DAY).toISOString()),
   ])
 
+  const { data, error } = statsRes
   const debtRows = debtRes.error ? [] : ((debtRes.data ?? []) as { debt: number }[])
   const debtCount = debtRows.length
   const debtTotal = debtRows.reduce((s, r) => s + Number(r.debt ?? 0), 0)

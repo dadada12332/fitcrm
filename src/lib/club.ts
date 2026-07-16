@@ -1,6 +1,7 @@
 import { cache } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
+import { getAuthUser } from "@/lib/auth"
 import { cookies } from "next/headers"
 import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions } from "@/lib/permissions"
@@ -19,7 +20,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
 
   let uid = userId
   if (!uid) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) return null
     uid = user.id
   }
