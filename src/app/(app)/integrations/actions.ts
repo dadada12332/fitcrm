@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
@@ -30,6 +31,7 @@ export async function connectTelegramAction(
 
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
+  if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
   const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
   const cur = (club?.settings as Record<string, unknown>) ?? {}
@@ -56,6 +58,7 @@ export async function disconnectTelegramAction(): Promise<{ error?: string; ok?:
 
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
+  if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
   const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
   const cur = (club?.settings as Record<string, unknown>) ?? {}
@@ -80,6 +83,7 @@ async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }
 
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
+  if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
   const { data: club } = await supabase.from("clubs").select("name, tg_token").eq("id", cc.clubId).single()
   const token = club?.tg_token as string | null
@@ -210,6 +214,7 @@ export async function saveTelegramSettingsAction(
 
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
+  if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
   const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
   const cur = (club?.settings as Record<string, unknown>) ?? {}

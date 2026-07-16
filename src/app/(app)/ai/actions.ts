@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { sanitizeSearchTerm } from "@/lib/search"
 import { getCurrentClub } from "@/lib/club"
 import { createServiceClient } from "@/lib/supabase/service"
@@ -42,6 +43,7 @@ export type Briefing = { greeting: string; date: string; stats: { icon: string; 
 export async function getBriefingAction(): Promise<Briefing | null> {
   const club = await getCurrentClub()
   if (!club) return null
+  if (!can(club.permissions, "ai", "use")) return null
   const s = createServiceClient()
   const now = new Date()
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -282,6 +284,7 @@ async function callGemini(key: string, body: any): Promise<any> {
 export async function askAiAction(messages: AiMessage[]): Promise<{ reply: string; cards: AiCard[]; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { reply: "", cards: [], error: "Не авторизован" }
+  if (!can(club.permissions, "ai", "use")) return { reply: "", cards: [], error: "Недостаточно прав" }
   const key = process.env.GEMINI_API_KEY
   if (!key) return { reply: "", cards: [], error: "ИИ не подключён (нет ключа)" }
 

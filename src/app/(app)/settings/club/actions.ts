@@ -196,6 +196,7 @@ export async function inviteStaffAction(data: { email: string; role: string }): 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав для приглашения" }
+  if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
 
   const email = data.email.toLowerCase().trim()
   const supabase = await createClient()
@@ -271,6 +272,7 @@ export async function createInviteLinkAction(data: { role: string }): Promise<{ 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав для приглашения" }
+  if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
 
   const supabase = await createClient()
   const origin = (await headers()).get("origin") ?? ""

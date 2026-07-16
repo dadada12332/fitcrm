@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { revalidatePath } from "next/cache"
@@ -85,6 +86,7 @@ export async function batchImportClientsAction(
   const club = await getCurrentClub()
   const audit = emptyAudit()
   if (!club) return { imported: 0, updated: 0, skipped: 0, errors: [], audit }
+  if (!can(club.permissions, "clients", "create")) return { imported: 0, updated: 0, skipped: 0, errors: [{ row: 0, reason: "Недостаточно прав", name: "" }], audit }
 
   const clubId = club.clubId
   const result: BatchImportResult = { imported: 0, updated: 0, skipped: 0, errors: [], audit }

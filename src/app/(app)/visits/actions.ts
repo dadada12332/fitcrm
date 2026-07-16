@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { sanitizeSearchTerm } from "@/lib/search"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
@@ -19,6 +20,7 @@ export async function markVisitAction(
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "visits", "checkin")) return { error: "Недостаточно прав" }
 
   let warning: string | undefined
 
@@ -204,6 +206,7 @@ export async function manualVisitAction(input: ManualVisitInput): Promise<Manual
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "visits", "manual")) return { error: "Недостаточно прав" }
   if (!club.permissions.visits.manual) return { error: "Нет прав для ручной регистрации посещений" }
 
   const { data: staffRow } = await supabase

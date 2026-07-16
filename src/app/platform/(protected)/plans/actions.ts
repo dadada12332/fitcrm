@@ -1,5 +1,6 @@
 "use server"
 
+import { sanitizeSearchTerm } from "@/lib/search"
 import { revalidatePath } from "next/cache"
 import { getPlatformAuth } from "@/lib/platform"
 import { getPlanByCode } from "@/lib/plans"
@@ -112,7 +113,7 @@ export async function savePlanAction(planId: string, p: PlanPayload, priceApplyM
   }
 
   // Проверка уникальности code/slug (кроме себя).
-  const { data: dup } = await service.from("plans").select("id").or(`code.eq.${p.code},slug.eq.${p.slug}`).neq("id", planId)
+  const { data: dup } = await service.from("plans").select("id").or(`code.eq.${sanitizeSearchTerm(p.code)},slug.eq.${sanitizeSearchTerm(p.slug)}`).neq("id", planId)
   if (dup && dup.length) return { error: "Код или slug уже заняты" }
 
   const patch = {

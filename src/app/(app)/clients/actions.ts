@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
@@ -26,6 +27,7 @@ export async function exportClientsCsvAction(q: ClientsQuery): Promise<{ csv?: s
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "clients", "export")) return { error: "Недостаточно прав" }
   if (!club.permissions.clients.view) return { error: "Нет прав" }
   const rows = await getClientsForExport(supabase, club.clubId, q)
   return { csv: clientsToCSV(rows) }
@@ -51,6 +53,7 @@ export async function createClientAction(
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "clients", "create")) return { error: "Недостаточно прав" }
 
   const supabase = await createClient()
 
@@ -134,6 +137,7 @@ export async function importClientsAction(
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "clients", "create")) return { error: "Недостаточно прав" }
 
   const supabase = await createClient()
 
@@ -195,6 +199,7 @@ export async function updateClientAction(
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "clients", "edit")) return { error: "Недостаточно прав" }
 
   const payload: Record<string, unknown> = {
     full_name: fields.full_name,
@@ -264,6 +269,8 @@ export async function renewSubscriptionAction(
 ): Promise<{ ok?: boolean; error?: string; mode?: "extend" | "replace" }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "clients", "extend")) return { error: "Недостаточно прав" }
+  if (!can(club.permissions, "clients", "freeze")) return { error: "Недостаточно прав" }
   if (!membershipId) return { error: "Выберите абонемент" }
   const supabase = await createClient()
 

@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { getCurrentClub } from "@/lib/club"
@@ -8,6 +9,7 @@ export async function addProductAction(formData: FormData) {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "warehouse", "supply")) return { error: "Недостаточно прав" }
 
   const name = formData.get("name") as string
   const category = formData.get("category") as string | null
@@ -52,6 +54,7 @@ export async function addSupplyAction(formData: FormData) {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "warehouse", "supply")) return { error: "Недостаточно прав" }
 
   const productId = formData.get("product_id") as string
   const qty = Number(formData.get("qty"))
@@ -90,6 +93,7 @@ export async function writeoffAction(formData: FormData) {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "warehouse", "writeoff")) return { error: "Недостаточно прав" }
 
   const productId = formData.get("product_id") as string
   const qty = Number(formData.get("qty"))

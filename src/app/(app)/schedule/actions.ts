@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
@@ -22,6 +23,7 @@ export async function createClassAction(_prev: ClassFormState, formData: FormDat
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "schedule", "create")) return { error: "Недостаточно прав" }
 
   const supabase = await createClient()
   const { error } = await supabase.from("classes").insert({
@@ -46,6 +48,7 @@ export async function createClassAction(_prev: ClassFormState, formData: FormDat
 export async function cancelClassAction(id: string): Promise<ActionResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "schedule", "edit")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
   const { error } = await supabase
     .from("classes")
@@ -61,6 +64,7 @@ export async function rescheduleClassAction(id: string, date: string, start: str
   if (!date || !start || !end) return { error: "Укажите дату и время" }
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "schedule", "edit")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
   const { error } = await supabase
     .from("classes")
@@ -76,6 +80,7 @@ export async function addClientToClassAction(classId: string, clientId: string):
   if (!clientId) return { error: "Выберите клиента" }
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "schedule", "edit")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
 
   const { data: cls, error: e1 } = await supabase
@@ -110,6 +115,7 @@ export async function addClientToClassAction(classId: string, clientId: string):
 export async function markAttendanceAction(bookingId: string): Promise<ActionResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "schedule", "edit")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
 
   const { data: booking, error: e1 } = await supabase

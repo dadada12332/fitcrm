@@ -1,5 +1,6 @@
 "use server"
 
+import { can } from "@/lib/permissions"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
@@ -86,6 +87,7 @@ export async function createMembershipAction(_prev: MembershipFormState, formDat
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "memberships", "create")) return { error: "Недостаточно прав" }
 
   const supabase = await createClient()
   const { error } = await supabase.from("memberships").insert({ club_id: club.clubId, ...parsed.data })
@@ -123,6 +125,7 @@ export async function updateMembershipAction(_prev: MembershipFormState, formDat
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "memberships", "edit")) return { error: "Недостаточно прав" }
 
   const supabase = await createClient()
   // поля по новому дизайну дровера (visits_limit/price_per_day из формы убраны — не трогаем)
@@ -151,6 +154,7 @@ export async function updateMembershipAction(_prev: MembershipFormState, formDat
 export async function duplicateMembershipAction(id: string): Promise<MembershipFormState> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "memberships", "create")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
 
   const { data: m, error: e1 } = await supabase
@@ -178,6 +182,7 @@ export async function duplicateMembershipAction(id: string): Promise<MembershipF
 export async function setMembershipActiveAction(id: string, isActive: boolean): Promise<MembershipFormState> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "memberships", "edit")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
   const { error } = await supabase
     .from("memberships")
@@ -192,6 +197,7 @@ export async function setMembershipActiveAction(id: string, isActive: boolean): 
 export async function setMembershipArchivedAction(id: string, archived: boolean): Promise<MembershipFormState> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "memberships", "edit")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
   const { error } = await supabase
     .from("memberships")
@@ -206,6 +212,7 @@ export async function setMembershipArchivedAction(id: string, archived: boolean)
 export async function deleteMembershipAction(id: string): Promise<MembershipFormState> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "memberships", "delete")) return { error: "Недостаточно прав" }
   const supabase = await createClient()
   const { error } = await supabase.from("memberships").delete().eq("id", id).eq("club_id", club.clubId)
   if (error) {
