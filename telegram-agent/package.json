@@ -1,0 +1,13 @@
+{
+  "name": "fitcrm-telegram-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Telegram-оркестратор команды агентов FitCRM (запускает Claude Code headless)",
+  "scripts": {
+    "start": "node worker.mjs"
+  },
+  "dependencies": {
+    "grammy": "^1.44.0"
+  }
+}
