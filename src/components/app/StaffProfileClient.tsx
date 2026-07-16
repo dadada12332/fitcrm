@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
+import { toast } from "@/lib/use-action"
 import {
   ArrowLeft, Check, ChevronDown, ChevronRight,
   User, Users, CalendarDays, Wallet, Shield, BarChart2,
@@ -148,8 +149,12 @@ function BasicSection({
   }
 
   function handleStatus(s: string) {
-    setStatus(s as typeof status)
-    stStart(async () => { await updateStaffStatusAction(member.id, s) })
+    const prev = status
+    setStatus(s as typeof status)   // оптимистично
+    stStart(async () => {
+      const res = await updateStaffStatusAction(member.id, s)
+      if (res?.error) { setStatus(prev); toast.error(res.error) }   // откат при ошибке
+    })
   }
 
   function handleRoleChange(roleKey: string) {
