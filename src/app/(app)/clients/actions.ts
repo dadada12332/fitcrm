@@ -158,6 +158,7 @@ export async function deleteClientAction(clientId: string): Promise<{ error?: st
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.clients.delete)) return { error: "Недостаточно прав" }
 
   // Отвязываем оплаты клиента: payments.client_id / subscription_id не имеют
   // ON DELETE CASCADE, поэтому без этого FK блокирует удаление (клиент оставался

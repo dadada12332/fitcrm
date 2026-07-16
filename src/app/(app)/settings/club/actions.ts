@@ -297,6 +297,8 @@ export async function updateStaffRoleAction(staffId: string, role: string): Prom
   if (!club) return { error: "Клуб не найден" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав" }
 
+  if (role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
+
   const service = createServiceClient()
   const { data: staffRow } = await service
     .from("staff").select("role").eq("id", staffId).eq("club_id", club.clubId).maybeSingle()

@@ -50,6 +50,7 @@ export async function createPaymentAction(input: CreatePaymentInput): Promise<Cr
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.payments.create)) return { error: "Недостаточно прав" }
   const clubId = club.clubId
 
   let subscriptionId: string | null = null
@@ -109,6 +110,7 @@ export async function createOnlinePaymentAction(input: OnlinePaymentInput): Prom
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!(["owner", "admin"].includes(club.role) || club.permissions.payments.create)) return { error: "Недостаточно прав" }
 
   const { createServiceClient } = await import("@/lib/supabase/service")
   const svc = createServiceClient()
