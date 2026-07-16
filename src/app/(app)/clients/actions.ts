@@ -231,6 +231,9 @@ export async function updateClientAction(
 
 export async function toggleFreezeAction(clientId: string, currentStatus: string): Promise<{ error?: string; ok?: boolean }> {
   const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "clients", "freeze")) return { error: "Недостаточно прав" }
 
   const targetStatus = currentStatus === "frozen" ? "active" : "frozen"
   const fromStatus = currentStatus === "frozen" ? "frozen" : "active"
@@ -239,6 +242,7 @@ export async function toggleFreezeAction(clientId: string, currentStatus: string
     .from("subscriptions")
     .select("id")
     .eq("client_id", clientId)
+    .eq("club_id", club.clubId)
     .eq("status", fromStatus)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -270,7 +274,6 @@ export async function renewSubscriptionAction(
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "clients", "extend")) return { error: "Недостаточно прав" }
-  if (!can(club.permissions, "clients", "freeze")) return { error: "Недостаточно прав" }
   if (!membershipId) return { error: "Выберите абонемент" }
   const supabase = await createClient()
 
