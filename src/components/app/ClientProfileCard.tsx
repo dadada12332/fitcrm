@@ -118,10 +118,11 @@ function ConfirmDialog({
 }
 
 export function ClientProfileCard({ client, memberships }: { client: ClientProfile; memberships: Membership[] }) {
-  const sm = statusMeta[client.status]
+  const [status, setStatus] = useState<ClientStatus>(client.status)
+  const sm = statusMeta[status]
   const comment = client.notes && client.notes !== "[demo]" ? client.notes : ""
-  const isFrozen = client.status === "frozen"
-  const canFreeze = client.status === "active" || client.status === "frozen"
+  const isFrozen = status === "frozen"
+  const canFreeze = status === "active" || status === "frozen"
 
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -140,11 +141,15 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
   }
 
   function handleFreeze() {
+    const prev = status
+    const next: ClientStatus = status === "frozen" ? "active" : "frozen"
+    setStatus(next)          // оптимистично — статус меняется мгновенно
+    setDialog(null)
     startTransition(async () => {
-      await toggleFreezeAction(client.id, client.status)
-      setDialog(null)
-      toast.success(client.status === "frozen" ? "Клиент разморожен" : "Клиент заморожен")
-      router.refresh()
+      const res = await toggleFreezeAction(client.id, prev)
+      if (res?.error) { setStatus(prev); toast.error(res.error); return }  // откат при ошибке
+      toast.success(next === "frozen" ? "Клиент заморожен" : "Клиент разморожен")
+      router.refresh()       // фоновая синхронизация
     })
   }
 
