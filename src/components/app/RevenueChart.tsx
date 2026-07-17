@@ -29,10 +29,10 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-4"
+        className="flex flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
         style={{ borderBottom: "1px solid var(--border)" }}
       >
-        <div>
+        <div className="shrink-0">
           <p
             className="text-[20px] font-medium tracking-[-0.12px]"
             style={{ color: "var(--on-dark)", lineHeight: "28px" }}
@@ -41,15 +41,13 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
           </p>
         </div>
 
-        {/* Period dropdown (decorative) */}
-        <div className="flex items-center gap-1.5 relative">
-          {/* Pill period buttons */}
-          <div className="flex items-center gap-0.5 p-0.5 rounded-md" style={{ background: "var(--card-2)" }}>
+        <div className="w-full sm:w-auto">
+          <div className="grid w-full grid-cols-5 gap-0.5 rounded-md p-0.5 sm:flex sm:w-auto" style={{ background: "var(--card-2)" }}>
             {PERIODS.map((p) => (
               <button
                 key={p.key}
                 onClick={() => setPeriod(p.key)}
-                className="h-7 px-3 rounded text-xs font-medium transition-all"
+                className="h-9 min-w-0 rounded px-1 text-xs font-medium transition-all sm:h-7 sm:flex-none sm:px-3"
                 style={{
                   background: period === p.key ? "var(--pill-active)" : "transparent",
                   color: period === p.key ? "var(--on-dark)" : "var(--on-dark-soft)",
