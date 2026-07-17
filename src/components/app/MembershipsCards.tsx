@@ -41,27 +41,26 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
     <div className="space-y-4">
       {/* ── Toolbar block ── */}
       <div
-        className="rounded-lg flex items-center justify-between gap-4 px-6 py-4"
+        className="flex flex-col items-stretch gap-3 rounded-lg px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}
       >
-        {/* Left: search + tabs */}
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Поиск"
-              className="h-9 w-[220px] pl-9 pr-3 rounded-md text-sm outline-none"
+              className="h-9 w-full rounded-md pl-9 pr-3 text-sm outline-none sm:w-[220px]"
               style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
             />
           </div>
 
           {/* Active / Archived tabs */}
-          <div className="flex items-center gap-0.5 p-1 rounded-lg" style={{ background: "var(--card-2)" }}>
+          <div className="flex w-full items-center gap-0.5 rounded-lg p-1 sm:w-auto" style={{ background: "var(--card-2)" }}>
             <button
               onClick={() => setTab("active")}
-              className="flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium transition-all"
+              className="flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-medium transition-all sm:flex-none"
               style={{
                 background: tab === "active" ? "var(--pill-active)" : "transparent",
                 color: tab === "active" ? "var(--on-dark)" : "var(--on-dark)",
@@ -83,7 +82,7 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
             </button>
             <button
               onClick={() => setTab("archived")}
-              className="flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium transition-all"
+              className="flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-medium transition-all sm:flex-none"
               style={{
                 background: tab === "archived" ? "var(--pill-active)" : "transparent",
                 color: tab === "archived" ? "var(--on-dark)" : "var(--on-dark)",
