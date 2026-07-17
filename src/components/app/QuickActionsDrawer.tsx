@@ -3,10 +3,18 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
-  ArrowLeft, X, Users, Wallet, CreditCard, Activity, UserCog,
+  Plus, X, Users, Wallet, CreditCard, Activity, UserCog,
   Search, CheckCircle2, AlertCircle, AlertTriangle,
   ChevronDown, Calendar,
 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   getMembershipsForDrawer,
   type QuickMembership,
@@ -105,7 +113,7 @@ function rawDateISO(d: string) {
 
 // ── Type ─────────────────────────────────────────────────────────────
 
-type View = "home" | "client" | "payment" | "membership" | "visit" | "staff"
+type View = "client" | "payment" | "membership" | "visit" | "staff"
 
 // ── View: Home ───────────────────────────────────────────────────────
 
@@ -116,30 +124,6 @@ const ACTIONS: { view: View; icon: React.ElementType; label: string; desc: strin
   { view: "visit",      icon: Activity,   label: "Отметить посещение",    desc: "Check-in клиента по имени/тел."  },
   { view: "staff",      icon: UserCog,    label: "Добавить сотрудника",   desc: "Пригласить нового сотрудника"    },
 ]
-
-function HomeView({ onSelect }: { onSelect: (v: View) => void }) {
-  return (
-    <div className="flex flex-col gap-2">
-      {ACTIONS.map(({ view, icon: Icon, label, desc }) => (
-        <button
-          key={view}
-          onClick={() => onSelect(view)}
-          className="flex items-center gap-4 p-4 rounded-xl text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-[0.99]"
-          style={{ border: "1px solid var(--border-subtle)" }}
-        >
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "var(--card-2)" }}>
-            <Icon className="w-5 h-5" style={{ color: "var(--on-dark)" }} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{label}</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>{desc}</p>
-          </div>
-        </button>
-      ))}
-    </div>
-  )
-}
 
 // ── View: New client ─────────────────────────────────────────────────
 
@@ -757,7 +741,6 @@ function NewStaffView({ onDone }: { onDone: () => void }) {
 // ── Main QuickActionsDrawer ──────────────────────────────────────────
 
 const VIEW_LABELS: Record<View, string> = {
-  home:       "Быстрое действие",
   client:     "Новый клиент",
   payment:    "Новая оплата",
   membership: "Новый абонемент",
@@ -767,7 +750,7 @@ const VIEW_LABELS: Record<View, string> = {
 
 export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
   const [open, setOpen]             = useState(false)
-  const [view, setView]             = useState<View>("home")
+  const [view, setView]             = useState<View>("client")
   const [memberships, setMemberships] = useState<QuickMembership[] | null>(null)
   const [loadingM, setLoadingM]     = useState(false)
 
@@ -784,7 +767,6 @@ export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
 
   function close() {
     setOpen(false)
-    setTimeout(() => setView("home"), 300)
   }
 
   function done() {
@@ -794,14 +776,40 @@ export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
   return (
     <>
       <div className="px-2 pb-2">
-        <button
-          onClick={() => openView("home")}
-          className="w-full flex items-center justify-center gap-2 rounded-md transition-colors hover:opacity-90"
-          style={{ height: 32, fontSize: 13, fontWeight: 500, background: "#18181b", color: "white" }}
-        >
-          <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-          {!collapsed && "Быстрое действие"}
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label="Быстрые действия"
+            title={collapsed ? "Быстрые действия" : undefined}
+            className="flex h-8 w-full items-center justify-center gap-2 rounded-md bg-primary text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            {!collapsed && "Быстрые действия"}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            sideOffset={6}
+            className="w-[min(320px,calc(100vw-2rem))] rounded-lg p-1.5"
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="px-2 py-1.5">Быстрые действия</DropdownMenuLabel>
+              {ACTIONS.map(({ view: actionView, icon: Icon, label, desc }) => (
+                <DropdownMenuItem
+                  key={actionView}
+                  onClick={() => openView(actionView)}
+                  className="items-center gap-3 px-2 py-2.5"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                    <Icon className="h-4 w-4 text-foreground" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-foreground">{label}</span>
+                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">{desc}</span>
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {open && (
@@ -826,15 +834,6 @@ export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-5 h-16 flex-shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
-              {view !== "home" && (
-                <button
-                  onClick={() => setView("home")}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-                  style={{ color: "var(--on-dark-soft)" }}
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-              )}
               <h2 className="flex-1 text-xl font-semibold" style={{ color: "var(--on-dark)", letterSpacing: "-0.12px" }}>
                 {VIEW_LABELS[view]}
               </h2>
@@ -849,8 +848,6 @@ export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-5 py-5">
-              {view === "home" && <HomeView onSelect={openView} />}
-
               {view === "client" && (
                 loadingM
                   ? <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "var(--border)", borderTopColor: "#2563eb" }} /></div>
