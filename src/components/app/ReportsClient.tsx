@@ -1450,23 +1450,23 @@ export function ReportsClient() {
     <div className="flex flex-col gap-5">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="font-semibold tracking-[-0.144px]" style={{ fontSize: 24, color: "var(--on-dark)" }}>Отчёты</h1>
           <p style={{ fontSize: 15, color: "var(--on-dark-soft)", marginTop: 2 }}>Аналитика и статистика клуба</p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0 pt-1">
+        <div className="grid w-full grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] items-center gap-2 pt-1 sm:flex sm:w-auto sm:flex-shrink-0">
           <button
             onClick={handleExcel}
             disabled={exporting !== null}
-            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60 disabled:cursor-default"
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:cursor-default disabled:opacity-60 sm:w-auto sm:px-4"
             style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
             <Download className="w-4 h-4" /> {exporting === "csv" ? "Готовим…" : "Экспорт в CSV"}
           </button>
           <button
             onClick={handlePdf}
             disabled={exporting !== null}
-            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60 disabled:cursor-default"
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:cursor-default disabled:opacity-60 sm:w-auto sm:px-4"
             style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
             <Download className="w-4 h-4" /> {exporting === "pdf" ? "Готовим…" : "PDF"}
           </button>
@@ -1474,9 +1474,9 @@ export function ReportsClient() {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Section tabs */}
-        <div className="flex items-center gap-0.5 p-1 rounded-lg min-w-0 flex-1 overflow-x-auto" style={{ background: "var(--card-2)" }}>
+        <div className="flex w-full min-w-0 items-center gap-0.5 overflow-x-auto rounded-lg p-1 sm:flex-1" style={{ background: "var(--card-2)" }}>
           {SECTIONS.map(s => (
             <button key={s.key} onClick={() => setSection(s.key)}
               className="h-7 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1"
@@ -1497,10 +1497,10 @@ export function ReportsClient() {
         </div>
 
         {/* Period picker */}
-        <div className="flex items-center gap-0.5 p-1 rounded-lg flex-shrink-0" style={{ background: "var(--card-2)" }}>
+        <div className="grid w-full grid-cols-5 gap-0.5 rounded-lg p-1 sm:flex sm:w-auto sm:flex-shrink-0 sm:items-center" style={{ background: "var(--card-2)" }}>
           {PERIODS.map(p => (
             <button key={p.key} onClick={() => setPeriod(p.key)}
-              className="h-7 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap"
+              className="flex h-7 min-w-0 items-center justify-center rounded-md px-1 text-[11px] font-medium transition-all whitespace-nowrap sm:block sm:px-3 sm:text-xs"
               style={{
                 background: period === p.key ? "var(--pill-active)" : "transparent",
                 color: period === p.key ? "var(--on-dark)" : "var(--on-dark-soft)",
