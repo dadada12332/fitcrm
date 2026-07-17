@@ -43,3 +43,8 @@ next-env.d.ts
 
 # MCP config (contains tokens)
 .mcp.json
+
+# Obsidian local state. Vault content under /knowledge remains tracked.
+/knowledge/.obsidian/
+/knowledge/.trash/
+/knowledge/**/.DS_Store

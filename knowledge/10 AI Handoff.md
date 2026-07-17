@@ -1,0 +1,69 @@
+---
+type: ai-handoff
+status: active
+updated: 2026-07-18
+tags: [fitcrm, ai]
+---
+
+# AI Handoff
+
+## Читать первым
+
+1. `/AGENTS.md` — критические инженерные правила.
+2. [[01 Project Context]] — стабильный контекст.
+3. [[02 Current State]] — текущее состояние.
+4. [[03 Current Task]] и [[05 Kanban]] — активная работа.
+5. `/DESIGN_SYSTEM.md` и профильный ADR/документ для конкретной задачи.
+
+## Краткий контекст
+
+FitCRM — Next.js 16 + React 19 мультитенантная CRM для фитнес-клубов Узбекистана. Данные, Auth, RLS, Realtime и Storage находятся в Supabase; приложение — Vercel. Prisma/tRPC отсутствуют.
+
+## Текущая задача
+
+<!-- AUTO:START current-task -->
+Нет активной задачи. Выберите следующую из [[05 Kanban]].
+<!-- AUTO:END current-task -->
+
+## Последние существенные изменения
+
+<!-- AUTO:START recent-changes -->
+- `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
+- `58ffb23` · 2026-07-18 · Fix platform support mobile header
+- `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
+- `1cf7e0a` · 2026-07-18 · Fix platform dashboard mobile grid
+- `f4543f3` · 2026-07-18 · Unify platform admin design system
+- `44e8945` · 2026-07-17 · Hide breadcrumbs on mobile top bar
+- `5172f4f` · 2026-07-17 · Filter expired notifications by end date
+- `bca4ed1` · 2026-07-17 · Redesign notification center
+- `9c5ec17` · 2026-07-17 · Align password recovery link with remember option
+- `7cf1ffc` · 2026-07-17 · Optimize CRM data loading
+<!-- AUTO:END recent-changes -->
+
+## Известные проблемы
+
+- Регион Supabase не подтверждён при Vercel `syd1`.
+- Нет unit/integration CI и автоматических tenant isolation тестов.
+- SMS/email delivery и проверенный backup/restore отсутствуют.
+- Подробнее: [[08 Known Issues]].
+
+## Нельзя нарушать
+
+- Каждая мутирующая Server Action проверяет `getCurrentClub()` и `can(...)`.
+- `createServiceClient()` требует ручного `clubId` scope.
+- `.or(...ilike...)` использует `sanitizeSearchTerm()`.
+- UI использует дизайн-токены и `src/components/ui/`; пути всегда проверяются по коду.
+- Не логировать и не сохранять секреты или клиентские данные.
+- Не считать deploy/tests успешными без фактической проверки.
+
+## Источники истины
+
+Код → реализация; миграции → БД; Git → история; Figma/`DESIGN_SYSTEM.md` → UI; Current State → оперативный статус; ADR → причины решений; Kanban → работа.
+
+## Не предполагать без проверки
+
+Production deploy, применённые миграции, регион Supabase, наличие провайдеров и точные пути из старых `FITCRM_*` документов.
+
+Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
+2026-07-18 Asia/Tashkent
+<!-- AUTO:END updated-at -->

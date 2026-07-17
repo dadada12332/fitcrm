@@ -1,0 +1,3 @@
+#!/bin/sh
+set -eu
+node knowledge/Scripts/docs.mjs validate

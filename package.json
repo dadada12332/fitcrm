@@ -6,7 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docs:daily": "node knowledge/Scripts/docs.mjs daily",
+    "docs:weekly": "node knowledge/Scripts/docs.mjs weekly",
+    "docs:task": "node knowledge/Scripts/docs.mjs task",
+    "docs:close-task": "node knowledge/Scripts/docs.mjs close-task",
+    "docs:adr": "node knowledge/Scripts/docs.mjs adr",
+    "docs:incident": "node knowledge/Scripts/docs.mjs incident",
+    "docs:changelog": "node knowledge/Scripts/docs.mjs changelog",
+    "docs:handoff": "node knowledge/Scripts/docs.mjs handoff",
+    "docs:index": "node knowledge/Scripts/docs.mjs index",
+    "docs:validate": "node knowledge/Scripts/docs.mjs validate",
+    "docs:sync": "node knowledge/Scripts/docs.mjs sync",
+    "docs:hooks": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

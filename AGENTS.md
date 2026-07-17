@@ -9,6 +9,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 **⭐ Полный контекст проекта — в [`HANDOFF.md`](./HANDOFF.md). Прочитай его перед работой.**
 Дизайн — [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md). Аудиты/замеры — `SECURITY_AUDIT.md`, `QA_REPORT.md`, `PERF_REPORT.md`.
 
+Оперативная память проекта — [`knowledge/10 AI Handoff.md`](./knowledge/10%20AI%20Handoff.md).
+После значимых задач следуй единому процессу из [`AI_WORKFLOW.md`](./AI_WORKFLOW.md).
+
 ## Что это
 Мультитенантный SaaS CRM для фитнес-клубов (Узбекистан, UZS, RU). **Next.js 16 (App Router) +
 React 19 + Server Actions + Supabase (Postgres + RLS + Auth + Realtime + Storage). Tailwind v4 +
