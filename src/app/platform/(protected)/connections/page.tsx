@@ -9,7 +9,7 @@ export default async function ConnectionsPage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.fitcrm.uz"
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1100px] mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1100px] mx-auto">
       <PageHeader
         title="Приём оплат"
         subtitle="Заявки клубов на подключение Payme / Click. Введите данные мерчанта и активируйте."

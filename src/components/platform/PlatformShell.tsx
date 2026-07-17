@@ -3,13 +3,15 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTheme } from "next-themes"
 import {
   LayoutDashboard, Building2, Users, CreditCard, Receipt, BarChart3,
   Activity, ScrollText, LifeBuoy, Send, Ticket, Settings, ShieldCheck,
-  LogOut, Menu, ExternalLink, Tag, Plug,
+  LogOut, Menu, ExternalLink, Tag, Plug, X, Sun, Moon,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
-export type NavItem = { label: string; href: string; icon: string; badge?: number }
+export type NavItem = { label: string; href: string; icon: string; badge?: number; section?: string }
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Building2, Users, CreditCard, Receipt, BarChart3,
@@ -28,6 +30,7 @@ export function PlatformShell({
 }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { resolvedTheme, setTheme } = useTheme()
   const home = base || "/"
 
   const isActive = (href: string) => {
@@ -35,101 +38,114 @@ export function PlatformShell({
     return pathname === href || pathname.startsWith(href + "/")
   }
 
-  const SidebarInner = (
-    <div className="flex flex-col h-full" style={{ background: "#0b1120", borderRight: "1px solid #1e293b" }}>
-      {/* Brand */}
-      <div className="flex items-center gap-2.5 px-4 h-16 shrink-0" style={{ borderBottom: "1px solid #1e293b" }}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg,#6366f1,#4338ca)" }}>
-          <ShieldCheck className="w-4.5 h-4.5 text-white" />
+  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
+    <aside className="flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          <ShieldCheck className="size-4" />
         </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-white leading-tight truncate">FitCRM Platform</p>
-          <p className="text-[11px] leading-tight truncate" style={{ color: "#475569" }}>Control Center</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold leading-tight">FitCRM Platform</p>
+          <p className="truncate text-[11px] leading-tight text-muted-foreground">Управление SaaS</p>
         </div>
+        {mobile && (
+          <Button type="button" variant="ghost" size="icon-sm" onClick={() => setMobileOpen(false)} aria-label="Закрыть меню">
+            <X className="size-4" />
+          </Button>
+        )}
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3 flex flex-col gap-0.5">
-        {nav.map((item) => {
+      <nav className="flex flex-1 flex-col overflow-y-auto px-2.5 py-3">
+        {nav.map((item, index) => {
           const Icon = ICONS[item.icon] ?? LayoutDashboard
           const active = isActive(item.href)
+          const showSection = item.section && item.section !== nav[index - 1]?.section
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-sm transition-colors"
-              style={{
-                background: active ? "rgba(99,102,241,0.14)" : "transparent",
-                color: active ? "#a5b4fc" : "#94a3b8",
-                fontWeight: active ? 600 : 400,
-              }}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span className="flex-1 truncate">{item.label}</span>
-              {item.badge ? (
-                <span className="text-[11px] font-semibold px-1.5 h-5 min-w-5 flex items-center justify-center rounded-full" style={{ background: "#ef4444", color: "white" }}>
-                  {item.badge}
-                </span>
-              ) : null}
-            </Link>
+            <div key={item.href}>
+              {showSection && (
+                <p className={`${index > 0 ? "mt-4" : ""} mb-1 px-2.5 text-[11px] font-medium uppercase text-muted-foreground`}>
+                  {item.section}
+                </p>
+              )}
+              <Link
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors ${active ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"}`}
+              >
+                <Icon className="size-4 shrink-0" />
+                <span className="flex-1 truncate">{item.label}</span>
+                {item.badge ? (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground">
+                    {item.badge}
+                  </span>
+                ) : null}
+              </Link>
+            </div>
           )
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-2.5 py-3 shrink-0" style={{ borderTop: "1px solid #1e293b" }}>
+      <div className="shrink-0 border-t border-sidebar-border p-2.5">
         <a
           href={appUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-sm transition-colors hover:bg-white/5"
-          style={{ color: "#64748b" }}
+          className="flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
-          <ExternalLink className="w-4 h-4 shrink-0" />
-          <span className="flex-1 truncate">CRM клуба</span>
+          <ExternalLink className="size-4 shrink-0" />
+          <span className="flex-1 truncate">Открыть CRM</span>
         </a>
-        <div className="flex items-center gap-2.5 px-2.5 py-2 mt-1 rounded-lg" style={{ background: "#0f172a" }}>
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold text-white shrink-0" style={{ background: "#4338ca" }}>
+        <div className="mt-1 flex items-center gap-2.5 rounded-md bg-sidebar-accent/60 px-2.5 py-2">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
             {email.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-white truncate">{email}</p>
-            <p className="text-[10px] uppercase tracking-wide truncate" style={{ color: role === "super_admin" ? "#a5b4fc" : "#64748b" }}>
-              {role === "super_admin" ? "Super Admin" : "Platform Admin"}
+            <p className="truncate text-xs font-medium text-sidebar-foreground">{email}</p>
+            <p className="truncate text-[10px] text-muted-foreground">
+              {role === "super_admin" ? "Суперадминистратор" : "Администратор платформы"}
             </p>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            aria-label={resolvedTheme === "dark" ? "Светлая тема" : "Тёмная тема"}
+          >
+            {resolvedTheme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+          </Button>
           <form action={`${base}/logout`} method="post" className="contents">
-            <button type="submit" className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5" title="Выйти">
-              <LogOut className="w-4 h-4" style={{ color: "#64748b" }} />
-            </button>
+            <Button type="submit" variant="ghost" size="icon-xs" aria-label="Выйти из платформы">
+              <LogOut className="size-3.5" />
+            </Button>
           </form>
         </div>
       </div>
-    </div>
+    </aside>
   )
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: "#0a0f1c", fontFamily: "var(--font-sans)" }}>
-      {/* Desktop sidebar */}
-      <div className="hidden lg:block w-[248px] shrink-0">{SidebarInner}</div>
+    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
+      <div className="hidden w-[260px] shrink-0 lg:block"><Sidebar /></div>
 
-      {/* Mobile sidebar */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-[248px]">{SidebarInner}</div>
+          <button className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} aria-label="Закрыть меню" />
+          <div className="absolute inset-y-0 left-0 w-[min(300px,86vw)] shadow-2xl"><Sidebar mobile /></div>
         </div>
       )}
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="lg:hidden flex items-center gap-3 h-14 px-4 shrink-0" style={{ background: "#0b1120", borderBottom: "1px solid #1e293b" }}>
-          <button onClick={() => setMobileOpen(true)} className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ color: "#94a3b8" }}>
-            <Menu className="w-5 h-5" />
-          </button>
-          <span className="text-sm font-semibold text-white">FitCRM Platform</span>
-        </div>
-        <div className="flex-1 overflow-y-auto">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-4 lg:hidden">
+          <Button type="button" variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Открыть меню платформы">
+            <Menu className="size-5" />
+          </Button>
+          <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <ShieldCheck className="size-3.5" />
+          </div>
+          <span className="text-sm font-semibold">FitCRM Platform</span>
+        </header>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   )

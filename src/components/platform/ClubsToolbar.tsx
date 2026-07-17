@@ -55,7 +55,7 @@ export function ClubsToolbar() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Поиск клуба по названию..."
-          className="w-full h-10 pl-9 pr-3 rounded-lg text-sm outline-none text-white"
+          className="w-full h-10 pl-9 pr-3 rounded-lg text-sm outline-none text-foreground"
           style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }}
         />
       </div>
@@ -63,7 +63,7 @@ export function ClubsToolbar() {
         {STATUS.map((s) => (
           <button key={s.key} onClick={() => push({ status: s.key })}
             className="h-8 px-3 rounded-md text-xs font-medium transition-colors"
-            style={{ background: status === s.key ? "rgba(99,102,241,0.18)" : "transparent", color: status === s.key ? "#a5b4fc" : PT.textMuted }}>
+            style={{ background: status === s.key ? "color-mix(in srgb, var(--brand) 18%, transparent)" : "transparent", color: status === s.key ? "var(--brand)" : PT.textMuted }}>
             {s.label}
           </button>
         ))}
@@ -71,7 +71,7 @@ export function ClubsToolbar() {
       <select
         value={plan}
         onChange={(e) => push({ plan: e.target.value })}
-        className="h-10 px-3 rounded-lg text-sm outline-none text-white"
+        className="h-10 px-3 rounded-lg text-sm outline-none text-foreground"
         style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }}
       >
         {PLANS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
@@ -107,7 +107,7 @@ export function SearchBox({ placeholder = "Поиск..." }: { placeholder?: str
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-10 pl-9 pr-3 rounded-lg text-sm outline-none text-white"
+        className="w-full h-10 pl-9 pr-3 rounded-lg text-sm outline-none text-foreground"
         style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }}
       />
     </div>

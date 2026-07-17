@@ -30,8 +30,7 @@ export function ClubActions({ clubId, status, plan, plans }: { clubId: string; s
       <button
         disabled={pending}
         onClick={run(() => impersonateClub(clubId))}
-        className={btn}
-        style={{ background: "linear-gradient(135deg,#6366f1,#4338ca)", color: "white" }}
+        className={`${btn} bg-primary text-primary-foreground hover:bg-primary/80`}
       >
         {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
         Войти как владелец
@@ -43,7 +42,7 @@ export function ClubActions({ clubId, status, plan, plans }: { clubId: string; s
         className={btn}
         style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: PT.text }}
       >
-        <CalendarPlus className="w-4 h-4" style={{ color: "#4ade80" }} />
+        <CalendarPlus className="w-4 h-4" style={{ color: "var(--chart-2)" }} />
         Продлить Trial +14д
       </button>
 
@@ -54,19 +53,19 @@ export function ClubActions({ clubId, status, plan, plans }: { clubId: string; s
           className={btn}
           style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: PT.text }}
         >
-          <ArrowUpDown className="w-4 h-4" style={{ color: "#a78bfa" }} />
+          <ArrowUpDown className="w-4 h-4" style={{ color: "var(--chart-4)" }} />
           Изменить тариф
           <ChevronDown className="w-3.5 h-3.5" />
         </button>
         {planOpen && (
-          <div className="absolute left-0 top-11 z-20 w-56 rounded-lg py-1 overflow-hidden" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+          <div className="absolute left-0 top-11 z-20 w-56 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-xl">
             {plans.length === 0 && <p className="px-3 py-2 text-xs" style={{ color: PT.textMuted }}>Нет активных тарифов</p>}
             {plans.map((p) => (
               <button
                 key={p.code}
                 onClick={() => { setPlanOpen(false); act(() => changePlan(clubId, p.code), `Тариф изменён: ${p.name}`) }}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors hover:bg-white/5"
-                style={{ color: p.code === plan ? "#a5b4fc" : PT.text }}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors hover:bg-muted/60"
+                style={{ color: p.code === plan ? "var(--brand)" : PT.text }}
               >
                 <span>{p.name}</span>
                 <span className="flex items-center gap-1.5">
@@ -86,7 +85,7 @@ export function ClubActions({ clubId, status, plan, plans }: { clubId: string; s
           disabled={pending}
           onClick={() => act(() => setClubStatus(clubId, "active"), "Клуб разблокирован")}
           className={btn}
-          style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", color: "#4ade80" }}
+          style={{ background: "color-mix(in srgb, var(--chart-2) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--chart-2) 30%, transparent)", color: "var(--chart-2)" }}
         >
           <CheckCircle2 className="w-4 h-4" />
           Разблокировать
@@ -96,7 +95,7 @@ export function ClubActions({ clubId, status, plan, plans }: { clubId: string; s
           disabled={pending}
           onClick={() => act(() => setClubStatus(clubId, "suspended"), "Клуб заблокирован")}
           className={btn}
-          style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}
+          style={{ background: "color-mix(in srgb, var(--destructive) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--destructive) 30%, transparent)", color: "var(--destructive)" }}
         >
           <Ban className="w-4 h-4" />
           Заблокировать

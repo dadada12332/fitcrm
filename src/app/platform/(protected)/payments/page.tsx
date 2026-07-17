@@ -6,10 +6,10 @@ export const dynamic = "force-dynamic"
 
 const PROVIDER_LABEL: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
 const STATUS_STYLE: Record<string, { fg: string; label: string }> = {
-  paid:     { fg: "#4ade80", label: "Оплачено" },
-  pending:  { fg: "#fbbf24", label: "Ожидание" },
-  failed:   { fg: "#f87171", label: "Ошибка" },
-  refunded: { fg: "#94a3b8", label: "Возврат" },
+  paid:     { fg: "var(--chart-2)", label: "Оплачено" },
+  pending:  { fg: "var(--chart-3)", label: "Ожидание" },
+  failed:   { fg: "var(--destructive)", label: "Ошибка" },
+  refunded: { fg: "var(--muted-foreground)", label: "Возврат" },
 }
 
 export default async function PlatformPaymentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -18,11 +18,11 @@ export default async function PlatformPaymentsPage({ searchParams }: { searchPar
   const result = await getPlatformPayments({ page, pageSize: 30, provider: sp.provider })
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1400px] mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
       <PageHeader title="Платежи" subtitle="Все оплаты по всем клубам платформы" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-        <StatTile label="Выручка клубов за 30д" value={fmtSum(result.sum)} accent="#4ade80" />
+        <StatTile label="Выручка клубов за 30д" value={fmtSum(result.sum)} accent="var(--chart-2)" />
         <StatTile label="Всего записей" value={result.total.toLocaleString("ru-RU")} />
         <StatTile label="Показано" value={`${result.rows.length}`} />
       </div>
@@ -33,7 +33,7 @@ export default async function PlatformPaymentsPage({ searchParams }: { searchPar
             <thead>
               <tr style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
                 {["Клуб", "Клиент", "Способ", "Статус", "Когда", "Сумма"].map((h, i) => (
-                  <th key={i} className={`text-[11px] font-medium uppercase tracking-wide px-4 py-2.5 whitespace-nowrap ${i === 5 ? "text-right" : "text-left"}`} style={{ color: PT.textMuted }}>{h}</th>
+                  <th key={i} className={`text-[11px] font-medium uppercase px-4 py-2.5 whitespace-nowrap ${i === 5 ? "text-right" : "text-left"}`} style={{ color: PT.textMuted }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -43,8 +43,8 @@ export default async function PlatformPaymentsPage({ searchParams }: { searchPar
               ) : result.rows.map((p) => {
                 const st = STATUS_STYLE[p.status] ?? STATUS_STYLE.pending
                 return (
-                  <tr key={p.id} className="transition-colors hover:bg-white/[0.03]" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
-                    <td className="px-4 py-3 text-sm text-white truncate max-w-[200px]">{p.clubName ?? "—"}</td>
+                  <tr key={p.id} className="transition-colors hover:bg-muted/60" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
+                    <td className="px-4 py-3 text-sm text-foreground truncate max-w-[200px]">{p.clubName ?? "—"}</td>
                     <td className="px-4 py-3 text-sm truncate max-w-[180px]" style={{ color: PT.text }}>{p.clientName ?? "—"}</td>
                     <td className="px-4 py-3 text-xs" style={{ color: PT.textSoft }}>{PROVIDER_LABEL[p.provider] ?? p.provider}</td>
                     <td className="px-4 py-3">
@@ -53,7 +53,7 @@ export default async function PlatformPaymentsPage({ searchParams }: { searchPar
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs" style={{ color: PT.textSoft }}>{timeAgo(p.createdAt)}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-right tabular-nums" style={{ color: p.status === "paid" ? "#4ade80" : PT.text }}>{fmtSum(p.amount)}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-right tabular-nums" style={{ color: p.status === "paid" ? "var(--chart-2)" : PT.text }}>{fmtSum(p.amount)}</td>
                   </tr>
                 )
               })}

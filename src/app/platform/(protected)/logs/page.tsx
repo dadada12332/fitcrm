@@ -13,19 +13,19 @@ const ACTION_LABEL: Record<string, string> = {
   unsuspend: "Разблокировка клуба",
 }
 const ACTION_COLOR: Record<string, string> = {
-  login: "#60a5fa",
-  impersonate: "#a78bfa",
-  extend_trial: "#4ade80",
-  change_plan: "#fbbf24",
-  suspend: "#f87171",
-  unsuspend: "#4ade80",
+  login: "var(--brand)",
+  impersonate: "var(--chart-4)",
+  extend_trial: "var(--chart-2)",
+  change_plan: "var(--chart-3)",
+  suspend: "var(--destructive)",
+  unsuspend: "var(--chart-2)",
 }
 
 export default async function LogsPage() {
   const [logs, base] = await Promise.all([getPlatformLogs(150), platformBase()])
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1100px] mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1100px] mx-auto">
       <PageHeader title="Логи" subtitle="Аудит действий администраторов платформы" />
 
       <Panel className="overflow-hidden">
@@ -42,7 +42,7 @@ export default async function LogsPage() {
                 <div key={l.id} className="flex items-center gap-3 px-2.5 py-2.5" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-white">
+                    <p className="text-sm text-foreground">
                       <span style={{ color }}>{ACTION_LABEL[l.action] ?? l.action}</span>
                       {club && <span style={{ color: PT.textSoft }}> · {club}</span>}
                       {l.clubId && (

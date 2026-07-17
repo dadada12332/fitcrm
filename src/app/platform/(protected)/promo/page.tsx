@@ -7,7 +7,7 @@ export default function PromoPage() {
   return (
     <ComingSoon
       title="Промокоды"
-      icon={<Ticket className="w-7 h-7" style={{ color: "#a5b4fc" }} />}
+      icon={<Ticket className="w-7 h-7" style={{ color: "var(--brand)" }} />}
       description="Создание и учёт промокодов: скидки, бесплатные дни, лимит использований, срок действия. Таблица platform_promo_codes уже создана миграцией."
     />
   )

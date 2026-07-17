@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import {
   Search, Loader2, SendHorizontal, ChevronDown, Building2, Monitor,
-  FileText, AlertTriangle, Clock, Star, RefreshCw,
+  FileText, AlertTriangle, Clock, Star, RefreshCw, ArrowLeft,
 } from "lucide-react"
 import { PT } from "@/components/platform/parts"
 import { createClient } from "@/lib/supabase/client"
@@ -13,11 +13,11 @@ import {
 } from "@/app/platform/(protected)/support/actions"
 
 const STATUS: Record<PfStatus, { label: string; dot: string; bg: string; color: string }> = {
-  new:         { label: "Новый",            dot: "#3b82f6", bg: "rgba(59,130,246,0.14)", color: "#93c5fd" },
-  in_progress: { label: "В работе",         dot: "#f59e0b", bg: "rgba(245,158,11,0.14)", color: "#fcd34d" },
-  needs_info:  { label: "Требуются данные", dot: "#ef4444", bg: "rgba(239,68,68,0.14)",  color: "#fca5a5" },
-  resolved:    { label: "Решено",           dot: "#22c55e", bg: "rgba(34,197,94,0.14)",  color: "#86efac" },
-  closed:      { label: "Закрыт",           dot: "#64748b", bg: "rgba(100,116,139,0.16)", color: "#cbd5e1" },
+  new:         { label: "Новый",            dot: "var(--brand)", bg: "color-mix(in srgb, var(--brand) 14%, transparent)", color: "var(--brand)" },
+  in_progress: { label: "В работе",         dot: "var(--chart-3)", bg: "color-mix(in srgb, var(--chart-3) 14%, transparent)", color: "var(--chart-3)" },
+  needs_info:  { label: "Требуются данные", dot: "var(--destructive)", bg: "color-mix(in srgb, var(--destructive) 14%, transparent)", color: "var(--destructive)" },
+  resolved:    { label: "Решено",           dot: "var(--chart-2)", bg: "color-mix(in srgb, var(--chart-2) 14%, transparent)", color: "var(--chart-2)" },
+  closed:      { label: "Закрыт",           dot: "var(--muted-foreground)", bg: "color-mix(in srgb, var(--muted-foreground) 16%, transparent)", color: "var(--muted-foreground)" },
 }
 const CAT_LABEL: Record<string, string> = {
   import: "Импорт", payments: "Оплаты", integrations: "Интеграции", subscription: "Подписка",
@@ -46,7 +46,7 @@ export function PlatformSupportConsole({ initialRows, initialCounts }: { initial
   const [counts, setCounts] = useState<Record<string, number>>(initialCounts)
   const [tab, setTab] = useState("all")
   const [q, setQ] = useState("")
-  const [selected, setSelected] = useState<string | null>(initialRows[0]?.id ?? null)
+  const [selected, setSelected] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -76,10 +76,10 @@ export function PlatformSupportConsole({ initialRows, initialCounts }: { initial
   }, [])
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${PT.panelBorder}`, height: "calc(100vh - 190px)", minHeight: 520 }}>
-      <div className="grid h-full" style={{ gridTemplateColumns: "minmax(0,380px) 1fr" }}>
+    <div className="h-[calc(100dvh-160px)] min-h-[520px] overflow-hidden rounded-lg border border-border bg-card">
+      <div className="grid h-full grid-cols-1 lg:grid-cols-[minmax(0,380px)_1fr]">
         {/* Список */}
-        <div className="flex flex-col h-full" style={{ borderRight: `1px solid ${PT.panelBorder}`, background: PT.panel }}>
+        <div className={`${selected ? "hidden lg:flex" : "flex"} h-full flex-col border-r border-border bg-card`}>
           <div className="p-3 space-y-2.5" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -100,7 +100,7 @@ export function PlatformSupportConsole({ initialRows, initialCounts }: { initial
                 return (
                   <button key={t.key} onClick={() => setTab(t.key)}
                     className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                    style={{ background: active ? "rgba(99,102,241,0.18)" : "transparent", color: active ? "#c7d2fe" : PT.textMuted, border: `1px solid ${active ? "rgba(99,102,241,0.4)" : "transparent"}` }}>
+                    style={{ background: active ? "color-mix(in srgb, var(--brand) 12%, transparent)" : "transparent", color: active ? "var(--brand)" : PT.textMuted, border: `1px solid ${active ? "color-mix(in srgb, var(--brand) 35%, transparent)" : "transparent"}` }}>
                     {t.label}{c ? ` ${c}` : ""}
                   </button>
                 )
@@ -115,11 +115,11 @@ export function PlatformSupportConsole({ initialRows, initialCounts }: { initial
               return (
                 <button key={t.id} onClick={() => setSelected(t.id)}
                   className="w-full text-left px-3.5 py-3 transition-colors"
-                  style={{ background: active ? "rgba(99,102,241,0.08)" : "transparent", borderBottom: `1px solid ${PT.panelBorder}`, borderLeft: `2px solid ${active ? PT.accent : "transparent"}` }}>
+                  style={{ background: active ? "color-mix(in srgb, var(--brand) 8%, transparent)" : "transparent", borderBottom: `1px solid ${PT.panelBorder}`, borderLeft: `2px solid ${active ? "var(--brand)" : "transparent"}` }}>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: STATUS[t.status].dot }} />
                     <span className="text-sm truncate flex-1" style={{ color: PT.text, fontWeight: t.agentUnread ? 600 : 500 }}>{t.subject}</span>
-                    {t.agentUnread && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(239,68,68,0.18)", color: "#fca5a5" }}>NEW</span>}
+                    {t.agentUnread && <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] text-destructive">NEW</span>}
                   </div>
                   <div className="flex items-center gap-2 text-xs" style={{ color: PT.textMuted }}>
                     <Building2 size={11} /> <span className="truncate max-w-[120px]">{t.clubName}</span>
@@ -134,9 +134,9 @@ export function PlatformSupportConsole({ initialRows, initialCounts }: { initial
         </div>
 
         {/* Тред */}
-        <div className="h-full flex flex-col" style={{ background: PT.bg }}>
+        <div className={`${selected ? "flex" : "hidden lg:flex"} h-full min-w-0 flex-col bg-background`}>
           {selected
-            ? <OpThread key={selected} ticketId={selected} onChanged={refresh} />
+            ? <OpThread key={selected} ticketId={selected} onChanged={refresh} onBack={() => setSelected(null)} />
             : <div className="flex-1 flex items-center justify-center text-sm" style={{ color: PT.textMuted }}>Выберите обращение</div>}
         </div>
       </div>
@@ -144,7 +144,7 @@ export function PlatformSupportConsole({ initialRows, initialCounts }: { initial
   )
 }
 
-function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => void }) {
+function OpThread({ ticketId, onChanged, onBack }: { ticketId: string; onChanged: () => void; onBack: () => void }) {
   const [ticket, setTicket] = useState<PfTicketDetail | null>(null)
   const [text, setText] = useState("")
   const [sending, setSending] = useState(false)
@@ -185,6 +185,9 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
     <>
       {/* Шапка */}
       <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: `1px solid ${PT.panelBorder}`, background: PT.panel }}>
+        <button type="button" onClick={onBack} className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted lg:hidden" aria-label="Вернуться к обращениям">
+          <ArrowLeft className="size-4" />
+        </button>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold truncate" style={{ color: PT.text }}>{ticket.subject}</div>
           <div className="text-xs flex items-center gap-2" style={{ color: PT.textMuted }}>
@@ -199,9 +202,9 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
             {STATUS[ticket.status].label} <ChevronDown size={13} />
           </button>
           {statusOpen && (
-            <div className="absolute right-0 top-full mt-1 z-20 rounded-lg overflow-hidden py-1 min-w-[170px]" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
+            <div className="absolute right-0 top-full z-20 mt-1 min-w-[170px] overflow-hidden rounded-lg border border-border bg-card py-1 shadow-xl">
               {(Object.keys(STATUS) as PfStatus[]).map((s) => (
-                <button key={s} onClick={() => setStatus(s)} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-white/5" style={{ color: PT.text }}>
+                <button key={s} onClick={() => setStatus(s)} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-muted/60" style={{ color: PT.text }}>
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS[s].dot }} /> {STATUS[s].label}
                 </button>
               ))}
@@ -209,12 +212,12 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
           )}
         </div>
         <button onClick={() => setShowDiag((v) => !v)} title="Диагностика"
-          className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: showDiag ? "rgba(99,102,241,0.18)" : PT.bg, border: `1px solid ${PT.panelBorder}`, color: showDiag ? "#c7d2fe" : PT.textSoft }}>
+          className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: showDiag ? "color-mix(in srgb, var(--brand) 18%, transparent)" : PT.bg, border: `1px solid ${PT.panelBorder}`, color: showDiag ? "var(--brand)" : PT.textSoft }}>
           <Monitor size={15} />
         </button>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
         {/* Лента */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3">
           {ticket.messages.map((m) => {
@@ -229,7 +232,7 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
                   </div>
                   <div className="px-3.5 py-2.5 text-sm whitespace-pre-wrap break-words"
                     style={{ borderRadius: mine ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                      background: mine ? PT.accent : PT.panel, color: mine ? "#fff" : PT.text, border: mine ? "none" : `1px solid ${PT.panelBorder}` }}>
+                      background: mine ? PT.accent : PT.panel, color: mine ? "var(--primary-foreground)" : PT.text, border: mine ? "none" : `1px solid ${PT.panelBorder}` }}>
                     {m.body}
                     {m.attachments.map((a) => (
                       a.mimeType?.startsWith("image/")
@@ -249,7 +252,7 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
           })}
           {ticket.csatRating != null && (
             <div className="mx-auto text-center text-xs py-2" style={{ color: PT.textMuted }}>
-              Оценка клуба: {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={13} className="inline" style={{ color: i < ticket.csatRating! ? "#f59e0b" : PT.panelBorder }} fill={i < ticket.csatRating! ? "#f59e0b" : "none"} />)}
+              Оценка клуба: {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={13} className="inline" style={{ color: i < ticket.csatRating! ? "var(--chart-3)" : PT.panelBorder }} fill={i < ticket.csatRating! ? "var(--chart-3)" : "none"} />)}
               {ticket.csatComment ? ` — «${ticket.csatComment}»` : ""}
             </div>
           )}
@@ -257,7 +260,7 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
 
         {/* Диагностика */}
         {showDiag && (
-          <div className="w-[300px] flex-shrink-0 overflow-y-auto p-4 space-y-3 text-xs" style={{ borderLeft: `1px solid ${PT.panelBorder}`, background: PT.panel }}>
+          <div className="absolute inset-y-0 right-0 w-[min(300px,85%)] overflow-y-auto border-l border-border bg-card p-4 text-xs shadow-xl lg:static lg:w-[300px] lg:shrink-0 lg:shadow-none">
             <div className="font-semibold text-sm" style={{ color: PT.text }}>Автодиагностика</div>
             <DiagRow label="Клуб" value={ticket.clubName} />
             <DiagRow label="Версия CRM" value={String(meta.app_version ?? "—")} />
@@ -268,13 +271,13 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
             <div>
               <div className="flex items-center gap-1.5 mb-1" style={{ color: PT.textSoft }}><AlertTriangle size={12} /> JS-ошибки ({jsErr.length})</div>
               {jsErr.length === 0 ? <div style={{ color: PT.textMuted }}>нет</div> : jsErr.map((e, i) => (
-                <div key={i} className="rounded px-2 py-1 mb-1" style={{ background: PT.bg, color: "#fca5a5" }}>{e.message}{e.source ? <span style={{ color: PT.textMuted }}> · {e.source}</span> : null}</div>
+                <div key={i} className="rounded px-2 py-1 mb-1" style={{ background: PT.bg, color: "var(--destructive)" }}>{e.message}{e.source ? <span style={{ color: PT.textMuted }}> · {e.source}</span> : null}</div>
               ))}
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-1" style={{ color: PT.textSoft }}><Clock size={12} /> API-ошибки ({apiErr.length})</div>
               {apiErr.length === 0 ? <div style={{ color: PT.textMuted }}>нет</div> : apiErr.map((e, i) => (
-                <div key={i} className="rounded px-2 py-1 mb-1 font-mono" style={{ background: PT.bg, color: "#fcd34d" }}>{e.status} {e.method} {e.path}</div>
+                <div key={i} className="rounded px-2 py-1 mb-1 font-mono" style={{ background: PT.bg, color: "var(--chart-3)" }}>{e.status} {e.method} {e.path}</div>
               ))}
             </div>
           </div>
@@ -286,12 +289,12 @@ function OpThread({ ticketId, onChanged }: { ticketId: string; onChanged: () => 
         <div className="px-4 py-4 text-center text-sm" style={{ borderTop: `1px solid ${PT.panelBorder}`, color: PT.textMuted, background: PT.panel }}>Обращение закрыто</div>
       ) : (
         <div className="p-3" style={{ borderTop: `1px solid ${PT.panelBorder}`, background: PT.panel }}>
-          <div className="flex items-end gap-2 rounded-xl px-3 py-2" style={{ background: PT.bg, border: `1px solid ${PT.panelBorder}` }}>
+          <div className="flex items-end gap-2 rounded-lg px-3 py-2" style={{ background: PT.bg, border: `1px solid ${PT.panelBorder}` }}>
             <textarea value={text} onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); reply() } }}
               rows={1} placeholder="Ответить клубу…" className="flex-1 resize-none bg-transparent text-sm outline-none py-1 max-h-32" style={{ color: PT.text }} />
             <button onClick={reply} disabled={!text.trim() || sending}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-white disabled:opacity-40 flex-shrink-0" style={{ background: PT.accent }}>
+              className="flex size-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:opacity-40">
               {sending ? <Loader2 size={16} className="animate-spin" /> : <SendHorizontal size={16} />}
             </button>
           </div>

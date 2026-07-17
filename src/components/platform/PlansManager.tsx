@@ -49,7 +49,7 @@ export function PlansManager({ plans }: { plans: FullPlan[] }) {
           <PlanCard key={p.id} plan={p} onEdit={() => setEditing(p)} onDuplicate={() => duplicate(p.id)} onArchive={() => archive(p.id, true)} busy={busy} />
         ))}
         <button onClick={create} disabled={busy}
-          className="rounded-xl flex flex-col items-center justify-center gap-2 min-h-[180px] transition-colors hover:bg-white/[0.03] disabled:opacity-50"
+          className="rounded-lg flex flex-col items-center justify-center gap-2 min-h-[180px] transition-colors hover:bg-muted/60 disabled:opacity-50"
           style={{ border: `1px dashed ${PT.panelBorder}`, color: PT.textMuted }}>
           {busy ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
           <span className="text-sm">Создать тариф</span>
@@ -57,39 +57,39 @@ export function PlansManager({ plans }: { plans: FullPlan[] }) {
       </div>
 
       {/* Таблица */}
-      <div className="rounded-xl overflow-hidden" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }}>
+      <div className="rounded-lg overflow-hidden" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }}>
         <div className="overflow-x-auto">
           <table className="w-full" style={{ borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
                 {["Название", "Код", "Статус", "Цена", "Валюта", "Период", "Клубов", "Trial", "Популярный", "Порядок", "Изменён", ""].map((h, i) => (
-                  <th key={i} className="text-left text-[11px] font-medium uppercase tracking-wide px-4 py-2.5 whitespace-nowrap" style={{ color: PT.textMuted }}>{h}</th>
+                  <th key={i} className="text-left text-[11px] font-medium uppercase px-4 py-2.5 whitespace-nowrap" style={{ color: PT.textMuted }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {plans.map((p) => (
-                <tr key={p.id} className="group transition-colors hover:bg-white/[0.03]" style={{ borderBottom: `1px solid ${PT.panelBorder}`, opacity: p.is_archived ? 0.5 : 1 }}>
+                <tr key={p.id} className="group transition-colors hover:bg-muted/60" style={{ borderBottom: `1px solid ${PT.panelBorder}`, opacity: p.is_archived ? 0.5 : 1 }}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
-                      <span className="text-sm font-medium text-white">{p.name}</span>
-                      {p.is_recommended && <Crown className="w-3.5 h-3.5" style={{ color: "#fbbf24" }} />}
+                      <span className="text-sm font-medium text-foreground">{p.name}</span>
+                      {p.is_recommended && <Crown className="w-3.5 h-3.5" style={{ color: "var(--chart-3)" }} />}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs font-mono" style={{ color: PT.textSoft }}>{p.code}</td>
                   <td className="px-4 py-3">
                     <span className="text-[11px] font-medium px-2 h-5 inline-flex items-center rounded-md"
-                      style={p.is_archived ? { background: "rgba(100,116,139,0.15)", color: "#94a3b8" } : p.is_active ? { background: "rgba(34,197,94,0.15)", color: "#4ade80" } : { background: "rgba(245,158,11,0.15)", color: "#fbbf24" }}>
+                      style={p.is_archived ? { background: "color-mix(in srgb, var(--muted-foreground) 15%, transparent)", color: "var(--muted-foreground)" } : p.is_active ? { background: "color-mix(in srgb, var(--chart-2) 15%, transparent)", color: "var(--chart-2)" } : { background: "color-mix(in srgb, var(--chart-3) 15%, transparent)", color: "var(--chart-3)" }}>
                       {p.is_archived ? "Архив" : p.is_active ? "Активен" : "Черновик"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm tabular-nums text-white">{fmtMoney(p.price, p.currency)}</td>
+                  <td className="px-4 py-3 text-sm tabular-nums text-foreground">{fmtMoney(p.price, p.currency)}</td>
                   <td className="px-4 py-3 text-xs" style={{ color: PT.textSoft }}>{p.currency}</td>
                   <td className="px-4 py-3 text-xs" style={{ color: PT.textSoft }}>{PERIOD_LABELS[p.period] ?? p.period}</td>
                   <td className="px-4 py-3 text-sm tabular-nums" style={{ color: PT.text }}>{p.clubCount}</td>
                   <td className="px-4 py-3 text-xs" style={{ color: PT.textSoft }}>{p.is_trial ? `${p.trial_days} дн` : "—"}</td>
-                  <td className="px-4 py-3">{p.is_popular ? <Star className="w-4 h-4" style={{ color: "#fbbf24" }} /> : <span style={{ color: PT.textMuted }}>—</span>}</td>
+                  <td className="px-4 py-3">{p.is_popular ? <Star className="w-4 h-4" style={{ color: "var(--chart-3)" }} /> : <span style={{ color: PT.textMuted }}>—</span>}</td>
                   <td className="px-4 py-3 text-xs tabular-nums" style={{ color: PT.textSoft }}>{p.sort_order}</td>
                   <td className="px-4 py-3 text-xs" style={{ color: PT.textMuted }}>{fmtDate(p.updated_at)}</td>
                   <td className="px-4 py-3">
@@ -117,8 +117,8 @@ export function PlansManager({ plans }: { plans: FullPlan[] }) {
 function IconBtn({ children, title, onClick, danger }: { children: React.ReactNode; title: string; onClick: () => void; danger?: boolean }) {
   return (
     <button title={title} onClick={onClick}
-      className="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-white/10"
-      style={{ color: danger ? "#f87171" : PT.textSoft }}>
+      className="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-muted"
+      style={{ color: danger ? "var(--destructive)" : PT.textSoft }}>
       {children}
     </button>
   )
@@ -127,31 +127,31 @@ function IconBtn({ children, title, onClick, danger }: { children: React.ReactNo
 function PlanCard({ plan: p, onEdit, onDuplicate, onArchive, busy }: { plan: FullPlan; onEdit: () => void; onDuplicate: () => void; onArchive: () => void; busy: boolean }) {
   const featOn = Object.values(p.features).filter(Boolean).length
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-3 relative" style={{ background: PT.panel, border: `1px solid ${p.is_recommended ? p.color : PT.panelBorder}` }}>
-      {p.is_popular && <span className="absolute top-3 right-3 text-[10px] font-semibold px-2 h-5 inline-flex items-center gap-1 rounded-full" style={{ background: "rgba(251,191,36,0.15)", color: "#fbbf24" }}><Star className="w-3 h-3" />ХИТ</span>}
+    <div className={`relative flex flex-col gap-3 rounded-lg border bg-card p-4 ${p.is_recommended ? "border-brand" : "border-border"}`}>
+      {p.is_popular && <span className="absolute right-3 top-3 inline-flex h-5 items-center gap-1 rounded-full bg-chart-3/10 px-2 text-[10px] font-semibold text-chart-3"><Star className="size-3" />ХИТ</span>}
       <div className="flex items-center gap-2">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${p.color}22`, color: p.color }}>
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
           <span className="text-sm font-bold">{p.name.charAt(0)}</span>
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-white truncate">{p.name}</p>
+          <p className="text-sm font-semibold text-foreground truncate">{p.name}</p>
           <p className="text-[11px]" style={{ color: PT.textMuted }}>{p.code}</p>
         </div>
       </div>
       <div className="flex items-end gap-1.5">
-        <span className="text-2xl font-bold text-white tracking-[-0.5px]">{fmtMoney(p.price, p.currency)}</span>
+        <span className="text-2xl font-bold text-foreground">{fmtMoney(p.price, p.currency)}</span>
         <span className="text-xs mb-1" style={{ color: PT.textMuted }}>/ {PERIOD_LABELS[p.period] ?? p.period}</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {p.is_trial && <Chip>{p.trial_days} дн trial</Chip>}
-        {p.is_recommended && <Chip color="#fbbf24">Рекомендуем</Chip>}
-        <Chip color={p.is_active ? "#4ade80" : "#94a3b8"}>{p.is_active ? "Активен" : "Черновик"}</Chip>
+        {p.is_recommended && <Chip color="var(--chart-3)">Рекомендуем</Chip>}
+        <Chip color={p.is_active ? "var(--chart-2)" : "var(--muted-foreground)"}>{p.is_active ? "Активен" : "Черновик"}</Chip>
       </div>
       <div className="flex items-center gap-3 text-[11px]" style={{ color: PT.textSoft }}>
         <span>{p.clubCount} клуб.</span><span>·</span><span>{featOn} функц.</span>
       </div>
       <div className="flex items-center gap-1.5 mt-auto pt-1">
-        <button onClick={onEdit} disabled={busy} className="flex-1 h-8 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 text-white transition-colors" style={{ background: p.color }}>
+        <button onClick={onEdit} disabled={busy} className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80">
           <Pencil className="w-3.5 h-3.5" />Изменить
         </button>
         <IconBtn title="Дублировать" onClick={onDuplicate}><Copy className="w-4 h-4" /></IconBtn>
@@ -162,7 +162,8 @@ function PlanCard({ plan: p, onEdit, onDuplicate, onArchive, busy }: { plan: Ful
 }
 
 function Chip({ children, color }: { children: React.ReactNode; color?: string }) {
-  return <span className="text-[10px] font-medium px-1.5 h-4 inline-flex items-center rounded" style={{ background: `${color ?? "#64748b"}22`, color: color ?? "#94a3b8" }}>{children}</span>
+  const tone = color === "var(--chart-3)" ? "bg-chart-3/10 text-chart-3" : color === "var(--chart-2)" ? "bg-chart-2/10 text-chart-2" : "bg-secondary text-muted-foreground"
+  return <span className={`inline-flex h-4 items-center rounded px-1.5 text-[10px] font-medium ${tone}`}>{children}</span>
 }
 
 // ── Редактор (drawer) ──────────────────────────────────────────
@@ -214,17 +215,17 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(2,6,23,0.4)" }} onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
       <div className="w-full max-w-2xl h-full overflow-y-auto flex flex-col" style={{ background: PT.bg, borderLeft: `1px solid ${PT.panelBorder}` }} onClick={(e) => e.stopPropagation()}>
         {/* header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 h-14 shrink-0" style={{ background: PT.bg, borderBottom: `1px solid ${PT.panelBorder}` }}>
           <div className="flex items-center gap-2.5">
             <span className="w-3 h-3 rounded-full" style={{ background: f.color }} />
-            <span className="text-sm font-semibold text-white">{f.name || "Тариф"}</span>
+            <span className="text-sm font-semibold text-foreground">{f.name || "Тариф"}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={openHistory} title="История" className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10" style={{ color: tab === "history" ? "#fff" : PT.textSoft }}><HistoryIcon className="w-4 h-4" /></button>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10" style={{ color: PT.textSoft }}><X className="w-4 h-4" /></button>
+            <button onClick={openHistory} title="История" className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-muted" style={{ color: tab === "history" ? "var(--foreground)" : PT.textSoft }}><HistoryIcon className="w-4 h-4" /></button>
+            <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-muted" style={{ color: PT.textSoft }}><X className="w-4 h-4" /></button>
           </div>
         </div>
 
@@ -232,8 +233,7 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
         <div className="flex items-center gap-1 px-4 py-2 overflow-x-auto shrink-0" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
           {tabs.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className="h-8 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-colors"
-              style={tab === t.key ? { background: PT.accent, color: "#fff" } : { color: PT.textSoft }}>
+              className={`h-8 whitespace-nowrap rounded-lg px-3 text-xs font-medium transition-colors ${tab === t.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
               {t.label}
             </button>
           ))}
@@ -263,7 +263,7 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
                   <Field label="Пробный период (дней)">
                     <div className="flex gap-1.5">
                       {[0, 7, 14, 30, 60].map((d) => (
-                        <button key={d} onClick={() => set("trial_days", d)} className="h-8 px-3 rounded-lg text-xs font-medium" style={f.trial_days === d ? { background: PT.accent, color: "#fff" } : { background: PT.panel, color: PT.textSoft, border: `1px solid ${PT.panelBorder}` }}>{d}</button>
+                        <button key={d} onClick={() => set("trial_days", d)} className={`h-8 rounded-lg px-3 text-xs font-medium ${f.trial_days === d ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{d}</button>
                       ))}
                     </div>
                   </Field>
@@ -288,7 +288,7 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
                 </Field>
               </div>
               <div className="rounded-lg p-3 text-xs" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: PT.textSoft }}>
-                Предпросмотр: <span className="text-white font-semibold">{fmtMoney(f.price, f.currency)}</span> / {PERIOD_LABELS[f.period]}
+                Предпросмотр: <span className="text-foreground font-semibold">{fmtMoney(f.price, f.currency)}</span> / {PERIOD_LABELS[f.period]}
                 {f.old_price != null && <span className="line-through ml-2" style={{ color: PT.textMuted }}>{fmtMoney(f.old_price, f.currency)}</span>}
               </div>
             </>
@@ -347,7 +347,7 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
                   {(h.old_value != null || h.new_value != null) && (
                     <div className="flex items-center gap-2" style={{ color: PT.textSoft }}>
                       <span className="line-through" style={{ color: PT.textMuted }}>{h.old_value ?? "—"}</span>
-                      <span>→</span><span className="text-white">{h.new_value ?? "—"}</span>
+                      <span>→</span><span className="text-foreground">{h.new_value ?? "—"}</span>
                     </div>
                   )}
                   <p className="mt-1" style={{ color: PT.textMuted }}>{h.admin_email ?? "—"}</p>
@@ -361,7 +361,7 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
         {tab !== "history" && (
           <div className="sticky bottom-0 flex items-center justify-end gap-2 px-5 h-16 shrink-0" style={{ background: PT.bg, borderTop: `1px solid ${PT.panelBorder}` }}>
             <button onClick={onClose} className="h-9 px-4 rounded-lg text-sm font-medium" style={{ color: PT.textSoft }}>Отмена</button>
-            <button onClick={save} disabled={saving} className="h-9 px-5 rounded-lg text-sm font-medium text-white flex items-center gap-2" style={{ background: PT.accent }}>
+            <button onClick={save} disabled={saving} className="flex h-9 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/80">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}Сохранить
             </button>
           </div>
@@ -369,19 +369,19 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
 
         {/* Grandfather pricing: выбор при изменении цены */}
         {askPrice && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center p-5" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setAskPrice(false)}>
-            <div className="w-full max-w-sm rounded-xl p-5" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }} onClick={(e) => e.stopPropagation()}>
-              <p className="text-base font-semibold text-white mb-1">Изменение цены</p>
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 p-5" onClick={() => setAskPrice(false)}>
+            <div className="w-full max-w-sm rounded-lg p-5" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }} onClick={(e) => e.stopPropagation()}>
+              <p className="text-base font-semibold text-foreground mb-1">Изменение цены</p>
               <p className="text-sm mb-4" style={{ color: PT.textSoft }}>
-                Тариф используют <span className="text-white font-medium">{plan.clubCount}</span> клуб(ов).
-                Цена меняется с <span className="line-through" style={{ color: PT.textMuted }}>{fmtMoney(plan.price, f.currency)}</span> на <span className="text-white font-medium">{fmtMoney(f.price, f.currency)}</span>.
+                Тариф используют <span className="text-foreground font-medium">{plan.clubCount}</span> клуб(ов).
+                Цена меняется с <span className="line-through" style={{ color: PT.textMuted }}>{fmtMoney(plan.price, f.currency)}</span> на <span className="text-foreground font-medium">{fmtMoney(f.price, f.currency)}</span>.
               </p>
-              <button onClick={() => doSave("new_only")} className="w-full text-left rounded-lg p-3 mb-2 transition-colors hover:bg-white/5" style={{ border: `1px solid ${PT.panelBorder}` }}>
-                <p className="text-sm font-medium text-white">Только для новых клиентов</p>
+              <button onClick={() => doSave("new_only")} className="w-full text-left rounded-lg p-3 mb-2 transition-colors hover:bg-muted/60" style={{ border: `1px solid ${PT.panelBorder}` }}>
+                <p className="text-sm font-medium text-foreground">Только для новых клиентов</p>
                 <p className="text-xs mt-0.5" style={{ color: PT.textMuted }}>Текущие клубы сохранят старую цену (grandfather pricing)</p>
               </button>
-              <button onClick={() => doSave("all")} className="w-full text-left rounded-lg p-3 mb-3 transition-colors hover:bg-white/5" style={{ border: `1px solid ${PT.panelBorder}` }}>
-                <p className="text-sm font-medium text-white">Применить ко всем клубам</p>
+              <button onClick={() => doSave("all")} className="w-full text-left rounded-lg p-3 mb-3 transition-colors hover:bg-muted/60" style={{ border: `1px solid ${PT.panelBorder}` }}>
+                <p className="text-sm font-medium text-foreground">Применить ко всем клубам</p>
                 <p className="text-xs mt-0.5" style={{ color: PT.textMuted }}>Все {plan.clubCount} клуб(ов) перейдут на новую цену</p>
               </button>
               <button onClick={() => setAskPrice(false)} className="w-full h-9 rounded-lg text-sm font-medium" style={{ color: PT.textSoft }}>Отмена</button>
@@ -398,22 +398,22 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <div><label className="block text-xs mb-1.5" style={{ color: PT.textMuted }}>{label}</label>{children}</div>
 }
 function Input({ value, onChange, mono }: { value: string; onChange: (v: string) => void; mono?: boolean }) {
-  return <input value={value} onChange={(e) => onChange(e.target.value)} className={`w-full h-9 px-3 rounded-lg text-sm outline-none ${mono ? "font-mono" : ""}`} style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: "#fff" }} />
+  return <input value={value} onChange={(e) => onChange(e.target.value)} className={`h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${mono ? "font-mono" : ""}`} />
 }
 function Textarea({ value, onChange, rows = 3 }: { value: string; onChange: (v: string) => void; rows?: number }) {
-  return <textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: "#fff" }} />
+  return <textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" />
 }
 function NumInput({ value, onChange, nullable, placeholder }: { value: number | null; onChange: (v: number | null) => void; nullable?: boolean; placeholder?: string }) {
-  return <input type="number" value={value ?? ""} placeholder={placeholder} onChange={(e) => { const v = e.target.value; onChange(v === "" ? (nullable ? null : 0) : Number(v)) }} className="w-full h-9 px-3 rounded-lg text-sm outline-none tabular-nums" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: "#fff" }} />
+  return <input type="number" value={value ?? ""} placeholder={placeholder} onChange={(e) => { const v = e.target.value; onChange(v === "" ? (nullable ? null : 0) : Number(v)) }} className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm tabular-nums text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" />
 }
 function Select({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) {
-  return <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 px-2 rounded-lg text-sm outline-none" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: "#fff" }}>{options.map(([v, l]) => <option key={v} value={v} style={{ background: PT.panel }}>{l}</option>)}</select>
+  return <select value={value} onChange={(e) => onChange(e.target.value)} className="h-9 w-full rounded-lg border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
 }
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <button onClick={() => onChange(!checked)} className="w-full flex items-center justify-between gap-3 h-10 px-3 rounded-lg transition-colors" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }}>
       <span className="text-sm" style={{ color: PT.text }}>{label}</span>
-      <span className="w-9 h-5 rounded-full relative transition-colors shrink-0" style={{ background: checked ? "#22c55e" : "#334155" }}>
+      <span className="w-9 h-5 rounded-full relative transition-colors shrink-0" style={{ background: checked ? "var(--chart-2)" : "var(--border)" }}>
         <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all" style={{ left: checked ? "18px" : "2px" }} />
       </span>
     </button>

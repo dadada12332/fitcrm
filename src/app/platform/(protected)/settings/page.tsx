@@ -14,17 +14,17 @@ export default async function SettingsPage() {
   ]
 
   return (
-    <div className="p-6 lg:p-8 max-w-[800px] mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[800px] mx-auto">
       <PageHeader title="Настройки платформы" subtitle="Параметры и информация об окружении" />
       <Panel>
         <div className="px-4 h-12 flex items-center" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
-          <span className="text-sm font-semibold text-white">Аккаунт и окружение</span>
+          <span className="text-sm font-semibold text-foreground">Аккаунт и окружение</span>
         </div>
         <div className="p-2">
           {rows.map((r, i) => (
             <div key={i} className="flex items-center justify-between px-2.5 py-3" style={{ borderBottom: i < rows.length - 1 ? `1px solid ${PT.panelBorder}` : "none" }}>
               <span className="text-sm" style={{ color: PT.textMuted }}>{r.label}</span>
-              <span className="text-sm text-white">{r.value}</span>
+              <span className="text-sm text-foreground">{r.value}</span>
             </div>
           ))}
         </div>

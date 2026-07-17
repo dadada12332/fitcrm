@@ -10,7 +10,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const result = await getUsersList({ search: sp.q, page, pageSize: 30 })
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1400px] mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
       <PageHeader title="Пользователи" subtitle={`${result.total.toLocaleString("ru-RU")} пользователей SaaS`} />
       <SearchBox placeholder="Поиск по имени или email..." />
 
@@ -20,7 +20,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
             <thead>
               <tr style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
                 {["Пользователь", "Email", "Клубы", "Роль", "Платформа", "Регистрация"].map((h, i) => (
-                  <th key={i} className="text-left text-[11px] font-medium uppercase tracking-wide px-4 py-2.5 whitespace-nowrap" style={{ color: PT.textMuted }}>{h}</th>
+                  <th key={i} className="text-left text-[11px] font-medium uppercase px-4 py-2.5 whitespace-nowrap" style={{ color: PT.textMuted }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -28,13 +28,13 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
               {result.rows.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-16 text-sm" style={{ color: PT.textMuted }}>Пользователи не найдены</td></tr>
               ) : result.rows.map((u) => (
-                <tr key={u.id} className="transition-colors hover:bg-white/[0.03]" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
+                <tr key={u.id} className="transition-colors hover:bg-muted/60" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0" style={{ background: "#4338ca" }}>
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                         {(u.fullName ?? u.email ?? "?").charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-sm font-medium text-white truncate max-w-[180px]">{u.fullName ?? "—"}</span>
+                      <span className="text-sm font-medium text-foreground truncate max-w-[180px]">{u.fullName ?? "—"}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm truncate max-w-[220px]" style={{ color: PT.text }}>{u.email ?? "—"}</td>
@@ -50,7 +50,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                   <td className="px-4 py-3 text-xs capitalize" style={{ color: PT.textSoft }}>{u.clubs[0]?.role ?? "—"}</td>
                   <td className="px-4 py-3">
                     {u.platformRole ? (
-                      <span className="text-[11px] font-medium px-2 h-5 inline-flex items-center rounded-md" style={{ background: "rgba(99,102,241,0.15)", color: "#a5b4fc" }}>
+                      <span className="inline-flex h-5 items-center rounded-md bg-brand/10 px-2 text-[11px] font-medium text-brand">
                         {u.platformRole === "super_admin" ? "Super Admin" : "Platform Admin"}
                       </span>
                     ) : <span className="text-xs" style={{ color: PT.textMuted }}>—</span>}

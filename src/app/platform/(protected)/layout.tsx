@@ -23,19 +23,16 @@ export default async function PlatformProtectedLayout({ children }: { children: 
   // 403 — не администратор платформы.
   if (!auth) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ background: "radial-gradient(1200px 600px at 50% -10%, #1e293b 0%, #0b1120 55%)", fontFamily: "var(--font-sans)" }}
-      >
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="text-center max-w-sm">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)" }}>
-            <ShieldAlert className="w-7 h-7" style={{ color: "#f87171" }} />
+          <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+            <ShieldAlert className="size-6" />
           </div>
-          <h1 className="text-2xl font-semibold text-white mb-2">403 — Доступ запрещён</h1>
-          <p className="text-sm mb-6" style={{ color: "#64748b" }}>
+          <h1 className="mb-2 text-2xl font-semibold text-foreground">403 — Доступ запрещён</h1>
+          <p className="mb-6 text-sm text-muted-foreground">
             У вас нет прав администратора платформы. Этот раздел доступен только platform_admin и super_admin.
           </p>
-          <Link href={`${base}/login`} className="inline-flex items-center h-10 px-5 rounded-lg text-sm font-medium text-white" style={{ background: "linear-gradient(135deg,#6366f1,#4338ca)" }}>
+          <Link href={`${base}/login`} className="inline-flex h-10 items-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground">
             Войти под другим аккаунтом
           </Link>
         </div>
@@ -44,20 +41,20 @@ export default async function PlatformProtectedLayout({ children }: { children: 
   }
 
   const nav: NavItem[] = [
-    { label: "Командный центр", href: base || "/", icon: "LayoutDashboard" },
-    { label: "Клубы",          href: `${base}/clubs`,         icon: "Building2" },
-    { label: "Пользователи",   href: `${base}/users`,         icon: "Users" },
-    { label: "Тарифы",         href: `${base}/plans`,         icon: "Tag" },
-    { label: "Подписки",       href: `${base}/subscriptions`, icon: "CreditCard" },
-    { label: "Приём оплат",    href: `${base}/connections`,   icon: "Plug" },
-    { label: "Платежи",        href: `${base}/payments`,      icon: "Receipt" },
-    { label: "Аналитика",      href: `${base}/analytics`,     icon: "BarChart3" },
-    { label: "Мониторинг",     href: `${base}/monitoring`,    icon: "Activity" },
-    { label: "Логи",           href: `${base}/logs`,          icon: "ScrollText" },
-    { label: "Поддержка",      href: `${base}/support`,       icon: "LifeBuoy", badge: supportAttention || undefined },
-    { label: "Рассылки",       href: `${base}/broadcasts`,    icon: "Send" },
-    { label: "Промокоды",      href: `${base}/promo`,         icon: "Ticket" },
-    { label: "Настройки",      href: `${base}/settings`,      icon: "Settings" },
+    { label: "Командный центр", href: base || "/", icon: "LayoutDashboard", section: "Обзор" },
+    { label: "Аналитика",      href: `${base}/analytics`,     icon: "BarChart3", section: "Обзор" },
+    { label: "Клубы",          href: `${base}/clubs`,         icon: "Building2", section: "Управление" },
+    { label: "Пользователи",   href: `${base}/users`,         icon: "Users", section: "Управление" },
+    { label: "Тарифы",         href: `${base}/plans`,         icon: "Tag", section: "Управление" },
+    { label: "Подписки",       href: `${base}/subscriptions`, icon: "CreditCard", section: "Финансы" },
+    { label: "Приём оплат",    href: `${base}/connections`,   icon: "Plug", section: "Финансы" },
+    { label: "Платежи",        href: `${base}/payments`,      icon: "Receipt", section: "Финансы" },
+    { label: "Мониторинг",     href: `${base}/monitoring`,    icon: "Activity", section: "Система" },
+    { label: "Логи",           href: `${base}/logs`,          icon: "ScrollText", section: "Система" },
+    { label: "Поддержка",      href: `${base}/support`,       icon: "LifeBuoy", badge: supportAttention || undefined, section: "Коммуникации" },
+    { label: "Рассылки",       href: `${base}/broadcasts`,    icon: "Send", section: "Коммуникации" },
+    { label: "Промокоды",      href: `${base}/promo`,         icon: "Ticket", section: "Коммуникации" },
+    { label: "Настройки",      href: `${base}/settings`,      icon: "Settings", section: "Настройки" },
   ]
 
   return (
