@@ -1,69 +1,56 @@
-import { getBot } from "@/lib/telegram/bot"
+import { Bot } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 
-// Triggered by Vercel Cron at 04:00 UTC = 09:00 Tashkent (UTC+5)
-// vercel.json: { "crons": [{ "path": "/api/telegram/daily-report", "schedule": "0 4 * * *" }] }
+// Vercel Cron 04:00 UTC = 09:00 Ташкент. vercel.json: "0 4 * * *".
+// Отчёт КАЖДОГО клуба уходит только владельцам/админам ЭТОГО клуба, через бота
+// этого клуба (clubs.tg_token). Никакого глобального чата — иначе один человек
+// получал бы статистику всех клубов (утечка мультитенантности).
 export async function GET(req: Request) {
-  // Allow Vercel Cron (no auth header) OR manual call with secret
   const authHeader = req.headers.get("Authorization")
   const cronSecret = process.env.CRON_SECRET
-
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const ownerChatId = process.env.TELEGRAM_CHAT_ID
-  if (!ownerChatId) {
-    return Response.json({ error: "TELEGRAM_CHAT_ID not set" }, { status: 500 })
-  }
-
   const supabase = createServiceClient()
 
-  // Yesterday's date range (UTC)
+  // Вчера (UTC)
   const now       = new Date()
   const todayUTC  = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
   const yesterday = new Date(todayUTC.getTime() - 86_400_000)
   const from      = yesterday.toISOString()
   const to        = todayUTC.toISOString()
+  const dateStr   = yesterday.toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "long" })
 
-  // Get all clubs
-  const { data: clubs } = await supabase.from("clubs").select("id, name")
+  const { data: clubs } = await supabase.from("clubs").select("id, name, tg_token")
   if (!clubs?.length) return Response.json({ ok: true, clubs: 0 })
 
+  // Получатели отчёта = owner/admin клуба, привязавшие свой telegram
+  const { data: recipsRaw } = await supabase
+    .from("telegram_users")
+    .select("telegram_id, staff:staff_id(club_id, role)")
+    .not("staff_id", "is", null)
+
+  const byClub = new Map<string, number[]>()
+  for (const r of recipsRaw ?? []) {
+    const s = r.staff as unknown as { club_id: string; role: string } | null
+    if (!s || !["owner", "admin"].includes(s.role)) continue
+    const arr = byClub.get(s.club_id) ?? []
+    arr.push(r.telegram_id as number)
+    byClub.set(s.club_id, arr)
+  }
+
+  let sent = 0
+
   for (const club of clubs) {
+    const targets = byClub.get(club.id)
+    if (!club.tg_token || !targets?.length) continue
+
     const [visitsRes, paymentsRes, newClientsRes, renewalsRes] = await Promise.all([
-      // Visits yesterday
-      supabase
-        .from("visits")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", club.id)
-        .gte("checked_in_at", from)
-        .lt("checked_in_at", to),
-
-      // Revenue yesterday
-      supabase
-        .from("payments")
-        .select("amount")
-        .eq("club_id", club.id)
-        .eq("status", "paid")
-        .gte("paid_at", from)
-        .lt("paid_at", to),
-
-      // New clients yesterday
-      supabase
-        .from("clients")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", club.id)
-        .gte("created_at", from)
-        .lt("created_at", to),
-
-      // Renewals (subscriptions created yesterday)
-      supabase
-        .from("subscriptions")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", club.id)
-        .gte("created_at", from)
-        .lt("created_at", to),
+      supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", club.id).gte("checked_in_at", from).lt("checked_in_at", to),
+      supabase.from("payments").select("amount").eq("club_id", club.id).eq("status", "paid").gte("paid_at", from).lt("paid_at", to),
+      supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", club.id).gte("created_at", from).lt("created_at", to),
+      supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", club.id).gte("created_at", from).lt("created_at", to),
     ])
 
     const visits     = visitsRes.count ?? 0
@@ -71,23 +58,20 @@ export async function GET(req: Request) {
     const newClients = newClientsRes.count ?? 0
     const renewals   = renewalsRes.count ?? 0
 
-    const dateStr = yesterday.toLocaleDateString("ru-RU", {
-      day: "numeric", month: "long", weekday: "long",
-    })
+    let msg  = `📊 *Отчёт за ${dateStr}*\n`
+    msg     += `🏋️ ${club.name}\n\n`
+    msg     += `💰 Выручка: *${revenue.toLocaleString("ru-RU")} сум*\n`
+    msg     += `👟 Посещений: *${visits}*\n`
+    msg     += `🆕 Новых клиентов: *${newClients}*\n`
+    msg     += `🔄 Продлений: *${renewals}*\n`
+    if (revenue === 0 && visits === 0) msg += `\n⚠️ Активности не было — проверьте систему.`
 
-    let msg = `📊 *Отчёт за ${dateStr}*\n`
-    msg    += `🏋️ ${club.name}\n\n`
-    msg    += `💰 Выручка: *${revenue.toLocaleString("ru-RU")} сум*\n`
-    msg    += `👟 Посещений: *${visits}*\n`
-    msg    += `🆕 Новых клиентов: *${newClients}*\n`
-    msg    += `🔄 Продлений: *${renewals}*\n`
-
-    if (revenue === 0 && visits === 0) {
-      msg += `\n⚠️ Активности не было — проверьте систему.`
+    const bot = new Bot(club.tg_token as string)
+    for (const chatId of targets) {
+      await bot.api.sendMessage(chatId, msg, { parse_mode: "Markdown" }).catch(() => {})
+      sent++
     }
-
-    await getBot().api.sendMessage(ownerChatId, msg, { parse_mode: "Markdown" })
   }
 
-  return Response.json({ ok: true })
+  return Response.json({ ok: true, sent })
 }

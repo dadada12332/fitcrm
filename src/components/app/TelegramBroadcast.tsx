@@ -131,6 +131,14 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
         </div>
       )}
 
+      {connected && recipients.length === 0 && (
+        <div className="p-3 rounded-lg text-sm leading-relaxed" style={{ background: "rgba(42,171,238,0.08)", color: "#1d6fa5" }}>
+          ℹ Массовая рассылка идёт клиентам, которые подключились к боту — сейчас их <b>0</b>.
+          Отправьте клиентам ссылку <b>https://t.me/{botName}</b>: после «/start» они появятся здесь.
+          А проверить бота можно кнопкой <b>«Тест»</b> — сообщение придёт вам в Telegram.
+        </div>
+      )}
+
       <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr_360px] gap-4 items-stretch" style={{ minHeight: 600 }}>
         {/* ── LEFT: настройки ── */}
         <div className="rounded-lg p-4 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
