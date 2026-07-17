@@ -77,6 +77,7 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
       .eq("club_id", clubId)
       .eq("status", "expired")
       .gte("expires_at", ago7.toISOString().slice(0, 10))
+      .lte("expires_at", now.toISOString().slice(0, 10))
       .order("expires_at", { ascending: false })
       .limit(10),
     supabase
