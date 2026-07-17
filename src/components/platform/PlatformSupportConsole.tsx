@@ -184,7 +184,7 @@ function OpThread({ ticketId, onChanged, onBack }: { ticketId: string; onChanged
   return (
     <>
       {/* Шапка */}
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3 lg:flex-nowrap" style={{ borderBottom: `1px solid ${PT.panelBorder}`, background: PT.panel }}>
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 lg:flex" style={{ borderBottom: `1px solid ${PT.panelBorder}`, background: PT.panel }}>
         <button type="button" onClick={onBack} className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted lg:hidden" aria-label="Вернуться к обращениям">
           <ArrowLeft className="size-4" />
         </button>
@@ -195,7 +195,7 @@ function OpThread({ ticketId, onChanged, onBack }: { ticketId: string; onChanged
           </div>
         </div>
         {/* смена статуса */}
-        <div className="relative order-4 ml-11 basis-full lg:order-none lg:ml-0 lg:basis-auto">
+        <div className="relative col-span-2 col-start-2 row-start-2 lg:col-auto lg:row-auto">
           <button onClick={() => setStatusOpen((v) => !v)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
             style={{ background: STATUS[ticket.status].bg, color: STATUS[ticket.status].color }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS[ticket.status].dot }} />
@@ -212,7 +212,7 @@ function OpThread({ ticketId, onChanged, onBack }: { ticketId: string; onChanged
           )}
         </div>
         <button onClick={() => setShowDiag((v) => !v)} title="Диагностика"
-          className="order-3 flex size-8 items-center justify-center rounded-lg lg:order-none" style={{ background: showDiag ? "color-mix(in srgb, var(--brand) 18%, transparent)" : PT.bg, border: `1px solid ${PT.panelBorder}`, color: showDiag ? "var(--brand)" : PT.textSoft }}>
+          className="col-start-3 row-start-1 flex size-8 items-center justify-center rounded-lg lg:col-auto lg:row-auto" style={{ background: showDiag ? "color-mix(in srgb, var(--brand) 18%, transparent)" : PT.bg, border: `1px solid ${PT.panelBorder}`, color: showDiag ? "var(--brand)" : PT.textSoft }}>
           <Monitor size={15} />
         </button>
       </div>
