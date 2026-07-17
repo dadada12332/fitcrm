@@ -45,25 +45,26 @@ npm run dev
 
 ## 4. Деплой (ВАЖНО — есть нюансы)
 
-Авто-деплой из git **не настроен/не работает** — деплой всегда **вручную**:
+**Git-авто-деплой РАБОТАЕТ:** репо подключено к Vercel, `git push` в `main` → авто-деплой на прод.
+Обычно **просто пушь**, отдельный `vercel deploy` не нужен.
 
+**Нюанс с alias:** `fitcrm-three.vercel.app` — ручной alias, сам за прод НЕ следует. После пуша
+один раз навести:
 ```bash
-npx vercel deploy --prod --yes
+npx vercel ls fitcrm     # верхний Ready https://fitcrm-XXXX-crm228.vercel.app
+npx vercel alias set fitcrm-XXXX-crm228.vercel.app fitcrm-three.vercel.app
 ```
+Постоянный фикс (1 шаг в дашборде, ещё не сделан владельцем): Vercel → fitcrm → Settings → Domains
+→ привязать `fitcrm-three.vercel.app` к Production (main) → alias станет авто.
 
-На macOS нет команды `timeout`, а CLI-поллинг часто отваливается по ETIMEDOUT (хотя деплой на сервере идёт). Рабочий паттерн:
+**Ручной деплой** (редко нужен): `npx vercel deploy --prod --yes`. Но push и так триггерит
+git-деплой → ручной вызов = двойная сборка. macOS: нет `timeout`, CLI-поллинг часто ETIMEDOUT
+(деплой всё равно идёт) → в фон + `sleep` + опрос `vercel inspect` на Ready.
 
-```bash
-npx vercel deploy --prod --yes > /tmp/vd.txt 2>&1 &   # в фон
-sleep 90
-url=$(grep -oE "https://fitcrm-[a-z0-9]+-crm228\.vercel\.app" /tmp/vd.txt | head -1)
-# ждём Ready
-for i in $(seq 1 12); do npx vercel inspect "${url#https://}" | grep -q "● Ready" && break; sleep 8; done
-# ОБЯЗАТЕЛЬНО переносим alias на новый деплой
-npx vercel alias set "${url#https://}" fitcrm-three.vercel.app
-```
+Не пушить `.github/workflows/*` (GitHub-токен без scope `workflow` → push отклонится).
+Владелец просил **деплоить самостоятельно, без запроса подтверждения**.
 
-Без `vercel alias set` прод-домен останется на старом билде. Пользователь просил **деплоить самостоятельно, без запроса подтверждения**.
+> Полный контекст проекта — в `HANDOFF.md`.
 
 ## 5. Миграции БД
 
