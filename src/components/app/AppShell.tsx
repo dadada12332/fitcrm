@@ -122,12 +122,12 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, ro
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div
-              className="absolute inset-0 bg-black/50"
+              className="absolute inset-0 z-0 bg-black/50"
               style={{ backdropFilter: "blur(2px)" }}
               onClick={() => setMobileOpen(false)}
             />
-            <div className="absolute left-0 top-0 bottom-0 p-2 transition-transform" style={{ width: 300 }}>
-              <Sidebar {...sidebarProps} collapsed={false} />
+            <div className="absolute left-0 top-0 bottom-0 z-10 p-2 transition-transform" style={{ width: 300 }}>
+              <Sidebar {...sidebarProps} collapsed={false} mobile />
             </div>
           </div>
         )}

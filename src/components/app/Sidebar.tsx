@@ -207,9 +207,10 @@ type Props = {
   permissions: RolePermissions
   role: string
   collapsed?: boolean
+  mobile?: boolean
 }
 
-export function Sidebar({ clubId, clubName, plan, stats, permissions, role, collapsed = false }: Props) {
+export function Sidebar({ clubId, clubName, plan, stats, permissions, role, collapsed = false, mobile = false }: Props) {
   const router = useRouter()
   const [clubOpen, setClubOpen] = useState(false)
   const [branches, setBranches] = useState<any[]>([])
@@ -249,7 +250,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
   const statusColor = isTrial ? "#f59e0b" : "#22c55e"
 
   return (
-    <aside className="hidden md:flex flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
+    <aside className={`${mobile ? "flex" : "hidden md:flex"} flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg`}
       style={{ boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
 
       {/* ── Club card ── */}

@@ -240,6 +240,8 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
             onClick={onToggleSidebar}
             className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
             style={{ width: 28, height: 28 }}
+            aria-label="Переключить боковое меню"
+            title="Переключить боковое меню"
           >
             <PanelLeft style={{ width: 16, height: 16 }} />
           </button>
