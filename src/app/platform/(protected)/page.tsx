@@ -59,7 +59,7 @@ export default async function CommandCenterPage() {
       </Panel>
 
       {/* Hero metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <HeroCard
           icon={<TrendingUp className="w-5 h-5" style={{ color: "var(--chart-2)" }} />}
           label="MRR" value={fmtSum(o.mrr)} sub={`ARR ${fmtSum(o.arr)}`} tint="color-mix(in srgb, var(--chart-2) 8%, transparent)" border="color-mix(in srgb, var(--chart-2) 20%, transparent)"
@@ -79,7 +79,7 @@ export default async function CommandCenterPage() {
       </div>
 
       {/* KPI grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 md:grid-cols-4">
         <StatTile label="Trial-клубов" value={fmtNum(o.trialClubs)} />
         <StatTile label="Просрочено" value={fmtNum(o.expiredClubs)} accent={o.expiredClubs > 0 ? "var(--destructive)" : undefined} />
         <StatTile label="Пользователей" value={fmtNum(o.totalUsers)} />
@@ -113,7 +113,7 @@ export default async function CommandCenterPage() {
               <Link key={a.id} href={`${base}/clubs/${a.id}`} className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg transition-colors hover:bg-muted/60">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: a.severity === "alert" ? "var(--destructive)" : "var(--chart-3)" }} />
                 <span className="text-sm text-foreground flex-1 truncate">{a.name}</span>
-                <span className="text-xs" style={{ color: a.severity === "alert" ? "var(--destructive)" : "var(--chart-3)" }}>{a.reason}</span>
+                <span className="max-w-[45%] truncate text-xs" style={{ color: a.severity === "alert" ? "var(--destructive)" : "var(--chart-3)" }}>{a.reason}</span>
               </Link>
             ))}
           </div>
@@ -166,7 +166,7 @@ function HeroCard({ icon, label, value, sub, tint, border }: { icon: React.React
         <span className="text-xs" style={{ color: PT.textSoft }}>{label}</span>
         {icon}
       </div>
-      <p className="text-[28px] font-semibold text-foreground leading-none">{value}</p>
+      <p className="break-words text-[28px] font-semibold leading-none text-foreground">{value}</p>
       <p className="text-[11px] mt-1.5" style={{ color: PT.textMuted }}>{sub}</p>
     </div>
   )
