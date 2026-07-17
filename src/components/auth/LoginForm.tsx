@@ -60,14 +60,9 @@ export function LoginForm({ next }: { next?: string }) {
 
               {/* Password */}
               <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-foreground" htmlFor="password">
-                    Пароль
-                  </label>
-                  <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground hover:underline">
-                    Забыли пароль?
-                  </Link>
-                </div>
+                <label className="text-sm font-medium text-foreground" htmlFor="password">
+                  Пароль
+                </label>
                 <div className="relative">
                   <Input id="password" name="password" type={showPw ? "text" : "password"} placeholder="••••••••" required className="pr-10" />
                   <Button
@@ -85,11 +80,15 @@ export function LoginForm({ next }: { next?: string }) {
               </div>
             </div>
 
-            {/* Remember me */}
-            <label className="flex cursor-pointer items-center gap-2 select-none">
-              <Checkbox name="rememberMe" aria-label="Запомнить меня" />
-              <span className="text-sm text-muted-foreground">Запомнить меня</span>
-            </label>
+            <div className="flex items-center justify-between gap-4">
+              <label className="flex cursor-pointer items-center gap-2 select-none">
+                <Checkbox name="rememberMe" aria-label="Запомнить меня" />
+                <span className="text-sm text-muted-foreground">Запомнить меня</span>
+              </label>
+              <Link href="/forgot-password" className="shrink-0 text-xs text-muted-foreground hover:text-foreground hover:underline">
+                Забыли пароль?
+              </Link>
+            </div>
 
             {state.error && (
               <p className="text-center text-sm text-destructive" role="alert">{state.error}</p>
