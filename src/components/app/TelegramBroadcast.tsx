@@ -13,6 +13,7 @@ import {
   VARIABLES, EMOJIS, filterByAudience, personalize,
   type AudienceOption, type Recipient,
 } from "@/lib/broadcast"
+import { Button } from "@/components/ui/button"
 
 export type BroadcastHistoryItem = {
   id: string
@@ -132,7 +133,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
       )}
 
       {connected && recipients.length === 0 && (
-        <div className="p-3 rounded-lg text-sm leading-relaxed" style={{ background: "rgba(42,171,238,0.08)", color: "#1d6fa5" }}>
+        <div className="p-3 rounded-lg text-sm leading-relaxed bg-brand/10 text-brand">
           ℹ Массовая рассылка идёт клиентам, которые подключились к боту — сейчас их <b>0</b>.
           Отправьте клиентам ссылку <b>https://t.me/{botName}</b>: после «/start» они появятся здесь.
           А проверить бота можно кнопкой <b>«Тест»</b> — сообщение придёт вам в Telegram.
@@ -153,7 +154,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             </div>
             {audience === "manual" && <div className="mt-2"><ManualPicker recipients={recipients} selected={manual} onChange={setManual} /></div>}
             <div className="flex items-center gap-1.5 text-sm mt-2.5" style={{ color: "var(--on-dark-soft)" }}>
-              <Users size={15} style={{ color: "#2AABEE" }} />
+              <Users size={15} style={{ color: "var(--brand)" }} />
               Получат <span className="font-semibold" style={{ color: "var(--on-dark)" }}>{count}</span> {plural(count)}
             </div>
           </div>
@@ -165,8 +166,8 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
                 <button key={k} type="button" onClick={() => setMode(k)}
                   className="h-9 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
                   style={mode === k ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" } : { color: "var(--on-dark-soft)" }}>
-                  <span className="w-3.5 h-3.5 rounded-full border flex items-center justify-center" style={{ borderColor: mode === k ? "#2AABEE" : "var(--border)" }}>
-                    {mode === k && <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#2AABEE" }} />}
+                  <span className="w-3.5 h-3.5 rounded-full border flex items-center justify-center" style={{ borderColor: mode === k ? "var(--brand)" : "var(--border)" }}>
+                    {mode === k && <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--brand)" }} />}
                   </span>
                   {l}
                 </button>
@@ -178,11 +179,9 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             )}
           </div>
 
-          <button type="button" onClick={handleTest} disabled={!canSend}
-            className="w-full h-9 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40"
-            style={{ border: "1px solid var(--border)", color: "var(--on-dark)" }}>
+          <Button variant="outline" size="lg" onClick={handleTest} disabled={!canSend} className="w-full">
             <Send size={14} />{testing ? "Отправляю…" : "Отправить себе"}
-          </button>
+          </Button>
 
           {result && (
             <div className="rounded-lg p-3" style={{ background: result.ok ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)" }}>
@@ -236,12 +235,10 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             </Popover>
             <Mic size={18} className="ml-1" style={{ color: "var(--gray-muted)" }} />
             <div className="flex-1" />
-            <button type="button" onClick={handleSend} disabled={!canSend}
-              className="h-9 px-5 rounded-md text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: "var(--on-dark)" }}>
+            <Button onClick={handleSend} disabled={!canSend} size="lg" className="px-5">
               {pending ? "Отправляю…" : mode === "scheduled" ? "Запланировать" : "Отправить"}
               <Send size={14} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -261,7 +258,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
                 {h.imageUrl
                   // eslint-disable-next-line @next/next/no-img-element
                   ? <img src={h.imageUrl} alt="" className="w-10 h-10 rounded-md object-cover flex-shrink-0" />
-                  : <div className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "var(--card-2)" }}><Send size={15} style={{ color: "#2AABEE" }} /></div>}
+                  : <div className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: "var(--card-2)" }}><Send size={15} style={{ color: "var(--brand)" }} /></div>}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate" style={{ color: "var(--on-dark)" }}>{h.message || "Без текста"}</p>
                   <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
