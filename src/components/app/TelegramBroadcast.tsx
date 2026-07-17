@@ -146,7 +146,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             <label className="block text-sm font-medium mb-2" style={{ color: "var(--on-dark)" }}>Получатели</label>
             <div className="relative">
               <select value={audience} onChange={(e) => setAudience(e.target.value)}
-                className="w-full h-10 pl-3 pr-9 rounded-lg text-sm outline-none appearance-none" style={fieldStyle}>
+                className="w-full h-9 pl-3 pr-9 rounded-md text-sm outline-none appearance-none" style={fieldStyle}>
                 {audienceOptions.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
               </select>
               <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
@@ -174,12 +174,12 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             </div>
             {mode === "scheduled" && (
               <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)}
-                className="w-full h-10 px-3 mt-2 rounded-lg text-sm outline-none" style={fieldStyle} />
+                className="w-full h-9 px-3 mt-2 rounded-md text-sm outline-none" style={fieldStyle} />
             )}
           </div>
 
           <button type="button" onClick={handleTest} disabled={!canSend}
-            className="w-full h-10 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40"
+            className="w-full h-9 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40"
             style={{ border: "1px solid var(--border)", color: "var(--on-dark)" }}>
             <Send size={14} />{testing ? "Отправляю…" : "Отправить себе"}
           </button>
@@ -194,7 +194,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
         </div>
 
         {/* ── CENTER: композер ── */}
-        <div className="rounded-xl flex flex-col overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="rounded-lg flex flex-col overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="flex-1 p-4">
             <textarea ref={taRef} value={message} onChange={(e) => setMessage(e.target.value)}
               placeholder="Напишите сообщение для подписчиков… Используйте {{Имя}} для персонализации"
@@ -237,7 +237,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             <Mic size={18} className="ml-1" style={{ color: "var(--gray-muted)" }} />
             <div className="flex-1" />
             <button type="button" onClick={handleSend} disabled={!canSend}
-              className="h-9 px-5 rounded-lg text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="h-9 px-5 rounded-md text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
               style={{ background: "var(--on-dark)" }}>
               {pending ? "Отправляю…" : mode === "scheduled" ? "Запланировать" : "Отправить"}
               <Send size={14} />
