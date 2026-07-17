@@ -309,7 +309,7 @@ function FinanceSection({ agg, bounds }: {
                 </defs>
                 <CartesianGrid strokeDasharray="0" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} interval="preserveStartEnd" />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} width={40} tickFormatter={fmtShort} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} width={48} tickFormatter={fmtShort} />
                 <Tooltip {...chartTooltipStyle} formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, "Выручка"]} />
                 <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2.5} fill="url(#rGrad)" dot={false} activeDot={{ r: 5, fill: "#2563eb", strokeWidth: 0 }} />
               </AreaChart>

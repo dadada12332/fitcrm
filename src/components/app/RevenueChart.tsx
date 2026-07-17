@@ -68,7 +68,7 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={cur.chart}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+            margin={{ top: 8, right: 20, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient id="revCurrent" x1="0" y1="0" x2="0" y2="1">
@@ -92,7 +92,7 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: "var(--gray-muted)", fontFamily: "Inter" }}
-              width={36}
+              width={48}
               tickFormatter={(v) =>
                 v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M`
                 : v >= 1_000   ? `${(v / 1_000).toFixed(0)}K`
