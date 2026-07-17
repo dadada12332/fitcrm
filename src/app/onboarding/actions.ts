@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
 export type OnboardingState = { error?: string; ok?: boolean }
@@ -21,6 +20,7 @@ async function getClubId(): Promise<string | null> {
 
 export async function saveClubInfoAction(_prev: OnboardingState, formData: FormData): Promise<OnboardingState> {
   const name = String(formData.get("name") ?? "").trim()
+  const city = String(formData.get("city") ?? "").trim()
   const address = String(formData.get("address") ?? "").trim()
   const phone = String(formData.get("phone") ?? "").trim()
 
@@ -32,12 +32,15 @@ export async function saveClubInfoAction(_prev: OnboardingState, formData: FormD
   // Клуба нет — это нормально если при регистрации требовалось подтверждение email.
   // Создаём клуб сейчас через тот же RPC что и при обычной регистрации.
   if (!clubId) {
-    const { data, error: rpcError } = await supabase.rpc("create_club", { p_name: name })
+    const { data, error: rpcError } = await supabase.rpc("create_club", { p_name: name, p_city: city || null })
     if (rpcError) return { error: rpcError.message }
     clubId = data as string
     // Сразу обновляем настройки (адрес, телефон)
-    await supabase.from("clubs").update({ settings: { address, phone } }).eq("id", clubId)
-    revalidatePath("/onboarding")
+    const { error: settingsError } = await supabase
+      .from("clubs")
+      .update({ settings: { address, phone } })
+      .eq("id", clubId)
+    if (settingsError) return { error: settingsError.message }
     return { ok: true }
   }
 
@@ -46,11 +49,11 @@ export async function saveClubInfoAction(_prev: OnboardingState, formData: FormD
 
   const { error } = await supabase.from("clubs").update({
     name,
+    city: city || null,
     settings: { ...currentSettings, address, phone },
   }).eq("id", clubId)
 
   if (error) return { error: error.message }
-  revalidatePath("/onboarding")
   return { ok: true }
 }
 
