@@ -48,55 +48,61 @@ export function ScheduleToolbar({
     : anchor.toLocaleDateString("ru-RU", { day: "2-digit", month: "long", year: "numeric" })
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg p-3" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <button onClick={() => shift(-1)} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
+    <div className="flex flex-col items-stretch gap-3 rounded-lg p-3 sm:flex-row sm:items-center sm:justify-between" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <span className="text-sm font-medium capitalize" style={{ color: "var(--on-dark)" }}>{label}</span>
+        <div className="flex w-full items-center gap-1 sm:w-auto">
+          <button onClick={() => shift(-1)} className="w-9 h-9 flex shrink-0 items-center justify-center rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button onClick={() => push({ date: toISODate(new Date()) })} className="h-9 px-3 rounded-md text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
+          <button onClick={() => push({ date: toISODate(new Date()) })} className="h-9 flex-1 px-3 text-sm font-medium rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 sm:flex-none" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             Сегодня
           </button>
-          <button onClick={() => shift(1)} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
+          <button onClick={() => shift(1)} className="w-9 h-9 flex shrink-0 items-center justify-center rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-        <span className="text-sm font-medium capitalize" style={{ color: "var(--on-dark)" }}>{label}</span>
       </div>
 
-      <div className="flex items-center gap-2">
-        {pending && <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--gray-muted)" }} />}
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
         {/* view switcher */}
-        <div className="flex items-center gap-0.5 p-0.5 rounded-md" style={{ background: "var(--card-2)" }}>
-          {VIEWS.map((v) => {
-            const active = v.key === selView   // оптимистично: подсветка сразу по клику
-            return (
-              <button key={v.key} onClick={() => { setSelView(v.key); push({ view: v.key }) }}
-                className="h-8 px-3 rounded-md text-sm font-medium transition-colors"
-                style={active ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" } : { background: "transparent", color: "var(--on-dark-soft)" }}>
-                {v.label}
-              </button>
-            )
-          })}
+        <div className="flex items-center gap-2">
+          {pending && <Loader2 className="w-4 h-4 shrink-0 animate-spin" style={{ color: "var(--gray-muted)" }} />}
+          <div className="flex flex-1 items-center gap-0.5 rounded-md p-0.5 sm:flex-none" style={{ background: "var(--card-2)" }}>
+            {VIEWS.map((v) => {
+              const active = v.key === selView   // оптимистично: подсветка сразу по клику
+              return (
+                <button key={v.key} onClick={() => { setSelView(v.key); push({ view: v.key }) }}
+                  className="h-8 flex-1 rounded-md px-3 text-sm font-medium transition-colors sm:flex-none"
+                  style={active ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" } : { background: "transparent", color: "var(--on-dark-soft)" }}>
+                  {v.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        <div className="relative">
-          <select value={trainer} onChange={(e) => push({ trainer: e.target.value })} className={inputCls} style={inputStyle}>
-            <option value="">Все тренеры</option>
-            {trainers.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+          <div className="relative min-w-0">
+            <select value={trainer} onChange={(e) => push({ trainer: e.target.value })} className={inputCls} style={inputStyle}>
+              <option value="">Все тренеры</option>
+              {trainers.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
+          </div>
+
+          <div className="relative min-w-0">
+            <select value={room} onChange={(e) => push({ room: e.target.value })} className={inputCls} style={inputStyle}>
+              <option value="">Все залы</option>
+              {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
+          </div>
         </div>
 
-        <div className="relative">
-          <select value={room} onChange={(e) => push({ room: e.target.value })} className={inputCls} style={inputStyle}>
-            <option value="">Все залы</option>
-            {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
+        <div className="w-full sm:w-auto [&>button]:w-full sm:[&>button]:w-auto">
+          <RoomsManager rooms={rooms} />
         </div>
-
-        <RoomsManager rooms={rooms} />
       </div>
     </div>
   )
