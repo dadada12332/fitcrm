@@ -8,6 +8,41 @@ import { getCurrentClub } from "@/lib/club"
 export type ClassFormState = { error?: string; ok?: boolean }
 export type ActionResult = { error?: string; ok?: boolean }
 
+export async function createRoomAction(name: string, capacity?: number): Promise<ActionResult> {
+  const club = await getCurrentClub()
+  if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "schedule", "create")) return { error: "Недостаточно прав" }
+  const nm = (name ?? "").trim()
+  if (!nm) return { error: "Введите название зала" }
+  if (nm.length > 60) return { error: "Слишком длинное название" }
+
+  const supabase = await createClient()
+  const cap = Number.isFinite(capacity) && (capacity as number) > 0 ? Math.floor(capacity as number) : null
+  const { error } = await supabase.from("rooms").insert({ club_id: club.clubId, name: nm, capacity: cap })
+  if (error) return { error: error.message }
+  revalidatePath("/schedule")
+  return { ok: true }
+}
+
+export async function deleteRoomAction(roomId: string): Promise<ActionResult> {
+  const club = await getCurrentClub()
+  if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "schedule", "delete")) return { error: "Недостаточно прав" }
+
+  const supabase = await createClient()
+  // Сначала удаляем занятия этого зала и их записи (FK), потом сам зал.
+  const { data: cls } = await supabase.from("classes").select("id").eq("club_id", club.clubId).eq("room_id", roomId)
+  const ids = (cls ?? []).map((c) => c.id as string)
+  if (ids.length) {
+    await supabase.from("class_bookings").delete().eq("club_id", club.clubId).in("class_id", ids)
+    await supabase.from("classes").delete().eq("club_id", club.clubId).eq("room_id", roomId)
+  }
+  const { error } = await supabase.from("rooms").delete().eq("id", roomId).eq("club_id", club.clubId)
+  if (error) return { error: error.message }
+  revalidatePath("/schedule")
+  return { ok: true }
+}
+
 export async function createClassAction(_prev: ClassFormState, formData: FormData): Promise<ClassFormState> {
   // Все поля необязательные — подставляем разумные значения по умолчанию.
   const title = String(formData.get("title") ?? "").trim() || "Занятие"

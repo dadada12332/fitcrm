@@ -1,8 +1,10 @@
 "use client"
 
+import { useState, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronDown, Loader2 } from "lucide-react"
 import { toISODate, type Room, type ScheduleView } from "@/lib/schedule"
+import { RoomsManager } from "./RoomsManager"
 
 const inputCls = "h-9 rounded-md pl-3 pr-8 text-sm outline-none appearance-none w-full"
 const inputStyle = { background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" } as const
@@ -20,13 +22,16 @@ export function ScheduleToolbar({
 }) {
   const router = useRouter()
   const params = useSearchParams()
+  const [pending, startTransition] = useTransition()
+  const [selView, setSelView] = useState<ScheduleView>(view)   // оптимистичный активный таб
 
   function push(next: Record<string, string>) {
     const sp = new URLSearchParams(params.toString())
     for (const [k, v] of Object.entries(next)) {
       if (v) sp.set(k, v); else sp.delete(k)
     }
-    router.push(`/schedule?${sp.toString()}`)
+    // useTransition — навигация не фризит UI, подсветка таба мгновенная
+    startTransition(() => router.push(`/schedule?${sp.toString()}`, { scroll: false }))
   }
 
   function shift(dir: number) {
@@ -60,12 +65,13 @@ export function ScheduleToolbar({
       </div>
 
       <div className="flex items-center gap-2">
+        {pending && <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--gray-muted)" }} />}
         {/* view switcher */}
         <div className="flex items-center gap-0.5 p-0.5 rounded-md" style={{ background: "var(--card-2)" }}>
           {VIEWS.map((v) => {
-            const active = v.key === view
+            const active = v.key === selView   // оптимистично: подсветка сразу по клику
             return (
-              <button key={v.key} onClick={() => push({ view: v.key })}
+              <button key={v.key} onClick={() => { setSelView(v.key); push({ view: v.key }) }}
                 className="h-8 px-3 rounded-md text-sm font-medium transition-colors"
                 style={active ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" } : { background: "transparent", color: "var(--on-dark-soft)" }}>
                 {v.label}
@@ -89,6 +95,8 @@ export function ScheduleToolbar({
           </select>
           <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--gray-muted)" }} />
         </div>
+
+        <RoomsManager rooms={rooms} />
       </div>
     </div>
   )

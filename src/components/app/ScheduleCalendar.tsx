@@ -41,11 +41,24 @@ export function ScheduleCalendar({ data, clients }: { data: ScheduleData; client
     return Array.from({ length: to - from + 1 }, (_, i) => from + i)
   }, [data.classes])
 
+  const noRooms = data.rooms.length === 0
+
   return (
     <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-      {data.view === "day" && <DayGrid data={data} hours={hours} onPick={setSelectedId} />}
-      {data.view === "week" && <WeekGrid data={data} hours={hours} onPick={setSelectedId} />}
-      {data.view === "month" && <MonthGrid data={data} onPick={setSelectedId} />}
+      {noRooms && data.view !== "month" ? (
+        <div className="flex flex-col items-center justify-center text-center px-6 py-20">
+          <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Залов пока нет</p>
+          <p className="text-xs mt-1 max-w-[280px]" style={{ color: "var(--on-dark-soft)" }}>
+            Добавьте зал через кнопку «Залы» в панели выше, чтобы планировать занятия по залам.
+          </p>
+        </div>
+      ) : (
+        <>
+          {data.view === "day" && <DayGrid data={data} hours={hours} onPick={setSelectedId} />}
+          {data.view === "week" && <WeekGrid data={data} hours={hours} onPick={setSelectedId} />}
+          {data.view === "month" && <MonthGrid data={data} onPick={setSelectedId} />}
+        </>
+      )}
 
       <ClassDrawer cls={selected} clients={clients} onClose={() => setSelectedId(null)} />
     </div>
