@@ -144,19 +144,19 @@ export function VisitsTable({
   return (
     <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+      <div className="flex flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="flex items-center gap-1">
           <Clock className="w-4 h-4" style={{ color: "var(--on-dark-soft)" }} />
           <h2 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>Посещения сегодня</h2>
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-0.5 p-1 rounded-lg" style={{ background: "var(--card-2)" }}>
+        <div className="grid w-full grid-cols-2 gap-0.5 rounded-lg p-1 sm:flex sm:w-auto sm:items-center" style={{ background: "var(--card-2)" }}>
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setFilter(t.key)}
-              className="h-7 px-3 rounded-md text-xs font-medium transition-all"
+              className="h-7 w-full rounded-md px-3 text-xs font-medium transition-all sm:w-auto"
               style={{
                 background: filter === t.key ? "var(--pill-active)" : "transparent",
                 color: filter === t.key ? "var(--on-dark)" : "var(--on-dark-soft)",
