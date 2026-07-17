@@ -50,13 +50,13 @@ export function ConnectionsManager({ pending, resolved, appUrl }: { pending: Con
             {pending.map((r) => {
               const pv = PROVIDER[r.provider]
               return (
-                <div key={r.id} className="flex flex-wrap items-center gap-3 rounded-lg p-3 hover:bg-muted/60">
+                <div key={r.id} className="flex flex-wrap items-center gap-3 overflow-hidden rounded-lg p-3 hover:bg-muted/60">
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-sm font-bold text-brand">{pv.letter}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{r.clubName} · {pv.name}</p>
                     <p className="text-[11px]" style={{ color: PT.textMuted }}>{r.requestedEmail ?? "—"} · {fmtDate(r.createdAt)}</p>
                   </div>
-                  <div className="flex w-full items-center gap-2 sm:w-auto">
+                  <div className="flex basis-full items-center gap-2 sm:basis-auto">
                     <button onClick={() => reject(r)} disabled={busy} className="h-8 flex-1 rounded-lg px-3 text-xs font-medium disabled:opacity-50 sm:flex-none" style={{ border: `1px solid ${PT.panelBorder}`, color: "var(--destructive)" }}>Отклонить</button>
                     <button onClick={() => setEditing(r)} disabled={busy} className="h-8 flex-1 rounded-lg bg-primary px-3.5 text-xs font-medium text-primary-foreground disabled:opacity-50 sm:flex-none">Активировать</button>
                   </div>
@@ -83,14 +83,14 @@ export function ConnectionsManager({ pending, resolved, appUrl }: { pending: Con
                 ? `Merchant ${r.credMeta.merchant_id ?? "—"} · Service ${r.credMeta.service_id ?? "—"} · ключ ••••${r.credMeta.secret_last4 ?? ""}`
                 : `Cashbox ${r.credMeta.cashbox_id ?? "—"} · ${r.credMeta.account_field ?? "order_id"} · ключ ••••${r.credMeta.key_last4 ?? ""}`
               return (
-                <div key={r.id} className="flex flex-wrap items-center gap-3 rounded-lg p-3" style={{ opacity: active ? 1 : 0.55 }}>
+                <div key={r.id} className="flex flex-wrap items-center gap-3 overflow-hidden rounded-lg p-3" style={{ opacity: active ? 1 : 0.55 }}>
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-sm font-bold text-brand">{pv.letter}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{r.clubName} · {pv.name}</p>
                     <p className="text-[11px] truncate" style={{ color: PT.textMuted }}>{active ? metaStr : (r.status === "rejected" ? "Отклонено" : "Отключено")}</p>
                   </div>
                   {active ? (
-                    <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto">
+                    <div className="flex basis-full items-center justify-end gap-1.5 sm:basis-auto">
                       <span className="text-[11px] font-medium px-2 h-6 inline-flex items-center gap-1 rounded-md" style={{ background: "color-mix(in srgb, var(--chart-2) 15%, transparent)", color: "var(--chart-2)" }}><Check className="w-3 h-3" />Активно</span>
                       <button onClick={() => setEditing(r)} disabled={busy} className="text-xs font-medium px-3 h-8 rounded-lg disabled:opacity-50" style={{ border: `1px solid ${PT.panelBorder}`, color: PT.textSoft }}>Изменить</button>
                       <button onClick={() => disable(r)} disabled={busy} className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-50" style={{ color: "var(--destructive)" }} title="Отключить"><Ban className="w-4 h-4" /></button>
