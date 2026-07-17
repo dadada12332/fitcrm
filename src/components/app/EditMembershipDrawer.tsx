@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState } from "react"
 import { toast } from "@/lib/use-action"
-import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
 import { updateMembershipAction, type MembershipFormState } from "@/app/(app)/memberships/actions"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, SheetClose } from "@/components/ui/sheet"
@@ -19,14 +18,13 @@ function isoToMask(iso: string | null): string {
 }
 
 export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onClose: () => void }) {
-  const router = useRouter()
   const [freeze, setFreeze] = useState(row.freezeAllowed)
   const [state, formAction, pending] = useActionState<MembershipFormState, FormData>(updateMembershipAction, {})
 
   useEffect(() => {
-    if (state.ok) { toast.success("Абонемент сохранён"); router.refresh(); onClose() }
+    if (state.ok) { toast.success("Абонемент сохранён"); onClose() }
     else if (state.error) toast.error(state.error)
-  }, [state, router, onClose])
+  }, [state, onClose])
 
   return (
     <Sheet open onOpenChange={(v) => { if (!v) onClose() }}>

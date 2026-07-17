@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react"
 import { toast } from "@/lib/use-action"
-import { useRouter } from "next/navigation"
 import { Pencil, X, ChevronDown, Calendar } from "lucide-react"
 import type { ClientProfile } from "@/lib/client-profile"
 import { updateClientAction } from "@/app/(app)/clients/actions"
@@ -104,7 +103,6 @@ const GENDER_OPTIONS = [
 /* ─── Main component ─── */
 
 export function EditClientButton({ client }: { client: ClientProfile }) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -170,7 +168,6 @@ export function EditClientButton({ client }: { client: ClientProfile }) {
       } else {
         close()
         toast.success("Изменения сохранены")
-        router.refresh()
       }
     })
   }

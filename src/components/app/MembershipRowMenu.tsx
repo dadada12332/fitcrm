@@ -49,7 +49,6 @@ export function MembershipRowMenu({ row, onDark }: { row: MembershipRow; onDark?
       const res = await fn()
       if (res.error) { setError(res.error); toast.error(res.error); return }
       toast.success("Готово")
-      router.refresh()
       if (!keepOpen) close()
     })
   }

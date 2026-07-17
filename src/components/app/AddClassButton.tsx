@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState } from "react"
 import { toast } from "@/lib/use-action"
-import { useRouter } from "next/navigation"
 import { Plus, X } from "lucide-react"
 import { createClassAction, type ClassFormState } from "@/app/(app)/schedule/actions"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, SheetClose } from "@/components/ui/sheet"
@@ -18,13 +17,12 @@ function Label({ children }: { children: React.ReactNode }) {
 
 export function AddClassButton({ rooms, defaultDate, trainers = [] }: { rooms: Room[]; defaultDate: string; trainers?: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false)
-  const router = useRouter()
   const [state, formAction, pending] = useActionState<ClassFormState, FormData>(createClassAction, {})
 
   useEffect(() => {
-    if (state.ok) { setOpen(false); toast.success("Занятие создано"); router.refresh() }
+    if (state.ok) { setOpen(false); toast.success("Занятие создано") }
     else if (state.error) toast.error(state.error)
-  }, [state, router])
+  }, [state])
 
   return (
     <>

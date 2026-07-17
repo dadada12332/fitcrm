@@ -172,6 +172,7 @@ export function ClientsTable({
               <Link
                 key={r.id}
                 href={`/clients/${r.id}`}
+                prefetch={false}
                 className="group grid items-center px-6 text-sm cursor-pointer transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:shadow-[inset_3px_0_0_#2563eb] min-w-[960px] focus-visible:outline-none focus-visible:shadow-[inset_3px_0_0_#2563eb] focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-800/80"
                 style={{ gridTemplateColumns: cols, height: 65, borderBottom: "1px solid var(--border-subtle)" }}
               >

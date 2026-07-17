@@ -1,14 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { DoorOpen, Plus, Trash2, X } from "lucide-react"
 import { runAction } from "@/lib/use-action"
 import { createRoomAction, deleteRoomAction } from "@/app/(app)/schedule/actions"
 import type { Room } from "@/lib/schedule"
 
 export function RoomsManager({ rooms }: { rooms: Room[] }) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [cap, setCap] = useState("")
@@ -21,7 +19,7 @@ export function RoomsManager({ rooms }: { rooms: Room[] }) {
     start(async () => {
       await runAction(() => createRoomAction(nm, cap ? Number(cap) : undefined), {
         loading: "Добавляем зал…", success: "Зал добавлен",
-        onSuccess: () => { setName(""); setCap(""); router.refresh() },
+        onSuccess: () => { setName(""); setCap("") },
       })
     })
   }
@@ -30,7 +28,7 @@ export function RoomsManager({ rooms }: { rooms: Room[] }) {
     start(async () => {
       await runAction(() => deleteRoomAction(id), {
         loading: "Удаляем зал…", success: "Зал удалён",
-        onSuccess: () => { setConfirmId(null); router.refresh() },
+        onSuccess: () => { setConfirmId(null) },
       })
     })
   }

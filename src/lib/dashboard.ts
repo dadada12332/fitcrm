@@ -60,9 +60,8 @@ async function getDashboardFallback(supabase: SupabaseClient, clubId: string): P
   const HOUR = 3_600_000
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const todayISO = today.toISOString()
-  const todayMMDD = today.toISOString().slice(5, 10) // "MM-DD"
 
-  const [clientsRes, visitsRes, paymentsRes, newClientsRes, debtRes, todayClientsRes, todayPaymentsRes, birthdaysRes] = await Promise.all([
+  const [clientsRes, visitsRes, paymentsRes, newClientsRes, debtRes, todayClientsRes, todayPaymentsRes] = await Promise.all([
     supabase.from("subscriptions").select("id", { count: "exact", head: true })
       .eq("club_id", clubId).eq("status", "active"),
     supabase.from("visits").select("id", { count: "exact", head: true })
@@ -77,8 +76,6 @@ async function getDashboardFallback(supabase: SupabaseClient, clubId: string): P
       .eq("club_id", clubId).gte("created_at", todayISO),
     supabase.from("payments").select("id", { count: "exact", head: true })
       .eq("club_id", clubId).eq("status", "paid").gte("paid_at", todayISO),
-    supabase.from("clients").select("id", { count: "exact", head: true })
-      .eq("club_id", clubId).like("birth_date", `%-${todayMMDD}`),
   ])
 
   const payRows = ((paymentsRes.data ?? []) as { amount: number; paid_at: string }[])
@@ -152,7 +149,7 @@ async function getDashboardFallback(supabase: SupabaseClient, clubId: string): P
     debtCount, debtTotal,
     todayNewClients: todayClientsRes.error ? 0 : (todayClientsRes.count ?? 0),
     todayPaymentsCount: todayPaymentsRes.error ? 0 : (todayPaymentsRes.count ?? 0),
-    birthdaysToday: birthdaysRes.error ? 0 : (birthdaysRes.count ?? 0),
+    birthdaysToday: 0,
     alertsCount: 0, attendanceChangePct: 0,
     chartData: periods["30Д"].chart,
     periods, newClients,
@@ -164,25 +161,9 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
   const DAY   = 86_400_000
   const HOUR  = 3_600_000
   const today = new Date(); today.setHours(0, 0, 0, 0)
-  const todayISO  = today.toISOString()
-  const todayMMDD = today.toISOString().slice(5, 10)
-
-  const [statsRes, debtRes, todayClientsRes, todayPaymentsRes, birthdaysRes, oldPaymentsRes] = await Promise.all([
-    supabase.rpc("get_dashboard_stats", { p_club_id: clubId }),
-    supabase.from("clients").select("debt").eq("club_id", clubId).gt("debt", 0),
-    supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId).gte("created_at", todayISO),
-    supabase.from("payments").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "paid").gte("paid_at", todayISO),
-    supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId).like("birth_date", `%-${todayMMDD}`),
-    // Extra historical payments for 3М / Год periods (beyond 60 days)
-    supabase.from("payments").select("amount, paid_at").eq("club_id", clubId).eq("status", "paid")
-      .gte("paid_at", new Date(now - 366 * DAY).toISOString())
-      .lt("paid_at", new Date(now - 60 * DAY).toISOString()),
-  ])
+  const statsRes = await supabase.rpc("get_dashboard_stats", { p_club_id: clubId })
 
   const { data, error } = statsRes
-  const debtRows = debtRes.error ? [] : ((debtRes.data ?? []) as { debt: number }[])
-  const debtCount = debtRows.length
-  const debtTotal = debtRows.reduce((s, r) => s + Number(r.debt ?? 0), 0)
 
   if (error) return getDashboardFallback(supabase, clubId)
 
@@ -192,12 +173,8 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
   const visitsPrev7 = Number(d.visitsPrev7 ?? 0)
   const attendanceChangePct = visitsPrev7 ? ((visits7 - visitsPrev7) / visitsPrev7) * 100 : 0
 
-  // Merge recent (60d) + older payments for chart
-  const recentRows = ((d.payments60 as { t: number; a: number }[]) ?? [])
+  const payRows = ((d.payments366 as { t: number; a: number }[]) ?? [])
     .map((r) => ({ t: r.t, a: Number(r.a ?? 0) }))
-  const olderRows = ((oldPaymentsRes.data ?? []) as { amount: number; paid_at: string }[])
-    .map((r) => ({ t: new Date(r.paid_at).getTime(), a: Number(r.amount ?? 0) }))
-  const payRows = [...recentRows, ...olderRows]
 
   const yest = new Date(today); yest.setDate(yest.getDate() - 1)
 
@@ -262,10 +239,11 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
     prevVisits:        Number(d.yesterdayVisits ?? 0),
     expiringCount:     Number(d.expiringCount  ?? 0),
     churnCount:        Number(d.churnCount     ?? 0),
-    debtCount, debtTotal,
-    todayNewClients:    todayClientsRes.error ? 0 : (todayClientsRes.count ?? 0),
-    todayPaymentsCount: todayPaymentsRes.error ? 0 : (todayPaymentsRes.count ?? 0),
-    birthdaysToday:     birthdaysRes.error ? 0 : (birthdaysRes.count ?? 0),
+    debtCount:          Number(d.debtCount ?? 0),
+    debtTotal:          Number(d.debtTotal ?? 0),
+    todayNewClients:    Number(d.todayNewClients ?? 0),
+    todayPaymentsCount: Number(d.todayPaymentsCount ?? 0),
+    birthdaysToday:     Number(d.birthdaysToday ?? 0),
     alertsCount:       Number(d.expiringCount ?? 0) + Number(d.churnCount ?? 0),
     attendanceChangePct,
     chartData: periods["30Д"].chart,

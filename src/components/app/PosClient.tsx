@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo, useRef, useEffect, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { toast } from "@/lib/use-action"
 import {
   Search, Plus, Minus, X, ShoppingCart, Zap, Flame, ScanLine,
@@ -57,7 +56,6 @@ export function PosClient({ products, connectedProviders, canSell, versionContro
   canSell: boolean
   versionControl?: React.ReactNode
 }) {
-  const router = useRouter()
   const [query, setQuery] = useState("")
   const [cat, setCat] = useState("all")
   const [cart, setCart] = useState<CartLine[]>([])
@@ -125,7 +123,6 @@ export function PosClient({ products, connectedProviders, canSell, versionContro
 
   function onSaleDone() {
     setCheckout(null); setCart([]); setDrawer(null)
-    router.refresh()
   }
 
   return (

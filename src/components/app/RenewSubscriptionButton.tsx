@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { X, RefreshCw, Check, ChevronDown, CalendarClock } from "lucide-react"
 import { renewSubscriptionAction } from "@/app/(app)/clients/actions"
 import type { CurrentSubscription } from "@/lib/client-profile"
@@ -18,7 +17,6 @@ export function RenewSubscriptionButton({ clientId, clientName, subscription, me
   subscription: CurrentSubscription | null
   memberships: Membership[]
 }) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -39,7 +37,6 @@ export function RenewSubscriptionButton({ clientId, clientName, subscription, me
       if (res.error) { setError(res.error); toast.error(res.error); return }
       setOpen(false)
       toast.success(isExtend ? "Абонемент продлён" : "Абонемент оформлен")
-      router.refresh()
     })
   }
 

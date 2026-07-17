@@ -11,6 +11,9 @@ export type CurrentClub = {
   role: string
   clubName: string
   plan: string
+  status: string
+  trialExpiresAt: string | null
+  planExpiresAt: string | null
   permissions: RolePermissions
   impersonating?: boolean
 } | null
@@ -37,13 +40,20 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
       const { data: u } = await service.from("users").select("platform_role").eq("id", uid).maybeSingle()
       const isAdmin = u?.platform_role === "platform_admin" || u?.platform_role === "super_admin"
       if (isAdmin) {
-        const { data: club } = await service.from("clubs").select("name, plan").eq("id", impersonateId).maybeSingle()
+        const { data: club } = await service
+          .from("clubs")
+          .select("name, plan, status, trial_expires_at, plan_expires_at")
+          .eq("id", impersonateId)
+          .maybeSingle()
         if (club) {
           return {
             clubId: impersonateId,
             role: "owner",
             clubName: club.name,
             plan: club.plan ?? "",
+            status: club.status ?? "active",
+            trialExpiresAt: club.trial_expires_at ?? null,
+            planExpiresAt: club.plan_expires_at ?? null,
             permissions: getDefaultPermissions("owner"),
             impersonating: true,
           }
@@ -58,7 +68,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
 
   let query = supabase
     .from("staff")
-    .select("club_id, role, clubs(name, plan)")
+    .select("club_id, role, clubs(name, plan, status, trial_expires_at, plan_expires_at)")
     .eq("user_id", uid)
     .eq("is_active", true)
 
@@ -69,22 +79,43 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
   if (!data) {
     const { data: fallback } = await supabase
       .from("staff")
-      .select("club_id, role, clubs(name, plan)")
+      .select("club_id, role, clubs(name, plan, status, trial_expires_at, plan_expires_at)")
       .eq("user_id", uid)
       .eq("is_active", true)
       .limit(1)
       .maybeSingle()
 
     if (!fallback) return null
-    const fb = fallback.clubs as unknown as { name: string; plan: string } | null
+    const fb = fallback.clubs as unknown as ClubRow | null
     const permissions = await resolvePermissions(supabase, fallback.club_id, fallback.role)
-    return { clubId: fallback.club_id, role: fallback.role, clubName: fb?.name ?? "Клуб", plan: fb?.plan ?? "", permissions }
+    return clubResult(fallback.club_id, fallback.role, fb, permissions)
   }
 
-  const club = data.clubs as unknown as { name: string; plan: string } | null
+  const club = data.clubs as unknown as ClubRow | null
   const permissions = await resolvePermissions(supabase, data.club_id, data.role)
-  return { clubId: data.club_id, role: data.role, clubName: club?.name ?? "Клуб", plan: club?.plan ?? "", permissions }
+  return clubResult(data.club_id, data.role, club, permissions)
 })
+
+type ClubRow = {
+  name: string
+  plan: string
+  status: string | null
+  trial_expires_at: string | null
+  plan_expires_at: string | null
+}
+
+function clubResult(clubId: string, role: string, club: ClubRow | null, permissions: RolePermissions) {
+  return {
+    clubId,
+    role,
+    clubName: club?.name ?? "Клуб",
+    plan: club?.plan ?? "",
+    status: club?.status ?? "active",
+    trialExpiresAt: club?.trial_expires_at ?? null,
+    planExpiresAt: club?.plan_expires_at ?? null,
+    permissions,
+  }
+}
 
 async function resolvePermissions(
   supabase: Awaited<ReturnType<typeof createClient>>,

@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState } from "react"
 import { toast } from "@/lib/use-action"
-import { useRouter } from "next/navigation"
 import { Plus, X } from "lucide-react"
 import { createMembershipAction, type MembershipFormState } from "@/app/(app)/memberships/actions"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, SheetClose } from "@/components/ui/sheet"
@@ -14,16 +13,14 @@ import { MoneyInput } from "./MoneyInput"
 export function AddMembershipButton() {
   const [open, setOpen] = useState(false)
   const [freeze, setFreeze] = useState(true)
-  const router = useRouter()
   const [state, formAction, pending] = useActionState<MembershipFormState, FormData>(createMembershipAction, {})
 
   useEffect(() => {
     if (state.ok) {
       setOpen(false)
       toast.success("Абонемент создан")
-      router.refresh()
     } else if (state.error) toast.error(state.error)
-  }, [state, router])
+  }, [state])
 
   return (
     <>

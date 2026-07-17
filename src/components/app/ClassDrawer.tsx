@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useTransition } from "react"
 import { toast } from "@/lib/use-action"
-import { useRouter } from "next/navigation"
 import { X, Clock, MapPin, User, Users, Wallet, CalendarClock } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { fillColor, type ClassItem } from "@/lib/schedule"
@@ -25,7 +24,6 @@ function Info({ icon: Icon, label, value }: { icon: typeof Clock; label: string;
 }
 
 export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; clients: ClientOpt[]; onClose: () => void }) {
-  const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [pickClient, setPickClient] = useState("")
@@ -48,7 +46,6 @@ export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; 
       const res = await fn()
       if (res.error) { setError(res.error); toast.error(res.error); return }
       if (close) toast.success("Сохранено")
-      router.refresh()
       if (close) onClose()
     })
   }

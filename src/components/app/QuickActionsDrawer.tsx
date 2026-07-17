@@ -1,20 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import {
-  Plus, X, Users, Wallet, CreditCard, Activity, UserCog,
+  X,
   Search, CheckCircle2, AlertCircle, AlertTriangle,
   ChevronDown, Calendar,
 } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   getMembershipsForDrawer,
   type QuickMembership,
@@ -113,22 +104,11 @@ function rawDateISO(d: string) {
 
 // ── Type ─────────────────────────────────────────────────────────────
 
-type View = "client" | "payment" | "membership" | "visit" | "staff"
-
-// ── View: Home ───────────────────────────────────────────────────────
-
-const ACTIONS: { view: View; icon: React.ElementType; label: string; desc: string }[] = [
-  { view: "client",     icon: Users,      label: "Новый клиент",          desc: "Добавить клиента в базу"         },
-  { view: "payment",    icon: Wallet,     label: "Новая оплата",          desc: "Принять платёж от клиента"       },
-  { view: "membership", icon: CreditCard, label: "Новый абонемент",       desc: "Создать шаблон абонемента"       },
-  { view: "visit",      icon: Activity,   label: "Отметить посещение",    desc: "Check-in клиента по имени/тел."  },
-  { view: "staff",      icon: UserCog,    label: "Добавить сотрудника",   desc: "Пригласить нового сотрудника"    },
-]
+export type QuickActionView = "client" | "payment" | "membership" | "visit" | "staff"
 
 // ── View: New client ─────────────────────────────────────────────────
 
 function NewClientView({ memberships, onDone }: { memberships: QuickMembership[]; onDone: () => void }) {
-  const router = useRouter()
   const [firstName, setFirstName] = useState("")
   const [lastName,  setLastName]  = useState("")
   const [phoneDig,  setPhoneDig]  = useState("")
@@ -164,7 +144,6 @@ function NewClientView({ memberships, onDone }: { memberships: QuickMembership[]
       const res = await createClientAction({}, fd)
       if (res.error) { setError(res.error); return }
       setOk(true)
-      router.refresh()
       setTimeout(onDone, 1000)
     })
   }
@@ -449,7 +428,6 @@ function NewPaymentView({ memberships, onDone }: { memberships: QuickMembership[
 // ── View: New membership ─────────────────────────────────────────────
 
 function NewMembershipView({ onDone }: { onDone: () => void }) {
-  const router = useRouter()
   const [name,       setName]       = useState("")
   const [price,      setPrice]      = useState("")
   const [duration,   setDuration]   = useState("")
@@ -474,7 +452,6 @@ function NewMembershipView({ onDone }: { onDone: () => void }) {
       const res = await createMembershipAction({}, fd)
       if (res?.error) { setError(res.error); return }
       setOk(true)
-      router.refresh()
       setTimeout(onDone, 1000)
     })
   }
@@ -740,7 +717,7 @@ function NewStaffView({ onDone }: { onDone: () => void }) {
 
 // ── Main QuickActionsDrawer ──────────────────────────────────────────
 
-const VIEW_LABELS: Record<View, string> = {
+const VIEW_LABELS: Record<QuickActionView, string> = {
   client:     "Новый клиент",
   payment:    "Новая оплата",
   membership: "Новый абонемент",
@@ -748,25 +725,21 @@ const VIEW_LABELS: Record<View, string> = {
   staff:      "Добавить сотрудника",
 }
 
-export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
-  const [open, setOpen]             = useState(false)
-  const [view, setView]             = useState<View>("client")
+export function QuickActionsPanel({ view, onClose }: { view: QuickActionView; onClose: () => void }) {
   const [memberships, setMemberships] = useState<QuickMembership[] | null>(null)
   const [loadingM, setLoadingM]     = useState(false)
 
-  async function openView(v: View) {
-    setView(v)
-    setOpen(true)
-    if ((v === "client" || v === "payment") && memberships === null && !loadingM) {
+  useEffect(() => {
+    if ((view === "client" || view === "payment") && memberships === null && !loadingM) {
       setLoadingM(true)
-      const data = await getMembershipsForDrawer()
-      setMemberships(data)
-      setLoadingM(false)
+      getMembershipsForDrawer()
+        .then(setMemberships)
+        .finally(() => setLoadingM(false))
     }
-  }
+  }, [view, memberships, loadingM])
 
   function close() {
-    setOpen(false)
+    onClose()
   }
 
   function done() {
@@ -774,46 +747,7 @@ export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
   }
 
   return (
-    <>
-      <div className="px-2 pb-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            aria-label="Быстрые действия"
-            title={collapsed ? "Быстрые действия" : undefined}
-            className="flex h-8 w-full items-center justify-center gap-2 rounded-md bg-primary text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" />
-            {!collapsed && "Быстрые действия"}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            sideOffset={6}
-            className="w-[min(320px,calc(100vw-2rem))] rounded-lg p-1.5"
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="px-2 py-1.5">Быстрые действия</DropdownMenuLabel>
-              {ACTIONS.map(({ view: actionView, icon: Icon, label, desc }) => (
-                <DropdownMenuItem
-                  key={actionView}
-                  onClick={() => openView(actionView)}
-                  className="items-center gap-3 px-2 py-2.5"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
-                    <Icon className="h-4 w-4 text-foreground" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium text-foreground">{label}</span>
-                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">{desc}</span>
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {open && (
-        <div className="fixed inset-0 z-[200] flex">
+    <div className="fixed inset-0 z-[200] flex">
           {/* Backdrop */}
           <div
             className="absolute inset-0"
@@ -865,8 +799,6 @@ export function QuickActionsDrawer({ collapsed }: { collapsed?: boolean }) {
               {view === "staff"      && <NewStaffView onDone={done} />}
             </div>
           </div>
-        </div>
-      )}
-    </>
+    </div>
   )
 }

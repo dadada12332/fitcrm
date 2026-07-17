@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { toast } from "@/lib/use-action"
 import {
   X, Search, CheckCircle2, AlertTriangle, AlertCircle,
@@ -269,7 +268,6 @@ function PreviewPanel({ client, selectedSubId }: { client: ManualClientResult | 
 type Props = { role: string }
 
 export function ManualVisitModal({ role }: Props) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
 
   // Search
@@ -385,7 +383,6 @@ export function ManualVisitModal({ role }: Props) {
       if (res.warning) { setWarning(res.warning); toast.warning(res.warning) }
       else toast.success("Посещение отмечено")
       setSuccess(true)
-      router.refresh()
       setTimeout(closeModal, 1600)
     })
   }

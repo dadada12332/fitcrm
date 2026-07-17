@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
 import { signOut } from "@/app/(auth)/actions"
-import { QuickActionsDrawer } from "@/components/app/QuickActionsDrawer"
+import { QuickActionsMenu } from "@/components/app/QuickActionsMenu"
 import { resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
@@ -73,11 +73,15 @@ function NavItem({
   collapsed?: boolean
 }) {
   const pathname = usePathname()
+  const [prefetch, setPrefetch] = useState(false)
   const active = href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(href + "/")
 
   return (
     <Link
       href={href}
+      prefetch={prefetch ? null : false}
+      onMouseEnter={() => setPrefetch(true)}
+      onFocus={() => setPrefetch(true)}
       title={collapsed ? label : undefined}
       className={`flex items-center rounded-md transition-colors ${
         active
@@ -318,7 +322,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
 
       {/* ── Quick action ── */}
       <div className="pt-2 flex-shrink-0">
-        <QuickActionsDrawer collapsed={collapsed} />
+        <QuickActionsMenu collapsed={collapsed} />
       </div>
 
       <Divider />
