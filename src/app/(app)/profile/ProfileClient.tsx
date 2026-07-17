@@ -57,7 +57,7 @@ function Toast({ ok, msg }: { ok: boolean; msg: string }) {
 function SaveBtn({ pending, label, pendingLabel = "Сохранение..." }: { pending: boolean; label: string; pendingLabel?: string }) {
   return (
     <button type="submit" disabled={pending}
-      className="h-9 px-5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="h-9 w-full rounded-lg px-5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
       style={{ background: "#2563eb" }}>
       {pending ? pendingLabel : label}
     </button>
@@ -228,10 +228,10 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
       )}
 
       {/* ── Two-column layout ── */}
-      <div className="flex gap-5 items-start">
+      <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:gap-5">
 
         {/* ── Left: identity card ── */}
-        <div className="flex-shrink-0 w-56 rounded-2xl p-5 flex flex-col items-center gap-3 text-center"
+        <div className="flex w-full flex-col items-center gap-3 rounded-2xl p-5 text-center sm:w-56 sm:shrink-0"
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="relative">
             <AvatarCircle meta={avatarMeta} initials={initials} size={80} />
@@ -265,7 +265,7 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
             style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <SectionTitle>Личные данные</SectionTitle>
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <FLabel>Имя и фамилия</FLabel>
                   <FInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Азиз Каримов" />
@@ -312,7 +312,7 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
             {/* Change password */}
             <form onSubmit={savePassword} className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--gray-muted)" }}>Смена пароля</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
                   <FLabel>Текущий</FLabel>
                   <div className="relative">
@@ -347,7 +347,7 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
             {/* Change email */}
             <form onSubmit={saveEmail} className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--gray-muted)" }}>Смена Email</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <FLabel>Новый email</FLabel>
                   <FInput type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="new@email.com" />

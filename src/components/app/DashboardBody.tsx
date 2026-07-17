@@ -26,7 +26,7 @@ export async function DashboardBody({ clubId }: { clubId: string }) {
         expiringCount={d.expiringCount}
       />
 
-      <div className="flex items-stretch gap-4" style={{ minHeight: 400 }}>
+      <div className="flex flex-col items-stretch gap-4 lg:flex-row" style={{ minHeight: 400 }}>
         <RevenueChart periods={d.periods} />
         <DashboardVisitRadial
           todayVisits={d.todayVisits}
@@ -53,14 +53,14 @@ export async function DashboardBody({ clubId }: { clubId: string }) {
 export function DashboardBodySkeleton() {
   return (
     <div className="flex flex-col gap-4 animate-pulse">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="h-28 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }} />
         ))}
       </div>
-      <div className="flex items-stretch gap-4">
+      <div className="flex flex-col items-stretch gap-4 lg:flex-row">
         <div className="flex-1 h-[400px] rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }} />
-        <div className="w-[320px] h-[400px] rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }} />
+        <div className="h-[400px] w-full rounded-xl lg:w-[395px]" style={{ background: "var(--card)", border: "1px solid var(--border)" }} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="h-64 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }} />

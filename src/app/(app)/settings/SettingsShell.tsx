@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Building2, GitFork, Users, Wallet,
   Bell, Plug, ShieldCheck, Shield, Crown,
@@ -44,6 +44,7 @@ export function SettingsShell({
   initialTab = "club",
   initialAssignStaffId,
   initialAssignStaffName,
+  initialRoles,
 }: {
   data: ClubData
   allowedTabs: AllowedTabs
@@ -51,6 +52,7 @@ export function SettingsShell({
   initialTab?: string
   initialAssignStaffId?: string
   initialAssignStaffName?: string
+  initialRoles?: RoleRow[]
 }) {
   const visibleTabs = ALL_TABS.filter(t => allowedTabs[t.key] !== false)
 
@@ -59,19 +61,36 @@ export function SettingsShell({
   const [activeTab, setActiveTab] = useState<TabKey>(defaultTab as TabKey)
 
   // Roles data loaded lazily on first click
-  const [roles, setRoles] = useState<RoleRow[] | null>(null)
+  const [roles, setRoles] = useState<RoleRow[] | null>(initialRoles ?? null)
   const [rolesLoading, setRolesLoading] = useState(false)
+  const [rolesError, setRolesError] = useState<string | null>(null)
+  const [rolesRetry, setRolesRetry] = useState(0)
   const [assignStaffId, setAssignStaffId]     = useState(initialAssignStaffId)
   const [assignStaffName, setAssignStaffName] = useState(initialAssignStaffName)
 
-  async function handleTabChange(tab: TabKey) {
+  useEffect(() => {
+    if (activeTab !== "roles" || roles !== null || rolesLoading || rolesError) return
+
+    let cancelled = false
+    setRolesLoading(true)
+    getRolesAction()
+      .then(({ roles: loadedRoles, error }) => {
+        if (cancelled) return
+        if (error) setRolesError(error)
+        else setRoles(loadedRoles)
+      })
+      .catch(() => {
+        if (!cancelled) setRolesError("Не удалось загрузить роли. Повторите попытку.")
+      })
+      .finally(() => {
+        if (!cancelled) setRolesLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [activeTab, roles, rolesLoading, rolesError, rolesRetry])
+
+  function handleTabChange(tab: TabKey) {
     setActiveTab(tab)
-    if (tab === "roles" && roles === null && !rolesLoading) {
-      setRolesLoading(true)
-      getRolesAction()
-        .then(({ roles: r }) => setRoles(r))
-        .finally(() => setRolesLoading(false))
-    }
   }
 
   return (
@@ -117,15 +136,26 @@ export function SettingsShell({
       {/* Content — instant switch, no server round-trip */}
       <div className="pt-6">
         {activeTab === "roles" ? (
-          rolesLoading || roles === null ? (
+          rolesLoading ? (
             <div className="flex flex-col gap-4 animate-pulse">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-20 rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }} />
               ))}
             </div>
+          ) : rolesError ? (
+            <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border text-center">
+              <p className="text-sm text-muted-foreground">{rolesError}</p>
+              <button
+                type="button"
+                onClick={() => { setRolesError(null); setRolesRetry((value) => value + 1) }}
+                className="text-sm font-medium text-primary"
+              >
+                Повторить
+              </button>
+            </div>
           ) : (
             <RolesSettings
-              roles={roles}
+              roles={roles ?? []}
               isOwner={isOwner}
               assignStaffId={assignStaffId}
               assignStaffName={assignStaffName}

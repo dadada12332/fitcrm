@@ -3,6 +3,7 @@ import { getCurrentClub } from "@/lib/club"
 import { createClient } from "@/lib/supabase/server"
 import { getPlans, planBenefits } from "@/lib/plans"
 import { SettingsShell } from "./SettingsShell"
+import { getRolesAction, type RoleRow } from "./roles/actions"
 import type { ClubData, PlanForClient } from "@/components/app/ClubSettings"
 
 /**
@@ -127,6 +128,12 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     subscription:  club.permissions.settings.subscription,
   }
 
+  let initialRoles: RoleRow[] | undefined
+  if (tab === "roles") {
+    const result = await getRolesAction()
+    initialRoles = result.roles
+  }
+
   return (
     <SettingsShell
       data={data}
@@ -135,6 +142,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
       initialTab={tab}
       initialAssignStaffId={staffId}
       initialAssignStaffName={staffName ? decodeURIComponent(staffName) : undefined}
+      initialRoles={initialRoles}
     />
   )
 }

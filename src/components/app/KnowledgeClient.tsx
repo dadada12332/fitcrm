@@ -67,25 +67,29 @@ function ArticleRow({ article, catIcon, catTitle, isFav, onToggleFav, onClick }:
   onClick: () => void
 }) {
   return (
-    <button onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+    <div
+      className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
       style={{ borderBottom: "1px solid var(--border)" }}>
-      {catIcon && <span className="text-lg shrink-0">{catIcon}</span>}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium truncate" style={{ color: "var(--on-dark)" }}>{article.title}</span>
-          {article.isNew && <Badge label="Новое" color="#10b981" />}
-          {article.popular && !article.isNew && <Badge label="Топ" color="#f59e0b" />}
+      <button type="button" onClick={onClick}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left">
+        {catIcon && <span className="shrink-0 text-lg">{catIcon}</span>}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-medium" style={{ color: "var(--on-dark)" }}>{article.title}</span>
+            {article.isNew && <Badge label="Новое" color="#10b981" />}
+            {article.popular && !article.isNew && <Badge label="Топ" color="#f59e0b" />}
+          </div>
+          {catTitle && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{catTitle}</span>}
         </div>
-        {catTitle && <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{catTitle}</span>}
-      </div>
-      <button onClick={e => { e.stopPropagation(); onToggleFav() }}
-        className="p-1 rounded hover:bg-white/10 transition-colors shrink-0">
+        <ChevronRight size={13} className="shrink-0" style={{ color: "var(--on-dark-soft)" }} />
+      </button>
+      <button type="button" onClick={onToggleFav}
+        className="shrink-0 rounded p-1 transition-colors hover:bg-white/10"
+        aria-label={isFav ? "Убрать из избранного" : "Добавить в избранное"}>
         <Star size={13} fill={isFav ? "#f59e0b" : "none"}
           style={{ color: isFav ? "#f59e0b" : "var(--on-dark-soft)" }} />
       </button>
-      <ChevronRight size={13} className="shrink-0" style={{ color: "var(--on-dark-soft)" }} />
-    </button>
+    </div>
   )
 }
 
@@ -641,13 +645,23 @@ function VideosTab() {
 
 // ── Main Component ─────────────────────────────────────────────────────
 
-export function KnowledgeClient() {
-  const [view, setView] = useState<View>({ kind: "home" })
+export function KnowledgeClient({ initialArticleId }: { initialArticleId?: string }) {
+  const [view, setView] = useState<View>(() => (
+    initialArticleId && getArticleById(initialArticleId)
+      ? { kind: "article", articleId: initialArticleId }
+      : { kind: "home" }
+  ))
   const [tab, setTab] = useState<Tab>("popular")
   const [query, setQuery] = useState("")
   const [aiOpen, setAiOpen] = useState(false)
   const { favs, toggle: toggleFav } = useFavorites()
   const { history, push: pushHistory } = useHistory()
+
+  useEffect(() => {
+    if (initialArticleId && getArticleById(initialArticleId)) {
+      setView({ kind: "article", articleId: initialArticleId })
+    }
+  }, [initialArticleId])
 
   const searchResults = useMemo(() => query.length > 1 ? searchKnowledge(query) : [], [query])
   const popular = useMemo(() => getPopularArticles(), [])

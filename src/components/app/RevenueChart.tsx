@@ -64,8 +64,8 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
       </div>
 
       {/* Chart */}
-      <div style={{ height: 340, padding: "12px 0 16px 0" }}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="min-w-0" style={{ height: 340, padding: "12px 0 16px 0" }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
           <AreaChart
             data={cur.chart}
             margin={{ top: 8, right: 20, left: 0, bottom: 0 }}

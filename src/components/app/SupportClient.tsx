@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Sparkles, MessageSquare, BookOpen } from "lucide-react"
 import { KnowledgeClient } from "@/components/app/KnowledgeClient"
@@ -15,11 +15,16 @@ const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ style?: Re
   { key: "kb",      label: "База знаний",  icon: BookOpen },
 ]
 
-export function SupportClient({ clubId }: { clubId: string }) {
+export function SupportClient({ clubId, initialTab = "ai" }: { clubId: string; initialTab?: TabKey }) {
   const params = useSearchParams()
   const router = useRouter()
-  const urlTab = (params.get("tab") as TabKey) || "ai"
+  const urlTab = (params.get("tab") as TabKey) || initialTab
   const [tab, setTab] = useState<TabKey>(TABS.some((t) => t.key === urlTab) ? urlTab : "ai")
+  const articleId = params.get("article") ?? undefined
+
+  useEffect(() => {
+    setTab(TABS.some((t) => t.key === urlTab) ? urlTab : "ai")
+  }, [urlTab])
 
   function go(next: TabKey) {
     setTab(next)
@@ -40,23 +45,25 @@ export function SupportClient({ clubId }: { clubId: string }) {
 
       {/* Вкладки */}
       <div style={{ borderBottom: "1px solid var(--border)" }}>
-        <nav className="flex items-end" style={{ gap: 0 }}>
+        <nav className="flex min-w-0 items-end" style={{ gap: 0 }}>
           {TABS.map(({ key, label, icon: Icon }) => {
             const active = tab === key
             return (
               <button
                 key={key}
                 onClick={() => go(key)}
-                className="flex items-center gap-2 relative transition-colors flex-shrink-0"
+                className="relative flex shrink-0 items-center gap-1.5 px-1.5 text-xs transition-colors sm:gap-2 sm:px-3.5 sm:text-sm"
                 style={{
-                  height: 44, paddingLeft: 14, paddingRight: 14, fontSize: 14,
+                  height: 44,
                   fontWeight: active ? 500 : 400,
                   color: active ? "#2563eb" : "var(--on-dark-soft)",
                   borderBottom: active ? "2px solid #2563eb" : "2px solid transparent",
                   marginBottom: -1,
                 }}
               >
-                <Icon style={{ width: 15, height: 15, color: active ? "#2563eb" : "var(--gray-muted)" }} />
+                <span className="hidden sm:block">
+                  <Icon style={{ width: 15, height: 15, color: active ? "#2563eb" : "var(--gray-muted)" }} />
+                </span>
                 {label}
               </button>
             )
@@ -67,7 +74,7 @@ export function SupportClient({ clubId }: { clubId: string }) {
       <div>
         {tab === "ai" && <SupportAi onCreateTicket={() => go("tickets")} />}
         {tab === "tickets" && <SupportTickets clubId={clubId} />}
-        {tab === "kb" && <KnowledgeClient />}
+        {tab === "kb" && <KnowledgeClient initialArticleId={articleId} />}
       </div>
     </div>
   )

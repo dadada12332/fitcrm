@@ -14,7 +14,7 @@ export default async function DashboardPage() {
         className="text-2xl font-semibold tracking-[-0.144px]"
         style={{ color: "var(--on-dark)", lineHeight: "32px" }}
       >
-        Дашбоард
+        Дашборд
       </h1>
 
       {/* Данные стримятся, не блокируя первый рендер */}

@@ -27,8 +27,8 @@ export function DashboardVisitRadial({ todayVisits, activeClients, attendanceCha
 
   return (
     <div
-      className="flex flex-col flex-shrink-0 overflow-hidden"
-      style={{ width: 395, border: "1px solid var(--border)", borderRadius: 8, background: "var(--card)" }}
+      className="flex w-full flex-col overflow-hidden lg:w-[395px] lg:shrink-0"
+      style={{ border: "1px solid var(--border)", borderRadius: 8, background: "var(--card)" }}
     >
       {/* Tab header */}
       <div
@@ -66,7 +66,7 @@ export function DashboardVisitRadial({ todayVisits, activeClients, attendanceCha
         {/* Radial chart */}
         <div className="flex items-center justify-center px-6 py-2" style={{ height: 222 }}>
           <div className="relative" style={{ width: 221, height: 222 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
               <PieChart>
                 <Pie
                   data={data}

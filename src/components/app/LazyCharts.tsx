@@ -15,5 +15,5 @@ export const RevenueChart = dynamic(
 
 export const DashboardVisitRadial = dynamic(
   () => import("./DashboardVisitRadial").then((m) => m.DashboardVisitRadial),
-  { ssr: false, loading: () => <ChartSkeleton className="w-[300px]" /> },
+  { ssr: false, loading: () => <ChartSkeleton className="w-full lg:w-[395px]" /> },
 )

@@ -449,8 +449,8 @@ function RoleEditor({
       {/* Header */}
       <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <div className="min-w-0 flex-1 space-y-3">
               <Field label="Название">
                 <TextInput value={name} onChange={setName} placeholder="Название роли" />
               </Field>
@@ -458,7 +458,7 @@ function RoleEditor({
                 <TextInput value={desc} onChange={setDesc} placeholder="Краткое описание" />
               </Field>
             </div>
-            <div className="flex-shrink-0 pt-5">
+            <div className="self-start sm:shrink-0 sm:pt-5">
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
                 style={{ background: "var(--card-2)", color: "var(--on-dark-soft)" }}>
                 <Users className="w-3 h-3" />
@@ -467,9 +467,9 @@ function RoleEditor({
             </div>
           </div>
           {role.isSystem && (
-            <div className="flex items-center gap-1.5 mt-3 text-xs" style={{ color: "var(--gray-muted)" }}>
+            <div className="mt-3 flex items-start gap-1.5 text-xs" style={{ color: "var(--gray-muted)" }}>
               <ShieldCheck className="w-3.5 h-3.5" />
-              Системная роль — ограничения нельзя убрать, но права можно настроить
+              <span className="min-w-0">Системная роль — ограничения нельзя убрать, но права можно настроить</span>
             </div>
           )}
         </div>
@@ -568,7 +568,47 @@ export function RolesSettings({
         Роли и права
       </h1>
 
-      <div className="flex gap-4 overflow-hidden" style={{ height: "calc(100svh - 196px)", minHeight: 400 }}>
+      <div className="space-y-4 sm:hidden">
+        <div className="flex items-center gap-2">
+          <select
+            aria-label="Выберите роль"
+            value={selectedId ?? ""}
+            onChange={(event) => setSelectedId(event.target.value || null)}
+            className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-sm text-foreground outline-none"
+          >
+            {roles.map((role) => (
+              <option key={role.id} value={role.id}>{role.name}</option>
+            ))}
+          </select>
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+              aria-label="Создать роль"
+              title="Создать роль"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {selected ? (
+          <RoleEditor
+            key={selected.id}
+            role={selected}
+            onSaved={handleSaved}
+            onDeleted={handleDeleted}
+            isOwner={isOwner}
+          />
+        ) : (
+          <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
+            Выберите роль
+          </div>
+        )}
+      </div>
+
+      <div className="hidden gap-4 overflow-hidden sm:flex" style={{ height: "calc(100svh - 196px)", minHeight: 400 }}>
         {/* Left: role list */}
         <div className="w-56 flex-shrink-0 rounded-lg overflow-y-auto flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>

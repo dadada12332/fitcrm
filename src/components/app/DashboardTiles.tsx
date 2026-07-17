@@ -13,14 +13,14 @@ function fmt(n: number) { return Math.round(n).toLocaleString("ru-RU") }
 function TileComp({ tile }: { tile: Tile }) {
   const up = tile.trend >= 0
   return (
-    <div className="flex flex-1 flex-col gap-6 min-w-0 px-4 py-0">
+    <div className="flex min-w-0 flex-1 flex-col gap-4 px-3 py-3 sm:px-4 sm:py-4">
       {/* Top row: text + icon */}
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1.5">
-          <p className="text-sm font-normal" style={{ color: "var(--gray-muted)", lineHeight: "20px" }}>
+          <p className="text-xs font-normal sm:text-sm" style={{ color: "var(--gray-muted)", lineHeight: "20px" }}>
             {tile.label}
           </p>
-          <p className="text-[20px] font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)", lineHeight: "28px" }}>
+          <p className="text-lg font-medium sm:text-[20px]" style={{ color: "var(--on-dark)", lineHeight: "28px" }}>
             {tile.value}
           </p>
         </div>
@@ -30,7 +30,7 @@ function TileComp({ tile }: { tile: Tile }) {
       </div>
 
       {/* Bottom row: trend */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
           {up
             ? <TrendingUp className="w-4 h-4" style={{ color: "#15803d" }} />
@@ -40,17 +40,11 @@ function TileComp({ tile }: { tile: Tile }) {
             {Math.abs(tile.trend).toFixed(1)}
           </span>
         </div>
-        <p className="text-xs font-normal flex-1 min-w-0" style={{ color: "var(--gray-muted)", lineHeight: "16px", letterSpacing: "-0.072px" }}>
+        <p className="hidden min-w-0 flex-1 text-xs font-normal sm:block" style={{ color: "var(--gray-muted)", lineHeight: "16px", letterSpacing: "-0.072px" }}>
           {tile.trendLabel}
         </p>
       </div>
     </div>
-  )
-}
-
-function Divider() {
-  return (
-    <div className="flex items-center justify-center flex-shrink-0 w-px" style={{ height: 102, background: "var(--border)" }} />
   )
 }
 
@@ -105,14 +99,20 @@ export function DashboardTiles({ activeClients, prevClients, todayRevenue, prevR
     },
   ]
 
+  const borders = [
+    "border-b border-r border-border xl:border-b-0",
+    "border-b border-border xl:border-r xl:border-b-0",
+    "border-r border-border xl:border-r",
+    "",
+  ]
+
   return (
     <div
-      className="flex items-center w-full"
-      style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "16px 0" }}
+      className="grid w-full grid-cols-2 overflow-hidden rounded-lg border border-border xl:grid-cols-4"
+      style={{ background: "var(--card)" }}
     >
       {tiles.map((tile, i) => (
-        <div key={i} className="flex flex-1 min-w-0">
-          {i > 0 && <Divider />}
+        <div key={tile.label} className={borders[i]}>
           <TileComp tile={tile} />
         </div>
       ))}
