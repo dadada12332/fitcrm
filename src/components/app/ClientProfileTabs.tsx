@@ -52,6 +52,15 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
   )
 }
 
+function MobileDetail({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{label}</span>
+      <div className="min-w-0 text-sm" style={{ color: "var(--on-dark)" }}>{children}</div>
+    </div>
+  )
+}
+
 export function ClientProfileTabs({ client }: { client: ClientProfile }) {
   const searchParams = useSearchParams()
   const initialTab = (searchParams.get("tab") as TabKey | null) ?? "profile"
@@ -67,7 +76,7 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
   return (
     <div className="flex flex-col gap-5">
       {/* Tab bar */}
-      <div className="flex gap-0.5 p-1 rounded-lg overflow-x-auto" style={{ background: "var(--card-2)" }}>
+      <div className="grid w-full grid-cols-4 gap-0.5 rounded-lg p-1 sm:flex sm:overflow-x-auto" style={{ background: "var(--card-2)" }}>
         {TABS.map((t) => {
           const active = t.key === tab
           const Icon = t.icon
@@ -75,12 +84,12 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className="h-9 px-3 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1.5 flex-shrink-0"
+              className="flex h-9 min-w-0 items-center justify-center rounded-md px-1 text-[11px] font-medium transition-colors sm:flex-shrink-0 sm:gap-1.5 sm:px-3 sm:text-sm"
               style={active
                 ? { background: "var(--card)", color: "var(--on-dark)", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }
                 : { background: "transparent", color: "var(--on-dark-soft)" }}
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
+              <Icon className="hidden w-4 h-4 flex-shrink-0 sm:block" />
               {t.label}
             </button>
           )
@@ -102,14 +111,14 @@ function ProfileTab({ client }: { client: ClientProfile }) {
   return (
     <>
       {/* Карточка абонемента */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         {sub ? (
           <>
             <div className="flex flex-col items-center text-center">
               <span className="px-3 py-0.5 rounded-full text-xs font-medium mb-2" style={{ background: "rgba(37,99,235,0.14)", color: "#2563eb" }}>
                 Текущий
               </span>
-              <h3 className="text-3xl font-bold tracking-tight" style={{ color: "var(--on-dark)" }}>{sub.name}</h3>
+              <h3 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: "var(--on-dark)" }}>{sub.name}</h3>
               <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>
                 {fmtDate(sub.startsAt)} — {fmtDate(sub.expiresAt)}
               </p>
@@ -182,33 +191,35 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4 px-6 py-5">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>История транзакций</span>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+      <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+        <span className="text-base font-medium tracking-[-0.12px] sm:text-xl" style={{ color: "var(--on-dark)" }}>История транзакций</span>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }} />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Поиск"
-              className="h-9 w-[200px] pl-9 pr-3 rounded-md text-sm outline-none"
+              className="h-9 w-full rounded-md pl-9 pr-3 text-sm outline-none sm:w-[200px]"
               style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
             />
           </div>
-          <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
-            <SlidersHorizontal className="w-4 h-4" />Фильтр
-          </button>
-          <button
-            onClick={() => exportTransactions(filtered)}
-            className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
-            <Download className="w-4 h-4" />Экспорт в CSV
-          </button>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <button className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-3 text-sm font-medium sm:w-auto"
+              style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
+              <SlidersHorizontal className="w-4 h-4" />Фильтр
+            </button>
+            <button
+              onClick={() => exportTransactions(filtered)}
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 sm:w-auto sm:px-4"
+              style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
+              <Download className="w-4 h-4" />Экспорт в CSV
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="grid items-center px-6 h-12 text-sm"
+      <div className="hidden h-12 items-center px-6 text-sm sm:grid"
         style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Дата</span>
         <span>Сумма</span>
@@ -221,17 +232,26 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
         <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Транзакций нет</div>
       ) : (
         filtered.map((p) => (
-          <div key={p.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 60, borderBottom: "1px solid var(--border-subtle)" }}>
-            <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
-            <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
-            <span style={{ color: "var(--on-dark-soft)" }}>Абонемент</span>
-            <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
-            <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
+          <div key={p.id}>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:hidden" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+              <MobileDetail label="Дата">{fmtDate(p.paidAt)}</MobileDetail>
+              <MobileDetail label="Сумма"><span className="font-medium">{fmtSum(p.amount)}</span></MobileDetail>
+              <MobileDetail label="Категория">Абонемент</MobileDetail>
+              <MobileDetail label="Платёжная система"><Badge meta={providerMeta[p.provider] ?? null} /></MobileDetail>
+              <MobileDetail label="Статус"><Badge meta={paymentStatusMeta[p.status] ?? null} /></MobileDetail>
+            </div>
+            <div className="hidden h-[60px] items-center px-6 text-sm sm:grid" style={{ gridTemplateColumns: cols, borderBottom: "1px solid var(--border-subtle)" }}>
+              <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
+              <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
+              <span style={{ color: "var(--on-dark-soft)" }}>Абонемент</span>
+              <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
+              <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
+            </div>
           </div>
         ))
       )}
 
-      <div className="px-6 py-4 text-sm" style={{ color: "var(--gray-muted)" }}>{filtered.length} транзакций</div>
+      <div className="px-4 py-4 text-sm sm:px-6" style={{ color: "var(--gray-muted)" }}>{filtered.length} транзакций</div>
     </>
   )
 }
@@ -242,11 +262,11 @@ function VisitsTab({ visits }: { visits: ProfileVisit[] }) {
   const cols = "minmax(140px,1fr) minmax(120px,1fr) minmax(140px,0.8fr)"
   return (
     <Card>
-      <div className="px-6 py-5 flex items-center justify-between">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>Посещения</span>
+      <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
+        <span className="text-base font-medium tracking-[-0.12px] sm:text-xl" style={{ color: "var(--on-dark)" }}>Посещения</span>
         <span className="text-sm" style={{ color: "var(--gray-muted)" }}>{visits.length} всего</span>
       </div>
-      <div className="grid items-center px-6 h-12 text-sm"
+      <div className="hidden h-12 items-center px-6 text-sm sm:grid"
         style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Дата</span>
         <span>Время</span>
@@ -256,10 +276,17 @@ function VisitsTab({ visits }: { visits: ProfileVisit[] }) {
         <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Посещений нет</div>
       ) : (
         visits.map((v) => (
-          <div key={v.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 56, borderBottom: "1px solid var(--border-subtle)" }}>
-            <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(v.checkedInAt)}</span>
-            <span style={{ color: "var(--on-dark-soft)" }}>{fmtTime(v.checkedInAt)}</span>
-            <span className="flex justify-end"><Badge meta={visitMethodMeta[v.method] ?? null} /></span>
+          <div key={v.id}>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:hidden" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+              <MobileDetail label="Дата">{fmtDate(v.checkedInAt)}</MobileDetail>
+              <MobileDetail label="Время">{fmtTime(v.checkedInAt)}</MobileDetail>
+              <MobileDetail label="Метод"><Badge meta={visitMethodMeta[v.method] ?? null} /></MobileDetail>
+            </div>
+            <div className="hidden h-14 items-center px-6 text-sm sm:grid" style={{ gridTemplateColumns: cols, borderBottom: "1px solid var(--border-subtle)" }}>
+              <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(v.checkedInAt)}</span>
+              <span style={{ color: "var(--on-dark-soft)" }}>{fmtTime(v.checkedInAt)}</span>
+              <span className="flex justify-end"><Badge meta={visitMethodMeta[v.method] ?? null} /></span>
+            </div>
           </div>
         ))
       )}
@@ -274,11 +301,11 @@ function PaymentsTab({ payments }: { payments: ProfilePayment[] }) {
   const cols = "minmax(120px,1fr) minmax(120px,1fr) minmax(140px,1fr) minmax(110px,0.8fr)"
   return (
     <Card>
-      <div className="px-6 py-5 flex items-center justify-between">
-        <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>Платежи</span>
+      <div className="flex flex-col items-start gap-1 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+        <span className="text-base font-medium tracking-[-0.12px] sm:text-xl" style={{ color: "var(--on-dark)" }}>Платежи</span>
         <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Всего оплачено: <span className="font-semibold" style={{ color: "var(--on-dark)" }}>{fmtSum(total)}</span></span>
       </div>
-      <div className="grid items-center px-6 h-12 text-sm"
+      <div className="hidden h-12 items-center px-6 text-sm sm:grid"
         style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
         <span>Дата</span>
         <span>Сумма</span>
@@ -289,11 +316,19 @@ function PaymentsTab({ payments }: { payments: ProfilePayment[] }) {
         <div className="px-6 py-12 text-sm text-center" style={{ color: "var(--gray-muted)" }}>Платежей нет</div>
       ) : (
         payments.map((p) => (
-          <div key={p.id} className="grid items-center px-6 text-sm" style={{ gridTemplateColumns: cols, height: 60, borderBottom: "1px solid var(--border-subtle)" }}>
-            <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
-            <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
-            <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
-            <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
+          <div key={p.id}>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:hidden" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+              <MobileDetail label="Дата">{fmtDate(p.paidAt)}</MobileDetail>
+              <MobileDetail label="Сумма"><span className="font-medium">{fmtSum(p.amount)}</span></MobileDetail>
+              <MobileDetail label="Платёжная система"><Badge meta={providerMeta[p.provider] ?? null} /></MobileDetail>
+              <MobileDetail label="Статус"><Badge meta={paymentStatusMeta[p.status] ?? null} /></MobileDetail>
+            </div>
+            <div className="hidden h-[60px] items-center px-6 text-sm sm:grid" style={{ gridTemplateColumns: cols, borderBottom: "1px solid var(--border-subtle)" }}>
+              <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
+              <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
+              <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
+              <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
+            </div>
           </div>
         ))
       )}
@@ -341,8 +376,8 @@ function HistoryTab({ client }: { client: ClientProfile }) {
   }, [client])
 
   return (
-    <Card className="p-6">
-      <span className="text-xl font-medium tracking-[-0.12px]" style={{ color: "var(--on-dark)" }}>История активности</span>
+    <Card className="p-4 sm:p-6">
+      <span className="text-base font-medium tracking-[-0.12px] sm:text-xl" style={{ color: "var(--on-dark)" }}>История активности</span>
       <div className="mt-5 flex flex-col">
         {items.map((it, i) => {
           const Icon = it.icon

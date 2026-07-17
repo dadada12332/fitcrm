@@ -39,9 +39,9 @@ function Field({ label, value, link }: { label: string; value: string | null; li
     <div className="py-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
       <p className="text-xs mb-1" style={{ color: "var(--gray-muted)" }}>{label}</p>
       {link && value ? (
-        <a href={link} className="text-sm font-medium hover:underline" style={{ color: "#2563eb" }}>{value}</a>
+        <a href={link} className="break-words text-sm font-medium hover:underline" style={{ color: "#2563eb" }}>{value}</a>
       ) : (
-        <p className="text-sm font-medium" style={{ color: "var(--on-dark-soft)" }}>{value ?? "—"}</p>
+        <p className="break-words text-sm font-medium" style={{ color: "var(--on-dark-soft)" }}>{value ?? "—"}</p>
       )}
     </div>
   )
@@ -156,7 +156,7 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
   return (
     <>
       <div
-        className="rounded-lg p-6 flex flex-col relative overflow-hidden transition-all duration-300"
+        className="relative flex flex-col overflow-hidden rounded-lg p-4 transition-all duration-300 sm:p-6"
         style={{
           background: "var(--card)",
           border: isFrozen ? "1.5px solid #93c5fd" : "1px solid var(--border)",
@@ -172,7 +172,7 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
         )}
 
         {/* Аватар + имя */}
-        <div className="flex items-center gap-4 mb-4 relative">
+        <div className="relative mb-4 flex items-center gap-3 sm:gap-4">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-semibold text-white flex-shrink-0 relative"
             style={{ background: isFrozen ? "#93c5fd" : "#60a5fa" }}
@@ -205,13 +205,13 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
         <div className="grid grid-cols-2 gap-2 relative mb-1">
           <div className="rounded-lg px-3 py-2.5" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
             <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Баланс</p>
-            <p className="text-base font-semibold tabular-nums" style={{ color: client.balance > 0 ? "#16a34a" : "var(--on-dark)" }}>
+            <p className="break-words text-sm font-semibold leading-tight tabular-nums sm:text-base" style={{ color: client.balance > 0 ? "#16a34a" : "var(--on-dark)" }}>
               {fmtMoney(client.balance)}
             </p>
           </div>
           <div className="rounded-lg px-3 py-2.5" style={{ background: client.debt > 0 ? "rgba(220,38,38,0.06)" : "var(--card-2)", border: `1px solid ${client.debt > 0 ? "rgba(220,38,38,0.25)" : "var(--border)"}` }}>
             <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Долг</p>
-            <p className="text-base font-semibold tabular-nums" style={{ color: client.debt > 0 ? "#dc2626" : "var(--on-dark)" }}>
+            <p className="break-words text-sm font-semibold leading-tight tabular-nums sm:text-base" style={{ color: client.debt > 0 ? "#dc2626" : "var(--on-dark)" }}>
               {fmtMoney(client.debt)}
             </p>
           </div>

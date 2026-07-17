@@ -26,15 +26,15 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Link href="/clients" className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: "var(--on-dark-soft)" }}>
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Карточка клиента</h1>
           </div>
-          <p className="text-sm mt-1 flex items-center gap-1.5" style={{ color: "var(--on-dark-soft)" }}>
+          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm" style={{ color: "var(--on-dark-soft)" }}>
             {client.name}
             {client.phone && (
               <>
@@ -51,16 +51,20 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center [&>button]:w-full sm:[&>button]:w-auto">
           <EditClientButton client={client} />
           <AddClientButton memberships={memberships} />
         </div>
       </div>
 
       {/* Body */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-5 items-start">
-        <ClientProfileTabs client={client} />
-        <ClientProfileCard client={client} memberships={memberships} />
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1fr_420px]">
+        <div className="order-2 lg:order-1">
+          <ClientProfileTabs client={client} />
+        </div>
+        <div className="order-1 lg:order-2">
+          <ClientProfileCard client={client} memberships={memberships} />
+        </div>
       </div>
     </div>
   )
