@@ -334,7 +334,7 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
         </div>
 
         {/* Breadcrumbs */}
-        <div className="flex-1 min-w-0">
+        <div className="hidden min-w-0 flex-1 sm:block">
           <Breadcrumbs />
         </div>
 
