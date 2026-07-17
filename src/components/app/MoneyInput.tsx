@@ -12,6 +12,7 @@ function grouped(d: string): string {
 }
 
 type Props = {
+  id?: string
   /** Имя скрытого поля — для форм на FormData. Значение — «сырое» число (без пробелов). */
   name?: string
   /** Контролируемое значение (число или строка-число). */
@@ -28,7 +29,7 @@ type Props = {
   disabled?: boolean
   /** Приписка в конце (по умолчанию «сум»). Пустая строка — без приписки. */
   suffix?: string
-  /** Цвет приписки (по умолчанию токен var(--on-dark-soft)). */
+  /** Цвет приписки (по умолчанию вторичный цвет темы). */
   suffixColor?: string
 }
 
@@ -38,8 +39,8 @@ type Props = {
  * (value/onChange), и в FormData-формах (name + defaultValue → скрытый input с числом).
  */
 export function MoneyInput({
-  name, value, defaultValue, onChange, placeholder,
-  className, style, required, autoFocus, disabled, suffix = "сум", suffixColor = "var(--on-dark-soft)",
+  id, name, value, defaultValue, onChange, placeholder,
+  className, style, required, autoFocus, disabled, suffix = "сум", suffixColor = "var(--muted-foreground)",
 }: Props) {
   const controlled = value !== undefined
   const [inner, setInner] = useState<string>(() => digitsOf(String(defaultValue ?? "")))
@@ -55,6 +56,7 @@ export function MoneyInput({
   return (
     <div className="relative">
       <input
+        id={id}
         type="text"
         inputMode="numeric"
         value={display}

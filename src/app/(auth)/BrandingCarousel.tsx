@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 const slides = [
   {
@@ -26,41 +26,44 @@ const slides = [
 export function BrandingCarousel() {
   const [idx, setIdx] = useState(0)
   const [textVisible, setTextVisible] = useState(true)
+  const activeIndex = useRef(0)
+  const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    const t = setInterval(() => {
-      setTextVisible(false)
-      setTimeout(() => {
-        setIdx((i) => (i + 1) % slides.length)
-        setTextVisible(true)
-      }, 300)
-    }, 3500)
-    return () => clearInterval(t)
+  const goTo = useCallback((nextIndex: number) => {
+    setTextVisible(false)
+    if (transitionTimer.current) clearTimeout(transitionTimer.current)
+
+    transitionTimer.current = setTimeout(() => {
+      activeIndex.current = nextIndex
+      setIdx(nextIndex)
+      setTextVisible(true)
+      transitionTimer.current = null
+    }, 300)
   }, [])
 
-  function goTo(i: number) {
-    if (i === idx) return
-    setTextVisible(false)
-    setIdx(i)
-    setTimeout(() => setTextVisible(true), 300)
-  }
+  useEffect(() => {
+    const timer = setInterval(() => goTo((activeIndex.current + 1) % slides.length), 3500)
+    return () => {
+      clearInterval(timer)
+      if (transitionTimer.current) clearTimeout(transitionTimer.current)
+    }
+  }, [goTo])
 
   const slide = slides[idx]
 
   return (
-    <div className="flex flex-col h-full" style={{ padding: "28px" }}>
+    <div className="flex h-full flex-col p-7">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 shrink-0" style={{ marginBottom: 20 }}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-          <rect width="24" height="24" rx="5" fill="white" fillOpacity="0.12" />
-          <path d="M7 12H17M12 7V17" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+      <Link href="/" className="mb-5 flex shrink-0 items-center gap-2 text-background">
+        <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect width="24" height="24" rx="5" fill="currentColor" fillOpacity="0.12" />
+          <path d="M7 12H17M12 7V17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
-        <span className="text-white font-semibold" style={{ fontSize: 20, letterSpacing: "-0.12px" }}>fitCRM</span>
+        <span className="text-xl font-semibold">fitCRM</span>
       </Link>
 
       {/* Sliding track */}
-      <div className="flex-1 min-h-0 rounded-2xl overflow-hidden shadow-2xl relative"
-        style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-background/10 shadow-2xl">
 
         {/* Track — all slides in a row */}
         <div
@@ -72,53 +75,46 @@ export function BrandingCarousel() {
           }}
         >
           {slides.map((s, i) => (
-            <div key={i} className="relative h-full" style={{ width: `${100 / slides.length}%` }}>
+            <div key={s.badge} className="relative h-full" style={{ width: `${100 / slides.length}%` }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={s.src}
                 alt={s.badge}
-                style={{
-                  position: "absolute", inset: 0,
-                  width: "100%", height: "100%",
-                  objectFit: "cover", objectPosition: "top left",
-                  display: "block",
-                }}
+                className="absolute inset-0 size-full object-cover object-left-top"
               />
             </div>
           ))}
         </div>
 
         {/* Bottom gradient */}
-        <div className="absolute inset-x-0 bottom-0 pointer-events-none"
-          style={{ height: 80, background: "linear-gradient(to bottom, transparent, #0f172a)" }} />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-b from-transparent to-foreground" />
       </div>
 
       {/* Text — fades on slide change */}
-      <div style={{ transition: "opacity 0.25s ease", opacity: textVisible ? 1 : 0, marginTop: 20 }}>
-        <div className="inline-flex items-center gap-1.5 font-medium px-3 py-1 rounded-full"
-          style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.75)", fontSize: 12, marginBottom: 10 }}>
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.6)" }} />
+      <div className="mt-5 transition-opacity duration-200" style={{ opacity: textVisible ? 1 : 0 }}>
+        <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-background/10 px-3 py-1 text-xs font-medium text-background/75">
+          <div className="size-1.5 rounded-full bg-background/60" />
           {slide.badge}
         </div>
-        <h2 className="text-white font-bold whitespace-pre-line"
-          style={{ fontSize: 24, letterSpacing: "-0.5px", lineHeight: 1.2, marginBottom: 8 }}>
+        <h2 className="mb-2 whitespace-pre-line text-2xl font-bold leading-tight text-background">
           {slide.title}
         </h2>
-        <p style={{ fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.5)" }}>
+        <p className="text-sm leading-6 text-background/50">
           {slide.desc}
         </p>
       </div>
 
       {/* Dots */}
-      <div className="flex items-center gap-2" style={{ marginTop: 16 }}>
+      <div className="mt-4 flex items-center gap-2">
         {slides.map((_, i) => (
-          <button key={i} onClick={() => goTo(i)}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: i === idx ? 24 : 7,
-              height: 7,
-              background: i === idx ? "white" : "rgba(255,255,255,0.22)",
-            }} />
+          <button
+            key={i}
+            type="button"
+            onClick={() => { if (i !== idx) goTo(i) }}
+            aria-label={`Показать слайд ${i + 1}`}
+            aria-current={i === idx ? "true" : undefined}
+            className={`rounded-full transition-all duration-300 ${i === idx ? "h-2 w-6 bg-background" : "size-2 bg-background/20 hover:bg-background/50"}`}
+          />
         ))}
       </div>
     </div>

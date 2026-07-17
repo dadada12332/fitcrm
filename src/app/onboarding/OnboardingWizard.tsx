@@ -2,10 +2,13 @@
 
 import { useState, useActionState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Building2, Clock, CreditCard, Users, ArrowLeft, ArrowRight, Check } from "lucide-react"
+import { Building2, Clock, CreditCard, Users, ArrowLeft, ArrowRight, Check, Plus } from "lucide-react"
 import { BrandingCarousel } from "@/app/(auth)/BrandingCarousel"
 import { saveClubInfoAction, saveWorkingHoursAction, createFirstMembershipAction, type OnboardingState } from "./actions"
 import { MoneyInput } from "@/components/app/MoneyInput"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 
 // ── Steps ─────────────────────────────────────────────────────────
 
@@ -23,35 +26,23 @@ const DAYS = [
   { key: "sun", label: "Воскресенье" },
 ]
 
-// ── Input style matching auth form ────────────────────────────────
-
-const inputStyle = { border: "1px solid #e2e8f0", color: "#020617", background: "white" } as const
-
-function focusIn(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "#0f172a"
-  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(15,23,42,0.07)"
-}
-function focusOut(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "#e2e8f0"
-  e.currentTarget.style.boxShadow = "none"
-}
-
 function Field({ label, name, placeholder, type = "text", defaultValue, autoFocus, money }: {
   label: string; name: string; placeholder?: string
   type?: string; defaultValue?: string; autoFocus?: boolean; money?: boolean
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium" style={{ color: "#020617", letterSpacing: "-0.084px" }}>{label}</label>
+      <label className="text-sm font-medium text-foreground" htmlFor={name}>{label}</label>
       {money ? (
-        <MoneyInput name={name} defaultValue={defaultValue} placeholder={placeholder}
-          className="h-10 w-full rounded-md px-3 text-sm outline-none transition-all"
-          style={inputStyle} suffixColor="#94a3b8" />
+        <MoneyInput
+          id={name}
+          name={name}
+          defaultValue={defaultValue}
+          placeholder={placeholder}
+          className="h-10 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:text-sm"
+        />
       ) : (
-        <input name={name} type={type} placeholder={placeholder} defaultValue={defaultValue}
-          autoFocus={autoFocus}
-          className="h-10 w-full rounded-md px-3 text-sm outline-none transition-all"
-          style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
+        <Input id={name} name={name} type={type} placeholder={placeholder} defaultValue={defaultValue} autoFocus={autoFocus} />
       )}
     </div>
   )
@@ -60,36 +51,34 @@ function Field({ label, name, placeholder, type = "text", defaultValue, autoFocu
 // ── Stepper ───────────────────────────────────────────────────────
 
 function Stepper({ step }: { step: number }) {
+  const current = STEPS[step - 1]
+
   return (
-    <div className="flex items-center mb-8">
+    <div className="mb-6 space-y-3">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Шаг {step} из {STEPS.length}</span>
+        <span className="font-medium text-foreground">{current.short}</span>
+      </div>
+      <ol className="flex items-center gap-2" aria-label="Этапы настройки клуба">
       {STEPS.map((s, i) => {
         const done   = step > s.id
         const active = step === s.id
         const Icon   = s.Icon
         return (
-          <div key={s.id} className="flex items-center" style={{ flex: i < STEPS.length - 1 ? "1" : "none" }}>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
-                style={{
-                  background: done || active ? "#0f172a" : "white",
-                  border: (!done && !active) ? "1.5px solid #e2e8f0" : "none",
-                }}>
-                {done
-                  ? <Check className="w-3 h-3 text-white" />
-                  : <Icon className="w-3 h-3" style={{ color: active ? "white" : "#94a3b8" }} />
-                }
-              </div>
-              <span className="text-xs font-medium whitespace-nowrap"
-                style={{ color: done || active ? "#020617" : "#94a3b8" }}>
-                {s.short}
-              </span>
+          <li key={s.id} className="flex min-w-0 flex-1 items-center gap-2 last:flex-none" aria-current={active ? "step" : undefined}>
+            <div
+              className={`flex size-7 shrink-0 items-center justify-center rounded-full border transition-colors ${done || active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}
+              aria-label={s.label}
+            >
+              {done ? <Check className="size-3.5" /> : <Icon className="size-3.5" />}
             </div>
             {i < STEPS.length - 1 && (
-              <div className="flex-1 mx-3" style={{ height: 1, background: "#e2e8f0" }} />
+              <div className={`h-px min-w-2 flex-1 ${done ? "bg-primary" : "bg-border"}`} />
             )}
-          </div>
+          </li>
         )
       })}
+      </ol>
     </div>
   )
 }
@@ -100,19 +89,15 @@ function NavButtons({ onBack, pending, nextLabel = "Далее", noBack }: {
   onBack?: () => void; pending?: boolean; nextLabel?: string; noBack?: boolean
 }) {
   return (
-    <div className="flex items-center justify-between pt-5 mt-3">
+    <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
       {!noBack ? (
-        <button type="button" onClick={onBack}
-          className="flex items-center gap-1.5 h-10 px-4 rounded-md text-sm font-medium transition-all hover:bg-slate-50 active:scale-[0.98]"
-          style={{ color: "#020617", border: "1px solid #e2e8f0" }}>
-          <ArrowLeft className="w-3.5 h-3.5" /> Назад
-        </button>
-      ) : <div />}
-      <button type="submit" disabled={pending}
-        className="flex items-center gap-1.5 h-10 px-5 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-40 hover:opacity-90 active:scale-[0.98]"
-        style={{ background: "#0f172a" }}>
-        {pending ? "Сохранение…" : nextLabel} {!pending && <ArrowRight className="w-3.5 h-3.5" />}
-      </button>
+        <Button type="button" variant="outline" onClick={onBack} className="h-10 w-full sm:w-auto">
+          <ArrowLeft className="size-4" /> Назад
+        </Button>
+      ) : <span className="hidden sm:block" />}
+      <Button type="submit" size="lg" disabled={pending} className="h-10 w-full sm:w-auto">
+        {pending ? "Сохранение…" : nextLabel} {!pending && <ArrowRight className="size-3.5" />}
+      </Button>
     </div>
   )
 }
@@ -126,12 +111,12 @@ function Step1({ onNext }: { onNext: () => void }) {
   return (
     <form action={action} className="flex flex-col gap-4">
       <Field label="Название клуба" name="name" placeholder="PowerGym" autoFocus />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3">
         <Field label="Город" name="city" placeholder="Ташкент" />
         <Field label="Телефон" name="phone" type="tel" placeholder="+998 90 000 00 00" />
       </div>
       <Field label="Адрес" name="address" placeholder="ул. Ленина 1" />
-      {state.error && <p className="text-sm" style={{ color: "#ef4444" }}>{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <NavButtons pending={pending} noBack />
     </form>
   )
@@ -145,36 +130,33 @@ function Step2({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
     async (prev, fd) => { const r = await saveWorkingHoursAction(prev, fd); if (r.ok) onNext(); return r }, {}
   )
   return (
-    <form action={action} className="flex flex-col gap-0.5">
+    <form action={action} className="flex flex-col">
       {DAYS.map(({ key, label }) => (
-        <div key={key} className="flex items-center gap-3 py-2.5 border-b last:border-0" style={{ borderColor: "#f1f5f9" }}>
-          <span className="w-24 text-sm flex-shrink-0" style={{ color: "#020617" }}>{label}</span>
+        <div key={key} className="border-b border-border py-3 last:border-0">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-foreground">{label}</span>
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <Checkbox
+                name={`${key}_closed`}
+                checked={Boolean(closedDays[key])}
+                onCheckedChange={(checked) => setClosedDays((prev) => ({ ...prev, [key]: checked }))}
+                aria-label={`${label}: выходной`}
+              />
+              Выходной
+            </label>
+          </div>
           {closedDays[key] ? (
-            <span className="text-xs flex-1" style={{ color: "#94a3b8" }}>Выходной</span>
+            <p className="mt-2 text-xs text-muted-foreground">Клуб закрыт</p>
           ) : (
-            <div className="flex items-center gap-2 flex-1">
-              <input name={`${key}_open`} type="time" defaultValue="09:00"
-                className="h-8 rounded-md px-2 text-sm outline-none transition-all"
-                style={{ border: "1px solid #e2e8f0", color: "#020617" }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(15,23,42,0.07)" }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none" }} />
-              <span className="text-xs" style={{ color: "#94a3b8" }}>—</span>
-              <input name={`${key}_close`} type="time" defaultValue="21:00"
-                className="h-8 rounded-md px-2 text-sm outline-none transition-all"
-                style={{ border: "1px solid #e2e8f0", color: "#020617" }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(15,23,42,0.07)" }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none" }} />
+            <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+              <Input name={`${key}_open`} type="time" defaultValue="09:00" className="h-10 min-w-0 px-2" aria-label={`${label}: время открытия`} />
+              <span className="text-xs text-muted-foreground">до</span>
+              <Input name={`${key}_close`} type="time" defaultValue="21:00" className="h-10 min-w-0 px-2" aria-label={`${label}: время закрытия`} />
             </div>
           )}
-          <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0 ml-auto select-none">
-            <input type="checkbox" name={`${key}_closed`} checked={!!closedDays[key]}
-              onChange={(e) => setClosedDays(p => ({ ...p, [key]: e.target.checked }))}
-              className="rounded" style={{ accentColor: "#0f172a", width: 14, height: 14 }} />
-            <span className="text-xs" style={{ color: "#94a3b8" }}>Вых.</span>
-          </label>
         </div>
       ))}
-      {state.error && <p className="text-sm mt-2" style={{ color: "#ef4444" }}>{state.error}</p>}
+      {state.error && <p className="mt-3 text-sm text-destructive" role="alert">{state.error}</p>}
       <NavButtons onBack={onBack} pending={pending} />
     </form>
   )
@@ -189,14 +171,14 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   return (
     <form action={action} className="flex flex-col gap-4">
       <Field label="Название абонемента" name="name" placeholder="Безлимитный на месяц" autoFocus />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3">
         <Field label="Цена" name="price" placeholder="500 000" money />
         <Field label="Срок (дней)" name="durationDays" type="number" placeholder="30" defaultValue="30" />
       </div>
-      <p className="text-xs" style={{ color: "#94a3b8" }}>
+      <p className="text-xs text-muted-foreground">
         Вы сможете создать больше абонементов позже в разделе «Абонементы»
       </p>
-      {state.error && <p className="text-sm" style={{ color: "#ef4444" }}>{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <NavButtons onBack={onBack} pending={pending} />
     </form>
   )
@@ -217,56 +199,45 @@ function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void 
   return (
     <form onSubmit={(e) => { e.preventDefault(); onFinish() }} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium" style={{ color: "#020617", letterSpacing: "-0.084px" }}>
+        <label className="text-sm font-medium text-foreground" htmlFor="staff-email">
           Email сотрудника
         </label>
-        <div className="flex gap-2">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input id="staff-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
             placeholder="trainer@example.com"
-            className="h-10 w-full rounded-md px-3 text-sm outline-none transition-all"
-            style={inputStyle} onFocus={focusIn} onBlur={focusOut}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInvite())} />
-          <button type="button" onClick={addInvite} disabled={pending || !email.trim()}
-            className="flex-shrink-0 h-10 px-4 rounded-md text-sm font-medium text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-            style={{ background: "#0f172a" }}>
-            + Добавить
-          </button>
+          <Button type="button" onClick={addInvite} disabled={pending || !email.trim()} className="h-10 w-full sm:w-auto">
+            <Plus className="size-4" /> Добавить
+          </Button>
         </div>
       </div>
 
       {sent.length > 0 && (
         <div className="flex flex-col gap-1.5">
           {sent.map((e) => (
-            <div key={e} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm"
-              style={{ background: "#f8fafc", color: "#020617" }}>
-              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#22c55e" }} />
+            <div key={e} className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-foreground">
+              <Check className="size-4 shrink-0 text-brand" />
               {e}
             </div>
           ))}
         </div>
       )}
 
-      <p className="text-xs" style={{ color: "#94a3b8" }}>
+      <p className="text-xs text-muted-foreground">
         Вы можете пропустить этот шаг и добавить сотрудников позже в разделе «Настройки → Сотрудники»
       </p>
 
-      <div className="flex items-center justify-between pt-5 mt-3">
-        <button type="button" onClick={onBack}
-          className="flex items-center gap-1.5 h-10 px-4 rounded-md text-sm font-medium transition-all hover:bg-slate-50 active:scale-[0.98]"
-          style={{ color: "#020617", border: "1px solid #e2e8f0" }}>
-          <ArrowLeft className="w-3.5 h-3.5" /> Назад
-        </button>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={onFinish}
-            className="h-10 px-4 rounded-md text-sm font-medium transition-all hover:bg-slate-50"
-            style={{ color: "#64748b" }}>
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <Button type="button" variant="outline" onClick={onBack} className="h-10 w-full sm:w-auto">
+          <ArrowLeft className="size-4" /> Назад
+        </Button>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          <Button type="button" variant="ghost" onClick={onFinish} className="h-10 w-full sm:w-auto">
             Пропустить
-          </button>
-          <button type="submit"
-            className="flex items-center gap-1.5 h-10 px-5 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-[0.98]"
-            style={{ background: "#0f172a" }}>
-            Перейти в CRM <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          </Button>
+          <Button type="submit" size="lg" className="h-10 w-full sm:w-auto">
+            Перейти в CRM <ArrowRight className="size-4" />
+          </Button>
         </div>
       </div>
     </form>
@@ -281,47 +252,42 @@ export function OnboardingWizard({ clubName: _ }: { clubName: string }) {
   const current = STEPS[step - 1]
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-svh bg-background lg:flex">
 
       {/* Left dark branding panel */}
-      <div className="hidden lg:flex flex-col flex-1 bg-[#0f172a] overflow-hidden"
-        style={{ maxWidth: "52%", minHeight: "100vh" }}>
+      <div className="hidden min-h-svh max-w-[52%] flex-1 flex-col overflow-hidden bg-foreground lg:flex">
         <BrandingCarousel />
       </div>
 
       {/* Right white panel */}
-      <div className="flex-1 flex flex-col bg-white min-h-screen">
+      <main className="flex min-h-svh flex-1 flex-col bg-background">
 
         {/* Top bar */}
-        <div className="flex items-center justify-between px-9 pt-9">
+        <div className="flex items-center justify-between px-4 pt-4 sm:px-8 sm:pt-8 lg:px-9 lg:pt-9">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#0f172a" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M7 12H17M12 7V17" stroke="white" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Plus className="size-4" strokeWidth={2} />
             </div>
-            <span className="text-sm font-semibold" style={{ color: "#020617" }}>fitCRM</span>
+            <span className="text-sm font-semibold text-foreground">fitCRM</span>
           </div>
-          <button onClick={() => router.push("/dashboard")}
-            className="text-xs font-medium px-3 py-1.5 rounded-md hover:bg-slate-50 transition-colors"
-            style={{ color: "#64748b" }}>
+          <Button type="button" variant="ghost" size="sm" onClick={() => router.push("/dashboard")} className="h-8">
             Пропустить настройку
-          </button>
+          </Button>
         </div>
 
         {/* Form area — centered vertically */}
-        <div className="flex-1 flex items-center justify-center px-16 pb-6">
-          <div className="w-full max-w-[480px]">
+        <div className="flex flex-1 items-start justify-center px-4 py-4 pb-6 sm:px-8 sm:py-8 lg:items-center lg:px-16">
+          <section className="w-full max-w-[480px] rounded-lg border border-border bg-card p-4 shadow-xs sm:p-6 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
 
             {/* Stepper */}
             <Stepper step={step} />
 
             {/* Step heading */}
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold" style={{ color: "#020617", letterSpacing: "-0.144px" }}>
+              <h1 className="text-xl font-semibold text-foreground sm:text-2xl">
                 {current.label}
               </h1>
-              <p className="text-sm mt-1.5" style={{ color: "#64748b" }}>{current.sub}</p>
+              <p className="mt-1.5 text-sm text-muted-foreground">{current.sub}</p>
             </div>
 
             {/* Forms */}
@@ -329,10 +295,10 @@ export function OnboardingWizard({ clubName: _ }: { clubName: string }) {
             {step === 2 && <Step2 onNext={() => setStep(3)} onBack={() => setStep(1)} />}
             {step === 3 && <Step3 onNext={() => setStep(4)} onBack={() => setStep(2)} />}
             {step === 4 && <Step4 onFinish={() => router.push("/dashboard")} onBack={() => setStep(3)} />}
-          </div>
+          </section>
         </div>
 
-      </div>
+      </main>
     </div>
   )
 }

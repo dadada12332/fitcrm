@@ -6,16 +6,14 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
     <input
       type={type}
       className={cn(
-        "flex h-11 w-full rounded-xl px-4 text-sm outline-none transition-colors",
-        "placeholder:text-[var(--on-dark-soft)] disabled:opacity-50",
-        "focus-visible:ring-2 focus-visible:ring-[var(--orange)]",
+        "flex h-10 w-full min-w-0 rounded-lg border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow]",
+        "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground",
+        "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+        "aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
+        "dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         className,
       )}
-      style={{
-        background: "var(--card-2)",
-        border: "1px solid var(--border)",
-        color: "var(--on-dark)",
-      }}
       {...props}
     />
   )
