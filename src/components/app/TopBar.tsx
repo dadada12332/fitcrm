@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation"
 import {
   Search, Bell,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
-  PanelLeft, Sun, Moon, Inbox, CheckCircle2, Loader2,
+  PanelLeft, Sun, Moon, Inbox, CheckCircle2, Loader2, ChevronRight,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useTheme } from "next-themes"
 import { globalSearchAction, getNotificationsAction, getRequestsAction, type GlobalSearchResult, type AppNotification, type AppRequest } from "@/app/(app)/actions"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Breadcrumbs } from "./Breadcrumbs"
 
 type Props = { clubName: string; email: string; onToggleSidebar?: () => void }
@@ -99,6 +101,14 @@ function fmtReqDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
 }
 
+function fmtNotificationDate(iso: string | null, type: AppNotification["type"]) {
+  if (!iso) return null
+  const options: Intl.DateTimeFormatOptions = type === "pending"
+    ? { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }
+    : { day: "numeric", month: "long", year: "numeric" }
+  return new Date(iso).toLocaleDateString("ru-RU", options)
+}
+
 function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"notifs" | "requests">("notifs")
   const [notifs, setNotifs] = useState<AppNotification[] | null>(null)
@@ -108,102 +118,177 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     start(async () => {
       const [n, r] = await Promise.all([getNotificationsAction(), getRequestsAction()])
-      setNotifs(n); setRequests(r)
+      setNotifs(n)
+      setRequests(r)
     })
   }, [])
 
-  const iconFor = (type: AppNotification["type"]) => {
-    if (type === "expiring") return <Clock className="w-4 h-4" style={{ color: "#d97706" }} />
-    if (type === "expired")  return <AlertTriangle className="w-4 h-4" style={{ color: "#dc2626" }} />
-    return <CardIcon className="w-4 h-4" style={{ color: "#2563eb" }} />
+  const counts = {
+    expired: notifs?.filter((n) => n.type === "expired").length ?? 0,
+    expiring: notifs?.filter((n) => n.type === "expiring").length ?? 0,
+    pending: notifs?.filter((n) => n.type === "pending").length ?? 0,
   }
-  const bgFor = (type: AppNotification["type"]) =>
-    type === "expiring" ? "rgba(217,119,6,0.14)" : type === "expired" ? "rgba(220,38,38,0.14)" : "rgba(37,99,235,0.14)"
+
+  const notificationMeta = (type: AppNotification["type"]) => {
+    if (type === "expired") return {
+      icon: <AlertTriangle className="size-4" />,
+      iconClass: "bg-destructive/10 text-destructive",
+      badgeClass: "bg-destructive/10 text-destructive",
+    }
+    if (type === "expiring") return {
+      icon: <Clock className="size-4" />,
+      iconClass: "bg-brand/10 text-brand",
+      badgeClass: "bg-brand/10 text-brand",
+    }
+    return {
+      icon: <CardIcon className="size-4" />,
+      iconClass: "bg-secondary text-foreground",
+      badgeClass: "bg-secondary text-foreground",
+    }
+  }
 
   const TabBtn = ({ id, label, count }: { id: "notifs" | "requests"; label: string; count: number | null }) => {
     const active = tab === id
     return (
-      <button onClick={() => setTab(id)}
-        className="flex-1 flex items-center justify-center gap-1.5 h-10 text-sm font-medium transition-colors relative"
-        style={{ color: active ? "var(--on-dark)" : "var(--on-dark-soft)" }}>
+      <button
+        type="button"
+        onClick={() => setTab(id)}
+        className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+      >
         {label}
         {count !== null && count > 0 && (
-          <span className="text-[11px] px-1.5 rounded-full font-semibold"
-            style={{ background: active ? "#2563eb" : "var(--card-2)", color: active ? "white" : "var(--on-dark-soft)" }}>{count}</span>
+          <span className={`rounded-full px-1.5 text-[11px] font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{count}</span>
         )}
-        {active && <span className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: "#2563eb" }} />}
       </button>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex justify-end" onClick={onClose} style={{ background: "rgba(2,6,23,0.4)" }}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm h-full flex flex-col" style={{ background: "var(--card)", borderLeft: "1px solid var(--border)", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
-          <p className="text-lg font-semibold" style={{ color: "var(--on-dark)" }}>Уведомления</p>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800">
-            <X className="w-4 h-4" style={{ color: "var(--on-dark-soft)" }} />
-          </button>
-        </div>
-        {/* Tabs */}
-        <div className="flex shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
-          <TabBtn id="notifs" label="Уведомления" count={notifs?.length ?? null} />
-          <TabBtn id="requests" label="Заявки" count={requests?.length ?? null} />
+    <Sheet open onOpenChange={(open) => { if (!open) onClose() }}>
+      <SheetContent className="max-w-[500px]">
+        <SheetHeader className="h-auto min-h-20 gap-4 px-5 py-4 sm:px-6">
+          <div className="min-w-0">
+            <SheetTitle>Центр уведомлений</SheetTitle>
+            <p className="mt-1 text-sm text-muted-foreground">События, которые требуют вашего внимания</p>
+          </div>
+          <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Закрыть уведомления" className="shrink-0">
+            <X className="size-4" />
+          </Button>
+        </SheetHeader>
+
+        <div className="border-b border-border px-5 py-3 sm:px-6">
+          <div className="flex rounded-lg bg-muted p-1">
+            <TabBtn id="notifs" label="Уведомления" count={notifs?.length ?? null} />
+            <TabBtn id="requests" label="Заявки" count={requests?.length ?? null} />
+          </div>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-background/50">
           {tab === "notifs" && (
             notifs === null ? (
-              <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--gray-muted)" }} /></div>
+              <div className="flex justify-center py-16"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
             ) : notifs.length === 0 ? (
-              <div className="py-16 text-center">
-                <CheckCircle2 className="w-8 h-8 mx-auto mb-2" style={{ color: "#16a34a" }} />
-                <p className="text-sm" style={{ color: "var(--gray-muted)" }}>Нет уведомлений</p>
+              <div className="px-6 py-20 text-center">
+                <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-lg bg-secondary">
+                  <CheckCircle2 className="size-5 text-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Всё под контролем</p>
+                <p className="mt-1 text-sm text-muted-foreground">Новых уведомлений пока нет</p>
               </div>
-            ) : notifs.map((n) => (
-              <Link key={n.id} href={`/clients/${n.clientId}`} onClick={onClose}
-                className="flex items-start gap-3 px-5 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: bgFor(n.type) }}>
-                  {iconFor(n.type)}
+            ) : (
+              <>
+                <div className="grid grid-cols-3 border-b border-border bg-card px-5 py-4 sm:px-6">
+                  {[
+                    { label: "Истекли", value: counts.expired, className: "text-destructive" },
+                    { label: "Истекают", value: counts.expiring, className: "text-brand" },
+                    { label: "Платежи", value: counts.pending, className: "text-foreground" },
+                  ].map((item, index) => (
+                    <div key={item.label} className={`min-w-0 ${index > 0 ? "border-l border-border pl-4" : ""}`}>
+                      <p className={`text-xl font-semibold ${item.className}`}>{item.value}</p>
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">{item.label}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: "var(--on-dark)" }}>{n.clientName}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{n.detail}</p>
+
+                <div className="px-5 pb-5 pt-4 sm:px-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Требуют внимания</p>
+                    <span className="text-xs text-muted-foreground">{notifs.length} событий</span>
+                  </div>
+                  <div className="overflow-hidden rounded-lg border border-border bg-card">
+                    {notifs.map((n) => {
+                      const meta = notificationMeta(n.type)
+                      const eventDate = fmtNotificationDate(n.eventDate, n.type)
+                      return (
+                        <Link
+                          key={n.id}
+                          href={`/clients/${n.clientId}`}
+                          onClick={onClose}
+                          prefetch={false}
+                          className="group flex items-start gap-3 border-b border-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-muted/60"
+                        >
+                          <div className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg ${meta.iconClass}`}>
+                            {meta.icon}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="truncate text-sm font-semibold text-foreground">{n.clientName}</p>
+                              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${meta.badgeClass}`}>{n.detail}</span>
+                            </div>
+                            <p className="mt-1 text-sm text-foreground">{n.title}</p>
+                            {(n.membershipName || eventDate) && (
+                              <p className="mt-1 truncate text-xs text-muted-foreground">
+                                {[n.membershipName, eventDate].filter(Boolean).join(" · ")}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="mt-2.5 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                        </Link>
+                      )
+                    })}
+                  </div>
                 </div>
-              </Link>
-            ))
+              </>
+            )
           )}
 
           {tab === "requests" && (
             requests === null ? (
-              <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--gray-muted)" }} /></div>
+              <div className="flex justify-center py-16"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
             ) : requests.length === 0 ? (
-              <div className="py-16 text-center">
-                <Inbox className="w-8 h-8 mx-auto mb-2" style={{ color: "var(--gray-muted)" }} />
-                <p className="text-sm" style={{ color: "var(--gray-muted)" }}>Заявок пока нет</p>
-                <p className="text-xs mt-1 px-8" style={{ color: "var(--gray-muted)" }}>Здесь появятся заявки на подключение платёжек и смену тарифа с их статусом.</p>
-              </div>
-            ) : requests.map((r) => (
-              <div key={r.id} className="flex items-start gap-3 px-5 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "var(--card-2)" }}>
-                  {r.kind === "payment" ? <CardIcon className="w-4 h-4" style={{ color: "#2563eb" }} /> : <Inbox className="w-4 h-4" style={{ color: "#7c3aed" }} />}
+              <div className="px-6 py-20 text-center">
+                <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-lg bg-secondary">
+                  <Inbox className="size-5 text-muted-foreground" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{r.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }} suppressHydrationWarning>{fmtReqDate(r.createdAt)}</p>
-                </div>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap mt-0.5"
-                  style={{ background: `color-mix(in srgb, ${r.statusColor} 14%, transparent)`, color: r.statusColor }}>
-                  {r.statusLabel}
-                </span>
+                <p className="text-sm font-medium text-foreground">Заявок пока нет</p>
+                <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">Здесь появятся заявки на подключение платёжных систем и смену тарифа.</p>
               </div>
-            ))
+            ) : (
+              <div className="px-5 py-4 sm:px-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">История заявок</p>
+                  <span className="text-xs text-muted-foreground">{requests.length} всего</span>
+                </div>
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  {requests.map((r) => (
+                    <div key={r.id} className="flex items-start gap-3 border-b border-border px-4 py-3.5 last:border-b-0">
+                      <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                        {r.kind === "payment" ? <CardIcon className="size-4" /> : <Inbox className="size-4" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground">{r.title}</p>
+                        <p className="mt-1 text-xs text-muted-foreground" suppressHydrationWarning>{fmtReqDate(r.createdAt)}</p>
+                      </div>
+                      <span className="mt-0.5 shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground">{r.statusLabel}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
           )}
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -281,6 +366,7 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
           {/* Bell */}
           <div ref={notifRef} className="relative">
             <button onClick={() => { setNotifOpen((v) => !v) }}
+              aria-label="Открыть уведомления"
               className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 relative"
               style={{ width: 32, height: 32 }}>
               <Bell style={{ width: 20, height: 20 }} />

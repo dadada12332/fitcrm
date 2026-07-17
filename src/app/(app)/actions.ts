@@ -17,7 +17,10 @@ export type AppNotification = {
   type: "expiring" | "expired" | "pending"
   clientId: string
   clientName: string
+  title: string
   detail: string
+  membershipName: string | null
+  eventDate: string | null
 }
 
 export async function globalSearchAction(query: string): Promise<GlobalSearchResult[]> {
@@ -61,51 +64,62 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
   const [expiringRes, expiredRes, pendingRes] = await Promise.all([
     supabase
       .from("subscriptions")
-      .select("id, expires_at, clients(id, full_name)")
+      .select("id, expires_at, clients(id, full_name), memberships(name)")
       .eq("club_id", clubId)
       .eq("status", "active")
       .gte("expires_at", now.toISOString().slice(0, 10))
       .lte("expires_at", in7.toISOString().slice(0, 10))
+      .order("expires_at", { ascending: true })
       .limit(10),
     supabase
       .from("subscriptions")
-      .select("id, expires_at, clients(id, full_name)")
+      .select("id, expires_at, clients(id, full_name), memberships(name)")
       .eq("club_id", clubId)
       .eq("status", "expired")
       .gte("expires_at", ago7.toISOString().slice(0, 10))
+      .order("expires_at", { ascending: false })
       .limit(10),
     supabase
       .from("payments")
-      .select("id, amount, clients(id, full_name)")
+      .select("id, amount, created_at, clients(id, full_name)")
       .eq("club_id", clubId)
       .eq("status", "pending")
+      .order("created_at", { ascending: false })
       .limit(10),
   ])
 
   const result: AppNotification[] = []
 
+  for (const sub of expiredRes.data ?? []) {
+    const client = Array.isArray(sub.clients) ? sub.clients[0] : sub.clients
+    if (!client) continue
+    const membership = Array.isArray(sub.memberships) ? sub.memberships[0] : sub.memberships
+    result.push({
+      id: `ed-${sub.id}`,
+      type: "expired",
+      clientId: client.id,
+      clientName: client.full_name,
+      title: "Абонемент истёк",
+      detail: "Требуется продление",
+      membershipName: membership?.name ?? null,
+      eventDate: sub.expires_at,
+    })
+  }
+
   for (const sub of expiringRes.data ?? []) {
     const client = Array.isArray(sub.clients) ? sub.clients[0] : sub.clients
     if (!client) continue
+    const membership = Array.isArray(sub.memberships) ? sub.memberships[0] : sub.memberships
     const days = Math.ceil((new Date(sub.expires_at).getTime() - now.getTime()) / 86_400_000)
     result.push({
       id: `exp-${sub.id}`,
       type: "expiring",
       clientId: client.id,
       clientName: client.full_name,
-      detail: days === 0 ? "истекает сегодня" : `истекает через ${days} дн.`,
-    })
-  }
-
-  for (const sub of expiredRes.data ?? []) {
-    const client = Array.isArray(sub.clients) ? sub.clients[0] : sub.clients
-    if (!client) continue
-    result.push({
-      id: `ed-${sub.id}`,
-      type: "expired",
-      clientId: client.id,
-      clientName: client.full_name,
-      detail: "абонемент истёк",
+      title: "Абонемент скоро истечёт",
+      detail: days === 0 ? "Сегодня" : `Через ${days} дн.`,
+      membershipName: membership?.name ?? null,
+      eventDate: sub.expires_at,
     })
   }
 
@@ -117,7 +131,10 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
       type: "pending",
       clientId: client.id,
       clientName: client.full_name,
+      title: "Платёж ожидает подтверждения",
       detail: `${Number(pay.amount).toLocaleString("ru-RU")} сум`,
+      membershipName: null,
+      eventDate: pay.created_at,
     })
   }
 
