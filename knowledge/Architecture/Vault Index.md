@@ -36,6 +36,7 @@ updated: 2026-07-18
 
 ## Integrations
 
+- [[Integrations/Instagram]]
 - [[Integrations/Telegram]]
 
 ## Product

@@ -22,6 +22,12 @@ tags: [fitcrm, telegram, integrations]
 - Онлайн-продление текущего типа абонемента через подключённый Payme или Click. Создаётся pending payment; новая подписка активируется только после подписанного callback провайдера.
 - Контакты клуба.
 
+## Telegram Mini App
+
+Route `/tg/[clubId]` теперь является мобильным клиентским кабинетом. Telegram `initData` проверяется server-side HMAC конкретным токеном клуба и живёт не более 10 минут. Клиент видит абонемент, QR, посещения, расписание на 7 дней, может атомарно записаться/отменить запись, управлять reminders и открыть продление Payme/Click. Menu button двух production-ботов обновлён на Mini App.
+
+Migration `0061` добавляет service-only RPC бронирования с блокировкой занятия, проверкой active subscription и capacity. CRM использует тот же атомарный RPC после собственной permission-проверки.
+
 `Автопродление` в смысле автоматического списания не реализовано: текущие Payme/Click payment links не дают FitCRM подтверждённого recurring mandate/card token. До появления provider API продукт предлагает self-service renewal и reminders, но не обещает auto-charge.
 
 ## CRM features
@@ -49,7 +55,7 @@ tags: [fitcrm, telegram, integrations]
 
 ## Next evolution
 
-Telegram Mini App подходит для полноценного кабинета с несколькими экранами, оплатой, бронированием и динамическим QR. Bot messages остаются каналом уведомлений и быстрых действий; Mini App не должен заменять CRM authorization или tenant checks.
+Добавить push-like UX внутри Mini App, историю pending/paid renewal и тесты на реальном Telegram mobile client. Bot messages остаются каналом уведомлений и быстрых действий; Mini App не заменяет CRM authorization или tenant checks.
 
 ## Sources
 

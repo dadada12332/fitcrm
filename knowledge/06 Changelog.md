@@ -14,6 +14,8 @@ tags: [fitcrm, releases]
 
 - Операционная память проекта в `/knowledge` для команды и AI-агентов.
 - Повторяемый Vitest/Playwright test harness для security, auth и responsive smoke.
+- Telegram Mini App: абонемент, QR, визиты, расписание, бронирование, настройки reminders и онлайн-продление.
+- Фундамент Instagram: безопасный OAuth, posts/reels и Insights, webhook/data deletion и раздельные platform/CRM метрики.
 
 ### Changed
 
@@ -58,6 +60,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `580b9e8` · 2026-07-18 · Add Telegram client Mini App
+- `e9e64ae` · 2026-07-18 · Document Telegram self-test fix [skip ci]
 - `7a7ce7c` · 2026-07-18 · Fix Telegram self-test pairing
 - `56bcd9c` · 2026-07-18 · Document verified Telegram production rollout [skip ci]
 - `7cc3f87` · 2026-07-18 · Enforce one club per Telegram bot
@@ -86,6 +90,4 @@ tags: [fitcrm, releases]
 - `1cf7e0a` · 2026-07-18 · Fix platform dashboard mobile grid
 - `f4543f3` · 2026-07-18 · Unify platform admin design system
 - `44e8945` · 2026-07-17 · Hide breadcrumbs on mobile top bar
-- `5172f4f` · 2026-07-17 · Filter expired notifications by end date
-- `bca4ed1` · 2026-07-17 · Redesign notification center
 <!-- AUTO:END changelog-candidates -->

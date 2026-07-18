@@ -18,7 +18,7 @@ tags: [fitcrm, tasks]
 ## Backlog
 
 <!-- AUTO:START kanban-backlog -->
-- TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
+- Нет задач.
 <!-- AUTO:END kanban-backlog -->
 
 ## Ready
@@ -30,7 +30,7 @@ tags: [fitcrm, tasks]
 ## In Progress
 
 <!-- AUTO:START kanban-in-progress -->
-- Нет задач.
+- TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review

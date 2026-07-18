@@ -1,7 +1,7 @@
 ---
 id: TASK-0012
 type: feature
-status: backlog
+status: in-progress
 priority: P2
 module: integrations
 created: 2026-07-18
@@ -48,16 +48,19 @@ Telegram flows, tenant isolation, auth, production data и payment attribution.
 
 ## Changes
 
-ТЗ зафиксировано; реализация не начата.
+Добавлены migration `0062`, encrypted service-only connection, OAuth callback/state, Graph sync posts/reels/Insights, signed webhook, data deletion, disconnect и адаптивный dashboard. Platform metrics и CRM attribution разделены.
 
 ## Verification
 
-Не проверено.
+- `npx tsc --noEmit` — passed.
+- Vitest — 92 passed, 1 skipped.
+- `npm run build` — passed.
+- Production grants: credential/state/event tables service-only; derived tables authenticated SELECT only под RLS.
 
 ## Remaining
 
-Официальный Meta API research, OAuth/App Review, data model ADR, Figma/UI flow.
+Реальный Meta App OAuth/App Review, end-to-end Graph verification, Direct inbox/deduplication, campaign link builder и scheduled incremental sync.
 
 ## Blockers
 
-Потребуются Meta developer app, verified business/account permissions и privacy/data deletion URLs.
+Требуются Meta Developer App, professional Instagram account, verified business и App Review. Без credentials UI честно показывает setup blocker.

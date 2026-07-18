@@ -51,14 +51,14 @@ const CATALOG = [
   {
     key: "instagram",
     label: "Instagram",
-    description: "Заявки и лиды из Direct",
+    description: "Контент, Insights и CRM-атрибуция",
     color: "#E1306C",
     bg: "rgba(225,48,108,0.10)",
-    features: ["Direct", "Лиды", "Автоответ", "CRM"],
+    features: ["Публикации", "Insights", "Лиды", "Атрибуция"],
     featureColor: "rgba(225,48,108,0.10)",
     featureText: "#9d174d",
     category: "Соцсети",
-    available: false,
+    available: true,
   },
   {
     key: "whatsapp",
@@ -215,6 +215,7 @@ function getBenefits(key: string): string[] {
     telegram: ["Клиенты управляют абонементом через бот", "Автоматические напоминания об истечении", "QR-код для входа в зал"],
     click: ["Принимайте оплату онлайн через Click", "Автоматические webhooks о платежах", "История транзакций в CRM"],
     payme: ["Принимайте оплату онлайн через Payme", "Автоматические webhooks о платежах", "История транзакций в CRM"],
+    instagram: ["Смотрите posts и reels в FitCRM", "Отделяйте охват от реальных лидов", "Связывайте клиентов и выручку с Instagram"],
   }
   return map[key] ?? []
 }

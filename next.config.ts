@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**.cdninstagram.com" },
+      { protocol: "https", hostname: "**.fbcdn.net" },
+    ],
+  },
   experimental: {
     // Tree-shakes icon/chart libraries: only used exports land in the bundle.
     // lucide-react: default import pulls in 1000+ icons — this reduces to ~10-20 used.

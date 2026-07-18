@@ -15,11 +15,13 @@ export default async function IntegrationsPage() {
   const statuses: IntegrationStatus[] = []
 
   {
-    const [{ data }, { data: telegramIntegration }] = await Promise.all([supabase
+    const service = createServiceClient()
+    const [{ data }, { data: telegramIntegration }, { data: instagramIntegration }] = await Promise.all([supabase
       .from("clubs")
       .select("settings")
       .eq("id", club.clubId)
-      .single(), createServiceClient().from("telegram_integrations").select("club_id").eq("club_id", club.clubId).maybeSingle()])
+      .single(), service.from("telegram_integrations").select("club_id").eq("club_id", club.clubId).maybeSingle(),
+      service.from("integration_connections").select("username,last_synced_at").eq("club_id", club.clubId).eq("provider", "instagram").maybeSingle()])
 
     if (data) {
       const integrations = (data.settings as any)?.integrations ?? {}
@@ -36,6 +38,15 @@ export default async function IntegrationsPage() {
           handle: "@бот",
           clientCount: count ?? 0,
           lastSync: new Date().toISOString(),
+        })
+      }
+
+      if (instagramIntegration) {
+        statuses.push({
+          key: "instagram",
+          connected: true,
+          handle: instagramIntegration.username ? `@${instagramIntegration.username}` : "Instagram",
+          lastSync: instagramIntegration.last_synced_at ?? undefined,
         })
       }
 

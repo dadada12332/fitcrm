@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 7a7ce7c · 2026-07-18T17:24:53+05:00 · Fix Telegram self-test pairing.
+- Последний commit: 580b9e8 · 2026-07-18T17:45:04+05:00 · Add Telegram client Mini App.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 60; последняя `0060_telegram_staff_pairing.sql`.
+- Миграции в Git: 62; последняя `0062_instagram_integration_foundation.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
