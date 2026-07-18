@@ -58,6 +58,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `7cc3f87` · 2026-07-18 · Enforce one club per Telegram bot
 - `e3af97f` · 2026-07-18 · Rebuild Telegram integration around club bots
 - `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
 - `28efccd` · 2026-07-18 · Fix roles settings loading loop
@@ -87,5 +88,4 @@ tags: [fitcrm, releases]
 - `bca4ed1` · 2026-07-17 · Redesign notification center
 - `9c5ec17` · 2026-07-17 · Align password recovery link with remember option
 - `7cf1ffc` · 2026-07-17 · Optimize CRM data loading
-- `51430e3` · 2026-07-17 · Use dropdown for quick actions
 <!-- AUTO:END changelog-candidates -->

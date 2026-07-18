@@ -51,11 +51,11 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Verification
 
-`npx tsc --noEmit`, `npm run build`, 85 Vitest checks; headless desktop/mobile smoke без console errors и горизонтального overflow. Production migrations 0056/0057 применены; Supabase Cron active.
+`npx tsc --noEmit`, `npm run build`, 85 Vitest checks; headless desktop/mobile smoke без console errors и горизонтального overflow. Production migrations 0056–0059 применены. Deployment `dpl_BGgKzYRWv3c7dFKW8eriYrMUBCy4` READY; webhook совпадает с club route, pending updates `0`, last error отсутствует. Supabase Cron active, последний HTTP status `200`.
 
 ## Remaining
 
-После deploy зарегистрировать webhook для уже подключённых ботов. Настоящее recurring auto-charge требует tokenized/recurring API провайдера и пока не заявляется как работающая функция.
+Настоящее recurring auto-charge требует tokenized/recurring API провайдера и пока не заявляется как работающая функция. Полноэкранный Telegram Mini App остаётся отдельным продуктовым этапом.
 
 ## Blockers
 

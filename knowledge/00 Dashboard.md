@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `7cc3f87` · 2026-07-18 · Enforce one club per Telegram bot
 - `e3af97f` · 2026-07-18 · Rebuild Telegram integration around club bots
 - `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
 - `28efccd` · 2026-07-18 · Fix roles settings loading loop
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `119d7f7` · 2026-07-18 · Bind client profile payments to client
 - `cffeb1c` · 2026-07-18 · Record verified production deployment
 - `55d0577` · 2026-07-18 · Allow authenticated cron callbacks through middleware
-- `5032589` · 2026-07-18 · Refresh project handoff after audit
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
