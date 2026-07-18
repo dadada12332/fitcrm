@@ -122,18 +122,18 @@ export function InstagramIntegration({ data, oauth }: { data: InstagramPageData;
           </CardHeader>
           <CardContent className="space-y-4">
             {!data.configured && (
-              <div className="rounded-lg border border-border bg-muted/50 p-4">
+              <div className="border-l-2 border-primary bg-muted/50 px-4 py-3">
                 <p className="font-medium text-foreground">Meta App ещё не настроено</p>
                 <p className="mt-1 text-sm text-muted-foreground">Нужны Instagram App ID, App Secret, webhook verify token и одобренные permissions в Meta for Developers.</p>
               </div>
             )}
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid border-y border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0 divide-y divide-border">
               {[
                 [BarChart3, "Публикации и Insights", "Охват, просмотры и вовлечение из API Instagram"],
                 [Users, "Лиды и клиенты", "Отдельный учёт CRM-атрибуции без смешивания с охватом"],
                 [ShieldCheck, "Контроль данных", "Отзыв доступа и data deletion callback Meta"],
               ].map(([Icon, title, description]) => (
-                <div key={String(title)} className="rounded-lg border border-border p-4">
+                <div key={String(title)} className="py-4 sm:px-4 sm:first:pl-0 sm:last:pr-0">
                   <Icon className="size-5 text-primary" />
                   <p className="mt-3 font-medium text-foreground">{String(title)}</p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">{String(description)}</p>
