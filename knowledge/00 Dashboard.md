@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `2e3e312` · 2026-07-19 · Add authenticated local QA gate
 - `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
 - `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
 - `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
 - `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
 - `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
-- `2628a08` · 2026-07-18 · Align AI analytics page spacing
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

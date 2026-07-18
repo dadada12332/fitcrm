@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: abd37f0 · 2026-07-19T00:16:40+05:00 · Record verified dashboard production deploy [skip ci].
+- Последний commit: 2e3e312 · 2026-07-19T01:11:49+05:00 · Add authenticated local QA gate.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -36,7 +36,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_4hKacPdixJ9aHgars7ApAT3CLjXN` для commit `09d44d7` имеет статус `READY`; aliases `fitcrm-three.vercel.app` и `fitcrm-crm228.vercel.app` подтверждены. Для авторизованной UI-проверки создан отдельный синтетический QA-пользователь и клуб без клиентских данных; credentials хранятся только локально.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_8SUpYtebjGtjfiAPeGbW1HncTFyL` для commit `2e3e312` имеет статус `READY`; aliases `fitcrm-three.vercel.app` и `fitcrm-crm228.vercel.app` подтверждены. Для авторизованной UI-проверки создан отдельный синтетический QA-пользователь и клуб без клиентских данных; credentials хранятся только локально.
 
 ## Риски и долг
 
