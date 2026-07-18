@@ -85,7 +85,7 @@ export async function updateSession(request: NextRequest) {
   // Когда admin.fitcrm.uz будет настроен, здесь можно включить редирект на CRM.
 
   // ── Обычная CRM клуба ──
-  const publicPaths = ["/", "/about", "/contacts", "/docs", "/blog", "/terms", "/privacy", "/robots.txt", "/sitemap.xml", "/login", "/register", "/forgot-password", "/reset-password", "/auth", "/api/auth", "/api/telegram", "/api/invite-track", "/api/pay", "/api/cron", "/api/broadcasts", "/accept-invite"]
+  const publicPaths = ["/", "/about", "/contacts", "/docs", "/blog", "/terms", "/privacy", "/robots.txt", "/sitemap.xml", "/login", "/register", "/forgot-password", "/reset-password", "/auth", "/tg", "/api/auth", "/api/telegram", "/api/invite-track", "/api/pay", "/api/cron", "/api/broadcasts", "/accept-invite"]
   const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith(p + "/"))
     || pathname.startsWith("/_next")
     || /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|txt|xml|json)$/.test(pathname)

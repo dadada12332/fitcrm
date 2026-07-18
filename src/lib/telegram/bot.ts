@@ -2,6 +2,7 @@ import { sanitizeSearchTerm } from "@/lib/search"
 import { Bot, InlineKeyboard, Keyboard, InputFile } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 import { hashTelegramPairingToken, parseTelegramPairingPayload } from "@/lib/telegram/pairing"
+import { getTelegramMiniAppUrl } from "@/lib/telegram/api"
 
 // Vercel may reuse a function instance, so handlers are cached per club bot.
 const clubBots = new Map<string, Bot>()
@@ -135,7 +136,7 @@ async function setPendingAction(telegramId: number, clubId: string, action: stri
 
 // ── Keyboards ─────────────────────────────────────────────────────
 
-function clientMenu() {
+function clientMenu(clubId: string) {
   return new InlineKeyboard()
     .text("🏋️ Мой абонемент", "sub")
     .text("📊 История", "history")
@@ -145,6 +146,9 @@ function clientMenu() {
     .row()
     .text("📱 QR-код", "qr")
     .text("🔔 Напоминания", "reminder_settings")
+    .row()
+    .webApp("Открыть личный кабинет", getTelegramMiniAppUrl(clubId))
+    .row()
     .text("📞 Контакты", "contacts")
 }
 
@@ -186,7 +190,7 @@ async function sendMenuForUser(ctx: any, tgUser: TgUser) {
   if (role === "client") {
     const name = tgUser.client?.full_name?.split(" ")[0] ?? "друг"
     await ctx.reply(`👋 Привет, *${name}*!\n\nВыберите раздел:`, {
-      reply_markup: clientMenu(), parse_mode: "Markdown",
+      reply_markup: clientMenu(tgUser.club_id), parse_mode: "Markdown",
     })
   } else if (role === "owner" || role === "manager") {
     const name = tgUser.staff?.settings?.full_name?.split(" ")[0] ?? "шеф"
@@ -661,7 +665,7 @@ function setupHandlers(bot: Bot, clubId: string) {
         role === "client"
           ? `👋 Привет, *${tgUser.client?.full_name?.split(" ")[0] ?? "друг"}*!\n\nВыберите раздел:`
           : `👋 Главное меню:`,
-        { reply_markup: role === "client" ? clientMenu() : role === "admin" ? adminMenu() : role === "trainer" ? trainerMenu() : ownerMenu(), parse_mode: "Markdown" }
+        { reply_markup: role === "client" ? clientMenu(clubId) : role === "admin" ? adminMenu() : role === "trainer" ? trainerMenu() : ownerMenu(), parse_mode: "Markdown" }
       )
       return
     }

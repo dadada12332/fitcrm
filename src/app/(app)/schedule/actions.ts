@@ -3,6 +3,7 @@
 import { can } from "@/lib/permissions"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 
 export type ClassFormState = { error?: string; ok?: boolean }
@@ -116,32 +117,16 @@ export async function addClientToClassAction(classId: string, clientId: string):
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!can(club.permissions, "schedule", "edit")) return { error: "Недостаточно прав" }
-  const supabase = await createClient()
-
-  const { data: cls, error: e1 } = await supabase
-    .from("classes")
-    .select("seats_total, seats_booked")
-    .eq("id", classId)
-    .eq("club_id", club.clubId)
-    .maybeSingle()
-  if (e1) return { error: e1.message }
-  if (!cls) return { error: "Занятие не найдено" }
-  if ((cls.seats_booked ?? 0) >= (cls.seats_total ?? 0)) return { error: "Нет свободных мест" }
-
-  const { error: e2 } = await supabase.from("class_bookings").insert({
-    club_id: club.clubId,
-    class_id: classId,
-    client_id: clientId,
-    status: "booked",
+  const { data, error } = await createServiceClient().rpc("telegram_book_class", {
+    p_club_id: club.clubId, p_client_id: clientId, p_class_id: classId,
   })
-  if (e2) return { error: e2.message }
-
-  const { error: e3 } = await supabase
-    .from("classes")
-    .update({ seats_booked: (cls.seats_booked ?? 0) + 1 })
-    .eq("id", classId)
-    .eq("club_id", club.clubId)
-  if (e3) return { error: e3.message }
+  if (error) return { error: error.message }
+  const messages: Record<string, string> = {
+    client_not_found: "Клиент не найден", class_not_found: "Занятие не найдено",
+    class_started: "Занятие уже началось", already_booked: "Клиент уже записан",
+    no_active_subscription: "У клиента нет активного абонемента", full: "Нет свободных мест",
+  }
+  if (data !== "booked") return { error: messages[String(data)] ?? "Не удалось записать клиента" }
 
   revalidatePath("/schedule")
   return { ok: true }

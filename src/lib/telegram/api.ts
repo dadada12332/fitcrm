@@ -20,6 +20,14 @@ export function getTelegramWebhookUrl(clubId: string): string {
   return `${origin}/api/telegram/webhook/${clubId}`
 }
 
+export function getTelegramMiniAppUrl(clubId: string): string {
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "")
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
+  const origin = configured || (vercelHost ? `https://${vercelHost}` : "")
+  if (!origin) throw new Error("Public application URL is not configured")
+  return `${origin}/tg/${clubId}`
+}
+
 export async function callTelegramApi<T = unknown>(
   token: string,
   method: string,
@@ -36,6 +44,7 @@ export async function callTelegramApi<T = unknown>(
 
 export async function registerClubTelegramBot(token: string, clubId: string) {
   const webhookUrl = getTelegramWebhookUrl(clubId)
+  const miniAppUrl = getTelegramMiniAppUrl(clubId)
   const secretToken = getTelegramWebhookSecret(clubId, token)
   const [webhook, commands, menu, description] = await Promise.all([
     callTelegramApi(token, "setWebhook", {
@@ -53,7 +62,9 @@ export async function registerClubTelegramBot(token: string, clubId: string) {
         { command: "help", description: "Помощь" },
       ],
     }),
-    callTelegramApi(token, "setChatMenuButton", { menu_button: { type: "commands" } }),
+    callTelegramApi(token, "setChatMenuButton", {
+      menu_button: { type: "web_app", text: "Открыть кабинет", web_app: { url: miniAppUrl } },
+    }),
     callTelegramApi(token, "setMyDescription", {
       description: "Личный кабинет вашего фитнес-клуба: абонемент, расписание, посещения, QR-код и уведомления.",
     }),

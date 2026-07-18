@@ -58,7 +58,11 @@ for (const integration of integrations ?? []) {
         { command: "qr", description: "QR-код для входа" },
         { command: "help", description: "Помощь" },
       ] }),
-      api("setChatMenuButton", { menu_button: { type: "commands" } }),
+      api("setChatMenuButton", { menu_button: {
+        type: "web_app",
+        text: "Открыть кабинет",
+        web_app: { url: `${appUrl}/tg/${club.id}` },
+      } }),
     ])
     if (!me.ok || !webhook.ok) throw new Error("Telegram rejected bot setup")
     const settings = (club.settings && typeof club.settings === "object") ? club.settings : {}
