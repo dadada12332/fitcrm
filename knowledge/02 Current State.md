@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: b2dc9f2 · 2026-07-18T18:10:09+05:00 · Harden Instagram deletion callback.
+- Последний commit: 9cd0b22 · 2026-07-18T18:15:08+05:00 · Scope Telegram self-test to current club.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 62; последняя `0062_instagram_integration_foundation.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

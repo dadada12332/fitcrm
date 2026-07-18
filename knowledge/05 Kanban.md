@@ -65,4 +65,5 @@ tags: [fitcrm, tasks]
 - TASK-0010 · Исправить бесконечную загрузку ролей и прав · bug · P1 · settings · 2026-07-18 · [[Tasks/Completed/TASK-0010-ispravit-beskonechnuyu-zagruzku-rolei-i-prav]]
 - TASK-0011 · Восстановить Telegram multi-bot интеграцию · feature · P1 · integrations · 2026-07-18 · [[Tasks/Completed/TASK-0011-vosstanovit-telegram-multi-bot-integraciyu]]
 - TASK-0013 · Исправить тестовую отправку Telegram без клиентов · bug · P1 · integrations · 2026-07-18 · [[Tasks/Completed/TASK-0013-fix-telegram-self-test-pairing]]
+- TASK-0014 · Fix Telegram self-test for multi-club users · bug · P1 · telegram · 2026-07-18 · [[Tasks/Completed/TASK-0014-fix-telegram-self-test-multiclub]]
 <!-- AUTO:END kanban-done -->

@@ -53,6 +53,8 @@ Migration `0061` добавляет service-only RPC бронирования с
 
 После изменения `CRON_SECRET` нужно повторно зарегистрировать webhook клубных ботов, потому что webhook secret выводится HMAC от `clubId + token + CRON_SECRET`. Проверка health выполняется Telegram `getWebhookInfo`; токены и secret values запрещено писать в Vault или логи.
 
+Self-test всегда ищет текущего сотрудника по `(club_id, user_id, is_active)`. Поиск только по `user_id` запрещён: один владелец может состоять в нескольких клубах, и `.single()` тогда возвращает multiple rows вместо staff.
+
 ## Next evolution
 
 Добавить push-like UX внутри Mini App, историю pending/paid renewal и тесты на реальном Telegram mobile client. Bot messages остаются каналом уведомлений и быстрых действий; Mini App не заменяет CRM authorization или tenant checks.

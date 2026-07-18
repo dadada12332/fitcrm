@@ -27,6 +27,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- «Отправить себе» в Telegram теперь корректно использует связь сотрудника текущего клуба, даже если владелец состоит в нескольких клубах.
 - Вкладка «Роли и права» больше не зависает на бесконечном skeleton; ошибки загрузки теперь показываются с возможностью повтора.
 - Оплата из карточки клиента теперь жёстко привязана к открытому клиенту без повторного поиска; сервер дополнительно проверяет принадлежность клиента и абонемента клубу.
 - Исправлен переход между шагами onboarding.
@@ -60,6 +61,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `9cd0b22` · 2026-07-18 · Scope Telegram self-test to current club
+- `e7ea58e` · 2026-07-18 · Document Telegram Mini App and Instagram rollout [skip ci]
 - `b2dc9f2` · 2026-07-18 · Harden Instagram deletion callback
 - `d2c603e` · 2026-07-18 · Refine Instagram setup layout
 - `7e64c47` · 2026-07-18 · Add Instagram integration foundation
@@ -88,6 +91,4 @@ tags: [fitcrm, releases]
 - `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
 - `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
 - `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
-- `58ffb23` · 2026-07-18 · Fix platform support mobile header
-- `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
 <!-- AUTO:END changelog-candidates -->
