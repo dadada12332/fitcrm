@@ -22,7 +22,7 @@ function git(argsList, fallback = "") {
 }
 
 function read(file) {
-  return readFileSync(file, "utf8");
+  return readFileSync(file, "utf8").replace(/\r\n?/g, "\n");
 }
 
 function write(file, content) {

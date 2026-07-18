@@ -95,7 +95,7 @@ export function DashboardTiles({ activeClients, prevClients, todayRevenue, prevR
       value: fmt(expiringCount),
       trend: expiringCount > 0 ? -expiringCount : 0,
       trendLabel: expiringCount > 0 ? "требуют продления" : "всё в порядке",
-      icon: <Clock className="w-6 h-6" style={{ color: expiringCount > 0 ? "#d97706" : "var(--gray-muted)" }} />,
+      icon: <Clock className="w-6 h-6" style={{ color: "var(--gray-muted)" }} />,
     },
   ]
 

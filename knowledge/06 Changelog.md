@@ -30,6 +30,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- The expiring-membership clock on the dashboard now uses the same neutral icon color as the other KPI tiles.
 - AI Аналитика использует стандартные отступы AppShell без дополнительного внутреннего padding; desktop и mobile теперь совпадают с остальными CRM-разделами.
 - Telegram и CRM больше не сопоставляют посещения по отображаемым именам: точная связь хранится через внутренний `client_id`, первичный поиск телефона стал exact и защищён от дублей/cross-club связей.
 - Telegram Mini App показывает имя текущего Telegram-пользователя; QR-пропуск обновляется каждые 30 секунд, одноразовый и больше не выходит за рамку на мобильном экране.
@@ -68,6 +69,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
 - `f78622e` · 2026-07-18 · Polish landing platform overview
 - `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
 - `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
@@ -97,5 +99,4 @@ tags: [fitcrm, releases]
 - `119d7f7` · 2026-07-18 · Bind client profile payments to client
 - `cffeb1c` · 2026-07-18 · Record verified production deployment
 - `55d0577` · 2026-07-18 · Allow authenticated cron callbacks through middleware
-- `5032589` · 2026-07-18 · Refresh project handoff after audit
 <!-- AUTO:END changelog-candidates -->

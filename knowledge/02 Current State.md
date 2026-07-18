@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: f78622e · 2026-07-18T21:19:34+05:00 · Polish landing platform overview.
+- Последний commit: 8c32036 · 2026-07-18T21:23:36+05:00 · Document landing overview refresh [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
