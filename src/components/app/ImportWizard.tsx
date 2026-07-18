@@ -45,6 +45,19 @@ function fieldLabel(k: FieldKey) {
   return CLIENT_FIELDS.find((f) => f.key === k)?.label ?? k
 }
 
+function excelCellText(value: unknown): string {
+  if (value === null || value === undefined) return ""
+  if (value instanceof Date) return value.toISOString().slice(0, 10)
+  if (typeof value === "object") {
+    if ("text" in value && typeof value.text === "string") return value.text
+    if ("result" in value) return excelCellText(value.result)
+    if ("richText" in value && Array.isArray(value.richText)) {
+      return value.richText.map((part) => typeof part === "object" && part && "text" in part ? String(part.text) : "").join("")
+    }
+  }
+  return String(value)
+}
+
 // ── Step bar ──────────────────────────────────────────────────────────────────
 
 const STEP_LABELS = ["Загрузка", "Колонки", "Предпросмотр", "Импорт", "Отчёт"]
@@ -92,7 +105,7 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
     setError(null); setParsing(true)
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() ?? ""
-      if (!["csv", "xlsx", "xls"].includes(ext)) { setError("Поддерживаются: XLSX, XLS, CSV"); setParsing(false); return }
+      if (!["csv", "xlsx"].includes(ext)) { setError("Поддерживаются: XLSX, CSV"); setParsing(false); return }
       if (file.size > 25 * 1024 * 1024) { setError("Файл слишком большой (макс. 25 МБ)"); setParsing(false); return }
 
       let headers: string[] = [], rawRows: string[][] = []
@@ -105,11 +118,16 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
         headers = parseCSVLine(lines[0], delim)
         rawRows = lines.slice(1).map((l) => parseCSVLine(l, delim))
       } else {
-        const XLSX = await import("xlsx")
+        const ExcelJS = (await import("exceljs")).default
         const buf = await file.arrayBuffer()
-        const wb = XLSX.read(buf, { type: "array", dense: true })
-        const ws = wb.Sheets[wb.SheetNames[0]]
-        const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1, defval: "" }) as string[][]
+        const workbook = new ExcelJS.Workbook()
+        await workbook.xlsx.load(buf)
+        const worksheet = workbook.worksheets[0]
+        const data: string[][] = []
+        worksheet?.eachRow({ includeEmpty: true }, (row) => {
+          const values = Array.from({ length: worksheet.columnCount }, (_, index) => excelCellText(row.getCell(index + 1).value))
+          data.push(values)
+        })
         if (!data.length) { setError("Файл пустой"); setParsing(false); return }
         headers = data[0].map(String)
         rawRows = data.slice(1).map((r) => r.map(String))
@@ -124,18 +142,23 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
     setParsing(false)
   }
 
-  function downloadTemplate() {
-    import("xlsx").then((XLSX) => {
-      const ws = XLSX.utils.aoa_to_sheet([
-        ["Имя", "Телефон", "Email", "Дата рождения", "Пол", "Источник", "Заметки"],
-        ["Иванов Иван Иванович", "+998901234567", "ivan@example.com", "1990-05-15", "м", "Instagram", ""],
-        ["Сидорова Мария", "+998909876543", "maria@example.com", "1995-08-22", "ж", "Реклама", "VIP"],
-      ])
-      ws["!cols"] = [24, 16, 24, 14, 6, 14, 20].map((wch) => ({ wch }))
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, "Клиенты")
-      XLSX.writeFile(wb, "fitcrm_clients_template.xlsx")
-    })
+  async function downloadTemplate() {
+    const ExcelJS = (await import("exceljs")).default
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet("Клиенты")
+    worksheet.addRows([
+      ["Имя", "Телефон", "Email", "Дата рождения", "Пол", "Источник", "Заметки"],
+      ["Иванов Иван Иванович", "+998901234567", "ivan@example.com", "1990-05-15", "м", "Instagram", ""],
+      ["Сидорова Мария", "+998909876543", "maria@example.com", "1995-08-22", "ж", "Реклама", "VIP"],
+    ])
+    worksheet.columns = [24, 16, 24, 14, 6, 14, 20].map((width) => ({ width }))
+    const buffer = await workbook.xlsx.writeBuffer()
+    const url = URL.createObjectURL(new Blob([buffer as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }))
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "fitcrm_clients_template.xlsx"
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -167,11 +190,11 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
             {parsing ? "Читаю файл…" : "Перетащите файл или нажмите"}
           </p>
           <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>
-            XLSX · XLS · CSV &nbsp;·&nbsp; до 25 МБ &nbsp;·&nbsp; до 15 000 строк
+            XLSX · CSV &nbsp;·&nbsp; до 25 МБ &nbsp;·&nbsp; до 15 000 строк
           </p>
         </div>
       </div>
-      <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="hidden"
+      <input ref={fileRef} type="file" accept=".csv,.xlsx" className="hidden"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) process(f); e.target.value = "" }} />
 
       {error && (
