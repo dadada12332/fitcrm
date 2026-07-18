@@ -67,4 +67,5 @@ tags: [fitcrm, tasks]
 - TASK-0013 · Исправить тестовую отправку Telegram без клиентов · bug · P1 · integrations · 2026-07-18 · [[Tasks/Completed/TASK-0013-fix-telegram-self-test-pairing]]
 - TASK-0014 · Fix Telegram self-test for multi-club users · bug · P1 · telegram · 2026-07-18 · [[Tasks/Completed/TASK-0014-fix-telegram-self-test-multiclub]]
 - TASK-0015 · Telegram Mini App back navigation · bug · P1 · telegram-miniapp · 2026-07-18 · [[Tasks/Completed/TASK-0015-telegram-miniapp-back-navigation]]
+- TASK-0016 · Telegram identity and dynamic QR · security · P1 · telegram-miniapp · 2026-07-18 · [[Tasks/Completed/TASK-0016-telegram-identity-and-dynamic-qr]]
 <!-- AUTO:END kanban-done -->

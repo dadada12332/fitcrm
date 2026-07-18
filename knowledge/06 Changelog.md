@@ -27,6 +27,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Telegram Mini App показывает имя текущего Telegram-пользователя; QR-пропуск обновляется каждые 30 секунд, одноразовый и больше не выходит за рамку на мобильном экране.
 - В Telegram Mini App появились внутренняя и нативная кнопки Back с корректным возвратом между экранами.
 - «Отправить себе» в Telegram теперь корректно использует связь сотрудника текущего клуба, даже если владелец состоит в нескольких клубах.
 - Вкладка «Роли и права» больше не зависает на бесконечном skeleton; ошибки загрузки теперь показываются с возможностью повтора.
@@ -62,6 +63,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
+- `d9295b4` · 2026-07-18 · Document Telegram Mini App back navigation [skip ci]
 - `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
 - `0e869c3` · 2026-07-18 · Document Telegram multi-club self-test fix [skip ci]
 - `9cd0b22` · 2026-07-18 · Scope Telegram self-test to current club
@@ -90,6 +93,4 @@ tags: [fitcrm, releases]
 - `470bf62` · 2026-07-18 · Redesign AI analytics workspace
 - `55eeb1d` · 2026-07-18 · Add guarded backup restore runbook
 - `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
-- `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
-- `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
 <!-- AUTO:END changelog-candidates -->

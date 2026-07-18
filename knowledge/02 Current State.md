@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: dd013bb · 2026-07-18T18:56:05+05:00 · Add Telegram Mini App back navigation.
+- Последний commit: efd8664 · 2026-07-18T19:16:14+05:00 · Secure Telegram Mini App QR passes.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 62; последняя `0062_instagram_integration_foundation.sql`.
+- Миграции в Git: 63; последняя `0063_dynamic_qr_passes.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
