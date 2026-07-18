@@ -1,72 +1,112 @@
-import { CheckCircle2, XCircle, Database, Cloud, Send, Sparkles, MessageSquare, HardDrive, Server, Clock } from "lucide-react"
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleHelp,
+  Cloud,
+  Clock,
+  Database,
+  HardDrive,
+  MessageSquare,
+  Send,
+  Server,
+  Sparkles,
+} from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
-import { Panel, PageHeader, PT } from "@/components/platform/parts"
+import { Panel, PageHeader } from "@/components/platform/parts"
+import { cn } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
-type Service = { name: string; icon: React.ReactNode; ok: boolean; latency: number | null; note: string }
+type ServiceState = "verified" | "configured" | "not-configured" | "error"
+type Service = {
+  name: string
+  icon: React.ReactNode
+  state: ServiceState
+  latency?: number
+  note: string
+}
 
-async function checkSupabase(): Promise<{ ok: boolean; latency: number }> {
-  const t = Date.now()
-  try {
-    const service = createServiceClient()
-    await service.from("clubs").select("id", { head: true, count: "exact" }).limit(1)
-    return { ok: true, latency: Date.now() - t }
-  } catch {
-    return { ok: false, latency: Date.now() - t }
+const STATE_META: Record<ServiceState, { label: string; icon: typeof CheckCircle2; className: string; surface: string }> = {
+  verified: { label: "Проверено", icon: CheckCircle2, className: "text-chart-2", surface: "bg-chart-2/10" },
+  configured: { label: "Настроено", icon: CircleHelp, className: "text-chart-3", surface: "bg-chart-3/10" },
+  "not-configured": { label: "Не подключено", icon: CircleHelp, className: "text-muted-foreground", surface: "bg-muted" },
+  error: { label: "Ошибка", icon: AlertCircle, className: "text-destructive", surface: "bg-destructive/10" },
+}
+
+async function checkInfrastructure() {
+  const service = createServiceClient()
+  const dbStartedAt = Date.now()
+  const database = await service.from("clubs").select("id", { head: true, count: "exact" }).limit(1)
+  const dbLatency = Date.now() - dbStartedAt
+
+  const storageStartedAt = Date.now()
+  const storage = await service.storage.listBuckets()
+  const storageLatency = Date.now() - storageStartedAt
+
+  return {
+    database: { ok: !database.error, latency: dbLatency },
+    storage: { ok: !storage.error, latency: storageLatency },
   }
 }
 
 export default async function MonitoringPage() {
-  const sb = await checkSupabase()
+  let checks: Awaited<ReturnType<typeof checkInfrastructure>> = {
+    database: { ok: false, latency: 0 },
+    storage: { ok: false, latency: 0 },
+  }
+  try {
+    checks = await checkInfrastructure()
+  } catch {
+    // Missing credentials and transport failures are represented as explicit errors below.
+  }
 
   const services: Service[] = [
-    { name: "Supabase (DB)", icon: <Database className="w-5 h-5" />, ok: sb.ok, latency: sb.latency, note: "PostgreSQL + Auth + Storage" },
-    { name: "Vercel", icon: <Cloud className="w-5 h-5" />, ok: true, latency: null, note: "Хостинг и сборки" },
-    { name: "Telegram Bot", icon: <Send className="w-5 h-5" />, ok: true, latency: null, note: "Уведомления клиентам" },
-    { name: "AI", icon: <Sparkles className="w-5 h-5" />, ok: true, latency: null, note: "AI-ассистент и аналитика" },
-    { name: "SMS", icon: <MessageSquare className="w-5 h-5" />, ok: true, latency: null, note: "SMS-рассылки" },
-    { name: "Storage", icon: <HardDrive className="w-5 h-5" />, ok: sb.ok, latency: null, note: "Файлы и аватары" },
-    { name: "API", icon: <Server className="w-5 h-5" />, ok: true, latency: null, note: "REST / Server Actions" },
-    { name: "Cron", icon: <Clock className="w-5 h-5" />, ok: true, latency: null, note: "Фоновые задачи" },
+    { name: "Supabase (DB)", icon: <Database />, state: checks.database.ok ? "verified" : "error", latency: checks.database.latency, note: "Живой запрос к PostgreSQL" },
+    { name: "Storage", icon: <HardDrive />, state: checks.storage.ok ? "verified" : "error", latency: checks.storage.latency, note: "Живой запрос списка buckets" },
+    { name: "Vercel", icon: <Cloud />, state: process.env.VERCEL ? "configured" : "not-configured", note: "Среда выполнения; отдельный uptime probe не подключён" },
+    { name: "Telegram Bot", icon: <Send />, state: process.env.TELEGRAM_CRM_BOT_TOKEN ? "configured" : "not-configured", note: "Наличие server credentials; webhook не проверяется" },
+    { name: "AI", icon: <Sparkles />, state: process.env.GEMINI_API_KEY ? "configured" : "not-configured", note: "Наличие Gemini credentials; quota не проверяется" },
+    { name: "SMS", icon: <MessageSquare />, state: "not-configured", note: "SMS-провайдер ещё не подключён" },
+    { name: "API", icon: <Server />, state: "configured", note: "Интерфейс открыт; внешняя телеметрия не подключена" },
+    { name: "Cron", icon: <Clock />, state: process.env.CRON_SECRET ? "configured" : "not-configured", note: "Три расписания в vercel.json; история запусков не проверяется" },
   ]
 
-  const allOk = services.every((s) => s.ok)
+  const verified = services.filter((service) => service.state === "verified").length
+  const errors = services.filter((service) => service.state === "error").length
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto">
-      <PageHeader title="Мониторинг" subtitle="Состояние сервисов инфраструктуры" />
+    <div className="mx-auto max-w-[1200px] p-4 sm:p-6 lg:p-8">
+      <PageHeader title="Мониторинг" subtitle="Проверенные сигналы и состояние конфигурации инфраструктуры" />
 
-      <Panel className="px-4 py-3.5 mb-4 flex items-center gap-2" style={{ background: allOk ? "color-mix(in srgb, var(--chart-2) 6%, transparent)" : "color-mix(in srgb, var(--destructive) 6%, transparent)", borderColor: allOk ? "color-mix(in srgb, var(--chart-2) 25%, transparent)" : "color-mix(in srgb, var(--destructive) 25%, transparent)" }}>
-        {allOk ? <CheckCircle2 className="w-5 h-5" style={{ color: "var(--chart-2)" }} /> : <XCircle className="w-5 h-5" style={{ color: "var(--destructive)" }} />}
-        <span className="text-sm font-semibold text-foreground">{allOk ? "Все системы работают штатно" : "Обнаружены проблемы"}</span>
+      <Panel className={cn("mb-4 flex items-start gap-3 px-4 py-3.5", errors ? "border-destructive/30 bg-destructive/5" : "border-chart-2/30 bg-chart-2/5")}>
+        {errors ? <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" /> : <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-chart-2" />}
+        <div>
+          <p className="text-sm font-semibold text-foreground">{errors ? `Ошибок живых проверок: ${errors}` : `Живые проверки пройдены: ${verified}`}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Жёлтый статус означает наличие конфигурации, а не подтверждённый аптайм сервиса.</p>
+        </div>
       </Panel>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {services.map((s) => (
-          <Panel key={s.name} className="px-4 py-3.5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: s.ok ? "color-mix(in srgb, var(--chart-2) 12%, transparent)" : "color-mix(in srgb, var(--destructive) 12%, transparent)", color: s.ok ? "var(--chart-2)" : "var(--destructive)" }}>
-              {s.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">{s.name}</p>
-              <p className="text-[11px]" style={{ color: PT.textMuted }}>{s.note}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: s.ok ? "var(--chart-2)" : "var(--destructive)" }}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.ok ? "var(--chart-2)" : "var(--destructive)" }} />
-                {s.ok ? "Работает" : "Ошибка"}
-              </span>
-              {s.latency !== null && <p className="text-[11px] mt-0.5" style={{ color: PT.textMuted }}>{s.latency} ms</p>}
-            </div>
-          </Panel>
-        ))}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {services.map((service) => {
+          const meta = STATE_META[service.state]
+          const StateIcon = meta.icon
+          return (
+            <Panel key={service.name} className="flex min-h-20 items-center gap-3 px-4 py-3.5">
+              <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg [&>svg]:size-5", meta.surface, meta.className)}>{service.icon}</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">{service.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{service.note}</p>
+              </div>
+              <div className="shrink-0 text-right">
+                <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium", meta.className)}><StateIcon className="size-3.5" />{meta.label}</span>
+                {service.latency !== undefined && <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{service.latency} ms</p>}
+              </div>
+            </Panel>
+          )
+        })}
       </div>
 
-      <p className="text-xs mt-4" style={{ color: PT.textMuted }}>
-        Supabase проверяется в реальном времени при загрузке. Полная телеметрия (аптайм, история инцидентов,
-        webhooks-мониторинг Telegram/SMS) подключается в следующей итерации.
-      </p>
+      <p className="mt-4 text-xs text-muted-foreground">Для подтверждённого аптайма Vercel, Telegram, AI и Cron требуется внешняя телеметрия и история запусков.</p>
     </div>
   )
 }
