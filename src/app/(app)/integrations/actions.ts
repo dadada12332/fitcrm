@@ -265,10 +265,15 @@ export async function testBroadcastAction(
   if (!ctx) return { error }
 
   const supabase = await createClient()
-  const { data: staff } = await supabase.from("staff").select("id").eq("user_id", ctx.userId).single()
+  const { data: staff } = await supabase.from("staff").select("id")
+    .eq("club_id", ctx.clubId)
+    .eq("user_id", ctx.userId)
+    .eq("is_active", true)
+    .maybeSingle()
+  if (!staff) return { error: "Текущий пользователь не найден среди сотрудников клуба" }
   const { data: link } = await createServiceClient()
     .from("telegram_users").select("telegram_id")
-    .eq("club_id", ctx.clubId).eq("staff_id", staff?.id ?? "").maybeSingle()
+    .eq("club_id", ctx.clubId).eq("staff_id", staff.id).maybeSingle()
   const selfTg = link?.telegram_id as number | undefined
   if (!selfTg) {
     const pairing = await createTelegramStaffPairingAction()
