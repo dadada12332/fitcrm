@@ -70,4 +70,5 @@ kanban-plugin: board
 - [x] TASK-0017 · Link Telegram visits by CRM client ID · feature · P1 · telegram-miniapp · 2026-07-18 · [[Tasks/Completed/TASK-0017-link-telegram-visits-by-client-id]]
 - [x] TASK-0018 · Align AI Analytics page spacing · bug · P2 · ai-analytics · 2026-07-18 · [[Tasks/Completed/TASK-0018-align-ai-page-spacing]]
 - [x] TASK-0019 · Configure Obsidian Kanban and Calendar · documentation · P2 · documentation · 2026-07-18 · [[Tasks/Completed/TASK-0019-configure-obsidian-kanban-calendar]]
+- [x] TASK-0020 · Install Obsidian productivity plugins · documentation · P2 · documentation · 2026-07-18 · [[Tasks/Completed/TASK-0020-install-obsidian-productivity-plugins]]
 <!-- AUTO:END kanban-done -->

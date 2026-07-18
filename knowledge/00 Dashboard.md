@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
 - `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 - `2628a08` · 2026-07-18 · Align AI analytics page spacing
 - `1610389` · 2026-07-18 · Document Telegram client identity model [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `26e801e` · 2026-07-18 · Document secure Telegram QR rollout [skip ci]
 - `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
 - `d9295b4` · 2026-07-18 · Document Telegram Mini App back navigation [skip ci]
-- `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

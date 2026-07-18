@@ -19,6 +19,7 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Obsidian Vault получил Dataview, Tasks, Periodic Notes, Templater и Style Settings; Weekly и Templates связаны с существующей структурой заметок.
 - Obsidian Kanban и Calendar включены и связаны с task frontmatter, Daily Notes и понедельником как началом недели.
 - Platform Admin приведён к общей дизайн-системе.
 - AI Аналитика переработана в адаптивное операционное рабочее место с живой сводкой и быстрыми KPI-карточками.
@@ -66,6 +67,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
 - `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 - `2628a08` · 2026-07-18 · Align AI analytics page spacing
 - `1610389` · 2026-07-18 · Document Telegram client identity model [skip ci]
@@ -95,5 +97,4 @@ tags: [fitcrm, releases]
 - `5032589` · 2026-07-18 · Refresh project handoff after audit
 - `13dd7c2` · 2026-07-18 · Document overnight reliability audit
 - `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
-- `dc9b926` · 2026-07-18 · Replace vulnerable spreadsheet parser
 <!-- AUTO:END changelog-candidates -->
