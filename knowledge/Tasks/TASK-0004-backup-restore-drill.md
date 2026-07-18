@@ -1,12 +1,12 @@
 ---
 id: TASK-0004
 type: infrastructure
-status: backlog
+status: in-progress
 priority: P1
 module: database
 created: 2026-07-18
 updated: 2026-07-18
-owner: unassigned
+owner: Codex
 tags: [fitcrm, database, reliability]
 ---
 

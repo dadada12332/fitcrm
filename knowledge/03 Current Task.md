@@ -1,23 +1,23 @@
 ---
 type: current-task
 status: in-progress
-active_task: TASK-0003
+active_task: TASK-0004
 updated: 2026-07-18
 tags: [fitcrm, tasks]
 ---
 
-# TASK-0003 — Автоматизировать критические пользовательские сценарии
+# TASK-0004 — Провести backup/restore drill
 
-Источник задачи: [[Tasks/TASK-0003-critical-flow-tests]].
+Источник задачи: [[Tasks/TASK-0004-backup-restore-drill]].
 
 ## Цель
 
-Создать повторяемый тестовый контур для permission boundaries, tenant isolation и критических CRM-сценариев.
+Подтвердить фактическую стратегию резервного копирования и безопасно проверить восстановление без воздействия на production.
 
 ## Что нельзя сломать
 
-Production data, tenant isolation, Auth и существующую сборку Next.js.
+Production data, Auth, storage и текущую доступность CRM.
 
 ## Текущий этап
 
-Проектирование тестов на изолированных данных и существующих permission helpers.
+Проверка доступных backup-артефактов, RPO/RTO и безопасной цели для restore drill.

@@ -14,7 +14,7 @@ tags: [fitcrm, operations]
 | Окружение | Production + local; отдельные staging/preview не подтверждены |
 | Production | [fitcrm-three.vercel.app](https://fitcrm-three.vercel.app), состояние последнего deploy не проверено |
 | Спринт | Production readiness и стабилизация |
-| Активная задача | [[Tasks/TASK-0003-critical-flow-tests]] |
+| Активная задача | [[Tasks/TASK-0004-backup-restore-drill]] |
 
 ## Быстрый обзор
 
@@ -27,28 +27,28 @@ tags: [fitcrm, operations]
 
 ## Ближайший фокус
 
-1. Подтвердить фактический регион Supabase и близость к Vercel.
-2. Добавить автоматические проверки критических auth/RLS и пользовательских сценариев.
-3. Провести backup/restore drill.
-4. Закрыть launch-блокеры: мониторинг и реальные SMS/email.
+1. Провести backup/restore drill.
+2. Переработать AI Аналитику по дизайн-системе.
+3. Расширить data-mutating E2E после появления staging DB.
+4. Закрыть launch-блокеры: мониторинг, dependency advisories и реальные SMS/email.
 
 ## Критические риски
 
-- Регион Supabase не подтверждён, а Vercel настроен на `syd1`.
-- Нет unit/integration CI и автоматических RLS-тестов.
+- Нет изолированного staging Supabase для автоматического data-mutating E2E.
+- `xlsx` содержит high dependency advisories.
 - Стратегия restore не проверена.
 
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
+- `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
 - `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
 - `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
 - `58ffb23` · 2026-07-18 · Fix platform support mobile header
 - `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
 - `1cf7e0a` · 2026-07-18 · Fix platform dashboard mobile grid
 - `f4543f3` · 2026-07-18 · Unify platform admin design system
-- `44e8945` · 2026-07-17 · Hide breadcrumbs on mobile top bar
-- `5172f4f` · 2026-07-17 · Filter expired notifications by end date
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

@@ -24,15 +24,29 @@ tags: [fitcrm, risks]
 ## ISSUE-0002 — Нет автоматического тестового контура
 
 - Severity: P1
-- Status: open
+- Status: resolved
 - Module: quality/security
 - Environment: all
 - Symptoms: регрессии auth, RLS и мобильных сценариев обнаруживаются вручную.
 - Expected: CI проверяет TypeScript, критические интеграции и tenant isolation.
-- Actual: unit/integration тестов и GitHub Actions нет.
+- Actual: 80 Vitest checks, 20 Playwright smoke checks и opt-in two-club integration test добавлены; CI отложен из-за GitHub workflow scope.
 - Cause: тестовая инфраструктура ещё не создана.
-- Workaround: `npx tsc --noEmit`, `npm run build`, ручной/Playwright smoke.
-- Task: [[Tasks/TASK-0003-critical-flow-tests]].
+- Workaround: staging DB пока требуется для data-mutating E2E.
+- Task: [[Tasks/Completed/TASK-0003-critical-flow-tests]].
+- Last checked: 2026-07-18; baseline resolved, расширение coverage продолжается.
+
+## ISSUE-0005 — Dependency advisories в импорте таблиц
+
+- Severity: P1
+- Status: open
+- Module: dependencies/import
+- Environment: all
+- Symptoms: `npm audit` сообщает 2 high и 4 moderate advisories.
+- Expected: нет известных high-severity runtime dependencies.
+- Actual: `xlsx@0.18.5` имеет prototype pollution/ReDoS без npm fix; `exceljs` тянет уязвимую `uuid`; advisory Next/PostCSS требует отдельной проверки совместимой версии.
+- Cause: устаревший клиентский XLSX parser и транзитивные зависимости.
+- Workaround: импортировать только доверенные файлы; не применять `npm audit fix --force`.
+- Task: будет создана отдельная обратимая задача после backup drill.
 - Last checked: 2026-07-18.
 
 ## ISSUE-0003 — SMS/email уведомления не отправляются

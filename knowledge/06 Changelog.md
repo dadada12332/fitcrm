@@ -13,6 +13,7 @@ tags: [fitcrm, releases]
 ### Added
 
 - Операционная память проекта в `/knowledge` для команды и AI-агентов.
+- Повторяемый Vitest/Playwright test harness для security, auth и responsive smoke.
 
 ### Changed
 
@@ -26,6 +27,7 @@ tags: [fitcrm, releases]
 - Исправлен переход между шагами onboarding.
 - Исправлены мобильные sidebar, фильтры, расписание, отчёты и карточка клиента.
 - Ссылка восстановления пароля выровнена с опцией запоминания.
+- Маршруты восстановления пароля больше не перенаправляют анонимного пользователя обратно на login.
 
 ### Performance
 
@@ -33,7 +35,8 @@ tags: [fitcrm, releases]
 
 ### Security
 
-- Последние подтверждённые изменения безопасности описаны в `SECURITY_AUDIT.md` и миграциях `0051`–`0052`.
+- Миграция `0055` закрыла anonymous/cross-tenant вызов публичных `SECURITY DEFINER` RPC; production проверен через Advisor и rollback RLS drill.
+- Неизвестные/повреждённые role keys теперь получают deny-by-default permissions.
 
 ### Deprecated
 
@@ -48,6 +51,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
+- `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
 - `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
 - `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
 - `58ffb23` · 2026-07-18 · Fix platform support mobile header
@@ -76,6 +81,4 @@ tags: [fitcrm, releases]
 - `a8cdb61` · 2026-07-17 · style(telegram): страница рассылки — контролы и радиусы к единому стилю (rounded-lg карточки, rounded-md h-9 контролы), превью TG не трогал
 - `a2ce9ff` · 2026-07-17 · fix(telegram): утечка отчётов по всем клубам + понятная подсказка рассылки
 - `d2b3abf` · 2026-07-17 · feat(schedule): управление залами + мгновенные табы
-- `79aa299` · 2026-07-17 · fix(charts): обрезался Y-axis '120M' — расширил YAxis width 36→48 (RevenueChart) и 40→48 (ReportsClient revenue)
-- `5fe5eb6` · 2026-07-16 · perf: оптимистичный откат в toggle статуса сотрудника (StaffProfileClient)
 <!-- AUTO:END changelog-candidates -->
