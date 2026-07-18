@@ -9,7 +9,7 @@ tags: [fitcrm, telegram, integrations]
 
 ## Product model
 
-Каждый клуб подключает собственного бота токеном от BotFather. Токен хранится только в service-role таблице `telegram_integrations`, а публично читаемое legacy-поле `clubs.tg_token` очищено. FitCRM регистрирует webhook `/api/telegram/webhook/[clubId]`, команды и menu button. Общий `TELEGRAM_CRM_BOT_TOKEN` не используется как клиентский бот клуба.
+Каждый клуб подключает собственного бота токеном от BotFather. Один bot token может принадлежать только одному клубу: Telegram поддерживает только один webhook на бота. Токен хранится только в service-role таблице `telegram_integrations`, а публично читаемое legacy-поле `clubs.tg_token` очищено. FitCRM регистрирует webhook `/api/telegram/webhook/[clubId]`, команды и menu button. Общий `TELEGRAM_CRM_BOT_TOKEN` не используется как клиентский бот клуба.
 
 Клиент нажимает `/start` и делится собственным Telegram contact. Поиск выполняется только среди `staff` и `clients` данного `club_id`; чужой пересланный контакт отклоняется. Связь хранится в `telegram_users` с unique `(club_id, telegram_id)`, поэтому один человек может состоять в нескольких клубах.
 

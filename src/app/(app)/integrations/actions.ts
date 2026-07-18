@@ -36,10 +36,14 @@ export async function connectTelegramAction(
   }
 
   const service = createServiceClient()
-  const [{ data: club }, { data: existingIntegration }] = await Promise.all([
+  const [{ data: club }, { data: existingIntegration }, { data: tokenOwner }] = await Promise.all([
     service.from("clubs").select("settings").eq("id", cc.clubId).single(),
     service.from("telegram_integrations").select("bot_token").eq("club_id", cc.clubId).maybeSingle(),
+    service.from("telegram_integrations").select("club_id").eq("bot_token", trimmed).maybeSingle(),
   ])
+  if (tokenOwner && tokenOwner.club_id !== cc.clubId) {
+    return { error: "Этот бот уже подключён к другому клубу. Создайте отдельного бота через @BotFather" }
+  }
   const cur = (club?.settings as Record<string, unknown>) ?? {}
 
   try {

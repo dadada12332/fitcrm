@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 249ee65 · 2026-07-18T15:27:48+05:00 · Document roles loading fix [skip ci].
+- Последний commit: e3af97f · 2026-07-18T16:47:18+05:00 · Rebuild Telegram integration around club bots.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 57; последняя `0057_broadcast_storage_listing.sql`.
+- Миграции в Git: 59; последняя `0059_unique_telegram_bot.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
