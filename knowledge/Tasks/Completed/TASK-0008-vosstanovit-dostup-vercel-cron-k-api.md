@@ -50,10 +50,12 @@ Tenant isolation, auth, production data и существующие пользо
 - Playwright: 26/26 passed, включая три API boundary test в desktop/mobile projects.
 - `npx tsc --noEmit`: passed.
 - Production build: passed, exit 0.
+- Production deployment `dpl_DLjTNapR78aLzfXZnqJXQ8imieAS`: READY; `fitcrm-three.vercel.app` alias confirmed.
+- Remote smoke: all three cron endpoints return `401 Unauthorized` without redirect; login/auth redirects also passed.
 
 ## Remaining
 
-Commit, push, новый production deploy и повторный remote smoke.
+Нет.
 
 ## Blockers
 

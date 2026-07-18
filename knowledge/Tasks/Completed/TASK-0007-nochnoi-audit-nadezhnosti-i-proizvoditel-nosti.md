@@ -63,7 +63,7 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Remaining
 
-Commit/push и production deploy verification.
+Нет. Изменения опубликованы в `main`, production deployment и основной домен проверены.
 
 ## Blockers
 
