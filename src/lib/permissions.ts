@@ -114,7 +114,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, RolePermissions> = {
 }
 
 export function getDefaultPermissions(role: string): RolePermissions {
-  return DEFAULT_ROLE_PERMISSIONS[role] ?? DEFAULT_ROLE_PERMISSIONS.trainer
+  // Unknown or corrupted role keys must never inherit trainer capabilities.
+  return DEFAULT_ROLE_PERMISSIONS[role] ?? ALL_FALSE_PERMS
 }
 
 export function mergePermissions(base: RolePermissions, partial: Partial<RolePermissions>): RolePermissions {

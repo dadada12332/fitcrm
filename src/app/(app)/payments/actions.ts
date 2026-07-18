@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { getCurrentClub } from "@/lib/club"
 import { searchClientsForCheckin, type ClientSearchResult } from "@/lib/visits"
 import { getPaymentsPage, type PaymentsQuery, type PaymentRow } from "@/lib/payments"
+import { can } from "@/lib/permissions"
 
 const PROVIDER_RU: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
 const STATUS_RU: Record<string, string> = { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }
@@ -50,7 +51,7 @@ export async function createPaymentAction(input: CreatePaymentInput): Promise<Cr
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!(["owner", "admin"].includes(club.role) || club.permissions.payments.create)) return { error: "Недостаточно прав" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Недостаточно прав" }
   const clubId = club.clubId
 
   let subscriptionId: string | null = null
@@ -110,7 +111,7 @@ export async function createOnlinePaymentAction(input: OnlinePaymentInput): Prom
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!(["owner", "admin"].includes(club.role) || club.permissions.payments.create)) return { error: "Недостаточно прав" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Недостаточно прав" }
 
   const { createServiceClient } = await import("@/lib/supabase/service")
   const svc = createServiceClient()
@@ -139,7 +140,7 @@ export async function createOnlinePaymentAction(input: OnlinePaymentInput): Prom
   try { const QRCode = (await import("qrcode")).default; qr = await QRCode.toDataURL(url, { margin: 1, width: 240 }) } catch { /* без QR */ }
 
   // Есть ли у клиента привязанный Telegram (для кнопки «отправить»).
-  const { data: cl } = await svc.from("clients").select("telegram_id").eq("id", input.clientId).maybeSingle()
+  const { data: cl } = await svc.from("clients").select("telegram_id").eq("id", input.clientId).eq("club_id", club.clubId).maybeSingle()
   const hasTelegram = !!cl?.telegram_id
 
   revalidatePath("/payments")
@@ -158,6 +159,7 @@ export async function getPaymentMethodsAction(): Promise<import("@/lib/payment-m
 export async function getPaymentStatusAction(paymentId: string): Promise<{ status?: string; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Недостаточно прав" }
   const { createServiceClient } = await import("@/lib/supabase/service")
   const { data } = await createServiceClient().from("payments").select("status").eq("id", paymentId).eq("club_id", club.clubId).maybeSingle()
   return { status: data?.status }
@@ -167,6 +169,7 @@ export async function getPaymentStatusAction(paymentId: string): Promise<{ statu
 export async function sendPaymentLinkTelegramAction(clientId: string, url: string): Promise<{ ok?: boolean; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Недостаточно прав" }
   const { createServiceClient } = await import("@/lib/supabase/service")
   const svc = createServiceClient()
   const [{ data: cl }, { data: clubRow }] = await Promise.all([

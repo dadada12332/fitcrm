@@ -6,6 +6,7 @@ import { getCurrentClub } from "@/lib/club"
 import { getPlanByCode } from "@/lib/plans"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
+import { can } from "@/lib/permissions"
 
 export type SaveResult = { ok?: boolean; error?: string }
 
@@ -17,7 +18,7 @@ export async function requestPlanAction(plan: string, months = 1): Promise<SaveR
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!club.permissions.settings.subscription && club.role !== "owner") return { error: "Недостаточно прав" }
+  if (!can(club.permissions, "settings", "subscription")) return { error: "Недостаточно прав" }
 
   const { data: { user } } = await supabase.auth.getUser()
   const service = createServiceClient()
@@ -48,7 +49,7 @@ export async function requestPaymentConnectionAction(provider: "click" | "payme"
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!club.permissions.settings.integrations && club.role !== "owner") return { error: "Недостаточно прав" }
+  if (!can(club.permissions, "settings", "integrations")) return { error: "Недостаточно прав" }
 
   const { data: { user } } = await supabase.auth.getUser()
   const service = createServiceClient()
@@ -75,6 +76,7 @@ export async function requestPaymentConnectionAction(provider: "click" | "payme"
 export async function cancelPaymentConnectionAction(provider: "click" | "payme"): Promise<SaveResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "settings", "integrations")) return { error: "Недостаточно прав" }
   const service = createServiceClient()
   await service.from("payment_connection_requests")
     .update({ status: "cancelled", resolved_at: new Date().toISOString() })
@@ -87,6 +89,7 @@ export async function cancelPaymentConnectionAction(provider: "click" | "payme")
 export async function cancelPlanRequestAction(): Promise<SaveResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "settings", "subscription")) return { error: "Недостаточно прав" }
   const service = createServiceClient()
   await service.from("platform_billing_requests")
     .update({ status: "cancelled", resolved_at: new Date().toISOString() })
@@ -107,6 +110,7 @@ export async function saveClubBasicAction(data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "settings", "general")) return { error: "Недостаточно прав" }
 
   const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
   const currentSettings = (clubRow?.settings as Record<string, unknown>) ?? {}
@@ -133,6 +137,7 @@ export async function saveNotificationsAction(settings: Record<string, boolean>)
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "settings", "general")) return { error: "Недостаточно прав" }
 
   const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
   const currentSettings = (clubRow?.settings as Record<string, unknown>) ?? {}
@@ -154,6 +159,7 @@ export async function saveFinanceAction(data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "settings", "general")) return { error: "Недостаточно прав" }
 
   const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
   const cur = (clubRow?.settings as Record<string, unknown>) ?? {}
@@ -178,6 +184,7 @@ export async function saveBranchAction(data: { name: string; address: string }):
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "settings", "general")) return { error: "Недостаточно прав" }
 
   const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
   const cur = (clubRow?.settings as Record<string, unknown>) ?? {}
@@ -249,6 +256,7 @@ export async function saveIntegrationAction(key: string, value: string): Promise
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!can(club.permissions, "settings", "integrations")) return { error: "Недостаточно прав" }
 
   const updateField: Record<string, string> = key === "telegram" ? { tg_token: value } : {}
   if (Object.keys(updateField).length === 0) {

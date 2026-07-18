@@ -5,11 +5,12 @@ import { revalidatePath } from "next/cache"
 import { confirmMatch, ignoreTxn, runMatching, getReconciliationRows, type ReconRow } from "@/lib/reconcile"
 import { searchClientsForCheckin, type ClientSearchResult } from "@/lib/visits"
 import { createClient } from "@/lib/supabase/server"
+import { can } from "@/lib/permissions"
 
 export async function confirmReconAction(txnId: string, paymentId: string): Promise<{ ok?: boolean; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!club.permissions.payments.create) return { error: "Нет прав" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Нет прав" }
   const r = await confirmMatch(club.clubId, txnId, paymentId)
   revalidatePath("/payments/reconcile")
   revalidatePath("/payments")
@@ -19,7 +20,7 @@ export async function confirmReconAction(txnId: string, paymentId: string): Prom
 export async function ignoreReconAction(txnId: string): Promise<{ ok?: boolean; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!club.permissions.payments.create) return { error: "Нет прав" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Нет прав" }
   const r = await ignoreTxn(club.clubId, txnId)
   revalidatePath("/payments/reconcile")
   return r
@@ -28,6 +29,7 @@ export async function ignoreReconAction(txnId: string): Promise<{ ok?: boolean; 
 export async function rematchReconAction(): Promise<{ ok?: boolean; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Нет прав" }
   await runMatching(club.clubId)
   revalidatePath("/payments/reconcile")
   return { ok: true }
@@ -50,7 +52,7 @@ export async function searchClientsReconAction(query: string): Promise<ClientSea
 export async function manualAttachAction(txnId: string, clientId: string): Promise<{ ok?: boolean; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!club.permissions.payments.create) return { error: "Нет прав" }
+  if (!can(club.permissions, "payments", "create")) return { error: "Нет прав" }
 
   const { createServiceClient } = await import("@/lib/supabase/service")
   const s = createServiceClient()
