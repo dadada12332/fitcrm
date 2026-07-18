@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `codex/night-autonomy-2026-07-18`.
-- Последний commit: 63a6670 · 2026-07-18T11:39:00+05:00 · Harden Telegram tenant boundaries.
+- Последний commit: 13dd7c2 · 2026-07-18T11:43:05+05:00 · Document overnight reliability audit.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 55; последняя `0055_harden_public_rpcs.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

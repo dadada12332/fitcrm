@@ -55,6 +55,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `13dd7c2` · 2026-07-18 · Document overnight reliability audit
 - `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
 - `dc9b926` · 2026-07-18 · Replace vulnerable spreadsheet parser
 - `6ded6e4` · 2026-07-18 · Report infrastructure health truthfully
@@ -84,5 +85,4 @@ tags: [fitcrm, releases]
 - `3922eac` · 2026-07-17 · Stack revenue period filters on mobile
 - `aaa88d0` · 2026-07-17 · Fix mobile sidebar drawer
 - `d081868` · 2026-07-17 · Fix CRM mobile layouts and navigation flows
-- `969916c` · 2026-07-17 · Fix onboarding first-step redirect
 <!-- AUTO:END changelog-candidates -->

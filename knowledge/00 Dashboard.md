@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `13dd7c2` · 2026-07-18 · Document overnight reliability audit
 - `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
 - `dc9b926` · 2026-07-18 · Replace vulnerable spreadsheet parser
 - `6ded6e4` · 2026-07-18 · Report infrastructure health truthfully
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `470bf62` · 2026-07-18 · Redesign AI analytics workspace
 - `55eeb1d` · 2026-07-18 · Add guarded backup restore runbook
 - `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
-- `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
