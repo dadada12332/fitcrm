@@ -69,6 +69,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0016-telegram-identity-and-dynamic-qr]]
 - [[Tasks/Completed/TASK-0017-link-telegram-visits-by-client-id]]
 - [[Tasks/Completed/TASK-0018-align-ai-page-spacing]]
+- [[Tasks/Completed/TASK-0019-configure-obsidian-kanban-calendar]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 

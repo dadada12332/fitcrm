@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 - `2628a08` · 2026-07-18 · Align AI analytics page spacing
 - `1610389` · 2026-07-18 · Document Telegram client identity model [skip ci]
 - `2e3e585` · 2026-07-18 · Link Telegram visits by CRM client identity
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
 - `d9295b4` · 2026-07-18 · Document Telegram Mini App back navigation [skip ci]
 - `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
-- `0e869c3` · 2026-07-18 · Document Telegram multi-club self-test fix [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

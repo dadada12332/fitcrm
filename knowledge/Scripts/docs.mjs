@@ -201,7 +201,8 @@ function taskRecords() {
 }
 
 function taskCard(task) {
-  return "- " + task.id + " · " + task.title + " · " + task.type + " · " + task.priority
+  const checkbox = task.status === "done" || task.status === "completed" ? "x" : " ";
+  return "- [" + checkbox + "] " + task.id + " · " + task.title + " · " + task.type + " · " + task.priority
     + " · " + task.module + " · " + task.created + " · [[" + task.link + "]]";
 }
 
@@ -217,7 +218,7 @@ function updateKanban() {
   const file = path.join(vault, "05 Kanban.md");
   for (const key of [...new Set(Object.values(kanbanMap))]) {
     const cards = groups[key].sort((a, b) => a.id.localeCompare(b.id)).map(taskCard);
-    replaceAuto(file, "kanban-" + key, cards.length ? cards.join("\n") : "- Нет задач.");
+    replaceAuto(file, "kanban-" + key, cards.join("\n"));
   }
 }
 
