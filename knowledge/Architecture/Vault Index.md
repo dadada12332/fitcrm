@@ -62,6 +62,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0009-privyazat-oplatu-iz-kartochki-k-klientu]]
 - [[Tasks/Completed/TASK-0010-ispravit-beskonechnuyu-zagruzku-rolei-i-prav]]
 - [[Tasks/Completed/TASK-0011-vosstanovit-telegram-multi-bot-integraciyu]]
+- [[Tasks/Completed/TASK-0013-fix-telegram-self-test-pairing]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 

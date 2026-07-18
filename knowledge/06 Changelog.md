@@ -58,6 +58,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `7a7ce7c` · 2026-07-18 · Fix Telegram self-test pairing
+- `56bcd9c` · 2026-07-18 · Document verified Telegram production rollout [skip ci]
 - `7cc3f87` · 2026-07-18 · Enforce one club per Telegram bot
 - `e3af97f` · 2026-07-18 · Rebuild Telegram integration around club bots
 - `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
@@ -86,6 +88,4 @@ tags: [fitcrm, releases]
 - `44e8945` · 2026-07-17 · Hide breadcrumbs on mobile top bar
 - `5172f4f` · 2026-07-17 · Filter expired notifications by end date
 - `bca4ed1` · 2026-07-17 · Redesign notification center
-- `9c5ec17` · 2026-07-17 · Align password recovery link with remember option
-- `7cf1ffc` · 2026-07-17 · Optimize CRM data loading
 <!-- AUTO:END changelog-candidates -->

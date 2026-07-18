@@ -27,6 +27,8 @@ tags: [fitcrm, telegram, integrations]
 ## CRM features
 
 - Подключение/замена/отключение бота с реальной регистрацией/удалением webhook.
+- Сотрудник может привязать собственный Telegram из CRM одноразовой deep link `start`-ссылкой. Ссылка живёт 15 минут, хранится только как SHA-256 hash, используется один раз и не зависит от телефона в `staff.settings`.
+- При нулевой клиентской аудитории массовая отправка недоступна, но владелец может привязать себя и проверить сообщение через «Отправить себе».
 - Рассылки по аудиториям, изображение, тест себе, история и отложенная отправка.
 - Supabase Cron `fitcrm-broadcasts-every-5m` вызывает `/api/broadcasts/run`; secret хранится в Vault. Повторная настройка: `node scripts/configure-broadcast-scheduler.mjs <env-file-with-CRON_SECRET>`.
 - Ежедневный Vercel Cron `/api/telegram/reminders/run` отправляет expiry reminders и расписание на день.
@@ -39,6 +41,7 @@ tags: [fitcrm, telegram, integrations]
 - Connect/disconnect/settings/broadcast Server Actions проверяют `telegram.manage`.
 - Broadcast Storage upload/delete ограничены первой папкой `clubId`; broad listing policy удалена.
 - `telegram_users` недоступна `anon/authenticated`; `telegram_events` доступна членам клуба только на чтение.
+- `telegram_staff_pairings` доступна только `service_role`; создание ссылки проходит через Server Action с `telegram.manage`, а raw token в БД не сохраняется.
 
 ## Operations
 

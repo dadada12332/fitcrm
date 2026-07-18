@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 7cc3f87 · 2026-07-18T16:52:57+05:00 · Enforce one club per Telegram bot.
+- Последний commit: 7a7ce7c · 2026-07-18T17:24:53+05:00 · Fix Telegram self-test pairing.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 59; последняя `0059_unique_telegram_bot.sql`.
+- Миграции в Git: 60; последняя `0060_telegram_staff_pairing.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
