@@ -1,6 +1,7 @@
 import { sanitizeSearchTerm } from "@/lib/search"
 import { Bot, InlineKeyboard, Keyboard, InputFile } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
+import { hashTelegramPairingToken, parseTelegramPairingPayload } from "@/lib/telegram/pairing"
 
 // Vercel may reuse a function instance, so handlers are cached per club bot.
 const clubBots = new Map<string, Bot>()
@@ -309,6 +310,63 @@ function setupHandlers(bot: Bot, clubId: string) {
   bot.command(["start", "menu"], async (ctx) => {
     const telegramId = ctx.from?.id
     if (!telegramId) return
+
+    const pairingToken = parseTelegramPairingPayload(typeof ctx.match === "string" ? ctx.match.trim() : "")
+    if (pairingToken) {
+      const service = createServiceClient()
+      const now = new Date().toISOString()
+      const { data: pairing } = await service.from("telegram_staff_pairings")
+        .update({ used_at: now })
+        .eq("club_id", clubId)
+        .eq("token_hash", hashTelegramPairingToken(pairingToken))
+        .is("used_at", null)
+        .gt("expires_at", now)
+        .select("id, staff_id")
+        .maybeSingle()
+
+      if (!pairing) {
+        await ctx.reply("Ссылка привязки недействительна или уже использована. Создайте новую в CRM.")
+        return
+      }
+
+      const { data: staff } = await service.from("staff").select("id, role")
+        .eq("id", pairing.staff_id).eq("club_id", clubId).eq("is_active", true).maybeSingle()
+      if (!staff) {
+        await ctx.reply("Сотрудник больше не активен в этом клубе.")
+        return
+      }
+
+      await service.from("telegram_users").delete()
+        .eq("club_id", clubId).eq("staff_id", staff.id).neq("telegram_id", telegramId)
+      const { error: linkError } = await service.from("telegram_users").upsert(
+        {
+          club_id: clubId,
+          telegram_id: telegramId,
+          staff_id: staff.id,
+          client_id: null,
+          role: staff.role,
+          last_seen_at: now,
+        },
+        { onConflict: "club_id,telegram_id" },
+      )
+      if (linkError) {
+        await service.from("telegram_staff_pairings").update({ used_at: null }).eq("id", pairing.id)
+        await ctx.reply("Не удалось завершить привязку. Создайте новую ссылку в CRM.")
+        return
+      }
+
+      await service.from("telegram_events").insert({
+        club_id: clubId,
+        telegram_id: telegramId,
+        event_type: "staff_linked",
+        status: "received",
+        metadata: { staff_id: staff.id },
+      })
+      await ctx.reply("✅ Telegram привязан к вашему профилю FitCRM. Теперь тестовые сообщения будут приходить сюда.")
+      const linkedUser = await getLinkedUser(telegramId, clubId)
+      if (linkedUser) await sendMenuForUser(ctx, linkedUser)
+      return
+    }
 
     const tgUser = await getLinkedUser(telegramId, clubId)
     if (tgUser) {

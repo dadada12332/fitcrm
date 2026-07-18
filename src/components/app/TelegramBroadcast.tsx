@@ -3,17 +3,17 @@
 import { useMemo, useRef, useState, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Send, Image as ImageIcon, X, Smile, Braces, Users, Clock, Search, CheckCircle,
+  Send, X, Smile, Braces, Users, Clock, Search, CheckCircle,
   Paperclip, Mic, ChevronDown, MoreVertical, Check,
 } from "lucide-react"
 import {
-  broadcastTelegramAction, scheduleBroadcastAction, testBroadcastAction,
+  broadcastTelegramAction, createTelegramStaffPairingAction, scheduleBroadcastAction, testBroadcastAction,
 } from "@/app/(app)/integrations/actions"
 import {
   VARIABLES, EMOJIS, filterByAudience, personalize,
   type AudienceOption, type Recipient,
 } from "@/lib/broadcast"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 
 export type BroadcastHistoryItem = {
   id: string
@@ -48,8 +48,10 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
   const [mode, setMode] = useState<"now" | "scheduled">("now")
   const [when, setWhen] = useState("")
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
+  const [pairingUrl, setPairingUrl] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const [testing, startTest] = useTransition()
+  const [pairing, startPairing] = useTransition()
 
   const taRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -60,7 +62,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
 
   const sample: Recipient = filtered[0] ?? {
     telegramId: 0, fullName: "Иван Иванов", membership: "PRO", membershipId: null,
-    expiresAt: new Date(Date.now() + 12 * 86_400_000).toISOString(), visitsLeft: 8, status: "active", daysLeft: 12,
+    expiresAt: null, visitsLeft: 8, status: "active", daysLeft: null,
   }
   const previewText = personalize(message, sample, clubName)
 
@@ -118,11 +120,24 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
     setResult(null)
     startTest(async () => {
       const res = await testBroadcastAction(buildForm())
+      setPairingUrl(res.pairingUrl ?? null)
       setResult(res.error ? { ok: false, text: res.error } : { ok: true, text: "Тест отправлен вам в Telegram" })
     })
   }
 
-  const canSend = connected && (!!message.trim() || !!image) && !pending && !testing
+  function handlePairing() {
+    setResult(null)
+    startPairing(async () => {
+      const res = await createTelegramStaffPairingAction()
+      setPairingUrl(res.pairingUrl ?? null)
+      setResult(res.error
+        ? { ok: false, text: res.error }
+        : { ok: true, text: "Одноразовая ссылка готова. Откройте её и нажмите Start в Telegram." })
+    })
+  }
+
+  const canCompose = connected && (!!message.trim() || !!image) && !pending && !testing
+  const canBroadcast = canCompose && count > 0
 
   return (
     <div className="space-y-5">
@@ -133,10 +148,14 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
       )}
 
       {connected && recipients.length === 0 && (
-        <div className="p-3 rounded-lg text-sm leading-relaxed bg-brand/10 text-brand">
-          ℹ Массовая рассылка идёт клиентам, которые подключились к боту — сейчас их <b>0</b>.
-          Отправьте клиентам ссылку <b>https://t.me/{botName}</b>: после «/start» они появятся здесь.
-          А проверить бота можно кнопкой <b>«Тест»</b> — сообщение придёт вам в Telegram.
+        <div className="flex flex-col gap-3 rounded-lg border border-brand/20 bg-brand/5 p-4 text-sm text-foreground sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1 leading-relaxed">
+            <p className="font-medium">В боте пока нет клиентов</p>
+            <p className="text-muted-foreground">Массовой рассылке некому доставлять сообщения. Привяжите свой Telegram, чтобы проверить текст на себе, или отправьте клиентам ссылку <b className="text-foreground">t.me/{botName}</b>.</p>
+          </div>
+          <Button type="button" variant="outline" onClick={handlePairing} disabled={pairing} className="shrink-0">
+            {pairing ? "Создаю ссылку…" : "Привязать мой Telegram"}
+          </Button>
         </div>
       )}
 
@@ -179,7 +198,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             )}
           </div>
 
-          <Button variant="outline" size="lg" onClick={handleTest} disabled={!canSend} className="w-full">
+          <Button variant="outline" size="lg" onClick={handleTest} disabled={!canCompose} className="w-full">
             <Send size={14} />{testing ? "Отправляю…" : "Отправить себе"}
           </Button>
 
@@ -189,6 +208,12 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
                 {result.ok ? <CheckCircle size={15} /> : <X size={15} />}{result.text}
               </div>
             </div>
+          )}
+
+          {pairingUrl && (
+            <a href={pairingUrl} target="_blank" rel="noreferrer" className={buttonVariants({ size: "lg", className: "w-full" })}>
+              Открыть бота и привязать
+            </a>
           )}
         </div>
 
@@ -235,7 +260,7 @@ export function TelegramBroadcast({ connected, botName, clubName, audienceOption
             </Popover>
             <Mic size={18} className="ml-1" style={{ color: "var(--gray-muted)" }} />
             <div className="flex-1" />
-            <Button onClick={handleSend} disabled={!canSend} size="lg" className="px-5">
+            <Button onClick={handleSend} disabled={!canBroadcast} size="lg" className="px-5">
               {pending ? "Отправляю…" : mode === "scheduled" ? "Запланировать" : "Отправить"}
               <Send size={14} />
             </Button>

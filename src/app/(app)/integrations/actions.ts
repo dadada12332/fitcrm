@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import { callTelegramApi, registerClubTelegramBot } from "@/lib/telegram/api"
+import { createTelegramPairing } from "@/lib/telegram/pairing"
 import type { TelegramSettings } from "./types"
 
 export type TelegramBotInfo = { username: string; firstName: string; id: number }
@@ -117,7 +118,7 @@ export async function disconnectTelegramAction(): Promise<{ error?: string; ok?:
 
 // ── Broadcast helpers ────────────────────────────────────────────
 
-type BroadcastCtx = { clubId: string; clubName: string; token: string; userId: string }
+type BroadcastCtx = { clubId: string; clubName: string; botUsername: string; token: string; userId: string }
 
 async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }> {
   const supabase = await createClient()
@@ -129,13 +130,44 @@ async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
   const [{ data: club }, { data: integration }] = await Promise.all([
-    supabase.from("clubs").select("name").eq("id", cc.clubId).single(),
+    supabase.from("clubs").select("name, settings").eq("id", cc.clubId).single(),
     createServiceClient().from("telegram_integrations").select("bot_token").eq("club_id", cc.clubId).maybeSingle(),
   ])
   const token = integration?.bot_token as string | null
   if (!token) return { error: "Сначала подключите бота на вкладке «Основное»" }
+  const settings = (club?.settings as Record<string, unknown> | null) ?? {}
+  const bot = (settings.tg_bot as { username?: string } | undefined) ?? {}
+  if (!bot.username) return { error: "Переподключите бота: не найден его Telegram username" }
 
-  return { ctx: { clubId: cc.clubId, clubName: club?.name ?? "Клуб", token, userId: user.id } }
+  return { ctx: { clubId: cc.clubId, clubName: club?.name ?? "Клуб", botUsername: bot.username, token, userId: user.id } }
+}
+
+export async function createTelegramStaffPairingAction(): Promise<{ error?: string; ok?: boolean; pairingUrl?: string }> {
+  const { ctx, error } = await getBroadcastCtx()
+  if (!ctx) return { error }
+
+  const service = createServiceClient()
+  const { data: staff } = await service.from("staff").select("id")
+    .eq("club_id", ctx.clubId).eq("user_id", ctx.userId).eq("is_active", true).maybeSingle()
+  if (!staff) return { error: "Текущий пользователь не найден среди сотрудников клуба" }
+
+  const pairing = createTelegramPairing()
+  await service.from("telegram_staff_pairings").delete()
+    .eq("club_id", ctx.clubId).eq("staff_id", staff.id).is("used_at", null)
+
+  const { error: insertError } = await service.from("telegram_staff_pairings").insert({
+    club_id: ctx.clubId,
+    staff_id: staff.id,
+    token_hash: pairing.tokenHash,
+    expires_at: pairing.expiresAt,
+    created_by: ctx.userId,
+  })
+  if (insertError) return { error: insertError.message }
+
+  return {
+    ok: true,
+    pairingUrl: `https://t.me/${encodeURIComponent(ctx.botUsername)}?start=${encodeURIComponent(pairing.payload)}`,
+  }
 }
 
 /** Загружает картинку рассылки в storage и возвращает public URL. */
@@ -223,7 +255,7 @@ export async function scheduleBroadcastAction(
 
 export async function testBroadcastAction(
   formData: FormData,
-): Promise<{ error?: string; ok?: boolean }> {
+): Promise<{ error?: string; ok?: boolean; pairingUrl?: string }> {
   const message = String(formData.get("message") ?? "").trim()
   const image = formData.get("image")
   const hasImage = image instanceof File && image.size > 0
@@ -238,7 +270,13 @@ export async function testBroadcastAction(
     .from("telegram_users").select("telegram_id")
     .eq("club_id", ctx.clubId).eq("staff_id", staff?.id ?? "").maybeSingle()
   const selfTg = link?.telegram_id as number | undefined
-  if (!selfTg) return { error: "Привяжите свой телефон в боте (/start), чтобы отправлять тест себе" }
+  if (!selfTg) {
+    const pairing = await createTelegramStaffPairingAction()
+    return {
+      error: pairing.error ?? "Сначала привяжите свой Telegram, затем повторите отправку",
+      pairingUrl: pairing.pairingUrl,
+    }
+  }
 
   const { data: profile } = await supabase.from("users").select("full_name").eq("id", ctx.userId).maybeSingle()
   const imageUrl = hasImage ? await uploadBroadcastImage(ctx.clubId, image as File) : null
