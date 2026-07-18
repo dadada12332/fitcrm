@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 8c32036 · 2026-07-18T21:23:36+05:00 · Document landing overview refresh [skip ci].
+- Последний commit: 09d44d7 · 2026-07-19T00:12:40+05:00 · Fix dashboard icon and Windows knowledge sync.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -36,7 +36,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_BGgKzYRWv3c7dFKW8eriYrMUBCy4` для commit `7cc3f87` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_4hKacPdixJ9aHgars7ApAT3CLjXN` для commit `09d44d7` имеет статус `READY`; aliases `fitcrm-three.vercel.app` и `fitcrm-crm228.vercel.app` подтверждены.
 
 ## Риски и долг
 

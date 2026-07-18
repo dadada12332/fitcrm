@@ -69,6 +69,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
 - `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
 - `f78622e` · 2026-07-18 · Polish landing platform overview
 - `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
@@ -98,5 +99,4 @@ tags: [fitcrm, releases]
 - `ec911ad` · 2026-07-18 · Document client payment binding [skip ci]
 - `119d7f7` · 2026-07-18 · Bind client profile payments to client
 - `cffeb1c` · 2026-07-18 · Record verified production deployment
-- `55d0577` · 2026-07-18 · Allow authenticated cron callbacks through middleware
 <!-- AUTO:END changelog-candidates -->
