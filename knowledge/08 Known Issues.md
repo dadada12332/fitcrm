@@ -75,7 +75,7 @@ tags: [fitcrm, risks]
 - Cause: ResponsiveContainer измеряется во время промежуточного layout state.
 - Workaround: нет пользовательского blocker; проверить с production performance trace.
 - Task: отдельный low-priority UI performance task.
-- Last checked: 2026-07-18.
+- Last checked: 2026-07-19; warning reproduced during authenticated localhost dashboard verification, without a blank chart or error overlay.
 
 ## ISSUE-0008 — Scheduled broadcasts блокировались CRM middleware
 

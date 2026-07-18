@@ -8,9 +8,11 @@ import { createServiceClient } from "@/lib/supabase/service"
 export type AuthState = { error?: string; message?: string }
 
 /* ── helper: where to go after login ── */
-export async function resolvePostLoginRedirect(userId: string): Promise<string> {
-  const service = createServiceClient()
-  const { data } = await service
+type AuthClient = Awaited<ReturnType<typeof createClient>>
+
+export async function resolvePostLoginRedirect(userId: string, client?: AuthClient): Promise<string> {
+  const supabase = client ?? await createClient()
+  const { data } = await supabase
     .from("staff")
     .select("club_id")
     .eq("user_id", userId)
@@ -67,7 +69,7 @@ export async function signInWithEmail(_prev: AuthState, formData: FormData): Pro
     redirect(next)
   }
 
-  const destination = data.user ? await resolvePostLoginRedirect(data.user.id) : "/dashboard"
+  const destination = data.user ? await resolvePostLoginRedirect(data.user.id, supabase) : "/dashboard"
   redirect(destination)
 }
 
@@ -142,7 +144,7 @@ export async function verifyPhoneOTP(phone: string, token: string): Promise<Auth
   const supabase = await createClient()
   const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" })
   if (error) return { error: "Неверный код или код истёк" }
-  const destination = data.user ? await resolvePostLoginRedirect(data.user.id) : "/dashboard"
+  const destination = data.user ? await resolvePostLoginRedirect(data.user.id, supabase) : "/dashboard"
   redirect(destination)
 }
 
@@ -172,7 +174,7 @@ export async function verifyPhoneOTPWithProfile(
     redirect(next)
   }
 
-  const destination = data.user ? await resolvePostLoginRedirect(data.user.id) : "/dashboard"
+  const destination = data.user ? await resolvePostLoginRedirect(data.user.id, supabase) : "/dashboard"
   redirect(destination)
 }
 

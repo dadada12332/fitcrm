@@ -30,6 +30,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Email login and post-login routing no longer require a service-role key when the authenticated user reads their own club memberships.
 - The expiring-membership clock on the dashboard now uses the same neutral icon color as the other KPI tiles.
 - AI Аналитика использует стандартные отступы AppShell без дополнительного внутреннего padding; desktop и mobile теперь совпадают с остальными CRM-разделами.
 - Telegram и CRM больше не сопоставляют посещения по отображаемым именам: точная связь хранится через внутренний `client_id`, первичный поиск телефона стал exact и защищён от дублей/cross-club связей.
@@ -69,6 +70,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
 - `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
 - `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
 - `f78622e` · 2026-07-18 · Polish landing platform overview
@@ -98,5 +100,4 @@ tags: [fitcrm, releases]
 - `28efccd` · 2026-07-18 · Fix roles settings loading loop
 - `ec911ad` · 2026-07-18 · Document client payment binding [skip ci]
 - `119d7f7` · 2026-07-18 · Bind client profile payments to client
-- `cffeb1c` · 2026-07-18 · Record verified production deployment
 <!-- AUTO:END changelog-candidates -->
