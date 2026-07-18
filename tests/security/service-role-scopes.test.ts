@@ -47,4 +47,17 @@ describe("service-role payment tenant scopes", () => {
     expect(visitFlow).toContain('if (!client)')
     expect(visitFlow).toContain('.eq("club_id", clubId)')
   })
+
+  it("tracks Mini App visits by the linked CRM client ID, never by display names", () => {
+    const miniApp = read("src/app/api/telegram/miniapp/[clubId]/route.ts")
+    const qrCheckIn = read("src/app/(app)/visits/actions.ts")
+    const bot = read("src/lib/telegram/bot.ts")
+
+    expect(miniApp).toContain('.eq("id", link.client_id).eq("club_id", clubId)')
+    expect(miniApp).toContain("createQrPass(clubId, clientId)")
+    expect(qrCheckIn).toContain('.eq("id", pass.clientId)')
+    expect(qrCheckIn).toContain("client_id: client.id")
+    expect(bot).toContain('.eq("phone_normalized", normalized)')
+    expect(bot).not.toContain('.ilike("phone", `%${normalized}%`)')
+  })
 })

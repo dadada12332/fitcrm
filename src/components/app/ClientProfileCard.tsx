@@ -129,6 +129,9 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
   const [dialog, setDialog] = useState<"delete" | "freeze" | null>(null)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const telegramLabel = client.telegram
+    ? [client.telegram.name, client.telegram.username ? `@${client.telegram.username}` : null].filter(Boolean).join(" · ") || "Привязан"
+    : null
 
   function handleDelete() {
     setDeleteError(null)
@@ -220,7 +223,12 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
         {/* Поля */}
         <div className="flex flex-col relative">
           <Field label="Телефон" value={client.phone} link={client.phone ? `tel:${client.phone}` : undefined} />
-          <Field label="Телеграм" value={client.telegram} />
+          <Field
+            label="Telegram-профиль"
+            value={telegramLabel}
+            link={client.telegram?.username ? `https://t.me/${client.telegram.username}` : undefined}
+          />
+          <Field label="Telegram ID" value={client.telegram?.id ?? null} />
           <Field label="Email" value={client.email} link={client.email ? `mailto:${client.email}` : undefined} />
           <Field label="Дата рождения" value={fmtDate(client.birthDate)} />
           <Field label="Пол" value={client.gender ? (genderLabel[client.gender] ?? client.gender) : null} />

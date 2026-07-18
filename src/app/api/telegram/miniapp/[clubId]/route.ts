@@ -64,8 +64,22 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
     .eq("club_id", clubId).eq("telegram_id", auth.user.id).eq("role", "client").maybeSingle()
   if (!link?.client_id) return fail("Сначала привяжите номер командой /start в боте", 403)
 
-  const clientId = link.client_id as string
+  const { data: linkedClient } = await service.from("clients").select("id, full_name")
+    .eq("id", link.client_id).eq("club_id", clubId).maybeSingle()
+  if (!linkedClient) return fail("Связь с карточкой клиента недействительна. Привяжите номер заново", 403)
+
+  const clientId = linkedClient.id
   const action = body.action ?? "bootstrap"
+
+  if (action === "bootstrap") {
+    await service.from("telegram_users").update({
+      telegram_first_name: auth.user.first_name,
+      telegram_last_name: auth.user.last_name ?? null,
+      telegram_username: auth.user.username ?? null,
+      telegram_photo_url: auth.user.photo_url ?? null,
+      last_seen_at: new Date().toISOString(),
+    }).eq("club_id", clubId).eq("telegram_id", auth.user.id).eq("client_id", clientId)
+  }
 
   if (action === "qr") {
     const { data: clubRow } = await service.from("clubs").select("settings").eq("id", clubId).maybeSingle()
@@ -160,9 +174,8 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
 
   const today = tashkentDate()
   const rangeEnd = tashkentDate(7)
-  const [{ data: club }, { data: client }, { data: subscriptions }, { data: visits }, { data: classes }, { data: providers }] = await Promise.all([
+  const [{ data: club }, { data: subscriptions }, { data: visits }, { data: classes }, { data: providers }] = await Promise.all([
     service.from("clubs").select("name, city, settings").eq("id", clubId).single(),
-    service.from("clients").select("id, full_name").eq("id", clientId).eq("club_id", clubId).single(),
     service.from("subscriptions").select("id, status, starts_at, expires_at, visits_total, visits_used, memberships(name, price)")
       .eq("club_id", clubId).eq("client_id", clientId).order("expires_at", { ascending: false }).limit(5),
     service.from("visits").select("id, checked_in_at, method").eq("club_id", clubId).eq("client_id", clientId)
@@ -172,7 +185,7 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
       .order("date", { ascending: true }).order("start_time", { ascending: true }).limit(80),
     service.from("club_payment_credentials").select("provider").eq("club_id", clubId).eq("enabled", true).in("provider", ["payme", "click"]),
   ])
-  if (!club || !client) return fail("Профиль не найден", 404)
+  if (!club) return fail("Профиль не найден", 404)
 
   const rootSettings = (club.settings as Record<string, unknown> | null) ?? {}
   const tgSettings = (rootSettings.tg_settings as { qr_checkin?: boolean } | undefined) ?? {}
@@ -198,7 +211,8 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
   return Response.json({
     club: { name: club.name, city: club.city },
     client: {
-      crmFullName: client.full_name,
+      id: clientId,
+      crmFullName: linkedClient.full_name,
       telegramName: [auth.user.first_name, auth.user.last_name].filter(Boolean).join(" "),
       telegramFirstName: auth.user.first_name,
       telegramPhotoUrl: auth.user.photo_url ?? null,

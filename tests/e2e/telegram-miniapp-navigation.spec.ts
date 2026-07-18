@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 
 const miniAppData = {
   club: { name: "Основной клуб", city: "Ташкент" },
-  client: { crmFullName: "CRM Имя", telegramName: "Амира Telegram", telegramFirstName: "Амира", telegramPhotoUrl: null },
+  client: { id: "22222222-2222-4222-8222-222222222222", crmFullName: "Таджибаева Камила", telegramName: "Солнышко", telegramFirstName: "Солнышко", telegramPhotoUrl: null },
   subscriptions: [],
   visits: [],
   classes: [],
@@ -88,5 +88,8 @@ test("Mini App displays Telegram name and rotates the QR pass", async ({ page })
   await expect.poll(() => qrRequests).toBe(1)
   await expect(qrImage).toBeVisible()
   expect(await qrImage.getAttribute("src")).not.toBe(firstQr)
-  await expect(page.getByText("Амира Telegram")).toBeVisible()
+  await expect(page.getByText("Солнышко")).toBeVisible()
+  await page.getByRole("navigation").getByRole("button", { name: "Профиль" }).click()
+  await expect(page.getByText("Таджибаева Камила")).toBeVisible()
+  await expect(page.getByText("ID 22222222")).toBeVisible()
 })

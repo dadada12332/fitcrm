@@ -54,7 +54,7 @@ type ClassItem = {
 
 type MiniAppData = {
   club: { name: string; city: string | null }
-  client: { crmFullName: string; telegramName: string; telegramFirstName: string; telegramPhotoUrl: string | null }
+  client: { id: string; crmFullName: string; telegramName: string; telegramFirstName: string; telegramPhotoUrl: string | null }
   subscriptions: Subscription[]
   visits: Array<{ id: string; checked_in_at: string; method: string }>
   classes: ClassItem[]
@@ -464,6 +464,12 @@ function ProfileView({ data, subscription, busy, onRenew, onPreference }: { data
   return (
     <div className="space-y-6 px-4 py-5">
       <div><h1 className="text-2xl font-semibold">Профиль</h1><p className="mt-1 text-sm text-muted-foreground">{data.client.telegramName}</p></div>
+
+      <section className="rounded-lg border border-border bg-card p-4">
+        <p className="text-xs text-muted-foreground">Карточка в клубе</p>
+        <p className="mt-1 font-medium">{data.client.crmFullName}</p>
+        <p className="mt-1 font-mono text-xs text-muted-foreground">ID {data.client.id.slice(0, 8)}</p>
+      </section>
 
       <section>
         <h2 className="text-base font-semibold">Продление</h2>

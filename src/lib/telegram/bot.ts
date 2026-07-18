@@ -3,6 +3,7 @@ import { Bot, InlineKeyboard, Keyboard } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 import { hashTelegramPairingToken, parseTelegramPairingPayload } from "@/lib/telegram/pairing"
 import { getTelegramMiniAppUrl } from "@/lib/telegram/api"
+import { normalizeTelegramPhone } from "@/lib/telegram/identity"
 
 // Vercel may reuse a function instance, so handlers are cached per club bot.
 const clubBots = new Map<string, Bot>()
@@ -41,14 +42,6 @@ type ClubTelegramSettings = {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
-
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "")
-  if (digits.startsWith("998") && digits.length === 12) return digits.slice(3)
-  if (digits.startsWith("7")   && digits.length === 11) return digits.slice(1)
-  if (digits.startsWith("8")   && digits.length === 11) return digits.slice(1)
-  return digits
-}
 
 function fmtMoney(n: number) { return n.toLocaleString("ru-RU") }
 
@@ -470,7 +463,7 @@ function setupHandlers(bot: Bot, clubId: string) {
     }
 
     const phone      = ctx.message.contact?.phone_number ?? ""
-    const normalized = normalizePhone(phone)
+    const normalized = normalizeTelegramPhone(phone)
     if (!normalized) return
 
     const supabase = createServiceClient()
@@ -483,14 +476,24 @@ function setupHandlers(bot: Bot, clubId: string) {
       .eq("club_id", clubId)
       .eq("is_active", true)
 
-    const matchedStaff = (staffList ?? []).find((s: any) => {
-      const staffPhone = normalizePhone(s.settings?.phone ?? "")
+    const matchedStaffList = (staffList ?? []).filter((s: any) => {
+      const staffPhone = normalizeTelegramPhone(s.settings?.phone ?? "")
       return staffPhone && staffPhone === normalized
     })
+    if (matchedStaffList.length > 1) {
+      await ctx.reply("В клубе найдено несколько сотрудников с этим номером. Попросите владельца исправить дубликаты.", removeKb)
+      return
+    }
+    const matchedStaff = matchedStaffList[0]
 
     if (matchedStaff) {
       const { error: upsertErr } = await supabase.from("telegram_users").upsert(
-        { club_id: clubId, telegram_id: telegramId, staff_id: matchedStaff.id, client_id: null, role: matchedStaff.role, last_seen_at: new Date().toISOString() },
+        {
+          club_id: clubId, telegram_id: telegramId, staff_id: matchedStaff.id, client_id: null,
+          role: matchedStaff.role, last_seen_at: new Date().toISOString(),
+          telegram_first_name: ctx.from.first_name, telegram_last_name: ctx.from.last_name ?? null,
+          telegram_username: ctx.from.username ?? null,
+        },
         { onConflict: "club_id,telegram_id" }
       )
       if (upsertErr) {
@@ -514,13 +517,25 @@ function setupHandlers(bot: Bot, clubId: string) {
       .from("clients")
       .select("id, full_name, phone")
       .eq("club_id", clubId)
-      .ilike("phone", `%${normalized}%`)
-      .limit(1)
+      .eq("phone_normalized", normalized)
+      .limit(2)
+
+    if ((clients?.length ?? 0) > 1) {
+      await ctx.reply("В CRM найдено несколько клиентов с этим номером. Администратор должен оставить номер только в одной карточке.", removeKb)
+      return
+    }
 
     if (clients?.length) {
       const client = clients[0]
+      await supabase.from("telegram_users").delete()
+        .eq("club_id", clubId).eq("client_id", client.id).neq("telegram_id", telegramId)
       const { error: upsertErr } = await supabase.from("telegram_users").upsert(
-        { club_id: clubId, telegram_id: telegramId, client_id: client.id, staff_id: null, role: "client", last_seen_at: new Date().toISOString() },
+        {
+          club_id: clubId, telegram_id: telegramId, client_id: client.id, staff_id: null,
+          role: "client", last_seen_at: new Date().toISOString(),
+          telegram_first_name: ctx.from.first_name, telegram_last_name: ctx.from.last_name ?? null,
+          telegram_username: ctx.from.username ?? null,
+        },
         { onConflict: "club_id,telegram_id" }
       )
       if (upsertErr) {

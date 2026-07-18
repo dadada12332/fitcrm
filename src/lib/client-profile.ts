@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { ClientStatus } from "@/lib/clients"
+import { createServiceClient } from "@/lib/supabase/service"
+import { telegramDisplayName } from "@/lib/telegram/identity"
 
 export type PaymentProvider = "click" | "payme" | "uzum" | "cash"
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded"
@@ -35,7 +37,12 @@ export type ClientProfile = {
   id: string
   name: string
   phone: string | null
-  telegram: string | null
+  telegram: {
+    id: string
+    name: string | null
+    username: string | null
+    photoUrl: string | null
+  } | null
   email: string | null
   birthDate: string | null
   gender: string | null
@@ -134,7 +141,7 @@ export async function getClientProfile(
 
   if (!client) return null
 
-  const [subsRes, paymentsRes, visitsRes] = await Promise.all([
+  const [subsRes, paymentsRes, visitsRes, telegramRes] = await Promise.all([
     supabase
       .from("subscriptions")
       .select("status, starts_at, expires_at, visits_total, visits_used, freeze_days_used, memberships(name, visits_limit, freeze_days_allowed)")
@@ -149,6 +156,9 @@ export async function getClientProfile(
       .select("id, checked_in_at, method")
       .eq("client_id", id)
       .order("checked_in_at", { ascending: false }),
+    createServiceClient().from("telegram_users")
+      .select("telegram_id, telegram_first_name, telegram_last_name, telegram_username, telegram_photo_url")
+      .eq("club_id", clubId).eq("client_id", id).eq("role", "client").maybeSingle(),
   ])
 
   const subs = (subsRes.data ?? []) as SubRow[]
@@ -193,11 +203,21 @@ export async function getClientProfile(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = client as any
+  const telegramIdentity = telegramRes.data
+  const telegramName = telegramIdentity ? telegramDisplayName({
+    firstName: telegramIdentity.telegram_first_name,
+    lastName: telegramIdentity.telegram_last_name,
+  }) : ""
   return {
     id: c.id as string,
     name: c.full_name as string,
     phone: (c.phone as string | null) ?? null,
-    telegram: c.telegram_id ? `@${c.telegram_id}` : null,
+    telegram: telegramIdentity ? {
+      id: String(telegramIdentity.telegram_id),
+      name: telegramName || null,
+      username: telegramIdentity.telegram_username ?? null,
+      photoUrl: telegramIdentity.telegram_photo_url ?? null,
+    } : c.telegram_id ? { id: String(c.telegram_id), name: null, username: null, photoUrl: null } : null,
     email: (c.email as string | null) ?? null,
     birthDate: (c.birth_date as string | null) ?? null,
     gender: (c.gender as string | null) ?? null,
