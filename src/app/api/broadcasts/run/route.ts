@@ -2,15 +2,13 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getRecipientsDataset, filterByAudience, sendBroadcast } from "@/lib/broadcast"
 
 // Обработчик запланированных рассылок.
-// Vercel Cron (без заголовка) ИЛИ ручной вызов с ?secret=... / Bearer CRON_SECRET.
+// Vercel Cron sends Authorization: Bearer CRON_SECRET.
 // vercel.json: { "path": "/api/broadcasts/run", "schedule": "..." }
 export async function GET(req: Request) {
-  const url = new URL(req.url)
   const cronSecret = process.env.CRON_SECRET
   const authHeader = req.headers.get("Authorization")
-  const querySecret = url.searchParams.get("secret")
 
-  if (!cronSecret || (authHeader !== `Bearer ${cronSecret}` && querySecret !== cronSecret)) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -27,8 +25,21 @@ export async function GET(req: Request) {
 
   let processed = 0
   for (const b of due) {
-    const { data: club } = await supabase.from("clubs").select("name, tg_token").eq("id", b.club_id).single()
-    const token = club?.tg_token as string | null
+    const { data: claimed } = await supabase
+      .from("broadcasts")
+      .update({ status: "processing" })
+      .eq("id", b.id)
+      .eq("club_id", b.club_id)
+      .eq("status", "scheduled")
+      .select("id")
+      .maybeSingle()
+    if (!claimed) continue
+
+    const [{ data: club }, { data: integration }] = await Promise.all([
+      supabase.from("clubs").select("name").eq("id", b.club_id).single(),
+      supabase.from("telegram_integrations").select("bot_token").eq("club_id", b.club_id).maybeSingle(),
+    ])
+    const token = integration?.bot_token as string | null
     if (!token) {
       await supabase.from("broadcasts").update({ status: "failed" }).eq("id", b.id).eq("club_id", b.club_id)
       continue

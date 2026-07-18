@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 
 // Vercel Cron 04:00 UTC = 09:00 Ташкент. vercel.json: "0 4 * * *".
 // Отчёт КАЖДОГО клуба уходит только владельцам/админам ЭТОГО клуба, через бота
-// этого клуба (clubs.tg_token). Никакого глобального чата — иначе один человек
+// этого клуба (service-only telegram_integrations). Никакого глобального чата — иначе один человек
 // получал бы статистику всех клубов (утечка мультитенантности).
 export async function GET(req: Request) {
   const authHeader = req.headers.get("Authorization")
@@ -22,8 +22,10 @@ export async function GET(req: Request) {
   const to        = todayUTC.toISOString()
   const dateStr   = yesterday.toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "long" })
 
-  const { data: clubs } = await supabase.from("clubs").select("id, name, tg_token")
+  const { data: clubs } = await supabase.from("clubs").select("id, name")
   if (!clubs?.length) return Response.json({ ok: true, clubs: 0 })
+  const { data: integrations } = await supabase.from("telegram_integrations").select("club_id, bot_token")
+  const tokenByClub = new Map((integrations ?? []).map((item) => [item.club_id, item.bot_token]))
 
   // Получатели отчёта = owner/admin клуба, привязавшие свой telegram
   const { data: recipsRaw } = await supabase
@@ -44,7 +46,8 @@ export async function GET(req: Request) {
 
   for (const club of clubs) {
     const targets = byClub.get(club.id)
-    if (!club.tg_token || !targets?.length) continue
+    const token = tokenByClub.get(club.id)
+    if (!token || !targets?.length) continue
 
     const [visitsRes, paymentsRes, newClientsRes, renewalsRes] = await Promise.all([
       supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", club.id).gte("checked_in_at", from).lt("checked_in_at", to),
@@ -66,7 +69,7 @@ export async function GET(req: Request) {
     msg     += `🔄 Продлений: *${renewals}*\n`
     if (revenue === 0 && visits === 0) msg += `\n⚠️ Активности не было — проверьте систему.`
 
-    const bot = new Bot(club.tg_token as string)
+    const bot = new Bot(token)
     for (const chatId of targets) {
       await bot.api.sendMessage(chatId, msg, { parse_mode: "Markdown" }).catch(() => {})
       sent++

@@ -13,6 +13,77 @@ export type MarkVisitResult = {
   warning?: string
 }
 
+export type QrVisitResult = MarkVisitResult & { clientName?: string }
+
+export async function qrCheckInAction(qrToken: string): Promise<QrVisitResult> {
+  const token = qrToken.trim()
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
+    return { error: "Этот QR-код не относится к FitCRM" }
+  }
+
+  const supabase = await createClient()
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "visits", "checkin")) return { error: "Недостаточно прав" }
+
+  const { data: client } = await supabase.from("clients")
+    .select("id, full_name")
+    .eq("club_id", club.clubId)
+    .eq("qr_token", token)
+    .maybeSingle()
+  if (!client) return { error: "Клиент с этим QR-кодом не найден в вашем клубе" }
+
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tashkent", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date())
+  const [{ data: subscription }, { count: visitsToday }] = await Promise.all([
+    supabase.from("subscriptions")
+      .select("id, status, expires_at, visits_total, visits_used")
+      .eq("club_id", club.clubId)
+      .eq("client_id", client.id)
+      .eq("status", "active")
+      .or(`expires_at.is.null,expires_at.gte.${today}`)
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase.from("visits").select("id", { count: "exact", head: true })
+      .eq("club_id", club.clubId).eq("client_id", client.id)
+      .gte("checked_in_at", `${today}T00:00:00+05:00`)
+      .lt("checked_in_at", `${today}T23:59:59.999+05:00`),
+  ])
+
+  if (visitsToday) return { error: "Посещение этого клиента сегодня уже отмечено", clientName: client.full_name }
+  if (!subscription) return { error: "Нет активного абонемента", clientName: client.full_name }
+  if (subscription.visits_total !== null && subscription.visits_used >= subscription.visits_total) {
+    return { error: "Лимит посещений исчерпан", clientName: client.full_name }
+  }
+
+  const { error } = await supabase.from("visits").insert({
+    club_id: club.clubId,
+    client_id: client.id,
+    subscription_id: subscription.id,
+    method: "qr",
+  })
+  if (error) return { error: error.message, clientName: client.full_name }
+
+  if (subscription.visits_total !== null) {
+    await supabase.from("subscriptions")
+      .update({ visits_used: subscription.visits_used + 1 })
+      .eq("id", subscription.id)
+      .eq("club_id", club.clubId)
+  }
+
+  revalidatePath("/visits")
+  const visitsLeft = subscription.visits_total === null
+    ? null
+    : subscription.visits_total - subscription.visits_used - 1
+  return {
+    ok: true,
+    clientName: client.full_name,
+    warning: visitsLeft !== null && visitsLeft <= 3 ? `Осталось ${visitsLeft} посещений` : undefined,
+  }
+}
+
 export async function markVisitAction(
   clientId: string,
   subscriptionId: string | null

@@ -193,12 +193,12 @@ export async function sendPaymentLinkTelegramAction(clientId: string, url: strin
   const svc = createServiceClient()
   const [{ data: cl }, { data: clubRow }] = await Promise.all([
     svc.from("clients").select("telegram_id, full_name").eq("id", clientId).eq("club_id", club.clubId).maybeSingle(),
-    svc.from("clubs").select("tg_token").eq("id", club.clubId).maybeSingle(),
+    svc.from("telegram_integrations").select("bot_token").eq("club_id", club.clubId).maybeSingle(),
   ])
   if (!cl?.telegram_id) return { error: "У клиента не привязан Telegram" }
-  if (!clubRow?.tg_token) return { error: "Бот клуба не подключён" }
+  if (!clubRow?.bot_token) return { error: "Бот клуба не подключён" }
   const text = `💳 Ссылка для оплаты:\n${url}\n\nОплатите картой — абонемент активируется автоматически.`
-  const res = await fetch(`https://api.telegram.org/bot${clubRow.tg_token}/sendMessage`, {
+  const res = await fetch(`https://api.telegram.org/bot${clubRow.bot_token}/sendMessage`, {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ chat_id: cl.telegram_id, text }),
   })

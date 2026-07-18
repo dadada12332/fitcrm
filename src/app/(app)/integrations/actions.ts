@@ -3,7 +3,9 @@
 import { can } from "@/lib/permissions"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
+import { callTelegramApi, registerClubTelegramBot } from "@/lib/telegram/api"
 import type { TelegramSettings } from "./types"
 
 export type TelegramBotInfo = { username: string; firstName: string; id: number }
@@ -15,16 +17,6 @@ export async function connectTelegramAction(
   const trimmed = token.trim()
   if (!trimmed) return { error: "Введите Bot Token" }
 
-  let bot: TelegramBotInfo
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${trimmed}/getMe`, { cache: "no-store" })
-    const json = await res.json()
-    if (!json.ok) return { error: "Неверный токен. Получите токен у @BotFather в Telegram" }
-    bot = { username: json.result.username, firstName: json.result.first_name, id: json.result.id }
-  } catch {
-    return { error: "Не удалось связаться с Telegram. Проверьте интернет и попробуйте снова" }
-  }
-
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Не авторизован" }
@@ -33,14 +25,50 @@ export async function connectTelegramAction(
   if (!cc) return { error: "Клуб не найден" }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
-  const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
+  let bot: TelegramBotInfo
+  try {
+    const json = await callTelegramApi<{ username: string; first_name: string; id: number }>(trimmed, "getMe")
+    if (!json.ok) return { error: "Неверный токен. Получите токен у @BotFather в Telegram" }
+    if (!json.result?.username) return { error: "Telegram не вернул username бота" }
+    bot = { username: json.result.username, firstName: json.result.first_name, id: json.result.id }
+  } catch {
+    return { error: "Не удалось связаться с Telegram. Проверьте интернет и попробуйте снова" }
+  }
+
+  const service = createServiceClient()
+  const [{ data: club }, { data: existingIntegration }] = await Promise.all([
+    service.from("clubs").select("settings").eq("id", cc.clubId).single(),
+    service.from("telegram_integrations").select("bot_token").eq("club_id", cc.clubId).maybeSingle(),
+  ])
   const cur = (club?.settings as Record<string, unknown>) ?? {}
 
-  const { error } = await supabase.from("clubs").update({
-    tg_token: trimmed,
+  try {
+    await registerClubTelegramBot(trimmed, cc.clubId)
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Не удалось зарегистрировать webhook Telegram" }
+  }
+
+  if (existingIntegration?.bot_token && existingIntegration.bot_token !== trimmed) {
+    await callTelegramApi(existingIntegration.bot_token, "deleteWebhook", { drop_pending_updates: false }).catch(() => null)
+  }
+
+  const { error: tokenError } = await service.from("telegram_integrations").upsert({
+    club_id: cc.clubId,
+    bot_token: trimmed,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "club_id" })
+  if (tokenError) return { error: tokenError.message }
+
+  const { error } = await service.from("clubs").update({
     settings: {
       ...cur,
-      tg_bot: { username: bot.username, firstName: bot.firstName, id: bot.id, connected_at: new Date().toISOString() },
+      tg_bot: {
+        username: bot.username,
+        firstName: bot.firstName,
+        id: bot.id,
+        connected_at: new Date().toISOString(),
+        webhook_registered: true,
+      },
     },
   }).eq("id", cc.clubId)
 
@@ -60,11 +88,22 @@ export async function disconnectTelegramAction(): Promise<{ error?: string; ok?:
   if (!cc) return { error: "Клуб не найден" }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
-  const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
+  const service = createServiceClient()
+  const [{ data: club }, { data: integration }] = await Promise.all([
+    service.from("clubs").select("settings").eq("id", cc.clubId).single(),
+    service.from("telegram_integrations").select("bot_token").eq("club_id", cc.clubId).maybeSingle(),
+  ])
   const cur = (club?.settings as Record<string, unknown>) ?? {}
-  const { tg_bot: _removed, tg_settings: _settings, ...rest } = cur as any
+  const rest = { ...cur }
+  delete rest.tg_bot
 
-  const { error } = await supabase.from("clubs").update({ tg_token: null, settings: rest }).eq("id", cc.clubId)
+  if (integration?.bot_token) {
+    await callTelegramApi(integration.bot_token, "deleteWebhook", { drop_pending_updates: false }).catch(() => null)
+  }
+
+  const { error: tokenError } = await service.from("telegram_integrations").delete().eq("club_id", cc.clubId)
+  if (tokenError) return { error: tokenError.message }
+  const { error } = await service.from("clubs").update({ settings: rest }).eq("id", cc.clubId)
   if (error) return { error: error.message }
 
   revalidatePath("/integrations")
@@ -85,8 +124,11 @@ async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }
   if (!cc) return { error: "Клуб не найден" }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
-  const { data: club } = await supabase.from("clubs").select("name, tg_token").eq("id", cc.clubId).single()
-  const token = club?.tg_token as string | null
+  const [{ data: club }, { data: integration }] = await Promise.all([
+    supabase.from("clubs").select("name").eq("id", cc.clubId).single(),
+    createServiceClient().from("telegram_integrations").select("bot_token").eq("club_id", cc.clubId).maybeSingle(),
+  ])
+  const token = integration?.bot_token as string | null
   if (!token) return { error: "Сначала подключите бота на вкладке «Основное»" }
 
   return { ctx: { clubId: cc.clubId, clubName: club?.name ?? "Клуб", token, userId: user.id } }
@@ -130,12 +172,13 @@ export async function broadcastTelegramAction(
 
   const { delivered, failed } = await sendBroadcast(ctx.token, recipients, message, imageUrl, ctx.clubName)
 
-  await supabase.from("broadcasts").insert({
+  const { error: historyError } = await supabase.from("broadcasts").insert({
     club_id: ctx.clubId, message: message || null, image_url: imageUrl,
     audience, audience_label: audienceLabel || null,
     status: "sent", sent_at: new Date().toISOString(),
     total: recipients.length, delivered, failed, created_by: ctx.userId,
   })
+  if (historyError) return { error: `Сообщения отправлены, но история не сохранена: ${historyError.message}`, sent: delivered, failed, total: recipients.length }
 
   revalidatePath("/integrations/telegram")
   return { ok: true, sent: delivered, failed, total: recipients.length }
@@ -187,8 +230,9 @@ export async function testBroadcastAction(
 
   const supabase = await createClient()
   const { data: staff } = await supabase.from("staff").select("id").eq("user_id", ctx.userId).single()
-  const { data: link } = await supabase
-    .from("telegram_users").select("telegram_id").eq("staff_id", staff?.id ?? "").maybeSingle()
+  const { data: link } = await createServiceClient()
+    .from("telegram_users").select("telegram_id")
+    .eq("club_id", ctx.clubId).eq("staff_id", staff?.id ?? "").maybeSingle()
   const selfTg = link?.telegram_id as number | undefined
   if (!selfTg) return { error: "Привяжите свой телефон в боте (/start), чтобы отправлять тест себе" }
 

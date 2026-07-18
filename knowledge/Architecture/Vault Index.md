@@ -34,6 +34,10 @@ updated: 2026-07-18
 - [[Infrastructure/Security Checklist]]
 - [[Infrastructure/Testing Matrix]]
 
+## Integrations
+
+- [[Integrations/Telegram]]
+
 ## Product
 
 - [[Product/Glossary]]
@@ -55,7 +59,11 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 - [[Tasks/Completed/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]]
 - [[Tasks/Completed/TASK-0008-vosstanovit-dostup-vercel-cron-k-api]]
+- [[Tasks/Completed/TASK-0009-privyazat-oplatu-iz-kartochki-k-klientu]]
+- [[Tasks/Completed/TASK-0010-ispravit-beskonechnuyu-zagruzku-rolei-i-prav]]
+- [[Tasks/Completed/TASK-0011-vosstanovit-telegram-multi-bot-integraciyu]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
+- [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 
 ## UX
 

@@ -18,7 +18,7 @@ tags: [fitcrm, tasks]
 ## Backlog
 
 <!-- AUTO:START kanban-backlog -->
-- Нет задач.
+- TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 <!-- AUTO:END kanban-backlog -->
 
 ## Ready
@@ -63,4 +63,5 @@ tags: [fitcrm, tasks]
 - TASK-0008 · Восстановить доступ Vercel Cron к API · bug · P1 · cron-api · 2026-07-18 · [[Tasks/Completed/TASK-0008-vosstanovit-dostup-vercel-cron-k-api]]
 - TASK-0009 · Привязать оплату из карточки к клиенту · bug · P1 · payments · 2026-07-18 · [[Tasks/Completed/TASK-0009-privyazat-oplatu-iz-kartochki-k-klientu]]
 - TASK-0010 · Исправить бесконечную загрузку ролей и прав · bug · P1 · settings · 2026-07-18 · [[Tasks/Completed/TASK-0010-ispravit-beskonechnuyu-zagruzku-rolei-i-prav]]
+- TASK-0011 · Восстановить Telegram multi-bot интеграцию · feature · P1 · integrations · 2026-07-18 · [[Tasks/Completed/TASK-0011-vosstanovit-telegram-multi-bot-integraciyu]]
 <!-- AUTO:END kanban-done -->

@@ -14,6 +14,7 @@ import { TelegramBroadcast, type BroadcastHistoryItem } from "./TelegramBroadcas
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 import type { AudienceOption, Recipient } from "@/lib/broadcast"
 
 // ── Simple integrations (Click / Payme) ──────────────────────────
@@ -32,8 +33,7 @@ const SIMPLE_FIELDS: Record<string, { key: string; label: string; placeholder: s
 function Feedback({ msg }: { msg: { text: string; ok: boolean } | null }) {
   if (!msg) return null
   return (
-    <div className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-lg"
-      style={{ background: msg.ok ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)", color: msg.ok ? "#16a34a" : "#dc2626" }}>
+    <div className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm ${msg.ok ? "bg-chart-2/10 text-chart-2" : "bg-destructive/10 text-destructive"}`}>
       {msg.ok ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
       {msg.text}
     </div>
@@ -50,13 +50,23 @@ const TABS = [
   { id: "stats",      label: "Статистика",     icon: BarChart2 },
 ]
 
-function TelegramManage({ connected, botUsername, botFirstName, connectedAt, clientCount, subscribers, tgSettings, clubName, audienceOptions, recipients, history }: {
+export type TelegramStats = {
+  messagesMonth: number
+  activeUsers7d: number
+  newUsersMonth: number
+  qrCheckinsToday: number
+  failedMonth: number
+}
+
+function TelegramManage({ connected, botUsername, botFirstName, connectedAt, webhookReady, clientCount, subscribers, telegramStats, tgSettings, clubName, audienceOptions, recipients, history }: {
   connected: boolean
   botUsername: string
   botFirstName: string
   connectedAt: string | null
+  webhookReady: boolean
   clientCount: number
   subscribers: number
+  telegramStats: TelegramStats
   tgSettings: TelegramSettings
   clubName: string
   audienceOptions: AudienceOption[]
@@ -124,35 +134,28 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
       {connected && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "Клиентов в базе",        value: clientCount,                     color: "#2AABEE" },
-            { label: "Подключено через бот",   value: subscribers,                     color: "#16a34a" },
-            { label: "Сообщений за месяц",     value: clientCount * 14,                color: "#7c3aed" },
-            { label: "Новых пользователей",    value: subscribers,                     color: "var(--on-dark)" },
+            { label: "Клиентов в базе", value: clientCount, className: "text-foreground" },
+            { label: "Подключено к боту", value: subscribers, className: "text-brand" },
+            { label: "Доставлено за месяц", value: telegramStats.messagesMonth, className: "text-chart-2" },
+            { label: "Активны за 7 дней", value: telegramStats.activeUsers7d, className: "text-chart-4" },
           ].map((s) => (
-            <div key={s.label} className="rounded-lg p-4 text-center"
-              style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-              <p className="text-2xl font-bold" style={{ color: s.color }}>{s.value.toLocaleString("ru-RU")}</p>
-              <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{s.label}</p>
+            <div key={s.label} className="rounded-lg border border-border bg-card p-4 text-center">
+              <p className={`text-2xl font-bold ${s.className}`}>{s.value.toLocaleString("ru-RU")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Tabs */}
-      <div style={{ borderBottom: "1px solid var(--border)" }}>
-        <nav className="flex gap-1">
+      <div className="overflow-x-auto border-b border-border">
+        <nav className="flex min-w-max gap-1">
           {TABS.map((t) => {
             const Icon = t.icon
             const active = tab === t.id
             return (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className="flex items-center gap-1.5 px-4 py-2.5 text-sm transition-colors"
-                style={{
-                  fontWeight: active ? 500 : 400,
-                  color: active ? "#2AABEE" : "var(--on-dark-soft)",
-                  borderBottom: active ? "2px solid #2AABEE" : "2px solid transparent",
-                  marginBottom: -1,
-                }}>
+                className={`-mb-px flex items-center gap-1.5 border-b-2 px-4 py-2.5 text-sm transition-colors ${active ? "border-brand font-medium text-brand" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
                 <Icon size={14} />
                 {t.label}
               </button>
@@ -165,25 +168,24 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
       {tab === "main" && (
         <div className="space-y-4">
           {connected ? (
-            <div className="rounded-lg p-5 space-y-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <div className="space-y-4 rounded-lg border border-border bg-card p-5">
               {/* Bot info */}
-              <div className="flex items-center gap-4 p-4 rounded-lg" style={{ background: "var(--card-2)" }}>
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-base flex-shrink-0"
-                  style={{ background: "#2AABEE" }}>
+              <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
+                <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-base font-bold text-white">
                   {botFirstName?.[0] ?? "T"}
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold" style={{ color: "var(--on-dark)" }}>{botFirstName}</p>
-                  <p className="text-sm font-mono" style={{ color: "#2AABEE" }}>@{botUsername}</p>
+                  <p className="font-semibold text-foreground">{botFirstName}</p>
+                  <p className="font-mono text-sm text-brand">@{botUsername}</p>
                   {connectedAt && (
-                    <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       Подключён {new Date(connectedAt).toLocaleDateString("ru-RU")}
                     </p>
                   )}
                 </div>
-                <span className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
-                  style={{ background: "rgba(22,163,74,0.12)", color: "#16a34a" }}>
-                  <CheckCircle size={12} />Активен
+                <span className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${webhookReady ? "bg-chart-2/10 text-chart-2" : "bg-destructive/10 text-destructive"}`}>
+                  {webhookReady ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
+                  {webhookReady ? "Webhook активен" : "Переподключите"}
                 </span>
               </div>
 
@@ -206,39 +208,35 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                     </button>
                   </div>
                   <Feedback msg={connectMsg} />
-                  <div className="flex gap-3">
-                    <button type="submit" disabled={connectPending || !token.trim()}
-                      className="h-9 px-4 rounded-md text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
-                      style={{ background: "#2AABEE" }}>
+                  <div className="flex flex-wrap gap-3">
+                    <Button type="submit" size="lg" disabled={connectPending || !token.trim()}>
                       <RefreshCw size={14} className={connectPending ? "animate-spin" : ""} />
                       {connectPending ? "Проверяю…" : "Обновить бота"}
-                    </button>
-                    <button type="button" onClick={handleDisconnect} disabled={disconnectPending}
-                      className="h-9 px-4 rounded-md text-sm font-medium flex items-center gap-2 transition-colors hover:bg-red-50 dark:hover:bg-red-950/20 disabled:opacity-40"
-                      style={{ border: "1px solid var(--border)", color: "#dc2626" }}>
+                    </Button>
+                    <Button type="button" variant="destructive" size="lg" onClick={handleDisconnect} disabled={disconnectPending}>
                       <Trash2 size={14} />
                       {disconnectPending ? "Отключаю…" : "Отключить"}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>
 
               {/* Instruction */}
-              <div className="p-4 rounded-lg text-sm space-y-1.5" style={{ background: "rgba(42,171,238,0.06)", border: "1px solid rgba(42,171,238,0.2)" }}>
-                <p className="font-medium" style={{ color: "#0e7bb5" }}>Как поделиться ботом с клиентами</p>
-                <p style={{ color: "var(--on-dark-soft)" }}>
-                  Отправьте клиентам ссылку: <span className="font-mono font-medium" style={{ color: "#2AABEE" }}>https://t.me/{botUsername}</span>
+              <div className="space-y-1.5 rounded-lg border border-brand/20 bg-brand/10 p-4 text-sm">
+                <p className="font-medium text-brand">Как поделиться ботом с клиентами</p>
+                <p className="text-muted-foreground">
+                  Отправьте клиентам ссылку: <span className="font-mono font-medium text-brand">https://t.me/{botUsername}</span>
                 </p>
-                <p style={{ color: "var(--on-dark-soft)" }}>
-                  Клиент нажмёт /start и введёт номер телефона — система автоматически найдёт его в базе.
+                <p className="text-muted-foreground">
+                  Клиент нажмёт /start и безопасно поделится своим номером — система найдёт его только в базе этого клуба.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="rounded-lg p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+            <div className="space-y-5 rounded-lg border border-border bg-card p-5">
               {/* How to get token */}
-              <div className="p-4 rounded-lg" style={{ background: "var(--card-2)" }}>
-                <p className="text-sm font-semibold mb-3" style={{ color: "var(--on-dark)" }}>Как создать бота</p>
+              <div className="rounded-lg bg-muted p-4">
+                <p className="mb-3 text-sm font-semibold text-foreground">Как создать бота</p>
                 {[
                   { n: 1, text: "Откройте Telegram и найдите @BotFather" },
                   { n: 2, text: "Отправьте команду /newbot" },
@@ -246,9 +244,8 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                   { n: 4, text: "Скопируйте полученный токен и вставьте ниже" },
                 ].map((s) => (
                   <div key={s.n} className="flex items-start gap-3 mb-2.5 last:mb-0">
-                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5"
-                      style={{ background: "#2AABEE" }}>{s.n}</span>
-                    <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{s.text}</p>
+                    <span className="mt-0.5 flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">{s.n}</span>
+                    <p className="text-sm text-muted-foreground">{s.text}</p>
                   </div>
                 ))}
               </div>
@@ -274,12 +271,10 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
                   </div>
                 </div>
                 <Feedback msg={connectMsg} />
-                <button type="submit" disabled={connectPending || !token.trim()}
-                  className="h-10 px-6 rounded-md text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
-                  style={{ background: "#2AABEE" }}>
+                <Button type="submit" size="lg" disabled={connectPending || !token.trim()}>
                   <Bot size={15} className={connectPending ? "animate-pulse" : ""} />
                   {connectPending ? "Проверяю токен…" : "Подключить бота"}
-                </button>
+                </Button>
               </form>
             </div>
           )}
@@ -288,35 +283,34 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
 
       {/* ── Automation tab ── */}
       {tab === "automation" && (
-        <div className="rounded-lg p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="space-y-5 rounded-lg border border-border bg-card p-5">
           {!connected && (
-            <div className="p-3 rounded-lg text-sm" style={{ background: "rgba(245,158,11,0.08)", color: "#b45309" }}>
-              ⚠ Сначала подключите бота на вкладке «Основное»
+            <div className="rounded-lg bg-chart-3/10 p-3 text-sm text-chart-3">
+              Сначала подключите бота на вкладке «Основное»
             </div>
           )}
           <div className="space-y-4">
             {[
               { key: "auto_expiry_3d" as const, label: "Напоминание за 3 дня до истечения", desc: "Бот отправит клиенту сообщение за 3 дня" },
               { key: "auto_expiry_1d" as const, label: "Напоминание за 1 день до истечения", desc: "Срочное напоминание накануне истечения" },
-              { key: "renewal_reminder" as const, label: "Предложение продления", desc: "Бот предложит продлить абонемент с кнопкой оплаты" },
+              { key: "renewal_reminder" as const, label: "Предложение продления", desc: "Добавить к напоминанию быстрый переход к абонементу" },
+              { key: "class_reminders" as const, label: "Напоминания о занятиях", desc: "Утром отправить клиенту его записи на сегодня" },
               { key: "qr_checkin" as const, label: "QR-чекин через бот", desc: "Клиент показывает QR-код из бота для входа в зал" },
               { key: "welcome_enabled" as const, label: "Приветственное сообщение", desc: "Отправить сообщение когда клиент нажимает /start" },
             ].map((item) => (
               <div key={item.key} className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{item.label}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--on-dark-soft)" }}>{item.desc}</p>
+                  <p className="text-sm font-medium text-foreground">{item.label}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{item.desc}</p>
                 </div>
                 <Switch checked={auto[item.key]} onCheckedChange={(v) => setAuto((p) => ({ ...p, [item.key]: v }))} />
               </div>
             ))}
           </div>
           <Feedback msg={autoMsg} />
-          <button onClick={handleSaveAuto} disabled={autoPending || !connected}
-            className="h-9 px-4 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-            style={{ background: "#2AABEE" }}>
+          <Button onClick={handleSaveAuto} size="lg" disabled={autoPending || !connected}>
             {autoPending ? "Сохранение…" : "Сохранить настройки"}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -334,10 +328,10 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
 
       {/* ── Templates tab ── */}
       {tab === "templates" && (
-        <div className="rounded-lg p-5 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="space-y-5 rounded-lg border border-border bg-card p-5">
           {!connected && (
-            <div className="p-3 rounded-lg text-sm" style={{ background: "rgba(245,158,11,0.08)", color: "#b45309" }}>
-              ⚠ Сначала подключите бота на вкладке «Основное»
+            <div className="rounded-lg bg-chart-3/10 p-3 text-sm text-chart-3">
+              Сначала подключите бота на вкладке «Основное»
             </div>
           )}
           <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
@@ -360,30 +354,32 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, cli
             </div>
           ))}
           <Feedback msg={tplMsg} />
-          <button onClick={handleSaveTpl} disabled={tplPending || !connected}
-            className="h-9 px-4 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-            style={{ background: "#2AABEE" }}>
+          <Button onClick={handleSaveTpl} size="lg" disabled={tplPending || !connected}>
             {tplPending ? "Сохранение…" : "Сохранить шаблоны"}
-          </button>
+          </Button>
         </div>
       )}
 
       {/* ── Stats tab ── */}
       {tab === "stats" && (
-        <div className="rounded-lg p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="rounded-lg border border-border bg-card p-5">
           {connected ? (
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Сообщений сегодня",    value: Math.floor(clientCount * 1.2), color: "#2AABEE" },
-                { label: "Активных за 7 дней",   value: Math.floor(clientCount * 0.7), color: "#16a34a" },
-                { label: "Продлений через бот",  value: Math.floor(clientCount * 0.08), color: "#7c3aed" },
-                { label: "QR-чекинов сегодня",   value: Math.floor(clientCount * 0.15), color: "#f59e0b" },
+                { label: "Доставлено за месяц", value: telegramStats.messagesMonth, className: "text-brand" },
+                { label: "Активных за 7 дней", value: telegramStats.activeUsers7d, className: "text-chart-2" },
+                { label: "Новых подключений", value: telegramStats.newUsersMonth, className: "text-chart-4" },
+                { label: "QR-чекинов сегодня", value: telegramStats.qrCheckinsToday, className: "text-chart-3" },
               ].map((s) => (
-                <div key={s.label} className="rounded-lg p-4" style={{ background: "var(--card-2)" }}>
-                  <p className="text-2xl font-bold" style={{ color: s.color }}>{s.value.toLocaleString("ru-RU")}</p>
-                  <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>{s.label}</p>
+                <div key={s.label} className="rounded-lg bg-muted p-4">
+                  <p className={`text-2xl font-bold ${s.className}`}>{s.value.toLocaleString("ru-RU")}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
                 </div>
               ))}
+              <div className="col-span-2 flex items-center justify-between rounded-lg border border-border px-4 py-3 text-sm">
+                <span className="text-muted-foreground">Ошибок доставки за месяц</span>
+                <span className={telegramStats.failedMonth ? "font-semibold text-destructive" : "font-semibold text-foreground"}>{telegramStats.failedMonth}</span>
+              </div>
             </div>
           ) : (
             <div className="py-8 text-center">
@@ -429,7 +425,7 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
             <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>Платежей всего</p>
           </div>
           <div className="rounded-lg p-4 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <p className="text-2xl font-bold" style={{ color: "#16a34a" }}>Активно</p>
+            <p className="text-2xl font-bold text-chart-2">Активно</p>
             <p className="text-xs mt-1" style={{ color: "var(--on-dark-soft)" }}>Статус вебхуков</p>
           </div>
         </div>
@@ -445,8 +441,7 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
                 {"•".repeat(8)} {currentValue.slice(-4)}
               </p>
             </div>
-            <span className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-              style={{ background: "rgba(22,163,74,0.12)", color: "#16a34a" }}>
+            <span className="flex items-center gap-1.5 rounded-full bg-chart-2/10 px-2.5 py-1 text-xs font-medium text-chart-2">
               <CheckCircle size={12} />Активно
             </span>
           </div>
@@ -478,12 +473,14 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
 
 // ── Export ────────────────────────────────────────────────────────
 
-export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, connectedAt, clubName, audienceOptions, recipients, history }: {
+export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, connectedAt, webhookReady, telegramStats, clubName, audienceOptions, recipients, history }: {
   slug: string; label: string; color: string
   connected: boolean; currentValue: string; clientCount: number
   subscribers?: number
   tgSettings?: TelegramSettings
   botUsername?: string; botFirstName?: string; connectedAt?: string | null
+  webhookReady?: boolean
+  telegramStats?: TelegramStats
   clubName?: string
   audienceOptions?: AudienceOption[]
   recipients?: Recipient[]
@@ -496,8 +493,10 @@ export function IntegrationManage({ slug, label, color, connected, currentValue,
         botUsername={botUsername ?? ""}
         botFirstName={botFirstName ?? "Бот"}
         connectedAt={connectedAt ?? null}
+        webhookReady={webhookReady ?? false}
         clientCount={clientCount}
         subscribers={subscribers ?? 0}
+        telegramStats={telegramStats ?? { messagesMonth: 0, activeUsers7d: 0, newUsersMonth: 0, qrCheckinsToday: 0, failedMonth: 0 }}
         tgSettings={tgSettings ?? DEFAULT_TG_SETTINGS}
         clubName={clubName ?? "Клуб"}
         audienceOptions={audienceOptions ?? []}

@@ -58,6 +58,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
 - `28efccd` · 2026-07-18 · Fix roles settings loading loop
 - `ec911ad` · 2026-07-18 · Document client payment binding [skip ci]
 - `119d7f7` · 2026-07-18 · Bind client profile payments to client
@@ -87,5 +88,4 @@ tags: [fitcrm, releases]
 - `7cf1ffc` · 2026-07-17 · Optimize CRM data loading
 - `51430e3` · 2026-07-17 · Use dropdown for quick actions
 - `20e2835` · 2026-07-17 · Adapt client profile for mobile
-- `d3a2f0a` · 2026-07-17 · Fix reports mobile controls
 <!-- AUTO:END changelog-candidates -->

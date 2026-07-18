@@ -257,8 +257,9 @@ export async function saveIntegrationAction(key: string, value: string): Promise
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!can(club.permissions, "settings", "integrations")) return { error: "Недостаточно прав" }
+  if (key === "telegram") return { error: "Подключите Telegram в разделе «Интеграции»" }
 
-  const updateField: Record<string, string> = key === "telegram" ? { tg_token: value } : {}
+  const updateField: Record<string, string> = {}
   if (Object.keys(updateField).length === 0) {
     const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
     const cur = (clubRow?.settings as Record<string, unknown>) ?? {}

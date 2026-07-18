@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 28efccd · 2026-07-18T15:23:53+05:00 · Fix roles settings loading loop.
+- Последний commit: 249ee65 · 2026-07-18T15:27:48+05:00 · Document roles loading fix [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 55; последняя `0055_harden_public_rpcs.sql`.
+- Миграции в Git: 57; последняя `0057_broadcast_storage_listing.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 

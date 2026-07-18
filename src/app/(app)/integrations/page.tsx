@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import { redirect } from "next/navigation"
 import { IntegrationsCatalog, type IntegrationStatus } from "@/components/app/IntegrationsCatalog"
@@ -14,16 +15,16 @@ export default async function IntegrationsPage() {
   const statuses: IntegrationStatus[] = []
 
   {
-    const { data } = await supabase
+    const [{ data }, { data: telegramIntegration }] = await Promise.all([supabase
       .from("clubs")
-      .select("tg_token, settings")
+      .select("settings")
       .eq("id", club.clubId)
-      .single()
+      .single(), createServiceClient().from("telegram_integrations").select("club_id").eq("club_id", club.clubId).maybeSingle()])
 
     if (data) {
       const integrations = (data.settings as any)?.integrations ?? {}
 
-      if (data.tg_token) {
+      if (telegramIntegration) {
         const { count } = await supabase
           .from("clients")
           .select("id", { count: "exact", head: true })

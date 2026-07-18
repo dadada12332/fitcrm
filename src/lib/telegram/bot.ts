@@ -2,18 +2,18 @@ import { sanitizeSearchTerm } from "@/lib/search"
 import { Bot, InlineKeyboard, Keyboard, InputFile } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 
-// ── Lazy bot instance ─────────────────────────────────────────────
+// Vercel may reuse a function instance, so handlers are cached per club bot.
+const clubBots = new Map<string, Bot>()
 
-let _bot: Bot | null = null
+export function getClubBot(token: string, clubId: string): Bot {
+  const cacheKey = `${clubId}:${token.slice(-8)}`
+  const cached = clubBots.get(cacheKey)
+  if (cached) return cached
 
-export function getBot(): Bot {
-  if (!_bot) {
-    const token = process.env.TELEGRAM_CRM_BOT_TOKEN
-    if (!token) throw new Error("TELEGRAM_CRM_BOT_TOKEN is not configured")
-    _bot = new Bot(token)
-    setupHandlers(_bot)
-  }
-  return _bot
+  const bot = new Bot(token)
+  setupHandlers(bot, clubId)
+  clubBots.set(cacheKey, bot)
+  return bot
 }
 
 // ── Types ─────────────────────────────────────────────────────────
@@ -21,13 +21,21 @@ export function getBot(): Bot {
 type UserRole = "client" | "owner" | "manager" | "admin" | "trainer"
 
 interface TgUser {
+  club_id: string
   telegram_id: number
   client_id: string | null
   staff_id: string | null
   role: UserRole
   pending_action: string | null
+  preferences: { expiry_reminders?: boolean; schedule_reminders?: boolean }
   client?: { id: string; full_name: string; qr_token: string | null; club_id: string }
-  staff?: { id: string; role: string; club_id: string; settings: Record<string, any> }
+  staff?: { id: string; role: string; club_id: string; settings: { full_name?: string; phone?: string } }
+}
+
+type ClubTelegramSettings = {
+  qr_checkin?: boolean
+  welcome_enabled?: boolean
+  welcome_message?: string
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -41,6 +49,43 @@ function normalizePhone(raw: string): string {
 }
 
 function fmtMoney(n: number) { return n.toLocaleString("ru-RU") }
+
+async function getClubTelegramSettings(clubId: string) {
+  const { data } = await createServiceClient().from("clubs").select("name, settings").eq("id", clubId).single()
+  const rootSettings = (data?.settings as Record<string, unknown> | null) ?? {}
+  const settings = (rootSettings.tg_settings as ClubTelegramSettings | undefined) ?? {}
+  return { clubName: data?.name ?? "Клуб", settings }
+}
+
+function renderTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (text, [key, value]) => text.replaceAll(`{{${key}}}`, String(value)),
+    template,
+  )
+}
+
+function tashkentDayOfWeek() {
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Tashkent", weekday: "short" }).format(new Date())
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekday)
+}
+
+async function getTodaySchedule(clubId: string) {
+  const { data } = await createServiceClient()
+    .from("schedules")
+    .select("title, start_time, end_time, rooms(name)")
+    .eq("club_id", clubId)
+    .eq("day_of_week", tashkentDayOfWeek())
+    .eq("is_active", true)
+    .order("start_time")
+
+  if (!data?.length) return "📅 На сегодня занятий нет."
+  let text = "📅 *Расписание на сегодня*\n\n"
+  for (const item of data) {
+    const room = (item.rooms as unknown as { name?: string } | null)?.name ?? ""
+    text += `🕐 ${item.start_time.slice(0, 5)}–${item.end_time.slice(0, 5)} *${item.title}*${room ? ` (${room})` : ""}\n`
+  }
+  return text
+}
 
 function todayRange() {
   const now     = new Date()
@@ -56,30 +101,34 @@ function yesterdayRange() {
   return { from: yesterday.toISOString(), to: todayUTC.toISOString() }
 }
 
-async function getLinkedUser(telegramId: number): Promise<TgUser | null> {
+async function getLinkedUser(telegramId: number, clubId: string): Promise<TgUser | null> {
   const supabase = createServiceClient()
   const { data } = await supabase
     .from("telegram_users")
-    .select("telegram_id, client_id, staff_id, role, pending_action, clients(id, full_name, qr_token, club_id), staff(id, role, club_id, settings)")
+    .select("club_id, telegram_id, client_id, staff_id, role, pending_action, preferences, clients(id, full_name, qr_token, club_id), staff(id, role, club_id, settings)")
+    .eq("club_id", clubId)
     .eq("telegram_id", telegramId)
     .maybeSingle()
   if (!data) return null
   return {
+    club_id:        data.club_id,
     telegram_id:    data.telegram_id,
     client_id:      data.client_id,
     staff_id:       data.staff_id,
     role:           (data.role ?? "client") as UserRole,
     pending_action: data.pending_action,
-    client:         (data.clients as any) ?? undefined,
-    staff:          (data.staff as any) ?? undefined,
+    preferences:    (data.preferences as TgUser["preferences"]) ?? {},
+    client:         (data.clients as unknown as TgUser["client"]) ?? undefined,
+    staff:          (data.staff as unknown as TgUser["staff"]) ?? undefined,
   }
 }
 
-async function setPendingAction(telegramId: number, action: string | null) {
+async function setPendingAction(telegramId: number, clubId: string, action: string | null) {
   const supabase = createServiceClient()
   await supabase
     .from("telegram_users")
     .update({ pending_action: action })
+    .eq("club_id", clubId)
     .eq("telegram_id", telegramId)
 }
 
@@ -90,7 +139,11 @@ function clientMenu() {
     .text("🏋️ Мой абонемент", "sub")
     .text("📊 История", "history")
     .row()
+    .text("💳 Продлить", "renew")
+    .text("📅 Расписание", "client_schedule")
+    .row()
     .text("📱 QR-код", "qr")
+    .text("🔔 Напоминания", "reminder_settings")
     .text("📞 Контакты", "contacts")
 }
 
@@ -237,14 +290,27 @@ async function askAI(clubId: string, question: string): Promise<string> {
 
 // ── Handler setup ─────────────────────────────────────────────────
 
-function setupHandlers(bot: Bot) {
+function setupHandlers(bot: Bot, clubId: string) {
+  bot.use(async (ctx, next) => {
+    const telegramId = ctx.from?.id
+    if (telegramId) {
+      await createServiceClient().from("telegram_events").insert({
+        club_id: clubId,
+        telegram_id: telegramId,
+        event_type: "bot_interaction",
+        status: "received",
+        metadata: { update_type: ctx.callbackQuery ? "callback" : ctx.message ? "message" : "other" },
+      })
+    }
+    await next()
+  })
 
   // /start, /menu ──────────────────────────────────────────────────
   bot.command(["start", "menu"], async (ctx) => {
     const telegramId = ctx.from?.id
     if (!telegramId) return
 
-    const tgUser = await getLinkedUser(telegramId)
+    const tgUser = await getLinkedUser(telegramId, clubId)
     if (tgUser) {
       await sendMenuForUser(ctx, tgUser)
       return
@@ -261,7 +327,7 @@ function setupHandlers(bot: Bot) {
   bot.command("sub", async (ctx) => {
     const telegramId = ctx.from?.id
     if (!telegramId) return
-    const tgUser = await getLinkedUser(telegramId)
+    const tgUser = await getLinkedUser(telegramId, clubId)
     if (!tgUser?.client_id || !tgUser.client?.club_id) { await ctx.reply("Сначала войдите: /start"); return }
     // simulate callback
     const supabase = createServiceClient()
@@ -284,12 +350,25 @@ function setupHandlers(bot: Bot) {
     await ctx.reply(text, { parse_mode: "Markdown", reply_markup: new InlineKeyboard().text("⬅️ Меню", "menu") })
   })
 
+  bot.command("schedule", async (ctx) => {
+    const telegramId = ctx.from?.id
+    if (!telegramId) return
+    const tgUser = await getLinkedUser(telegramId, clubId)
+    if (!tgUser) { await ctx.reply("Сначала войдите: /start"); return }
+    await ctx.reply(await getTodaySchedule(clubId), {
+      parse_mode: "Markdown",
+      reply_markup: new InlineKeyboard().text("⬅️ Меню", tgUser.role === "client" ? "menu" : "staff_menu"),
+    })
+  })
+
   // /qr — QR-код напрямую ───────────────────────────────────────────
   bot.command("qr", async (ctx) => {
     const telegramId = ctx.from?.id
     if (!telegramId) return
-    const tgUser = await getLinkedUser(telegramId)
+    const tgUser = await getLinkedUser(telegramId, clubId)
     if (!tgUser?.client_id || !tgUser.client?.club_id) { await ctx.reply("Сначала войдите: /start"); return }
+    const { settings } = await getClubTelegramSettings(clubId)
+    if (settings.qr_checkin === false) { await ctx.reply("QR-вход отключён клубом."); return }
     const supabase = createServiceClient()
     let qrToken = tgUser.client?.qr_token as string | null
     if (!qrToken) {
@@ -309,7 +388,7 @@ function setupHandlers(bot: Bot) {
   bot.command("help", async (ctx) => {
     const telegramId = ctx.from?.id
     if (!telegramId) return
-    const tgUser = await getLinkedUser(telegramId)
+    const tgUser = await getLinkedUser(telegramId, clubId)
     const isLinked = !!tgUser
 
     let text = `❓ *Помощь*\n\n`
@@ -333,6 +412,11 @@ function setupHandlers(bot: Bot) {
     const telegramId = ctx.from?.id
     if (!telegramId) return
 
+    if (ctx.message.contact?.user_id !== telegramId) {
+      await ctx.reply("Отправьте именно свой номер кнопкой ниже.")
+      return
+    }
+
     const phone      = ctx.message.contact?.phone_number ?? ""
     const normalized = normalizePhone(phone)
     if (!normalized) return
@@ -344,6 +428,7 @@ function setupHandlers(bot: Bot) {
     const { data: staffList } = await supabase
       .from("staff")
       .select("id, role, club_id, settings, is_active")
+      .eq("club_id", clubId)
       .eq("is_active", true)
 
     const matchedStaff = (staffList ?? []).find((s: any) => {
@@ -353,8 +438,8 @@ function setupHandlers(bot: Bot) {
 
     if (matchedStaff) {
       const { error: upsertErr } = await supabase.from("telegram_users").upsert(
-        { telegram_id: telegramId, staff_id: matchedStaff.id, role: matchedStaff.role },
-        { onConflict: "telegram_id" }
+        { club_id: clubId, telegram_id: telegramId, staff_id: matchedStaff.id, client_id: null, role: matchedStaff.role, last_seen_at: new Date().toISOString() },
+        { onConflict: "club_id,telegram_id" }
       )
       if (upsertErr) {
         await ctx.reply(`❌ Ошибка привязки: ${upsertErr.message}`, removeKb)
@@ -367,7 +452,7 @@ function setupHandlers(bot: Bot) {
         `✅ Вход выполнен!\nРоль: *${roleName[matchedStaff.role] ?? matchedStaff.role}*`,
         { ...removeKb, parse_mode: "Markdown" } as any
       )
-      const tgUser = await getLinkedUser(telegramId)
+      const tgUser = await getLinkedUser(telegramId, clubId)
       if (tgUser) await sendMenuForUser(ctx, tgUser)
       return
     }
@@ -376,23 +461,48 @@ function setupHandlers(bot: Bot) {
     const { data: clients } = await supabase
       .from("clients")
       .select("id, full_name, phone, qr_token")
+      .eq("club_id", clubId)
       .ilike("phone", `%${normalized}%`)
       .limit(1)
 
     if (clients?.length) {
       const client = clients[0]
       const { error: upsertErr } = await supabase.from("telegram_users").upsert(
-        { telegram_id: telegramId, client_id: client.id, role: "client" },
-        { onConflict: "telegram_id" }
+        { club_id: clubId, telegram_id: telegramId, client_id: client.id, staff_id: null, role: "client", last_seen_at: new Date().toISOString() },
+        { onConflict: "club_id,telegram_id" }
       )
       if (upsertErr) {
         await ctx.reply(`❌ Ошибка привязки: ${upsertErr.message}`, removeKb)
         return
       }
-      await supabase.from("clients").update({ telegram_id: telegramId }).eq("id", client.id)
+      await supabase.from("clients").update({ telegram_id: telegramId }).eq("id", client.id).eq("club_id", clubId)
       const firstName = client.full_name.split(" ")[0]
-      await ctx.reply(`✅ Добро пожаловать, *${firstName}*!`, { ...removeKb, parse_mode: "Markdown" } as any)
-      const tgUser = await getLinkedUser(telegramId)
+      const [{ clubName, settings }, { data: activeSub }] = await Promise.all([
+        getClubTelegramSettings(clubId),
+        supabase.from("subscriptions").select("expires_at").eq("club_id", clubId).eq("client_id", client.id)
+          .in("status", ["active", "frozen"]).order("expires_at", { ascending: false }).limit(1).maybeSingle(),
+      ])
+      const welcome = settings.welcome_enabled === false
+        ? `✅ Добро пожаловать, *${firstName}*!`
+        : renderTemplate(
+            settings.welcome_message || "Привет, {{name}}! Добро пожаловать в {{club}}.",
+            {
+              name: firstName,
+              club: clubName,
+              expires: activeSub?.expires_at
+                ? new Date(activeSub.expires_at).toLocaleDateString("ru-RU")
+                : "—",
+            },
+          )
+      await ctx.reply(welcome, { ...removeKb, parse_mode: "Markdown" } as any)
+      await supabase.from("telegram_events").insert({
+        club_id: clubId,
+        telegram_id: telegramId,
+        client_id: client.id,
+        event_type: "client_linked",
+        status: "received",
+      })
+      const tgUser = await getLinkedUser(telegramId, clubId)
       if (tgUser) await sendMenuForUser(ctx, tgUser)
       return
     }
@@ -408,15 +518,15 @@ function setupHandlers(bot: Bot) {
     const telegramId = ctx.from?.id
     if (!telegramId) return
 
-    const tgUser = await getLinkedUser(telegramId)
+    const tgUser = await getLinkedUser(telegramId, clubId)
 
     // Handle pending actions (multi-step flows)
     if (tgUser?.pending_action === "searching_client") {
-      await setPendingAction(telegramId, null)
+      await setPendingAction(telegramId, clubId, null)
       const query    = ctx.message.text?.trim() ?? ""
       const supabase = createServiceClient()
-      const clubId   = tgUser.staff?.club_id
-      if (!clubId) return
+      const linkedClubId = tgUser.staff?.club_id
+      if (!linkedClubId || linkedClubId !== clubId) return
 
       const { data: found } = await supabase
         .from("clients")
@@ -443,9 +553,10 @@ function setupHandlers(bot: Bot) {
     }
 
     if (tgUser?.pending_action === "asking_ai") {
-      await setPendingAction(telegramId, null)
+      await setPendingAction(telegramId, clubId, null)
       const question = ctx.message.text?.trim() ?? ""
-      const clubId   = tgUser.staff?.club_id ?? ""
+      const linkedClubId = tgUser.staff?.club_id ?? ""
+      if (linkedClubId !== clubId) return
       await ctx.reply("🤖 Анализирую данные...")
       const answer = await askAI(clubId, question)
       await ctx.reply(answer, {
@@ -470,7 +581,7 @@ function setupHandlers(bot: Bot) {
     if (!telegramId) return
 
     const data   = ctx.callbackQuery.data
-    const tgUser = await getLinkedUser(telegramId)
+    const tgUser = await getLinkedUser(telegramId, clubId)
 
     if (!tgUser) {
       await ctx.answerCallbackQuery("Сначала войдите через /start")
@@ -482,7 +593,8 @@ function setupHandlers(bot: Bot) {
     const supabase = createServiceClient()
     const role     = tgUser.role
     const isStaff  = role !== "client"
-    const clubId   = isStaff ? (tgUser.staff?.club_id ?? "") : ""
+    const linkedClubId = isStaff ? (tgUser.staff?.club_id ?? "") : tgUser.client?.club_id
+    if (linkedClubId !== clubId) return
 
     // ── Универсальные ──────────────────────────────────────────────
 
@@ -566,7 +678,68 @@ function setupHandlers(bot: Bot) {
         return
       }
 
+      if (data === "renew") {
+        const [{ data: currentSub }, { data: providers }] = await Promise.all([
+          supabase.from("subscriptions")
+            .select("membership_id, memberships(name, price)")
+            .eq("club_id", clubId).eq("client_id", clientId)
+            .not("membership_id", "is", null)
+            .order("expires_at", { ascending: false }).limit(1).maybeSingle(),
+          supabase.from("club_payment_credentials")
+            .select("provider").eq("club_id", clubId).eq("enabled", true).in("provider", ["payme", "click"]),
+        ])
+        const membership = currentSub?.memberships as unknown as { name: string; price: number } | null
+        const providerNames = new Set((providers ?? []).map((item) => item.provider))
+        const provider = providerNames.has("payme") ? "payme" : providerNames.has("click") ? "click" : null
+        if (!currentSub?.membership_id || !membership) {
+          await ctx.editMessageText("Для продления сначала выберите абонемент у администратора клуба.", { reply_markup: back })
+          return
+        }
+        if (!provider) {
+          await ctx.editMessageText("Онлайн-оплата пока не подключена. Обратитесь к администратору клуба.", { reply_markup: back })
+          return
+        }
+
+        const { data: payment, error: paymentError } = await supabase.from("payments").insert({
+          club_id: clubId,
+          client_id: clientId,
+          pending_membership_id: currentSub.membership_id,
+          amount: membership.price,
+          provider,
+          status: "pending",
+        }).select("id").single()
+        if (paymentError || !payment) {
+          await ctx.editMessageText("Не удалось создать оплату. Попробуйте позже.", { reply_markup: back })
+          return
+        }
+
+        const { buildClickPayUrl, buildPaymePayUrl } = await import("@/lib/payment-links")
+        const paymentUrl = provider === "payme"
+          ? await buildPaymePayUrl(clubId, payment.id, Number(membership.price))
+          : await buildClickPayUrl(clubId, payment.id, Number(membership.price))
+        if (!paymentUrl) {
+          await supabase.from("payments").update({ status: "failed" }).eq("id", payment.id).eq("club_id", clubId)
+          await ctx.editMessageText("Платёжная ссылка сейчас недоступна.", { reply_markup: back })
+          return
+        }
+
+        await supabase.from("telegram_events").insert({
+          club_id: clubId, telegram_id: telegramId, client_id: clientId,
+          event_type: "renewal_link_created", status: "sent", metadata: { payment_id: payment.id, provider },
+        })
+        await ctx.editMessageText(
+          `💳 *Продление абонемента*\n\n${membership.name}\nСумма: *${fmtMoney(Number(membership.price))} сум*\n\nПосле оплаты абонемент активируется автоматически.`,
+          { reply_markup: new InlineKeyboard().url(`Оплатить через ${provider === "payme" ? "Payme" : "Click"}`, paymentUrl).row().text("⬅️ Назад", "menu"), parse_mode: "Markdown" },
+        )
+        return
+      }
+
       if (data === "qr") {
+        const { settings } = await getClubTelegramSettings(clubId)
+        if (settings.qr_checkin === false) {
+          await ctx.editMessageText("QR-вход отключён клубом.", { reply_markup: back })
+          return
+        }
         let qrToken = tgUser.client?.qr_token as string | null
         if (!qrToken) {
           qrToken = crypto.randomUUID()
@@ -579,6 +752,36 @@ function setupHandlers(bot: Bot) {
             caption: `📱 *Ваш QR-код*\n\nПокажите на входе.`, parse_mode: "Markdown",
           })
         } catch { await ctx.reply("❌ Ошибка генерации QR.") }
+        return
+      }
+
+      if (data === "client_schedule") {
+        await ctx.editMessageText(await getTodaySchedule(clubId), { reply_markup: back, parse_mode: "Markdown" })
+        return
+      }
+
+      if (data === "reminder_settings" || data.startsWith("toggle_reminder:")) {
+        let preferences = tgUser.preferences ?? {}
+        if (data.startsWith("toggle_reminder:")) {
+          const key = data.split(":")[1] as "expiry_reminders" | "schedule_reminders"
+          if (key === "expiry_reminders" || key === "schedule_reminders") {
+            preferences = { ...preferences, [key]: preferences[key] === false }
+            await supabase.from("telegram_users").update({ preferences })
+              .eq("club_id", clubId).eq("telegram_id", telegramId)
+          }
+        }
+        const expiryOn = preferences.expiry_reminders !== false
+        const scheduleOn = preferences.schedule_reminders !== false
+        const keyboard = new InlineKeyboard()
+          .text(`${expiryOn ? "✅" : "○"} Истечение абонемента`, "toggle_reminder:expiry_reminders")
+          .row()
+          .text(`${scheduleOn ? "✅" : "○"} Занятия`, "toggle_reminder:schedule_reminders")
+          .row()
+          .text("⬅️ Назад", "menu")
+        await ctx.editMessageText(
+          "🔔 *Напоминания*\n\nВыберите, какие уведомления получать от клуба.",
+          { reply_markup: keyboard, parse_mode: "Markdown" },
+        )
         return
       }
 
@@ -699,7 +902,7 @@ function setupHandlers(bot: Bot) {
         const exp     = new Date(s.expires_at!)
         const daysLeft = Math.ceil((exp.getTime() - Date.now()) / 86_400_000)
         try {
-          await getBot().api.sendMessage(tgId, `⚠️ *Ваш абонемент заканчивается через ${daysLeft} дн.*\n\nОбратитесь к администратору для продления.`, { parse_mode: "Markdown" })
+          await bot.api.sendMessage(tgId, `⚠️ *Ваш абонемент заканчивается через ${daysLeft} дн.*\n\nОбратитесь к администратору для продления.`, { parse_mode: "Markdown" })
           sent++
         } catch { /* user may have blocked bot */ }
       }
@@ -708,7 +911,7 @@ function setupHandlers(bot: Bot) {
     }
 
     if (data === "ask_ai") {
-      await setPendingAction(telegramId, "asking_ai")
+      await setPendingAction(telegramId, clubId, "asking_ai")
       await ctx.editMessageText("🤖 *AI Аналитик*\n\nНапишите ваш вопрос:\n\nНапример: _«Почему упала выручка?»_ или _«Кто давно не приходил?»_", {
         reply_markup: backBtn("staff_menu"),
         parse_mode: "Markdown",
@@ -717,7 +920,7 @@ function setupHandlers(bot: Bot) {
     }
 
     if (data === "find_client") {
-      await setPendingAction(telegramId, "searching_client")
+      await setPendingAction(telegramId, clubId, "searching_client")
       await ctx.editMessageText("🔍 *Поиск клиента*\n\nНапишите имя или номер телефона:", {
         reply_markup: backBtn("staff_menu"),
         parse_mode: "Markdown",
@@ -763,7 +966,7 @@ function setupHandlers(bot: Bot) {
     }
 
     if (data === "mark_visit") {
-      await setPendingAction(telegramId, "searching_client")
+      await setPendingAction(telegramId, clubId, "searching_client")
       await ctx.editMessageText("✅ *Отметить посещение*\n\nНайдите клиента — введите имя или телефон:", {
         reply_markup: backBtn("staff_menu"),
         parse_mode: "Markdown",

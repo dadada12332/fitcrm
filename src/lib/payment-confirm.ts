@@ -62,19 +62,20 @@ export async function afterPaymentPaid(clubId: string, paymentId: string): Promi
 
 async function sendReceipt(clubId: string, clientId: string, amount: number, membership: string | null, expires: string | null): Promise<void> {
   const s = createServiceClient()
-  const [{ data: cl }, { data: club }] = await Promise.all([
+  const [{ data: cl }, { data: integration }, { data: club }] = await Promise.all([
     s.from("clients").select("telegram_id").eq("id", clientId).eq("club_id", clubId).maybeSingle(),
-    s.from("clubs").select("tg_token, settings").eq("id", clubId).maybeSingle(),
+    s.from("telegram_integrations").select("bot_token").eq("club_id", clubId).maybeSingle(),
+    s.from("clubs").select("settings").eq("id", clubId).maybeSingle(),
   ])
-  if (!cl?.telegram_id || !club?.tg_token) return
+  if (!cl?.telegram_id || !integration?.bot_token) return
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tpl = (club.settings as any)?.tg_settings?.payment_template
+  const tpl = (club?.settings as any)?.tg_settings?.payment_template
     ?? "✅ Оплата подтверждена!\n\nСумма: {{amount}} сум\nАбонемент: {{membership}}\nДействует до: {{expires}}"
   const text = tpl
     .replace(/\{\{amount\}\}/g, amount.toLocaleString("ru-RU"))
     .replace(/\{\{membership\}\}/g, membership ?? "—")
     .replace(/\{\{expires\}\}/g, expires ? new Date(expires).toLocaleDateString("ru-RU") : "—")
-  await fetch(`https://api.telegram.org/bot${club.tg_token}/sendMessage`, {
+  await fetch(`https://api.telegram.org/bot${integration.bot_token}/sendMessage`, {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ chat_id: cl.telegram_id, text }),
   }).catch(() => {})

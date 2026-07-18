@@ -4,6 +4,7 @@ import { getVisitsKPI, getVisitsPage, VISITS_PAGE_SIZE } from "@/lib/visits"
 import { VisitsQuickCheckin } from "@/components/app/VisitsQuickCheckin"
 import { VisitsTable } from "@/components/app/VisitsTable"
 import { ManualVisitModal } from "@/components/app/ManualVisitModal"
+import { QrCheckinScanner } from "@/components/app/QrCheckinScanner"
 import { UserCheck, Users, UserX, TrendingUp } from "lucide-react"
 import { redirect } from "next/navigation"
 
@@ -35,7 +36,10 @@ export default async function VisitsPage({
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Посещения</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Быстрый check-in и журнал посещений</p>
         </div>
-        <ManualVisitModal role={club.role} />
+        <div className="flex flex-wrap gap-2">
+          <QrCheckinScanner />
+          <ManualVisitModal role={club.role} />
+        </div>
       </div>
 
       {/* KPI */}

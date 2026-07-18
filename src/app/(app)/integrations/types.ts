@@ -3,6 +3,7 @@ export type TelegramSettings = {
   auto_expiry_1d: boolean
   qr_checkin: boolean
   renewal_reminder: boolean
+  class_reminders: boolean
   welcome_enabled: boolean
   welcome_message: string
   expiry_template: string
@@ -14,6 +15,7 @@ export const DEFAULT_TG_SETTINGS: TelegramSettings = {
   auto_expiry_1d: true,
   qr_checkin: true,
   renewal_reminder: true,
+  class_reminders: true,
   welcome_enabled: true,
   welcome_message: "Привет, {{name}}! 👋\n\nДобро пожаловать в {{club}}.\nВаш абонемент активен до {{expires}}.",
   expiry_template: "{{name}}, ваш абонемент истекает через {{days}} дн.\n\nПродлить: /renew",
