@@ -14,7 +14,7 @@ tags: [fitcrm, operations]
 | Окружение | Production + local; отдельные staging/preview не подтверждены |
 | Production | [fitcrm-three.vercel.app](https://fitcrm-three.vercel.app), состояние последнего deploy не проверено |
 | Спринт | Production readiness и стабилизация |
-| Активная задача | [[Tasks/TASK-0004-backup-restore-drill]] |
+| Активная задача | [[Tasks/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]] |
 
 ## Быстрый обзор
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 - `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
 - `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
 - `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `58ffb23` · 2026-07-18 · Fix platform support mobile header
 - `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
 - `1cf7e0a` · 2026-07-18 · Fix platform dashboard mobile grid
-- `f4543f3` · 2026-07-18 · Unify platform admin design system
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

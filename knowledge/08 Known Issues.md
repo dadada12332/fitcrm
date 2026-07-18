@@ -71,8 +71,8 @@ tags: [fitcrm, risks]
 - Environment: production
 - Symptoms: нет подтверждённого сценария восстановления и измеренного RTO/RPO.
 - Expected: документированный и проверенный restore drill.
-- Actual: доступность резервных копий и процедура не проверены в этой сессии.
-- Cause: отсутствует операционная процедура.
-- Workaround: нет подтверждённого workaround.
+- Actual: Free plan, PITR disabled, available backups `0`, isolated branches `0`; runbook готов, restore не выполнялся.
+- Cause: нет recoverable backup и безопасного target; платная branch требует отдельного cost confirmation.
+- Workaround: до upgrade требуется регулярный off-site logical dump и отдельный backup Storage objects.
 - Task: [[Tasks/TASK-0004-backup-restore-drill]].
-- Last checked: 2026-07-18.
+- Last checked: 2026-07-18; task blocked.

@@ -1,23 +1,23 @@
 ---
 type: current-task
 status: in-progress
-active_task: TASK-0004
+active_task: TASK-0006
 updated: 2026-07-18
 tags: [fitcrm, tasks]
 ---
 
-# TASK-0004 — Провести backup/restore drill
+# TASK-0006 — Переработать AI Аналитику по дизайн-системе
 
-Источник задачи: [[Tasks/TASK-0004-backup-restore-drill]].
+Источник задачи: [[Tasks/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]].
 
 ## Цель
 
-Подтвердить фактическую стратегию резервного копирования и безопасно проверить восстановление без воздействия на production.
+Сделать AI Аналитику полезным операционным экраном FitCRM в общей дизайн-системе и с полноценной мобильной адаптацией.
 
 ## Что нельзя сломать
 
-Production data, Auth, storage и текущую доступность CRM.
+Текущие AI actions, permission boundary, производительность dashboard и мобильные layout-инварианты.
 
 ## Текущий этап
 
-Проверка доступных backup-артефактов, RPO/RTO и безопасной цели для restore drill.
+Исследование актуальных SaaS/CRM analytics references и аудит существующего `/ai` модуля.

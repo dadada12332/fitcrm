@@ -28,6 +28,7 @@ updated: 2026-07-18
 
 ## Infrastructure
 
+- [[Infrastructure/Backup and Restore Runbook]]
 - [[Infrastructure/Environment Matrix]]
 - [[Infrastructure/Launch Checklist]]
 - [[Infrastructure/Security Checklist]]
@@ -48,6 +49,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0003-critical-flow-tests]]
 - [[Tasks/Completed/TASK-0005-mobile-platform-stabilization]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
+- [[Tasks/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 
 ## UX
 

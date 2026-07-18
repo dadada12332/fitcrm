@@ -51,6 +51,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 - `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
 - `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
 - `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
@@ -80,5 +81,4 @@ tags: [fitcrm, releases]
 - `63e9b2c` · 2026-07-17 · style(telegram): рассылка на дизайн-систему приложения
 - `a8cdb61` · 2026-07-17 · style(telegram): страница рассылки — контролы и радиусы к единому стилю (rounded-lg карточки, rounded-md h-9 контролы), превью TG не трогал
 - `a2ce9ff` · 2026-07-17 · fix(telegram): утечка отчётов по всем клубам + понятная подсказка рассылки
-- `d2b3abf` · 2026-07-17 · feat(schedule): управление залами + мгновенные табы
 <!-- AUTO:END changelog-candidates -->

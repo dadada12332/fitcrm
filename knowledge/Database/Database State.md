@@ -7,8 +7,8 @@ updated: 2026-07-18
 
 ## Repository facts
 
-- 54 SQL migrations under `supabase/migrations/`, from `0001` to `0054`.
-- Latest: `0054_performance_roundtrip_repair.sql`.
+- 55 SQL migrations under `supabase/migrations/`, from `0001` to `0055`.
+- Latest: `0055_harden_public_rpcs.sql`, applied and verified on production.
 - Security hardening: `0051_security_hardening.sql` and `0052_staff_escalation_guard.sql`.
 - Performance: `0053_perf_indexes.sql` and `0054_performance_roundtrip_repair.sql`.
 
@@ -20,9 +20,9 @@ RPCs cover layout/dashboard context, KPI, paginated clients/payments/visits, rep
 
 ## Runtime status
 
-- Применение миграций к production: не проверено.
-- Supabase project region: не проверено.
-- Backup и restore drill: не проверено.
+- Production имеет 38/38 `public` tables с RLS; миграция `0055` проверена по grants/prosecdef.
+- Supabase region: `ap-southeast-2` (Sydney), рядом с Vercel `syd1`.
+- Backup availability проверена: Free plan, PITR off, snapshots `0`; restore drill blocked до isolated target.
 - Generated TypeScript database types: отсутствуют или не подтверждены.
 
 ## Change rules

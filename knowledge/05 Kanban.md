@@ -30,7 +30,7 @@ tags: [fitcrm, tasks]
 ## In Progress
 
 <!-- AUTO:START kanban-in-progress -->
-- TASK-0004 · Провести backup/restore drill · infrastructure · P1 · database · 2026-07-18 · [[Tasks/TASK-0004-backup-restore-drill]]
+- TASK-0006 · Переработать AI Аналитику по дизайн-системе · feature · P1 · ai-analytics · 2026-07-18 · [[Tasks/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review
@@ -48,7 +48,7 @@ tags: [fitcrm, tasks]
 ## Blocked
 
 <!-- AUTO:START kanban-blocked -->
-- Нет задач.
+- TASK-0004 · Провести backup/restore drill · infrastructure · P1 · database · 2026-07-18 · [[Tasks/TASK-0004-backup-restore-drill]]
 <!-- AUTO:END kanban-blocked -->
 
 ## Done
