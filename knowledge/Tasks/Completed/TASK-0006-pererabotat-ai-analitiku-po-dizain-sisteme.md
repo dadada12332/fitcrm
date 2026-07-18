@@ -31,7 +31,7 @@ tags: [fitcrm, ai, analytics, ux]
 
 - [x] Экран понятен без инструкций и показывает приоритетные инсайты, тренды и следующие действия.
 - [x] Нет horizontal overflow и перекрытий на Pixel 7 и desktop.
-- [ ] TypeScript, unit/security, Playwright и production build проходят.
+- [x] TypeScript, unit/security, Playwright и production build проходят.
 - [x] Изменения изолированы отдельным коммитом и описаны в Vault.
 
 ## Files and data
@@ -60,7 +60,7 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Remaining
 
-Полный regression suite и production build выполняются в финальном ночном прогоне перед deploy.
+Нет. Полный regression suite и production build прошли в финальном ночном прогоне.
 
 ## Blockers
 

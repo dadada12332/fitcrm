@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
+- `dc9b926` · 2026-07-18 · Replace vulnerable spreadsheet parser
+- `6ded6e4` · 2026-07-18 · Report infrastructure health truthfully
+- `686869d` · 2026-07-18 · Scope payment service queries by club
+- `470bf62` · 2026-07-18 · Redesign AI analytics workspace
 - `55eeb1d` · 2026-07-18 · Add guarded backup restore runbook
 - `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 - `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
-- `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
-- `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
-- `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
-- `58ffb23` · 2026-07-18 · Fix platform support mobile header
-- `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

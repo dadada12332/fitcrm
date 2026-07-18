@@ -53,6 +53,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0003-critical-flow-tests]]
 - [[Tasks/Completed/TASK-0005-mobile-platform-stabilization]]
 - [[Tasks/Completed/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
+- [[Tasks/Completed/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 
 ## UX

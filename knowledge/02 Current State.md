@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `codex/night-autonomy-2026-07-18`.
-- Последний commit: 55eeb1d · 2026-07-18T11:14:33+05:00 · Add guarded backup restore runbook.
+- Последний commit: 63a6670 · 2026-07-18T11:39:00+05:00 · Harden Telegram tenant boundaries.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 55; последняя `0055_harden_public_rpcs.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -22,7 +22,7 @@ tags: [fitcrm, operations]
 
 **Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin.
 
-**Частично:** занятия/бронирования, автоматизация уведомлений, audit trail UI, тарифные ограничения, AI-аналитика без полноценного LLM-чата.
+**Частично:** занятия/бронирования, автоматизация уведомлений, audit trail UI и тарифные ограничения. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
 **Не завершено или не подтверждено:** реальные SMS/email, системный мониторинг ошибок, проверенный restore и staging-среда. Базовый Vitest/Playwright/RLS-контур добавлен; data-mutating E2E ждёт отдельную test DB.
 
@@ -43,7 +43,7 @@ tags: [fitcrm, operations]
 
 - Warm Supabase health-check составляет 55–167 ms, но зафиксирован cold sample 1162 ms; требуется наблюдение за cold path.
 - RLS изолирует tenant, но права модулей зависят от корректности каждой Server Action.
-- `npm audit` фиксирует high advisories в `xlsx`; требуется замена parser без force downgrade.
+- `npm audit` не фиксирует high/critical advisories; остаются 4 moderate transitive advisories без безопасного автоматического fix.
 - В коде остаётся lint-долг (`any`, unused vars, impure `Date.now()`).
 - Нет автоматического CI и тестовой матрицы.
 - Старые документы дают противоречивую картину реализации.

@@ -33,12 +33,14 @@ tags: [fitcrm, releases]
 ### Performance
 
 - Сокращены повторные auth/club round trips и задержки загрузки разделов CRM.
+- Типовые запросы AI Аналитики обходят LLM и получают scoped KPI напрямую из Supabase.
 
 ### Security
 
 - Миграция `0055` закрыла anonymous/cross-tenant вызов публичных `SECURITY DEFINER` RPC; production проверен через Advisor и rollback RLS drill.
 - Неизвестные/повреждённые role keys теперь получают deny-by-default permissions.
 - AI Аналитика переведена в read-only режим: mutating tools исключены до реализации явного подтверждения и модульных permission checks.
+- Service-role callbacks Click, Payme, Telegram и scheduled broadcasts получили явный tenant scope; Telegram отклоняет client ID другого клуба.
 
 ### Deprecated
 
@@ -46,13 +48,18 @@ tags: [fitcrm, releases]
 
 ### Removed
 
-- Нет пользовательски значимых удалений.
+- Удалён уязвимый пакет `xlsx`; импорт `.xlsx` работает через ExcelJS, legacy `.xls` больше не принимается.
 
 ## Автоматические кандидаты
 
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
+- `dc9b926` · 2026-07-18 · Replace vulnerable spreadsheet parser
+- `6ded6e4` · 2026-07-18 · Report infrastructure health truthfully
+- `686869d` · 2026-07-18 · Scope payment service queries by club
+- `470bf62` · 2026-07-18 · Redesign AI analytics workspace
 - `55eeb1d` · 2026-07-18 · Add guarded backup restore runbook
 - `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 - `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
@@ -78,9 +85,4 @@ tags: [fitcrm, releases]
 - `aaa88d0` · 2026-07-17 · Fix mobile sidebar drawer
 - `d081868` · 2026-07-17 · Fix CRM mobile layouts and navigation flows
 - `969916c` · 2026-07-17 · Fix onboarding first-step redirect
-- `883f584` · 2026-07-17 · Improve auth and onboarding responsiveness
-- `38f646c` · 2026-07-17 · docs: убрал коллизию про деплой в CLAUDE.md (git push авто-деплоит; alias вручную) — как заметил Codex
-- `60c566e` · 2026-07-17 · docs: HANDOFF.md — полная передача проекта для нового AI (Codex) + AGENTS.md как точка входа
-- `63e9b2c` · 2026-07-17 · style(telegram): рассылка на дизайн-систему приложения
-- `a8cdb61` · 2026-07-17 · style(telegram): страница рассылки — контролы и радиусы к единому стилю (rounded-lg карточки, rounded-md h-9 контролы), превью TG не трогал
 <!-- AUTO:END changelog-candidates -->

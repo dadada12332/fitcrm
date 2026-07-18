@@ -38,15 +38,43 @@ tags: [fitcrm, risks]
 ## ISSUE-0005 — Dependency advisories в импорте таблиц
 
 - Severity: P1
-- Status: open
+- Status: resolved
 - Module: dependencies/import
 - Environment: all
 - Symptoms: `npm audit` сообщает 2 high и 4 moderate advisories.
 - Expected: нет известных high-severity runtime dependencies.
-- Actual: `xlsx@0.18.5` имеет prototype pollution/ReDoS без npm fix; `exceljs` тянет уязвимую `uuid`; advisory Next/PostCSS требует отдельной проверки совместимой версии.
+- Actual: `xlsx` удалён, browser import переведён на ExcelJS; Hono обновлён. `npm audit`: 0 high/critical, остаются 4 moderate transitive advisories Next/PostCSS и ExcelJS/UUID.
 - Cause: устаревший клиентский XLSX parser и транзитивные зависимости.
-- Workaround: импортировать только доверенные файлы; не применять `npm audit fix --force`.
-- Task: будет создана отдельная обратимая задача после backup drill.
+- Workaround: `npm audit fix --force` не применять: npm предлагает ломающие downgrade Next/ExcelJS.
+- Task: [[Tasks/Completed/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]].
+- Last checked: 2026-07-18; high-severity risk resolved.
+
+## ISSUE-0006 — Локальная загрузка уведомлений медленная
+
+- Severity: P2
+- Status: open
+- Module: notifications/performance
+- Environment: local against production Supabase
+- Symptoms: `getNotificationsAction()` занимал примерно 0.8–1.7 секунды в dev logs; действие вызывается для badge после загрузки app shell.
+- Expected: badge не влияет на интерактивность основной страницы и обновляется быстрее 500 ms warm.
+- Actual: три scoped query выполняются параллельно, но auth/club resolution и удалённый production DB заметны при работе с Mac в Ташкенте.
+- Cause: remote development latency и отдельный Server Action round trip; production Sydney-to-Sydney требуется замерить отдельно.
+- Workaround: основной контент не блокируется; панель уведомлений загружается отдельно.
+- Task: отдельный performance task после production telemetry baseline.
+- Last checked: 2026-07-18.
+
+## ISSUE-0007 — Recharts предупреждает о размере контейнера в headless/HMR
+
+- Severity: P3
+- Status: open
+- Module: dashboard/charts
+- Environment: local headless Chromium
+- Symptoms: warning `width(-1) and height(-1) of chart should be greater than 0` при переходах dashboard во время dev/HMR.
+- Expected: chart mounts only after container receives stable dimensions.
+- Actual: пользовательский blank chart не воспроизведён, build и E2E проходят; warning повторяется в dev console.
+- Cause: ResponsiveContainer измеряется во время промежуточного layout state.
+- Workaround: нет пользовательского blocker; проверить с production performance trace.
+- Task: отдельный low-priority UI performance task.
 - Last checked: 2026-07-18.
 
 ## ISSUE-0003 — SMS/email уведомления не отправляются

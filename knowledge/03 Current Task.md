@@ -1,23 +1,23 @@
 ---
 type: current-task
-status: in-progress
-active_task: TASK-0007
+status: blocked
+active_task: TASK-0004
 updated: 2026-07-18
 tags: [fitcrm, tasks]
 ---
 
-# TASK-0007 — Ночной аудит надёжности и производительности
+# TASK-0004 — Провести backup/restore drill
 
-Источник задачи: [[Tasks/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]].
+Источник задачи: [[Tasks/TASK-0004-backup-restore-drill]].
 
 ## Цель
 
-Исправить наиболее ценные подтверждённые проблемы безопасности, надёжности и производительности отдельными обратимыми коммитами.
+Восстановить backup в изолированный Supabase target и измерить фактические RPO/RTO.
 
 ## Что нельзя сломать
 
-Tenant isolation, auth, production payment callbacks, пользовательские данные и уже проверенные CRM-сценарии.
+Production Supabase нельзя использовать как restore target; нельзя создавать платную branch без подтверждения стоимости.
 
 ## Текущий этап
 
-Аудит service-role scopes, operational monitoring и dependency advisories.
+Заблокировано: Free plan, PITR disabled, backups `0`, branches `0`. Guarded runbook и verifier готовы; нужен recoverable backup и изолированный target.
