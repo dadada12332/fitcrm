@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  Bell, CalendarDays, Check, ChevronRight, Clock3, CreditCard, Dumbbell,
+  ArrowLeft, Bell, CalendarDays, Check, ChevronRight, Clock3, CreditCard, Dumbbell,
   History, Home, LoaderCircle, MapPin, QrCode, RefreshCw, TicketCheck, UserRound,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,12 @@ type TelegramWebApp = {
   setHeaderColor(color: string): void
   setBackgroundColor(color: string): void
   openLink(url: string): void
+  BackButton?: {
+    show(): void
+    hide(): void
+    onClick(callback: () => void): void
+    offClick(callback: () => void): void
+  }
   HapticFeedback?: { notificationOccurred(type: "success" | "error" | "warning"): void }
 }
 
@@ -93,6 +99,25 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
+  const tabStack = useRef<Tab[]>(["home"])
+
+  const navigate = useCallback((nextTab: Tab) => {
+    if (tab === nextTab) return
+    setError(null)
+    setNotice(null)
+    tabStack.current = nextTab === "home" ? ["home"] : [...tabStack.current, nextTab]
+    setTab(nextTab)
+  }, [tab])
+
+  const goBack = useCallback(() => {
+    if (tab === "home") return
+    tabStack.current = tabStack.current.slice(0, -1)
+    const previousTab = tabStack.current.at(-1) ?? "home"
+    if (!tabStack.current.length) tabStack.current = ["home"]
+    setError(null)
+    setNotice(null)
+    setTab(previousTab)
+  }, [tab])
 
   const api = useCallback(async (body: Record<string, unknown>) => {
     const response = await fetch(`/api/telegram/miniapp/${clubId}`, {
@@ -140,6 +165,18 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
       void load(telegram.initData)
     })
   }, [load])
+
+  useEffect(() => {
+    const backButton = window.Telegram?.WebApp?.BackButton
+    if (!backButton) return
+    if (tab === "home") {
+      backButton.hide()
+      return
+    }
+    backButton.show()
+    backButton.onClick(goBack)
+    return () => backButton.offClick(goBack)
+  }, [goBack, tab])
 
   useEffect(() => {
     if (!data?.qrToken) return
@@ -207,9 +244,16 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
     <main className="min-h-[100dvh] bg-background text-foreground pb-[calc(76px+env(safe-area-inset-bottom))]">
       <div className="mx-auto w-full max-w-lg">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur">
-          <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-2">
+            {tab !== "home" && (
+              <Button type="button" variant="ghost" size="icon" onClick={goBack} aria-label="Вернуться назад" title="Назад">
+                <ArrowLeft />
+              </Button>
+            )}
+            <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{data.club.name}</p>
             <p className="truncate text-xs text-muted-foreground">Личный кабинет</p>
+            </div>
           </div>
           <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
             {data.client.fullName.trim().charAt(0).toUpperCase()}
@@ -222,7 +266,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
           </div>
         )}
 
-        {tab === "home" && <HomeView data={data} subscription={activeSubscription} onTab={setTab} />}
+        {tab === "home" && <HomeView data={data} subscription={activeSubscription} onTab={navigate} />}
         {tab === "schedule" && <ScheduleView classes={data.classes} busy={busy} onBook={(id) => mutate("book", id)} onCancel={(id) => mutate("cancel", id)} />}
         {tab === "pass" && <PassView data={data} qrUrl={qrUrl} />}
         {tab === "profile" && (
@@ -236,7 +280,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
             const Icon = item.icon
             const active = tab === item.id
             return (
-              <button key={item.id} type="button" onClick={() => { setTab(item.id); setError(null); setNotice(null) }}
+              <button key={item.id} type="button" onClick={() => navigate(item.id)}
                 className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] ${active ? "text-foreground" : "text-muted-foreground"}`}>
                 <span className={`flex size-8 items-center justify-center rounded-lg ${active ? "bg-muted" : "bg-transparent"}`}><Icon size={18} /></span>
                 <span className="truncate">{item.label}</span>
