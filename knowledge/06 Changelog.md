@@ -27,6 +27,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- AI Аналитика использует стандартные отступы AppShell без дополнительного внутреннего padding; desktop и mobile теперь совпадают с остальными CRM-разделами.
 - Telegram и CRM больше не сопоставляют посещения по отображаемым именам: точная связь хранится через внутренний `client_id`, первичный поиск телефона стал exact и защищён от дублей/cross-club связей.
 - Telegram Mini App показывает имя текущего Telegram-пользователя; QR-пропуск обновляется каждые 30 секунд, одноразовый и больше не выходит за рамку на мобильном экране.
 - В Telegram Mini App появились внутренняя и нативная кнопки Back с корректным возвратом между экранами.
@@ -64,6 +65,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `2628a08` · 2026-07-18 · Align AI analytics page spacing
+- `1610389` · 2026-07-18 · Document Telegram client identity model [skip ci]
 - `2e3e585` · 2026-07-18 · Link Telegram visits by CRM client identity
 - `26e801e` · 2026-07-18 · Document secure Telegram QR rollout [skip ci]
 - `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
@@ -92,6 +95,4 @@ tags: [fitcrm, releases]
 - `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
 - `dc9b926` · 2026-07-18 · Replace vulnerable spreadsheet parser
 - `6ded6e4` · 2026-07-18 · Report infrastructure health truthfully
-- `686869d` · 2026-07-18 · Scope payment service queries by club
-- `470bf62` · 2026-07-18 · Redesign AI analytics workspace
 <!-- AUTO:END changelog-candidates -->

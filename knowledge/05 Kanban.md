@@ -69,4 +69,5 @@ tags: [fitcrm, tasks]
 - TASK-0015 · Telegram Mini App back navigation · bug · P1 · telegram-miniapp · 2026-07-18 · [[Tasks/Completed/TASK-0015-telegram-miniapp-back-navigation]]
 - TASK-0016 · Telegram identity and dynamic QR · security · P1 · telegram-miniapp · 2026-07-18 · [[Tasks/Completed/TASK-0016-telegram-identity-and-dynamic-qr]]
 - TASK-0017 · Link Telegram visits by CRM client ID · feature · P1 · telegram-miniapp · 2026-07-18 · [[Tasks/Completed/TASK-0017-link-telegram-visits-by-client-id]]
+- TASK-0018 · Align AI Analytics page spacing · bug · P2 · ai-analytics · 2026-07-18 · [[Tasks/Completed/TASK-0018-align-ai-page-spacing]]
 <!-- AUTO:END kanban-done -->
