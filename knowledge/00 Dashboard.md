@@ -14,7 +14,7 @@ tags: [fitcrm, operations]
 | Окружение | Production + local; отдельные staging/preview не подтверждены |
 | Production | [fitcrm-three.vercel.app](https://fitcrm-three.vercel.app), состояние последнего deploy не проверено |
 | Спринт | Production readiness и стабилизация |
-| Активная задача | Нет; следующая Ready — [[Tasks/TASK-0002-verify-infrastructure-regions]] |
+| Активная задача | [[Tasks/TASK-0003-critical-flow-tests]] |
 
 ## Быстрый обзор
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
 - `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
 - `58ffb23` · 2026-07-18 · Fix platform support mobile header
 - `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `f4543f3` · 2026-07-18 · Unify platform admin design system
 - `44e8945` · 2026-07-17 · Hide breadcrumbs on mobile top bar
 - `5172f4f` · 2026-07-17 · Filter expired notifications by end date
-- `bca4ed1` · 2026-07-17 · Redesign notification center
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

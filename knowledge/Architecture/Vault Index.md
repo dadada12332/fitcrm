@@ -44,8 +44,8 @@ updated: 2026-07-18
 ## Tasks
 
 - [[Tasks/Completed/TASK-0001-operacionnaya-pamyat-fitcrm]]
+- [[Tasks/Completed/TASK-0002-verify-infrastructure-regions]]
 - [[Tasks/Completed/TASK-0005-mobile-platform-stabilization]]
-- [[Tasks/TASK-0002-verify-infrastructure-regions]]
 - [[Tasks/TASK-0003-critical-flow-tests]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 

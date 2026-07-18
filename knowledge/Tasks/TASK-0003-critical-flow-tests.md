@@ -1,12 +1,12 @@
 ---
 id: TASK-0003
 type: security
-status: backlog
+status: in-progress
 priority: P1
 module: quality
 created: 2026-07-18
 updated: 2026-07-18
-owner: unassigned
+owner: Codex
 tags: [fitcrm, testing, security]
 ---
 

@@ -48,6 +48,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
 - `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
 - `58ffb23` · 2026-07-18 · Fix platform support mobile header
 - `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
@@ -77,5 +78,4 @@ tags: [fitcrm, releases]
 - `d2b3abf` · 2026-07-17 · feat(schedule): управление залами + мгновенные табы
 - `79aa299` · 2026-07-17 · fix(charts): обрезался Y-axis '120M' — расширил YAxis width 36→48 (RevenueChart) и 40→48 (ReportsClient revenue)
 - `5fe5eb6` · 2026-07-16 · perf: оптимистичный откат в toggle статуса сотрудника (StaffProfileClient)
-- `64642f4` · 2026-07-16 · perf: батч 2 — ленивый recharts + оптимистичная заморозка
 <!-- AUTO:END changelog-candidates -->

@@ -11,8 +11,8 @@ tags: [fitcrm, operations]
 
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
-- Branch: `main`.
-- Последний commit: dcea7c6 · 2026-07-18T01:48:50+05:00 · Keep support diagnostics visible on mobile.
+- Branch: `codex/night-autonomy-2026-07-18`.
+- Последний commit: abedb02 · 2026-07-18T04:43:33+05:00 · Add operational Obsidian knowledge vault.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 54; последняя `0054_performance_roundtrip_repair.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -37,11 +37,11 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel явно настроен на `syd1`; регион Supabase требует подтверждения. Последний production deploy не проверен.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Последний production deploy `abedb02` имеет статус `READY`.
 
 ## Риски и долг
 
-- Межрегиональная latency возможна до подтверждения региона Supabase.
+- Warm Supabase health-check составляет 55–167 ms, но зафиксирован cold sample 1162 ms; требуется наблюдение за cold path.
 - RLS изолирует tenant, но права модулей зависят от корректности каждой Server Action.
 - В коде остаётся lint-долг (`any`, unused vars, impure `Date.now()`).
 - Нет автоматического CI и тестовой матрицы.

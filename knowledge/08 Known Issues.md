@@ -6,20 +6,20 @@ tags: [fitcrm, risks]
 
 # Known Issues
 
-## ISSUE-0001 — Регион Supabase не подтверждён
+## ISSUE-0001 — Регионы инфраструктуры требуют подтверждения
 
 - Severity: P1
-- Status: open
+- Status: resolved
 - Module: infrastructure/performance
 - Environment: production
 - Symptoms: потенциальная межрегиональная задержка между Vercel Functions и Postgres.
 - Reproduction: сопоставить регионы сервисов и измерить server-side DB round trips.
 - Expected: сервисы находятся в близких регионах, latency контролируется.
-- Actual: Vercel настроен на `syd1`; регион Supabase не проверен.
-- Cause: не подтверждено.
-- Workaround: сокращать последовательные запросы; это не заменяет корректное размещение.
-- Task: [[Tasks/TASK-0002-verify-infrastructure-regions]].
-- Last checked: 2026-07-18.
+- Actual: Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы.
+- Cause: документация была устаревшей; фактическая topology корректна.
+- Workaround: не требуется. Cold latency наблюдается отдельно.
+- Task: [[Tasks/Completed/TASK-0002-verify-infrastructure-regions]].
+- Last checked: 2026-07-18; resolved.
 
 ## ISSUE-0002 — Нет автоматического тестового контура
 

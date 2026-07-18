@@ -365,8 +365,9 @@ function updateHandoff() {
   const currentFile = path.join(vault, "03 Current Task.md");
   const currentContent = read(currentFile);
   const current = parseFrontmatter(currentContent);
-  const summary = current.id
-    ? "[[03 Current Task]] — " + current.id + ", status `" + current.status + "`: " + titleOf(currentContent) + "."
+  const activeId = current.id || current.active_task;
+  const summary = activeId
+    ? "[[03 Current Task]] — " + activeId + ", status `" + current.status + "`: " + titleOf(currentContent) + "."
     : "Нет активной задачи. Выберите следующую из [[05 Kanban]].";
   const file = path.join(vault, "10 AI Handoff.md");
   replaceAuto(file, "current-task", summary);
