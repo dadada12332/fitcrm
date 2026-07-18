@@ -65,6 +65,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0011-vosstanovit-telegram-multi-bot-integraciyu]]
 - [[Tasks/Completed/TASK-0013-fix-telegram-self-test-pairing]]
 - [[Tasks/Completed/TASK-0014-fix-telegram-self-test-multiclub]]
+- [[Tasks/Completed/TASK-0015-telegram-miniapp-back-navigation]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 

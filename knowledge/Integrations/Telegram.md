@@ -26,6 +26,8 @@ tags: [fitcrm, telegram, integrations]
 
 Route `/tg/[clubId]` теперь является мобильным клиентским кабинетом. Telegram `initData` проверяется server-side HMAC конкретным токеном клуба и живёт не более 10 минут. Клиент видит абонемент, QR, посещения, расписание на 7 дней, может атомарно записаться/отменить запись, управлять reminders и открыть продление Payme/Click. Menu button двух production-ботов обновлён на Mini App.
 
+Внутренние экраны используют собственный navigation stack. На них одновременно доступны стрелка в шапке и нативный `WebApp.BackButton`; возврат идёт на предыдущую вкладку, а на главной BackButton скрыт. Не заменять этот стек на browser history без повторной проверки Telegram iOS.
+
 Migration `0061` добавляет service-only RPC бронирования с блокировкой занятия, проверкой active subscription и capacity. CRM использует тот же атомарный RPC после собственной permission-проверки.
 
 `Автопродление` в смысле автоматического списания не реализовано: текущие Payme/Click payment links не дают FitCRM подтверждённого recurring mandate/card token. До появления provider API продукт предлагает self-service renewal и reminders, но не обещает auto-charge.

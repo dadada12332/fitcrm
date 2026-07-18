@@ -27,6 +27,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- В Telegram Mini App появились внутренняя и нативная кнопки Back с корректным возвратом между экранами.
 - «Отправить себе» в Telegram теперь корректно использует связь сотрудника текущего клуба, даже если владелец состоит в нескольких клубах.
 - Вкладка «Роли и права» больше не зависает на бесконечном skeleton; ошибки загрузки теперь показываются с возможностью повтора.
 - Оплата из карточки клиента теперь жёстко привязана к открытому клиенту без повторного поиска; сервер дополнительно проверяет принадлежность клиента и абонемента клубу.
@@ -61,6 +62,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
+- `0e869c3` · 2026-07-18 · Document Telegram multi-club self-test fix [skip ci]
 - `9cd0b22` · 2026-07-18 · Scope Telegram self-test to current club
 - `e7ea58e` · 2026-07-18 · Document Telegram Mini App and Instagram rollout [skip ci]
 - `b2dc9f2` · 2026-07-18 · Harden Instagram deletion callback
@@ -89,6 +92,4 @@ tags: [fitcrm, releases]
 - `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 - `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
 - `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
-- `abedb02` · 2026-07-18 · Add operational Obsidian knowledge vault
-- `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
 <!-- AUTO:END changelog-candidates -->
