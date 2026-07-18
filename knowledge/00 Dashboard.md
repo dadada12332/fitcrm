@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `b2dc9f2` · 2026-07-18 · Harden Instagram deletion callback
+- `d2c603e` · 2026-07-18 · Refine Instagram setup layout
+- `7e64c47` · 2026-07-18 · Add Instagram integration foundation
 - `580b9e8` · 2026-07-18 · Add Telegram client Mini App
 - `e9e64ae` · 2026-07-18 · Document Telegram self-test fix [skip ci]
 - `7a7ce7c` · 2026-07-18 · Fix Telegram self-test pairing
 - `56bcd9c` · 2026-07-18 · Document verified Telegram production rollout [skip ci]
 - `7cc3f87` · 2026-07-18 · Enforce one club per Telegram bot
-- `e3af97f` · 2026-07-18 · Rebuild Telegram integration around club bots
-- `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
-- `28efccd` · 2026-07-18 · Fix roles settings loading loop
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

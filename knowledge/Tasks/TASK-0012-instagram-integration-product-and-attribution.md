@@ -56,6 +56,7 @@ Telegram flows, tenant isolation, auth, production data и payment attribution.
 - Vitest — 92 passed, 1 skipped.
 - `npm run build` — passed.
 - Production grants: credential/state/event tables service-only; derived tables authenticated SELECT only под RLS.
+- Production deployment `dpl_86fEe4mCMKgoz3i89jDLnDcy9NAs` READY; mobile `390px` без overflow; неподписанные Meta callbacks отклоняются.
 
 ## Remaining
 
