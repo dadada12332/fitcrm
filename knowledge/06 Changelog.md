@@ -19,6 +19,7 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Landing overview получил плавную смену реальных экранов CRM, progress состояния, паузу при взаимодействии и полноценную mobile/keyboard адаптацию.
 - Obsidian Vault получил Dataview, Tasks, Periodic Notes, Templater и Style Settings; Weekly и Templates связаны с существующей структурой заметок.
 - Obsidian Kanban и Calendar включены и связаны с task frontmatter, Daily Notes и понедельником как началом недели.
 - Platform Admin приведён к общей дизайн-системе.
@@ -67,6 +68,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `f78622e` · 2026-07-18 · Polish landing platform overview
+- `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
 - `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
 - `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 - `2628a08` · 2026-07-18 · Align AI analytics page spacing
@@ -95,6 +98,4 @@ tags: [fitcrm, releases]
 - `cffeb1c` · 2026-07-18 · Record verified production deployment
 - `55d0577` · 2026-07-18 · Allow authenticated cron callbacks through middleware
 - `5032589` · 2026-07-18 · Refresh project handoff after audit
-- `13dd7c2` · 2026-07-18 · Document overnight reliability audit
-- `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
 <!-- AUTO:END changelog-candidates -->

@@ -71,6 +71,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0018-align-ai-page-spacing]]
 - [[Tasks/Completed/TASK-0019-configure-obsidian-kanban-calendar]]
 - [[Tasks/Completed/TASK-0020-install-obsidian-productivity-plugins]]
+- [[Tasks/Completed/TASK-0021-polish-landing-platform-overview]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 

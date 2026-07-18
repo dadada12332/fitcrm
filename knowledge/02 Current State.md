@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 62a645a · 2026-07-18T20:28:11+05:00 · Configure Obsidian Kanban and Calendar [skip ci].
+- Последний commit: f78622e · 2026-07-18T21:19:34+05:00 · Polish landing platform overview.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
