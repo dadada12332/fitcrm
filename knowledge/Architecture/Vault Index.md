@@ -67,6 +67,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0014-fix-telegram-self-test-multiclub]]
 - [[Tasks/Completed/TASK-0015-telegram-miniapp-back-navigation]]
 - [[Tasks/Completed/TASK-0016-telegram-identity-and-dynamic-qr]]
+- [[Tasks/Completed/TASK-0017-link-telegram-visits-by-client-id]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 

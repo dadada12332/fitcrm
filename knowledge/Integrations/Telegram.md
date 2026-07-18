@@ -13,6 +13,8 @@ tags: [fitcrm, telegram, integrations]
 
 Клиент нажимает `/start` и делится собственным Telegram contact. Поиск выполняется только среди `staff` и `clients` данного `club_id`; чужой пересланный контакт отклоняется. Связь хранится в `telegram_users` с unique `(club_id, telegram_id)`, поэтому один человек может состоять в нескольких клубах.
 
+Каноническая клиентская связь: `(club_id, telegram_id) -> client_id`. Телефон используется только один раз для первичной точной привязки; Telegram name/username и CRM `full_name` никогда не используются как ключи. Migration `0064` добавляет generated `clients.phone_normalized`, отдельный snapshot Telegram-профиля, unique Telegram account per `(club_id, client_id)` и composite FK, запрещающий cross-club link. При подтверждённой повторной привязке новый Telegram account заменяет предыдущий для этой карточки.
+
 ## Client bot
 
 - Абонемент, остаток дней/посещений и история визитов.
@@ -27,6 +29,8 @@ tags: [fitcrm, telegram, integrations]
 Route `/tg/[clubId]` теперь является мобильным клиентским кабинетом. Telegram `initData` проверяется server-side HMAC конкретным токеном клуба и живёт не более 10 минут. Клиент видит абонемент, QR, посещения, расписание на 7 дней, может атомарно записаться/отменить запись, управлять reminders и открыть продление Payme/Click. Menu button двух production-ботов обновлён на Mini App.
 
 Публичное имя, приветствие и инициал берутся из подписанного Telegram `initData`, а не из карточки CRM. Это не меняет привязку бизнес-данных: абонементы, оплаты и визиты загружаются только для `client_id`, ранее связанного через подтверждённый Telegram contact.
+
+В Mini App Telegram-профиль и карточка клуба показаны отдельно. В CRM карточка клиента показывает snapshot Telegram display name/username и numeric Telegram ID. Эти подписи нужны для проверки связи человеком, но все операции выполняются по полному UUID `clients.id`.
 
 QR выдаётся как HMAC-подписанный club/client pass с TTL 30 секунд и случайным `jti`. Успешно отсканированный `jti` сохраняется в service-only таблице `qr_pass_redemptions`, поэтому второй чекин тем же изображением отклоняется. Команда `/qr` открывает Mini App сразу на вкладке `Пропуск`; статические bot QR больше не выдаются. Система не гарантирует защиту от передачи свежего кода до первого сканирования внутри 30-секундного окна.
 

@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: efd8664 · 2026-07-18T19:16:14+05:00 · Secure Telegram Mini App QR passes.
+- Последний commit: 2e3e585 · 2026-07-18T19:44:08+05:00 · Link Telegram visits by CRM client identity.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 63; последняя `0063_dynamic_qr_passes.sql`.
+- Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 

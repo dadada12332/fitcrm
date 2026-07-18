@@ -27,6 +27,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Telegram и CRM больше не сопоставляют посещения по отображаемым именам: точная связь хранится через внутренний `client_id`, первичный поиск телефона стал exact и защищён от дублей/cross-club связей.
 - Telegram Mini App показывает имя текущего Telegram-пользователя; QR-пропуск обновляется каждые 30 секунд, одноразовый и больше не выходит за рамку на мобильном экране.
 - В Telegram Mini App появились внутренняя и нативная кнопки Back с корректным возвратом между экранами.
 - «Отправить себе» в Telegram теперь корректно использует связь сотрудника текущего клуба, даже если владелец состоит в нескольких клубах.
@@ -63,6 +64,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `2e3e585` · 2026-07-18 · Link Telegram visits by CRM client identity
+- `26e801e` · 2026-07-18 · Document secure Telegram QR rollout [skip ci]
 - `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
 - `d9295b4` · 2026-07-18 · Document Telegram Mini App back navigation [skip ci]
 - `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
@@ -91,6 +94,4 @@ tags: [fitcrm, releases]
 - `6ded6e4` · 2026-07-18 · Report infrastructure health truthfully
 - `686869d` · 2026-07-18 · Scope payment service queries by club
 - `470bf62` · 2026-07-18 · Redesign AI analytics workspace
-- `55eeb1d` · 2026-07-18 · Add guarded backup restore runbook
-- `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 <!-- AUTO:END changelog-candidates -->

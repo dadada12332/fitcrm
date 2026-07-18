@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `2e3e585` · 2026-07-18 · Link Telegram visits by CRM client identity
+- `26e801e` · 2026-07-18 · Document secure Telegram QR rollout [skip ci]
 - `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
 - `d9295b4` · 2026-07-18 · Document Telegram Mini App back navigation [skip ci]
 - `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
 - `0e869c3` · 2026-07-18 · Document Telegram multi-club self-test fix [skip ci]
 - `9cd0b22` · 2026-07-18 · Scope Telegram self-test to current club
 - `e7ea58e` · 2026-07-18 · Document Telegram Mini App and Instagram rollout [skip ci]
-- `b2dc9f2` · 2026-07-18 · Harden Instagram deletion callback
-- `d2c603e` · 2026-07-18 · Refine Instagram setup layout
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
