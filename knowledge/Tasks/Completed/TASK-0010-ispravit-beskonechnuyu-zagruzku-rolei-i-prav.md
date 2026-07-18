@@ -1,7 +1,7 @@
 ---
 id: TASK-0010
 type: bug
-status: review
+status: completed
 priority: P1
 module: settings
 created: 2026-07-18
@@ -34,7 +34,7 @@ tags: [fitcrm, task]
 - [x] Загрузка включается при клике и повторной попытке.
 - [x] Ошибки загрузки отображаются вместо пустого экрана.
 - [x] ESLint, TypeScript, Vitest и production build проходят.
-- [ ] Production browser smoke после deploy.
+- [x] Production browser smoke после deploy.
 
 ## Files and data
 
@@ -58,10 +58,12 @@ Tenant isolation, auth, production data и существующие пользо
 - `npx tsc --noEmit`: успешно.
 - `npm test`: 85 passed, 1 skipped.
 - `npm run build`: успешно, Next.js 16.2.7.
+- Production deployment `dpl_6RLyxkxALBkmiVS2BGYSwnpMvRqA`: `READY`, alias подтверждён.
+- Авторизованный browser smoke: переход кликом и прямой `/settings/roles` показывают 6 ролей; console errors отсутствуют.
 
 ## Remaining
 
-Проверить переход кликом в production после deploy.
+Нет.
 
 ## Blockers
 

@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 119d7f7 · 2026-07-18T15:11:48+05:00 · Bind client profile payments to client.
+- Последний commit: 28efccd · 2026-07-18T15:23:53+05:00 · Fix roles settings loading loop.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 55; последняя `0055_harden_public_rpcs.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

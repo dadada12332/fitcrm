@@ -12,7 +12,7 @@ tags: [fitcrm, tasks]
 ## Inbox
 
 <!-- AUTO:START kanban-inbox -->
-- TASK-0010 · Исправить бесконечную загрузку ролей и прав · feature · P3 · general · 2026-07-18 · [[Tasks/TASK-0010-ispravit-beskonechnuyu-zagruzku-rolei-i-prav]]
+- Нет задач.
 <!-- AUTO:END kanban-inbox -->
 
 ## Backlog
@@ -62,4 +62,5 @@ tags: [fitcrm, tasks]
 - TASK-0007 · Ночной аудит надёжности и производительности · security · P1 · platform · 2026-07-18 · [[Tasks/Completed/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]]
 - TASK-0008 · Восстановить доступ Vercel Cron к API · bug · P1 · cron-api · 2026-07-18 · [[Tasks/Completed/TASK-0008-vosstanovit-dostup-vercel-cron-k-api]]
 - TASK-0009 · Привязать оплату из карточки к клиенту · bug · P1 · payments · 2026-07-18 · [[Tasks/Completed/TASK-0009-privyazat-oplatu-iz-kartochki-k-klientu]]
+- TASK-0010 · Исправить бесконечную загрузку ролей и прав · bug · P1 · settings · 2026-07-18 · [[Tasks/Completed/TASK-0010-ispravit-beskonechnuyu-zagruzku-rolei-i-prav]]
 <!-- AUTO:END kanban-done -->

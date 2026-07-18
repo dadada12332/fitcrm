@@ -58,6 +58,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `28efccd` · 2026-07-18 · Fix roles settings loading loop
+- `ec911ad` · 2026-07-18 · Document client payment binding [skip ci]
 - `119d7f7` · 2026-07-18 · Bind client profile payments to client
 - `cffeb1c` · 2026-07-18 · Record verified production deployment
 - `55d0577` · 2026-07-18 · Allow authenticated cron callbacks through middleware
@@ -86,6 +88,4 @@ tags: [fitcrm, releases]
 - `51430e3` · 2026-07-17 · Use dropdown for quick actions
 - `20e2835` · 2026-07-17 · Adapt client profile for mobile
 - `d3a2f0a` · 2026-07-17 · Fix reports mobile controls
-- `778283f` · 2026-07-17 · Improve schedule mobile toolbar
-- `597e658` · 2026-07-17 · Improve visits mobile filters
 <!-- AUTO:END changelog-candidates -->
