@@ -262,12 +262,12 @@ function setupHandlers(bot: Bot) {
     const telegramId = ctx.from?.id
     if (!telegramId) return
     const tgUser = await getLinkedUser(telegramId)
-    if (!tgUser?.client_id) { await ctx.reply("Сначала войдите: /start"); return }
+    if (!tgUser?.client_id || !tgUser.client?.club_id) { await ctx.reply("Сначала войдите: /start"); return }
     // simulate callback
     const supabase = createServiceClient()
     const { data: subs } = await supabase
       .from("subscriptions").select("*, memberships(name, visits_limit)")
-      .eq("client_id", tgUser.client_id).in("status", ["active", "frozen"])
+      .eq("client_id", tgUser.client_id).eq("club_id", tgUser.client.club_id).in("status", ["active", "frozen"])
       .order("expires_at", { ascending: false }).limit(1)
     const sub = subs?.[0]
     if (!sub) { await ctx.reply("❌ Нет активного абонемента."); return }
@@ -289,12 +289,12 @@ function setupHandlers(bot: Bot) {
     const telegramId = ctx.from?.id
     if (!telegramId) return
     const tgUser = await getLinkedUser(telegramId)
-    if (!tgUser?.client_id) { await ctx.reply("Сначала войдите: /start"); return }
+    if (!tgUser?.client_id || !tgUser.client?.club_id) { await ctx.reply("Сначала войдите: /start"); return }
     const supabase = createServiceClient()
     let qrToken = tgUser.client?.qr_token as string | null
     if (!qrToken) {
       qrToken = crypto.randomUUID()
-      await supabase.from("clients").update({ qr_token: qrToken }).eq("id", tgUser.client_id)
+      await supabase.from("clients").update({ qr_token: qrToken }).eq("id", tgUser.client_id).eq("club_id", tgUser.client.club_id)
     }
     try {
       const QRCode   = (await import("qrcode")).default
@@ -507,8 +507,12 @@ function setupHandlers(bot: Bot) {
     // ── CLIENT callbacks ───────────────────────────────────────────
 
     if (role === "client") {
-      const clientId  = tgUser.client_id!
-      const firstName = tgUser.client?.full_name?.split(" ")[0] ?? "друг"
+      const clientId = tgUser.client_id
+      const clientClubId = tgUser.client?.club_id
+      if (!clientId || !clientClubId) {
+        await ctx.editMessageText("Привязка клиента устарела. Войдите заново через /start.")
+        return
+      }
       const back      = new InlineKeyboard().text("⬅️ Назад", "menu")
 
       if (data === "sub") {
@@ -516,6 +520,7 @@ function setupHandlers(bot: Bot) {
           .from("subscriptions")
           .select("*, memberships(name, visits_limit)")
           .eq("client_id", clientId)
+          .eq("club_id", clientClubId)
           .in("status", ["active", "frozen"])
           .order("expires_at", { ascending: false })
           .limit(1)
@@ -545,7 +550,7 @@ function setupHandlers(bot: Bot) {
 
       if (data === "history") {
         const { data: visits } = await supabase
-          .from("visits").select("checked_in_at").eq("client_id", clientId)
+          .from("visits").select("checked_in_at").eq("client_id", clientId).eq("club_id", clientClubId)
           .order("checked_in_at", { ascending: false }).limit(10)
 
         if (!visits?.length) {
@@ -565,7 +570,7 @@ function setupHandlers(bot: Bot) {
         let qrToken = tgUser.client?.qr_token as string | null
         if (!qrToken) {
           qrToken = crypto.randomUUID()
-          await supabase.from("clients").update({ qr_token: qrToken }).eq("id", clientId)
+          await supabase.from("clients").update({ qr_token: qrToken }).eq("id", clientId).eq("club_id", clientClubId)
         }
         try {
           const QRCode   = (await import("qrcode")).default
@@ -723,9 +728,9 @@ function setupHandlers(bot: Bot) {
     if (data.startsWith("client_info:")) {
       const clientId = data.split(":")[1]
       const [clientRes, subRes, visitRes] = await Promise.all([
-        supabase.from("clients").select("full_name, phone, created_at").eq("id", clientId).single(),
-        supabase.from("subscriptions").select("*, memberships(name)").eq("client_id", clientId).eq("status", "active").limit(1),
-        supabase.from("visits").select("checked_in_at").eq("client_id", clientId).order("checked_in_at", { ascending: false }).limit(1),
+        supabase.from("clients").select("full_name, phone, created_at").eq("id", clientId).eq("club_id", clubId).single(),
+        supabase.from("subscriptions").select("*, memberships(name)").eq("client_id", clientId).eq("club_id", clubId).eq("status", "active").limit(1),
+        supabase.from("visits").select("checked_in_at").eq("client_id", clientId).eq("club_id", clubId).order("checked_in_at", { ascending: false }).limit(1),
       ])
 
       const c   = clientRes.data
@@ -768,9 +773,15 @@ function setupHandlers(bot: Bot) {
 
     if (data.startsWith("do_visit:")) {
       const clientId = data.split(":")[1]
-      const { data: activeSub } = await supabase
-        .from("subscriptions").select("id, visits_used, visits_total")
-        .eq("client_id", clientId).eq("status", "active").limit(1).maybeSingle()
+      const [{ data: client }, { data: activeSub }] = await Promise.all([
+        supabase.from("clients").select("id").eq("id", clientId).eq("club_id", clubId).maybeSingle(),
+        supabase.from("subscriptions").select("id, visits_used, visits_total")
+          .eq("client_id", clientId).eq("club_id", clubId).eq("status", "active").limit(1).maybeSingle(),
+      ])
+      if (!client) {
+        await ctx.editMessageText("Клиент не найден в вашем клубе.", { reply_markup: backBtn("staff_menu") })
+        return
+      }
 
       await supabase.from("visits").insert({
         club_id:         clubId,
@@ -783,6 +794,7 @@ function setupHandlers(bot: Bot) {
         await supabase.from("subscriptions")
           .update({ visits_used: (activeSub.visits_used ?? 0) + 1 })
           .eq("id", activeSub.id)
+          .eq("club_id", clubId)
       }
 
       await ctx.editMessageText("✅ *Посещение отмечено!*", { reply_markup: backBtn("staff_menu"), parse_mode: "Markdown" })

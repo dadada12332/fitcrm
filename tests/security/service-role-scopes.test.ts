@@ -31,4 +31,20 @@ describe("service-role payment tenant scopes", () => {
     expect(source).toContain('.eq("id", clientId).eq("club_id", clubId)')
     expect(source.match(/\.eq\("id", paymentId\)\.eq\("club_id", clubId\)/g)?.length).toBeGreaterThanOrEqual(3)
   })
+
+  it("scopes scheduled broadcast mutations to the queued club", () => {
+    const source = read("src/app/api/broadcasts/run/route.ts")
+
+    expect(source.match(/\.eq\("id", b\.id\)\.eq\("club_id", b\.club_id\)/g)).toHaveLength(2)
+  })
+
+  it("validates Telegram visit clients against the staff club", () => {
+    const source = read("src/lib/telegram/bot.ts")
+    const visitFlow = source.slice(source.indexOf('if (data.startsWith("do_visit:"))'), source.indexOf('if (data === "today_schedule"'))
+
+    expect(visitFlow).toContain('.eq("id", clientId).eq("club_id", clubId)')
+    expect(visitFlow).toContain('.eq("client_id", clientId).eq("club_id", clubId)')
+    expect(visitFlow).toContain('if (!client)')
+    expect(visitFlow).toContain('.eq("club_id", clubId)')
+  })
 })

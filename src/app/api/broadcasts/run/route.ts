@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     const { data: club } = await supabase.from("clubs").select("name, tg_token").eq("id", b.club_id).single()
     const token = club?.tg_token as string | null
     if (!token) {
-      await supabase.from("broadcasts").update({ status: "failed" }).eq("id", b.id)
+      await supabase.from("broadcasts").update({ status: "failed" }).eq("id", b.id).eq("club_id", b.club_id)
       continue
     }
 
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     await supabase.from("broadcasts").update({
       status: "sent", sent_at: new Date().toISOString(),
       total: recipients.length, delivered, failed,
-    }).eq("id", b.id)
+    }).eq("id", b.id).eq("club_id", b.club_id)
     processed++
   }
 
