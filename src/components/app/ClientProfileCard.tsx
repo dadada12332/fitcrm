@@ -283,7 +283,11 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
       {paymentOpen && (
         <NewPaymentModal
           memberships={memberships}
-          onClose={() => setPaymentOpen(false)}
+          fixedClient={{ id: client.id, name: client.name, phone: client.phone }}
+          onClose={() => {
+            setPaymentOpen(false)
+            router.refresh()
+          }}
         />
       )}
 

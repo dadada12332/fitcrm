@@ -10,6 +10,7 @@ import { MoneyInput } from "./MoneyInput"
 
 type Membership = { id: string; name: string; price: number }
 type Provider = "cash" | "click" | "payme" | "uzum"
+type PaymentClient = Pick<ClientSearchResult, "id" | "name" | "phone">
 
 const PROVIDERS: { value: Provider; label: string }[] = [
   { value: "cash",  label: "Наличные" },
@@ -18,15 +19,16 @@ const PROVIDERS: { value: Provider; label: string }[] = [
   { value: "uzum",  label: "Uzum" },
 ]
 
-export function NewPaymentModal({ memberships, connectedProviders = [], onClose }: {
+export function NewPaymentModal({ memberships, connectedProviders = [], fixedClient, onClose }: {
   memberships: Membership[]
   connectedProviders?: string[]
+  fixedClient?: PaymentClient
   onClose: () => void
 }) {
   const [query, setQuery] = useState("")
   const [searchResults, setSearchResults] = useState<ClientSearchResult[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
-  const [client, setClient] = useState<ClientSearchResult | null>(null)
+  const [client, setClient] = useState<PaymentClient | null>(fixedClient ?? null)
   const [membershipId, setMembershipId] = useState<string | null>(null)
   const [amount, setAmount] = useState("")
   const [provider, setProvider] = useState<Provider>("cash")
@@ -78,8 +80,6 @@ export function NewPaymentModal({ memberships, connectedProviders = [], onClose 
       setSearchOpen(true)
     }, 220)
   }, [])
-
-  useEffect(() => { if (!client) search(query) }, [query, client, search])
 
   useEffect(() => {
     if (!searchOpen) return
@@ -216,13 +216,11 @@ export function NewPaymentModal({ memberships, connectedProviders = [], onClose 
                 </label>
                 {client ? (
                   <div
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                    style={{ border: "1.5px solid #2563eb" }}
-                    onClick={() => { setClient(null); setQuery("") }}
+                    className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${fixedClient ? "border-border bg-muted/40" : "cursor-pointer border-primary transition-colors hover:bg-muted/50"}`}
+                    onClick={fixedClient ? undefined : () => { setClient(null); setQuery("") }}
                   >
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
-                      style={{ background: "#2563eb" }}
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
                     >
                       {client.name.charAt(0).toUpperCase()}
                     </div>
@@ -230,7 +228,7 @@ export function NewPaymentModal({ memberships, connectedProviders = [], onClose 
                       <p className="text-sm font-medium truncate" style={{ color: "var(--on-dark)" }}>{client.name}</p>
                       {client.phone && <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>{client.phone}</p>}
                     </div>
-                    <X className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--gray-muted)" }} />
+                    {!fixedClient && <X className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />}
                   </div>
                 ) : (
                   <div className="relative" ref={searchRef}>
@@ -238,7 +236,10 @@ export function NewPaymentModal({ memberships, connectedProviders = [], onClose 
                     <input
                       autoFocus
                       value={query}
-                      onChange={(e) => setQuery(e.target.value)}
+                      onChange={(e) => {
+                        setQuery(e.target.value)
+                        search(e.target.value)
+                      }}
                       placeholder="Имя или телефон..."
                       className="w-full h-10 pl-9 pr-3 rounded-lg text-sm outline-none"
                       style={{ border: "1.5px solid var(--border)", background: "var(--card)", color: "var(--on-dark)" }}

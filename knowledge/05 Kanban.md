@@ -12,7 +12,7 @@ tags: [fitcrm, tasks]
 ## Inbox
 
 <!-- AUTO:START kanban-inbox -->
-- Нет задач.
+- TASK-0009 · Привязать оплату из карточки к клиенту · feature · P3 · general · 2026-07-18 · [[Tasks/TASK-0009-privyazat-oplatu-iz-kartochki-k-klientu]]
 <!-- AUTO:END kanban-inbox -->
 
 ## Backlog

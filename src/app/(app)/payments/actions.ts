@@ -54,6 +54,14 @@ export async function createPaymentAction(input: CreatePaymentInput): Promise<Cr
   if (!can(club.permissions, "payments", "create")) return { error: "Недостаточно прав" }
   const clubId = club.clubId
 
+  const { data: client } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("id", input.clientId)
+    .eq("club_id", clubId)
+    .maybeSingle()
+  if (!client) return { error: "Клиент не найден" }
+
   let subscriptionId: string | null = null
 
   // If membership selected — create subscription
@@ -62,26 +70,26 @@ export async function createPaymentAction(input: CreatePaymentInput): Promise<Cr
       .from("memberships")
       .select("duration_days, visits_limit")
       .eq("id", input.membershipId)
-      .single()
+      .eq("club_id", clubId)
+      .maybeSingle()
 
-    if (m) {
-      const startsAt = new Date().toISOString().slice(0, 10)
-      const expiresAt = new Date(Date.now() + m.duration_days * 86_400_000).toISOString().slice(0, 10)
+    if (!m) return { error: "Абонемент не найден" }
+    const startsAt = new Date().toISOString().slice(0, 10)
+    const expiresAt = new Date(Date.now() + m.duration_days * 86_400_000).toISOString().slice(0, 10)
 
-      const { data: sub, error: subErr } = await supabase.from("subscriptions").insert({
-        club_id:      clubId,
-        client_id:    input.clientId,
-        membership_id: input.membershipId,
-        starts_at:    startsAt,
-        expires_at:   expiresAt,
-        visits_total: m.visits_limit ?? null,
-        visits_used:  0,
-        status:       "active",
-      }).select("id").single()
+    const { data: sub, error: subErr } = await supabase.from("subscriptions").insert({
+      club_id:      clubId,
+      client_id:    input.clientId,
+      membership_id: input.membershipId,
+      starts_at:    startsAt,
+      expires_at:   expiresAt,
+      visits_total: m.visits_limit ?? null,
+      visits_used:  0,
+      status:       "active",
+    }).select("id").single()
 
-      if (subErr) return { error: subErr.message }
-      subscriptionId = sub?.id ?? null
-    }
+    if (subErr) return { error: subErr.message }
+    subscriptionId = sub?.id ?? null
   }
 
   const { error } = await supabase.from("payments").insert({
@@ -98,6 +106,7 @@ export async function createPaymentAction(input: CreatePaymentInput): Promise<Cr
 
   revalidatePath("/payments")
   revalidatePath("/dashboard")
+  revalidatePath(`/clients/${input.clientId}`)
   return { ok: true }
 }
 
@@ -112,6 +121,15 @@ export async function createOnlinePaymentAction(input: OnlinePaymentInput): Prom
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "payments", "create")) return { error: "Недостаточно прав" }
+
+  const [{ data: client }, membershipResult] = await Promise.all([
+    supabase.from("clients").select("id").eq("id", input.clientId).eq("club_id", club.clubId).maybeSingle(),
+    input.membershipId
+      ? supabase.from("memberships").select("id").eq("id", input.membershipId).eq("club_id", club.clubId).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
+  if (!client) return { error: "Клиент не найден" }
+  if (input.membershipId && !membershipResult.data) return { error: "Абонемент не найден" }
 
   const { createServiceClient } = await import("@/lib/supabase/service")
   const svc = createServiceClient()
@@ -144,6 +162,7 @@ export async function createOnlinePaymentAction(input: OnlinePaymentInput): Prom
   const hasTelegram = !!cl?.telegram_id
 
   revalidatePath("/payments")
+  revalidatePath(`/clients/${input.clientId}`)
   return { ok: true, paymentId: payment.id, url, qr, hasTelegram }
 }
 
