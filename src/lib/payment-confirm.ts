@@ -30,13 +30,13 @@ export async function afterPaymentPaid(clubId: string, paymentId: string): Promi
           client_id: pay.client_id ?? null, payment_id: paymentId,
         })
       }
-      await s.from("payments").update({ pending_items: null }).eq("id", paymentId)
+      await s.from("payments").update({ pending_items: null }).eq("id", paymentId).eq("club_id", clubId)
     }
 
     // 1) Активировать абонемент только сейчас (после оплаты).
     if (!pay.subscription_id && pay.pending_membership_id) {
       const { data: m } = await s.from("memberships")
-        .select("duration_days, visits_limit, name").eq("id", pay.pending_membership_id).maybeSingle()
+        .select("duration_days, visits_limit, name").eq("id", pay.pending_membership_id).eq("club_id", clubId).maybeSingle()
       if (m) {
         membershipName = m.name
         const startsAt = new Date().toISOString().slice(0, 10)
@@ -45,11 +45,11 @@ export async function afterPaymentPaid(clubId: string, paymentId: string): Promi
           club_id: clubId, client_id: pay.client_id, membership_id: pay.pending_membership_id,
           starts_at: startsAt, expires_at: expiresAt, visits_total: m.visits_limit ?? null, visits_used: 0, status: "active",
         }).select("id").single()
-        if (sub?.id) await s.from("payments").update({ subscription_id: sub.id }).eq("id", paymentId)
+        if (sub?.id) await s.from("payments").update({ subscription_id: sub.id }).eq("id", paymentId).eq("club_id", clubId)
       }
     } else if (pay.subscription_id) {
       const { data: sub } = await s.from("subscriptions")
-        .select("expires_at, memberships(name)").eq("id", pay.subscription_id).maybeSingle()
+        .select("expires_at, memberships(name)").eq("id", pay.subscription_id).eq("club_id", clubId).maybeSingle()
       expiresAt = sub?.expires_at ?? null
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       membershipName = (sub?.memberships as any)?.name ?? null
@@ -63,7 +63,7 @@ export async function afterPaymentPaid(clubId: string, paymentId: string): Promi
 async function sendReceipt(clubId: string, clientId: string, amount: number, membership: string | null, expires: string | null): Promise<void> {
   const s = createServiceClient()
   const [{ data: cl }, { data: club }] = await Promise.all([
-    s.from("clients").select("telegram_id").eq("id", clientId).maybeSingle(),
+    s.from("clients").select("telegram_id").eq("id", clientId).eq("club_id", clubId).maybeSingle(),
     s.from("clubs").select("tg_token, settings").eq("id", clubId).maybeSingle(),
   ])
   if (!cl?.telegram_id || !club?.tg_token) return

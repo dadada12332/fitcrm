@@ -63,7 +63,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
     if (payment.status === "paid") return fail(E.ALREADY_PAID, "Already paid")
     // Помечаем начало оплаты; merchant_prepare_id — стабильное число (эхо в complete, входит в подпись).
     const prepareId = String(Math.floor(Date.now() / 1000))
-    await service.from("payments").update({ provider: "click", tx_id: click_trans_id }).eq("id", payment.id)
+    await service.from("payments").update({ provider: "click", tx_id: click_trans_id }).eq("id", payment.id).eq("club_id", clubId)
     return NextResponse.json({ click_trans_id, merchant_trans_id, merchant_prepare_id: prepareId, error: E.OK, error_note: "Success" })
   }
 
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
     // Click отменил транзакцию на своей стороне
     if (p.error && Number(p.error) < 0) return fail(E.CANCELLED, "Transaction cancelled", merchant_prepare_id)
     if (payment.status === "paid") return fail(E.ALREADY_PAID, "Already paid", merchant_prepare_id)
-    await service.from("payments").update({ status: "paid", paid_at: new Date().toISOString(), provider: "click", tx_id: click_trans_id }).eq("id", payment.id)
+    await service.from("payments").update({ status: "paid", paid_at: new Date().toISOString(), provider: "click", tx_id: click_trans_id }).eq("id", payment.id).eq("club_id", clubId)
     await afterPaymentPaid(clubId, payment.id)   // активация абонемента + чек в Telegram
     return NextResponse.json({ click_trans_id, merchant_trans_id, merchant_confirm_id: merchant_prepare_id, error: E.OK, error_note: "Success" })
   }

@@ -91,7 +91,7 @@ export async function runMatching(clubId: string): Promise<void> {
         suggested_payment_id: best.p.id,
       }
     }
-    await s.from("acquiring_transactions").update(update).eq("id", tx.id)
+    await s.from("acquiring_transactions").update(update).eq("id", tx.id).eq("club_id", clubId)
   }
 }
 
@@ -125,7 +125,7 @@ export async function getReconciliationRows(clubId: string): Promise<ReconRow[]>
   if (payIds.length) {
     const { data: pays } = await s.from("payments")
       .select("id, client_id, pending_membership_id, memberships:pending_membership_id(name), clients:client_id(full_name)")
-      .in("id", payIds)
+      .eq("club_id", clubId).in("id", payIds)
     for (const p of pays ?? []) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pa = p as any
@@ -136,7 +136,7 @@ export async function getReconciliationRows(clubId: string): Promise<ReconRow[]>
   const clientIds = [...payMap.values()].map((v) => v.client_id).filter(Boolean) as string[]
   const nameMap = new Map<string, string>()
   if (clientIds.length) {
-    const { data: cls } = await s.from("clients").select("id, full_name").in("id", clientIds)
+    const { data: cls } = await s.from("clients").select("id, full_name").eq("club_id", clubId).in("id", clientIds)
     for (const c of cls ?? []) nameMap.set(c.id, c.full_name)
   }
 
@@ -172,11 +172,11 @@ export async function confirmMatch(clubId: string, txnId: string, paymentId: str
 
   await s.from("payments").update({
     status: "paid", paid_at: tx.paid_at, provider: tx.provider, tx_id: tx.id,
-  }).eq("id", paymentId)
+  }).eq("id", paymentId).eq("club_id", clubId)
 
   await s.from("acquiring_transactions").update({
     match_status: "confirmed", matched_payment_id: paymentId, matched_at: new Date().toISOString(),
-  }).eq("id", txnId)
+  }).eq("id", txnId).eq("club_id", clubId)
 
   // Запомнить отпечаток карты за клиентом — повторные оплаты будут матчиться авто.
   if (tx.card_mask && pay.client_id) {

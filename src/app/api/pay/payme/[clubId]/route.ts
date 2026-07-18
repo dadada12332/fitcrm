@@ -62,7 +62,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
 
     case "CreateTransaction": {
       const txId = String(prm?.id ?? "")
-      const { data: existing } = await service.from("payme_transactions").select("*").eq("id", txId).maybeSingle()
+      const { data: existing } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
       if (existing) {
         if (existing.state === 1) return ok(id, { create_time: Number(existing.create_time), transaction: existing.id, state: 1 })
         return err(id, PE.CANT_PERFORM, "Транзакция в недопустимом состоянии")
@@ -72,27 +72,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
       if (!checkAmount(r.payment!.amount)) return err(id, PE.AMOUNT, "Неверная сумма")
       if (r.payment!.status === "paid") return err(id, PE.CANT_PERFORM, "Заказ уже оплачен")
       // Другая активная транзакция на этот платёж?
-      const { data: active } = await service.from("payme_transactions").select("id").eq("payment_id", r.payment!.id).in("state", [1, 2]).neq("id", txId).limit(1).maybeSingle()
+      const { data: active } = await service.from("payme_transactions").select("id").eq("payment_id", r.payment!.id).eq("club_id", clubId).in("state", [1, 2]).neq("id", txId).limit(1).maybeSingle()
       if (active) return err(id, PE.ACCOUNT, "Заказ уже обрабатывается")
 
       const createTime = Number(prm?.time) || now
       await service.from("payme_transactions").insert({
         id: txId, club_id: clubId, payment_id: r.payment!.id, amount: Number(prm?.amount) || 0, state: 1, create_time: createTime,
       })
-      await service.from("payments").update({ provider: "payme" }).eq("id", r.payment!.id)
+      await service.from("payments").update({ provider: "payme" }).eq("id", r.payment!.id).eq("club_id", clubId)
       return ok(id, { create_time: createTime, transaction: txId, state: 1 })
     }
 
     case "PerformTransaction": {
       const txId = String(prm?.id ?? "")
-      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).maybeSingle()
+      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
       if (!tx) return err(id, PE.TX_NOT_FOUND, "Транзакция не найдена")
       if (tx.state === 2) return ok(id, { transaction: tx.id, perform_time: Number(tx.perform_time), state: 2 })
       if (tx.state !== 1) return err(id, PE.CANT_PERFORM, "Транзакция в недопустимом состоянии")
       const performTime = now
-      await service.from("payme_transactions").update({ state: 2, perform_time: performTime }).eq("id", txId)
+      await service.from("payme_transactions").update({ state: 2, perform_time: performTime }).eq("id", txId).eq("club_id", clubId)
       if (tx.payment_id) {
-        await service.from("payments").update({ status: "paid", paid_at: new Date().toISOString(), provider: "payme", tx_id: txId }).eq("id", tx.payment_id)
+        await service.from("payments").update({ status: "paid", paid_at: new Date().toISOString(), provider: "payme", tx_id: txId }).eq("id", tx.payment_id).eq("club_id", clubId)
         await afterPaymentPaid(clubId, tx.payment_id)   // активация абонемента + чек в Telegram
       }
       return ok(id, { transaction: txId, perform_time: performTime, state: 2 })
@@ -101,20 +101,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
     case "CancelTransaction": {
       const txId = String(prm?.id ?? "")
       const reason = prm?.reason ?? null
-      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).maybeSingle()
+      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
       if (!tx) return err(id, PE.TX_NOT_FOUND, "Транзакция не найдена")
       if (tx.state < 0) return ok(id, { transaction: tx.id, cancel_time: Number(tx.cancel_time), state: tx.state })
       const cancelTime = now
       const newState = tx.state === 2 ? -2 : -1
-      await service.from("payme_transactions").update({ state: newState, cancel_time: cancelTime, reason }).eq("id", txId)
+      await service.from("payme_transactions").update({ state: newState, cancel_time: cancelTime, reason }).eq("id", txId).eq("club_id", clubId)
       // Отмена после проведения — возвращаем платёж в неоплаченный (refunded).
-      if (tx.state === 2 && tx.payment_id) await service.from("payments").update({ status: "refunded" }).eq("id", tx.payment_id)
+      if (tx.state === 2 && tx.payment_id) await service.from("payments").update({ status: "refunded" }).eq("id", tx.payment_id).eq("club_id", clubId)
       return ok(id, { transaction: txId, cancel_time: cancelTime, state: newState })
     }
 
     case "CheckTransaction": {
       const txId = String(prm?.id ?? "")
-      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).maybeSingle()
+      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
       if (!tx) return err(id, PE.TX_NOT_FOUND, "Транзакция не найдена")
       return ok(id, {
         create_time: Number(tx.create_time), perform_time: Number(tx.perform_time), cancel_time: Number(tx.cancel_time),
