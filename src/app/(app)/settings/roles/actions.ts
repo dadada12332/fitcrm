@@ -21,18 +21,23 @@ export async function getRolesAction(): Promise<{ roles: RoleRow[]; error?: stri
   if (!club) return { roles: [], error: "Клуб не найден" }
 
   // Ensure default roles exist (lazy creation for older clubs)
-  await supabase.rpc("create_default_club_roles", { p_club_id: club.clubId })
+  const { error: defaultsError } = await supabase.rpc("create_default_club_roles", { p_club_id: club.clubId })
+  if (defaultsError) return { roles: [], error: "Не удалось подготовить роли" }
 
   const [rolesRes, staffRes] = await Promise.all([
     supabase.from("club_roles").select("id, key, name, description, permissions, is_system").eq("club_id", club.clubId).order("created_at"),
     supabase.from("staff").select("role").eq("club_id", club.clubId).eq("is_active", true),
   ])
 
+  if (rolesRes.error || staffRes.error) {
+    return { roles: [], error: "Не удалось загрузить роли" }
+  }
+
   const staffList = staffRes.data ?? []
   const countByKey: Record<string, number> = {}
   for (const s of staffList) countByKey[s.role] = (countByKey[s.role] ?? 0) + 1
 
-  const roles: RoleRow[] = (rolesRes.data ?? []).map((r: any) => ({
+  const roles: RoleRow[] = (rolesRes.data ?? []).map((r) => ({
     id: r.id,
     key: r.key,
     name: r.name,

@@ -12,7 +12,7 @@ tags: [fitcrm, tasks]
 ## Inbox
 
 <!-- AUTO:START kanban-inbox -->
-- Нет задач.
+- TASK-0010 · Исправить бесконечную загрузку ролей и прав · feature · P3 · general · 2026-07-18 · [[Tasks/TASK-0010-ispravit-beskonechnuyu-zagruzku-rolei-i-prav]]
 <!-- AUTO:END kanban-inbox -->
 
 ## Backlog

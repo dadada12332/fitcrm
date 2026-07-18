@@ -13,7 +13,6 @@ import type { ClubData, PlanForClient } from "@/components/app/ClubSettings"
  * хуки Next Router (React #310). Теперь под-роуты рендерят этот компонент напрямую,
  * без редиректа.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function SettingsView({ tab, staffId, staffName }: { tab?: string; staffId?: string; staffName?: string }) {
   const supabase = await createClient()
   const club = await getCurrentClub()
@@ -129,9 +128,11 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
   }
 
   let initialRoles: RoleRow[] | undefined
+  let initialRolesError: string | undefined
   if (tab === "roles") {
     const result = await getRolesAction()
     initialRoles = result.roles
+    initialRolesError = result.error
   }
 
   return (
@@ -143,6 +144,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
       initialAssignStaffId={staffId}
       initialAssignStaffName={staffName ? decodeURIComponent(staffName) : undefined}
       initialRoles={initialRoles}
+      initialRolesError={initialRolesError}
     />
   )
 }

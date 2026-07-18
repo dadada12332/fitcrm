@@ -45,6 +45,7 @@ export function SettingsShell({
   initialAssignStaffId,
   initialAssignStaffName,
   initialRoles,
+  initialRolesError,
 }: {
   data: ClubData
   allowedTabs: AllowedTabs
@@ -53,6 +54,7 @@ export function SettingsShell({
   initialAssignStaffId?: string
   initialAssignStaffName?: string
   initialRoles?: RoleRow[]
+  initialRolesError?: string
 }) {
   const visibleTabs = ALL_TABS.filter(t => allowedTabs[t.key] !== false)
 
@@ -63,16 +65,15 @@ export function SettingsShell({
   // Roles data loaded lazily on first click
   const [roles, setRoles] = useState<RoleRow[] | null>(initialRoles ?? null)
   const [rolesLoading, setRolesLoading] = useState(false)
-  const [rolesError, setRolesError] = useState<string | null>(null)
+  const [rolesError, setRolesError] = useState<string | null>(initialRolesError ?? null)
   const [rolesRetry, setRolesRetry] = useState(0)
-  const [assignStaffId, setAssignStaffId]     = useState(initialAssignStaffId)
-  const [assignStaffName, setAssignStaffName] = useState(initialAssignStaffName)
+  const [assignStaffId] = useState(initialAssignStaffId)
+  const [assignStaffName] = useState(initialAssignStaffName)
 
   useEffect(() => {
-    if (activeTab !== "roles" || roles !== null || rolesLoading || rolesError) return
+    if (activeTab !== "roles" || roles !== null || rolesError) return
 
     let cancelled = false
-    setRolesLoading(true)
     getRolesAction()
       .then(({ roles: loadedRoles, error }) => {
         if (cancelled) return
@@ -87,9 +88,10 @@ export function SettingsShell({
       })
 
     return () => { cancelled = true }
-  }, [activeTab, roles, rolesLoading, rolesError, rolesRetry])
+  }, [activeTab, roles, rolesError, rolesRetry])
 
   function handleTabChange(tab: TabKey) {
+    if (tab === "roles" && roles === null && !rolesError) setRolesLoading(true)
     setActiveTab(tab)
   }
 
@@ -147,7 +149,11 @@ export function SettingsShell({
               <p className="text-sm text-muted-foreground">{rolesError}</p>
               <button
                 type="button"
-                onClick={() => { setRolesError(null); setRolesRetry((value) => value + 1) }}
+                onClick={() => {
+                  setRolesLoading(true)
+                  setRolesError(null)
+                  setRolesRetry((value) => value + 1)
+                }}
                 className="text-sm font-medium text-primary"
               >
                 Повторить
