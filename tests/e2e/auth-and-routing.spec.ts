@@ -25,3 +25,12 @@ for (const privateRoute of ["/dashboard", "/clients", "/memberships", "/visits",
     await expect(page).toHaveURL(/\/login(?:\?|$)/)
   })
 }
+
+for (const apiRoute of ["/api/broadcasts/run", "/api/cron/reconcile", "/api/telegram/daily-report"]) {
+  test(apiRoute + " reaches its server-to-server authorization boundary", async ({ request }) => {
+    const response = await request.get(apiRoute, { maxRedirects: 0 })
+
+    expect(response.status()).toBe(401)
+    expect(await response.json()).toEqual({ error: "Unauthorized" })
+  })
+}

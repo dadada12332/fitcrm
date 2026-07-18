@@ -55,7 +55,7 @@ Tenant isolation, auth, production data и существующие пользо
 ## Verification
 
 - Vitest: 85 passed, 1 opt-in integration skipped без isolated test DB.
-- Playwright: 20/20 desktop/mobile auth и routing checks passed.
+- Playwright baseline: 20/20 desktop/mobile auth и routing checks passed; после cron fix suite расширен до 26/26.
 - `npx tsc --noEmit`: passed на чистом `.next`.
 - Next.js production build: passed, 53 страницы сгенерированы, exit 0.
 - Documentation validation: 38 notes, 10 unique IDs, passed.

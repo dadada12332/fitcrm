@@ -11,8 +11,8 @@ tags: [fitcrm, operations]
 
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
-- Branch: `codex/night-autonomy-2026-07-18`.
-- Последний commit: 13dd7c2 · 2026-07-18T11:43:05+05:00 · Document overnight reliability audit.
+- Branch: `main`.
+- Последний commit: 5032589 · 2026-07-18T11:43:16+05:00 · Refresh project handoff after audit.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 55; последняя `0055_harden_public_rpcs.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

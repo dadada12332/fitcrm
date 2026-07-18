@@ -60,4 +60,5 @@ tags: [fitcrm, tasks]
 - TASK-0005 · Mobile и Platform Admin stabilization · UX · P1 · crm-platform · 2026-07-17 · [[Tasks/Completed/TASK-0005-mobile-platform-stabilization]]
 - TASK-0006 · Переработать AI Аналитику по дизайн-системе · feature · P1 · ai-analytics · 2026-07-18 · [[Tasks/Completed/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 - TASK-0007 · Ночной аудит надёжности и производительности · security · P1 · platform · 2026-07-18 · [[Tasks/Completed/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]]
+- TASK-0008 · Восстановить доступ Vercel Cron к API · bug · P1 · cron-api · 2026-07-18 · [[Tasks/Completed/TASK-0008-vosstanovit-dostup-vercel-cron-k-api]]
 <!-- AUTO:END kanban-done -->

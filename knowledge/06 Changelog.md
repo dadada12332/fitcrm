@@ -29,6 +29,7 @@ tags: [fitcrm, releases]
 - Исправлены мобильные sidebar, фильтры, расписание, отчёты и карточка клиента.
 - Ссылка восстановления пароля выровнена с опцией запоминания.
 - Маршруты восстановления пароля больше не перенаправляют анонимного пользователя обратно на login.
+- Vercel Cron для scheduled broadcasts больше не перехватывается CRM auth redirect и доходит до собственной Bearer-проверки.
 
 ### Performance
 
@@ -55,6 +56,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `5032589` · 2026-07-18 · Refresh project handoff after audit
 - `13dd7c2` · 2026-07-18 · Document overnight reliability audit
 - `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
 - `dc9b926` · 2026-07-18 · Replace vulnerable spreadsheet parser
@@ -84,5 +86,4 @@ tags: [fitcrm, releases]
 - `53f99c8` · 2026-07-17 · Improve memberships mobile toolbar
 - `3922eac` · 2026-07-17 · Stack revenue period filters on mobile
 - `aaa88d0` · 2026-07-17 · Fix mobile sidebar drawer
-- `d081868` · 2026-07-17 · Fix CRM mobile layouts and navigation flows
 <!-- AUTO:END changelog-candidates -->

@@ -77,6 +77,20 @@ tags: [fitcrm, risks]
 - Task: отдельный low-priority UI performance task.
 - Last checked: 2026-07-18.
 
+## ISSUE-0008 — Scheduled broadcasts блокировались CRM middleware
+
+- Severity: P1
+- Status: resolved
+- Module: cron/api
+- Environment: production
+- Symptoms: `/api/broadcasts/run` возвращал `307 /login` вместо route-level `401`, поэтому Vercel Cron не мог выполнить scheduled broadcasts.
+- Expected: server-to-server route доступен middleware и самостоятельно требует `CRON_SECRET`.
+- Actual: `/api/broadcasts` добавлен в public middleware boundary; endpoint без секрета возвращает `401 Unauthorized`.
+- Cause: route отсутствовал в списке server-to-server API, хотя `/api/cron` и `/api/telegram` уже были разрешены.
+- Workaround: не требуется после deploy.
+- Task: [[Tasks/Completed/TASK-0008-vosstanovit-dostup-vercel-cron-k-api]].
+- Last checked: 2026-07-18; resolved.
+
 ## ISSUE-0003 — SMS/email уведомления не отправляются
 
 - Severity: P2
