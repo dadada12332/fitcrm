@@ -3,8 +3,12 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getInstagramConfig, parseSignedRequest } from "@/lib/instagram"
 
 export async function POST(request: Request) {
-  const form = await request.formData()
-  const signedRequest = form.get("signed_request")
+  let signedRequest: FormDataEntryValue | null = null
+  try {
+    signedRequest = (await request.formData()).get("signed_request")
+  } catch {
+    return Response.json({ error: "Invalid signed request" }, { status: 401 })
+  }
   const config = getInstagramConfig()
   const payload = typeof signedRequest === "string" ? parseSignedRequest(signedRequest, config.appSecret) : null
   const accountId = payload && (payload.user_id ?? payload.profile_id)
