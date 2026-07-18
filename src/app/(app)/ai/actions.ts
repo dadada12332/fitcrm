@@ -12,7 +12,7 @@ type SB = ReturnType<typeof createServiceClient>
 // ── Типы ответа (рендерятся компонентами на фронте) ──────────────
 export type AiSource = { entity: string; count: number; period?: string }
 export type AiClientItem = { id: string; name: string; line1?: string; line2?: string; phone?: string | null; right?: string }
-export type AiListItem = { title: string; subtitle?: string; badge?: string; badgeColor?: string }
+export type AiListItem = { title: string; subtitle?: string; badge?: string; badgeTone?: "danger" }
 export type AiCard =
   | { type: "kpi"; title: string; value: string; delta?: string; deltaUp?: boolean; sub?: string; source?: AiSource; followups?: string[] }
   | { type: "client_list"; title: string; clients: AiClientItem[]; source?: AiSource; followups?: string[]; openHref?: string }
@@ -38,7 +38,13 @@ function periodRange(period?: string): { from: Date; to: Date; label: string } {
 }
 
 // ── Дневной брифинг (детерминированный, без LLM) ─────────────────
-export type Briefing = { greeting: string; date: string; stats: { icon: string; label: string; value: string; query: string }[] }
+export type BriefingStat = {
+  key: "visits" | "payments" | "expiring" | "revenue"
+  label: string
+  value: string
+  query: string
+}
+export type Briefing = { greeting: string; date: string; stats: BriefingStat[] }
 
 export async function getBriefingAction(): Promise<Briefing | null> {
   const club = await getCurrentClub()
@@ -67,10 +73,10 @@ export async function getBriefingAction(): Promise<Briefing | null> {
     greeting,
     date: now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" }),
     stats: [
-      { icon: "📅", label: "посещений сегодня", value: String(visitsToday.count ?? 0), query: "кто сегодня приходил" },
-      { icon: "💳", label: "оплат сегодня", value: String(payToday.data?.length ?? 0), query: "последние оплаты" },
-      { icon: "⏳", label: "истекают за 3 дня", value: String(expiring.count ?? 0), query: "у кого заканчивается абонемент" },
-      { icon: "💰", label: "выручка сегодня", value: `${fmt(rToday)}${delta ? (delta > 0 ? ` ▲${delta}%` : ` ▼${Math.abs(delta)}%`) : ""}`, query: "какая выручка сегодня" },
+      { key: "visits", label: "Посещения сегодня", value: String(visitsToday.count ?? 0), query: "кто сегодня приходил" },
+      { key: "payments", label: "Оплаты сегодня", value: String(payToday.data?.length ?? 0), query: "последние оплаты" },
+      { key: "expiring", label: "Истекают за 3 дня", value: String(expiring.count ?? 0), query: "у кого заканчивается абонемент" },
+      { key: "revenue", label: "Выручка сегодня", value: `${fmt(rToday)}${delta ? (delta > 0 ? ` +${delta}%` : ` -${Math.abs(delta)}%`) : ""}`, query: "какая выручка сегодня" },
     ],
   }
 }
@@ -93,10 +99,6 @@ const TOOLS = [{
     { name: "get_low_stock", description: "Товары с низким остатком.", parameters: { type: "object", properties: {} } },
     { name: "get_recent_payments", description: "Последние оплаты (таблица).", parameters: { type: "object", properties: {} } },
     { name: "get_staff", description: "Сотрудники клуба с ролями.", parameters: { type: "object", properties: {} } },
-    { name: "create_product", description: "Создать товар (в т.ч. по фото).", parameters: { type: "object", properties: { name: str("название"), price: num("цена"), quantity: num("остаток"), category: str("категория") }, required: ["name"] } },
-    { name: "create_client", description: "Добавить клиента.", parameters: { type: "object", properties: { first_name: str("имя"), last_name: str("фамилия"), phone: str("телефон") }, required: ["first_name"] } },
-    { name: "mark_visit", description: "Отметить посещение клиента (по имени/телефону).", parameters: { type: "object", properties: { client: str("имя/телефон") }, required: ["client"] } },
-    { name: "add_payment", description: "Записать оплату наличными.", parameters: { type: "object", properties: { client: str("имя/телефон"), amount: num("сумма") }, required: ["client", "amount"] } },
   ],
 }]
 
@@ -195,7 +197,7 @@ async function execTool(clubId: string, name: string, args: any): Promise<{ summ
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         items = (data ?? []).map((p: any) => { const inv = Array.isArray(p.inventory) ? p.inventory[0] : p.inventory; return { name: p.name, q: Number(inv?.quantity ?? 0), m: Number(inv?.min_quantity ?? 0) } })
           .filter((p: { q: number; m: number }) => p.m > 0 && p.q <= p.m)
-          .map((p: { name: string; q: number; m: number }) => ({ title: p.name, subtitle: `мин. ${p.m}`, badge: `${p.q} шт`, badgeColor: "#dc2626" }))
+          .map((p: { name: string; q: number; m: number }) => ({ title: p.name, subtitle: `мин. ${p.m}`, badge: `${p.q} шт`, badgeTone: "danger" as const }))
       }
       return { summary: `${title}: ${items.length}.`, card: { type: "list", title, items, source: { entity: "склад", count: items.length }, openHref: "/warehouse", followups: name === "get_low_stock" ? ["Оформить поставку"] : ["Топ продаж"] } }
     }
@@ -203,7 +205,7 @@ async function execTool(clubId: string, name: string, args: any): Promise<{ summ
       const { from, label } = { ...periodRange(A.period ?? "month"), label: periodRange(A.period ?? "month").label }
       const { data } = await s.rpc("product_sales_counts", { p_club_id: clubId, p_since: from.toISOString() })
       const ids = (data ?? []).map((r: { product_id: string }) => r.product_id)
-      const { data: prods } = ids.length ? await s.from("products").select("id, name").in("id", ids) : { data: [] }
+      const { data: prods } = ids.length ? await s.from("products").select("id, name").eq("club_id", clubId).in("id", ids) : { data: [] }
       const nm = new Map((prods ?? []).map((p) => [p.id, p.name]))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rows = (data ?? []).sort((a: any, b: any) => b.cnt - a.cnt).slice(0, 10).map((r: any, i: number) => [String(i + 1), nm.get(r.product_id) ?? "?", `${r.cnt}`, `${fmt(Number(r.qty))}`])
@@ -223,47 +225,33 @@ async function execTool(clubId: string, name: string, args: any): Promise<{ summ
       const items: AiListItem[] = (data ?? []).map((r: any) => ({ title: r.users?.full_name ?? r.users?.email ?? "?", badge: RL[r.role] ?? r.role }))
       return { summary: `Сотрудников: ${items.length}.`, card: { type: "list", title: "Сотрудники", items, source: { entity: "сотрудники", count: items.length }, openHref: "/staff" } }
     }
-    case "create_product": {
-      const nm = String(A.name ?? "").trim(); if (!nm) return { summary: "Не указано название." }
-      const price = Number(A.price) || 0, qty = Number(A.quantity) || 0
-      const { data: p, error } = await s.from("products").insert({ club_id: clubId, name: nm, category: A.category || null, unit: "шт", sell_price: price, buy_price: 0 }).select("id").single()
-      if (error || !p) return { summary: `Ошибка: ${error?.message}` }
-      await s.from("inventory").insert({ club_id: clubId, product_id: p.id, quantity: qty, min_quantity: 0 })
-      if (qty > 0) await s.from("stock_movements").insert({ club_id: clubId, product_id: p.id, type: "supply", qty, unit_price: 0, note: "AI" })
-      const t = `Создан товар «${nm}» — ${fmt(price)} сум, остаток ${qty} шт.`
-      return { summary: t, card: { type: "success", text: `✅ ${t}`, followups: ["Показать товары", "Топ продаж"] } }
-    }
-    case "create_client": {
-      const fn = String(A.first_name ?? "").trim(); if (!fn) return { summary: "Не указано имя." }
-      const full = A.last_name ? `${fn} ${A.last_name}` : fn
-      const { error } = await s.from("clients").insert({ club_id: clubId, full_name: full, phone: A.phone || null, tags: [] })
-      if (error) return { summary: `Ошибка: ${error.message}` }
-      const t = `Добавлен клиент ${full}${A.phone ? ` (${A.phone})` : ""}.`
-      return { summary: t, card: { type: "success", text: `✅ ${t}`, followups: ["Продать абонемент", "Записать оплату"] } }
-    }
-    case "mark_visit": {
-      const rows = await findClients(s, clubId, String(A.client ?? ""))
-      if (!rows.length) return { summary: "Клиент не найден." }
-      if (rows.length > 1) return { summary: "Несколько совпадений: " + rows.map((c) => c.full_name).join(", ") + ". Уточните." }
-      const c = rows[0]
-      const { data: sub } = await s.from("subscriptions").select("id, visits_used").eq("client_id", c.id).eq("status", "active").order("expires_at", { ascending: false }).limit(1).maybeSingle()
-      if (sub?.id) await s.from("subscriptions").update({ visits_used: (sub.visits_used ?? 0) + 1 }).eq("id", sub.id)
-      const { error } = await s.from("visits").insert({ club_id: clubId, client_id: c.id, subscription_id: sub?.id ?? null, method: "manual" })
-      if (error) return { summary: `Ошибка: ${error.message}` }
-      return { summary: `Отмечено посещение: ${c.full_name}.`, card: { type: "success", text: `✅ Отмечено посещение: ${c.full_name}.` } }
-    }
-    case "add_payment": {
-      const rows = await findClients(s, clubId, String(A.client ?? ""))
-      if (!rows.length) return { summary: "Клиент не найден." }
-      if (rows.length > 1) return { summary: "Несколько совпадений: " + rows.map((c) => c.full_name).join(", ") + ". Уточните." }
-      const amount = Number(A.amount) || 0; if (amount <= 0) return { summary: "Некорректная сумма." }
-      const { error } = await s.from("payments").insert({ club_id: clubId, client_id: rows[0].id, amount, provider: "cash", status: "paid", paid_at: new Date().toISOString() })
-      if (error) return { summary: `Ошибка: ${error.message}` }
-      return { summary: `Записана оплата ${fmt(amount)} сум от ${rows[0].full_name}.`, card: { type: "success", text: `✅ Записана оплата ${fmt(amount)} сум (наличные) от ${rows[0].full_name}.` } }
-    }
     default:
       return { summary: `Неизвестная функция: ${name}` }
   }
+}
+
+function resolveDirectIntent(input: string): { name: string; args: Record<string, string | number> } | null {
+  const query = input.trim().toLocaleLowerCase("ru-RU")
+  if (!query) return null
+
+  if (/последн.*оплат|оплат.*последн/.test(query)) return { name: "get_recent_payments", args: {} }
+  if (/должник|долг/.test(query)) return { name: "get_debtors", args: {} }
+  if (/низк.*остат|заканчива.*склад|что заканчивается/.test(query)) return { name: "get_low_stock", args: {} }
+  if (/истека|заканчива.*абонем|продлен/.test(query)) {
+    const days = Number(query.match(/\d+/)?.[0] ?? 7)
+    return { name: "get_expiring_subscriptions", args: { days } }
+  }
+  if (/сейчас.*зал|зал.*сейчас/.test(query)) return { name: "get_in_gym_now", args: {} }
+  if (/сотрудник|персонал|команд/.test(query)) return { name: "get_staff", args: {} }
+  if (/топ.*продаж|лучш.*продаж/.test(query)) {
+    const period = /недел|7\s*дн/.test(query) ? "week" : /сегодня/.test(query) ? "today" : "month"
+    return { name: "get_top_products", args: { period } }
+  }
+  if (/выруч|средн.*чек|сколько.*оплат|посещаемост|кто сегодня приходил/.test(query)) {
+    const period = /вчера/.test(query) ? "yesterday" : /недел|7\s*дн/.test(query) ? "week" : /месяц|30\s*дн/.test(query) ? "month" : "today"
+    return { name: "get_metrics", args: { period } }
+  }
+  return null
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -285,6 +273,14 @@ export async function askAiAction(messages: AiMessage[]): Promise<{ reply: strin
   const club = await getCurrentClub()
   if (!club) return { reply: "", cards: [], error: "Не авторизован" }
   if (!can(club.permissions, "ai", "use")) return { reply: "", cards: [], error: "Недостаточно прав" }
+
+  const latest = [...messages].reverse().find((message) => message.role === "user")
+  const directIntent = latest && !latest.image ? resolveDirectIntent(latest.content) : null
+  if (directIntent) {
+    const { summary, card } = await execTool(club.clubId, directIntent.name, directIntent.args)
+    return { reply: summary, cards: card ? [card] : [] }
+  }
+
   const key = process.env.GEMINI_API_KEY
   if (!key) return { reply: "", cards: [], error: "ИИ не подключён (нет ключа)" }
 

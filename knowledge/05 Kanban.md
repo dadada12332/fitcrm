@@ -12,7 +12,7 @@ tags: [fitcrm, tasks]
 ## Inbox
 
 <!-- AUTO:START kanban-inbox -->
-- Нет задач.
+- TASK-0007 · Ночной аудит надёжности и производительности · feature · P3 · general · 2026-07-18 · [[Tasks/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]]
 <!-- AUTO:END kanban-inbox -->
 
 ## Backlog
@@ -30,7 +30,7 @@ tags: [fitcrm, tasks]
 ## In Progress
 
 <!-- AUTO:START kanban-in-progress -->
-- TASK-0006 · Переработать AI Аналитику по дизайн-системе · feature · P1 · ai-analytics · 2026-07-18 · [[Tasks/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
+- Нет задач.
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review
@@ -58,4 +58,5 @@ tags: [fitcrm, tasks]
 - TASK-0002 · Проверить регионы Vercel и Supabase · performance · P1 · infrastructure · 2026-07-18 · [[Tasks/Completed/TASK-0002-verify-infrastructure-regions]]
 - TASK-0003 · Автоматизировать критические пользовательские сценарии · security · P1 · quality · 2026-07-18 · [[Tasks/Completed/TASK-0003-critical-flow-tests]]
 - TASK-0005 · Mobile и Platform Admin stabilization · UX · P1 · crm-platform · 2026-07-17 · [[Tasks/Completed/TASK-0005-mobile-platform-stabilization]]
+- TASK-0006 · Переработать AI Аналитику по дизайн-системе · feature · P1 · ai-analytics · 2026-07-18 · [[Tasks/Completed/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 <!-- AUTO:END kanban-done -->

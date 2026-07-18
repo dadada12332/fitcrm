@@ -42,14 +42,18 @@ updated: 2026-07-18
 
 - [[Releases/v0.1.0]]
 
+## Research
+
+- [[Research/AI Analytics References]]
+
 ## Tasks
 
 - [[Tasks/Completed/TASK-0001-operacionnaya-pamyat-fitcrm]]
 - [[Tasks/Completed/TASK-0002-verify-infrastructure-regions]]
 - [[Tasks/Completed/TASK-0003-critical-flow-tests]]
 - [[Tasks/Completed/TASK-0005-mobile-platform-stabilization]]
+- [[Tasks/Completed/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
-- [[Tasks/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 
 ## UX
 

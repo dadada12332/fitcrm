@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `codex/night-autonomy-2026-07-18`.
-- Последний commit: 50e3ef4 · 2026-07-18T11:09:18+05:00 · Document test baseline and RPC security incident.
+- Последний commit: 55eeb1d · 2026-07-18T11:14:33+05:00 · Add guarded backup restore runbook.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 55; последняя `0055_harden_public_rpcs.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

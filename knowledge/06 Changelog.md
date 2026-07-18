@@ -18,6 +18,7 @@ tags: [fitcrm, releases]
 ### Changed
 
 - Platform Admin приведён к общей дизайн-системе.
+- AI Аналитика переработана в адаптивное операционное рабочее место с живой сводкой и быстрыми KPI-карточками.
 - Основные CRM-сценарии адаптированы для мобильных экранов.
 - Быстрые действия на dashboard открываются компактным dropdown.
 - Центр уведомлений стал информативнее и шире.
@@ -37,6 +38,7 @@ tags: [fitcrm, releases]
 
 - Миграция `0055` закрыла anonymous/cross-tenant вызов публичных `SECURITY DEFINER` RPC; production проверен через Advisor и rollback RLS drill.
 - Неизвестные/повреждённые role keys теперь получают deny-by-default permissions.
+- AI Аналитика переведена в read-only режим: mutating tools исключены до реализации явного подтверждения и модульных permission checks.
 
 ### Deprecated
 
@@ -51,6 +53,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `55eeb1d` · 2026-07-18 · Add guarded backup restore runbook
 - `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 - `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
 - `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
@@ -80,5 +83,4 @@ tags: [fitcrm, releases]
 - `60c566e` · 2026-07-17 · docs: HANDOFF.md — полная передача проекта для нового AI (Codex) + AGENTS.md как точка входа
 - `63e9b2c` · 2026-07-17 · style(telegram): рассылка на дизайн-систему приложения
 - `a8cdb61` · 2026-07-17 · style(telegram): страница рассылки — контролы и радиусы к единому стилю (rounded-lg карточки, rounded-md h-9 контролы), превью TG не трогал
-- `a2ce9ff` · 2026-07-17 · fix(telegram): утечка отчётов по всем клубам + понятная подсказка рассылки
 <!-- AUTO:END changelog-candidates -->

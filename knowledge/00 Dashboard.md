@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `55eeb1d` · 2026-07-18 · Add guarded backup restore runbook
 - `50e3ef4` · 2026-07-18 · Document test baseline and RPC security incident
 - `32f4975` · 2026-07-18 · Add security regression tests and harden public RPCs
 - `cb792ac` · 2026-07-18 · Document verified Sydney infrastructure topology
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `dcea7c6` · 2026-07-18 · Keep support diagnostics visible on mobile
 - `58ffb23` · 2026-07-18 · Fix platform support mobile header
 - `edd49e7` · 2026-07-18 · Fix platform connections mobile actions
-- `1cf7e0a` · 2026-07-18 · Fix platform dashboard mobile grid
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

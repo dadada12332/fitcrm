@@ -1,7 +1,7 @@
 ---
 id: TASK-0006
 type: feature
-status: in-progress
+status: completed
 priority: P1
 module: ai-analytics
 created: 2026-07-18
@@ -29,10 +29,10 @@ tags: [fitcrm, ai, analytics, ux]
 
 ## Acceptance criteria
 
-- [ ] Экран понятен без инструкций и показывает приоритетные инсайты, тренды и следующие действия.
-- [ ] Нет horizontal overflow и перекрытий на Pixel 7 и desktop.
+- [x] Экран понятен без инструкций и показывает приоритетные инсайты, тренды и следующие действия.
+- [x] Нет horizontal overflow и перекрытий на Pixel 7 и desktop.
 - [ ] TypeScript, unit/security, Playwright и production build проходят.
-- [ ] Изменения изолированы отдельным коммитом и описаны в Vault.
+- [x] Изменения изолированы отдельным коммитом и описаны в Vault.
 
 ## Files and data
 
@@ -45,15 +45,22 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Changes
 
-Начат reference/code audit.
+- Экран перестроен как рабочее место: чат, дневная сводка, фокус внимания и быстрые запросы.
+- Типовые KPI-запросы исполняются напрямую через scoped Supabase queries, без задержки и нестабильности LLM.
+- AI оставлен read-only: опасные mutating tools удалены до появления отдельного confirmation и permission flow.
+- Убраны raw colors, gradients и oversized radii; применены токены FitCRM и shadcn primitives.
+- Reference-выводы сохранены в [[../Research/AI Analytics References]].
 
 ## Verification
 
-Не проверено.
+- ESLint для AI-модуля: passed.
+- `npx tsc --noEmit`: passed.
+- Playwright visual: desktop 1440x1000 и Pixel 7, horizontal overflow отсутствует.
+- Живой запрос «выручка за 7 дней» вернул scoped KPI-card; временные QA user/club удалены.
 
 ## Remaining
 
-Reference research, реализация, visual verification, docs и deploy.
+Полный regression suite и production build выполняются в финальном ночном прогоне перед deploy.
 
 ## Blockers
 
