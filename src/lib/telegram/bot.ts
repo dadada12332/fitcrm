@@ -1,5 +1,5 @@
 import { sanitizeSearchTerm } from "@/lib/search"
-import { Bot, InlineKeyboard, Keyboard, InputFile } from "grammy"
+import { Bot, InlineKeyboard, Keyboard } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 import { hashTelegramPairingToken, parseTelegramPairingPayload } from "@/lib/telegram/pairing"
 import { getTelegramMiniAppUrl } from "@/lib/telegram/api"
@@ -30,7 +30,7 @@ interface TgUser {
   role: UserRole
   pending_action: string | null
   preferences: { expiry_reminders?: boolean; schedule_reminders?: boolean }
-  client?: { id: string; full_name: string; qr_token: string | null; club_id: string }
+  client?: { id: string; full_name: string; club_id: string }
   staff?: { id: string; role: string; club_id: string; settings: { full_name?: string; phone?: string } }
 }
 
@@ -107,7 +107,7 @@ async function getLinkedUser(telegramId: number, clubId: string): Promise<TgUser
   const supabase = createServiceClient()
   const { data } = await supabase
     .from("telegram_users")
-    .select("club_id, telegram_id, client_id, staff_id, role, pending_action, preferences, clients(id, full_name, qr_token, club_id), staff(id, role, club_id, settings)")
+    .select("club_id, telegram_id, client_id, staff_id, role, pending_action, preferences, clients(id, full_name, club_id), staff(id, role, club_id, settings)")
     .eq("club_id", clubId)
     .eq("telegram_id", telegramId)
     .maybeSingle()
@@ -431,19 +431,9 @@ function setupHandlers(bot: Bot, clubId: string) {
     if (!tgUser?.client_id || !tgUser.client?.club_id) { await ctx.reply("Сначала войдите: /start"); return }
     const { settings } = await getClubTelegramSettings(clubId)
     if (settings.qr_checkin === false) { await ctx.reply("QR-вход отключён клубом."); return }
-    const supabase = createServiceClient()
-    let qrToken = tgUser.client?.qr_token as string | null
-    if (!qrToken) {
-      qrToken = crypto.randomUUID()
-      await supabase.from("clients").update({ qr_token: qrToken }).eq("id", tgUser.client_id).eq("club_id", tgUser.client.club_id)
-    }
-    try {
-      const QRCode   = (await import("qrcode")).default
-      const qrBuffer = await QRCode.toBuffer(qrToken, { width: 400, margin: 2, color: { dark: "#020617", light: "#ffffff" } })
-      await ctx.replyWithPhoto(new InputFile(qrBuffer, "qr.png"), {
-        caption: "📱 *Ваш QR-код*\n\nПокажите на входе.", parse_mode: "Markdown",
-      })
-    } catch { await ctx.reply("❌ Ошибка генерации QR.") }
+    await ctx.reply("📱 QR-код обновляется каждые 30 секунд и доступен в личном кабинете.", {
+      reply_markup: new InlineKeyboard().webApp("Открыть QR-пропуск", getTelegramMiniAppUrl(clubId, "pass")),
+    })
   })
 
   // /help ───────────────────────────────────────────────────────────
@@ -522,7 +512,7 @@ function setupHandlers(bot: Bot, clubId: string) {
     // 2. Then check clients
     const { data: clients } = await supabase
       .from("clients")
-      .select("id, full_name, phone, qr_token")
+      .select("id, full_name, phone")
       .eq("club_id", clubId)
       .ilike("phone", `%${normalized}%`)
       .limit(1)
@@ -802,18 +792,9 @@ function setupHandlers(bot: Bot, clubId: string) {
           await ctx.editMessageText("QR-вход отключён клубом.", { reply_markup: back })
           return
         }
-        let qrToken = tgUser.client?.qr_token as string | null
-        if (!qrToken) {
-          qrToken = crypto.randomUUID()
-          await supabase.from("clients").update({ qr_token: qrToken }).eq("id", clientId).eq("club_id", clientClubId)
-        }
-        try {
-          const QRCode   = (await import("qrcode")).default
-          const qrBuffer = await QRCode.toBuffer(qrToken, { width: 400, margin: 2, color: { dark: "#020617", light: "#ffffff" } })
-          await ctx.replyWithPhoto(new InputFile(qrBuffer, "qr.png"), {
-            caption: `📱 *Ваш QR-код*\n\nПокажите на входе.`, parse_mode: "Markdown",
-          })
-        } catch { await ctx.reply("❌ Ошибка генерации QR.") }
+        await ctx.reply("📱 QR-код обновляется каждые 30 секунд и доступен в личном кабинете.", {
+          reply_markup: new InlineKeyboard().webApp("Открыть QR-пропуск", getTelegramMiniAppUrl(clubId, "pass")),
+        })
         return
       }
 

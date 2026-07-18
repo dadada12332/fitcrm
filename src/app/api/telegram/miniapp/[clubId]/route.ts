@@ -1,12 +1,13 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import { validateTelegramMiniAppInitData } from "@/lib/telegram/miniapp-auth"
 import { buildClickPayUrl, buildPaymePayUrl } from "@/lib/payment-links"
+import { createQrPass } from "@/lib/qr-pass"
 
 export const dynamic = "force-dynamic"
 
 type MiniAppBody = {
   initData?: string
-  action?: "bootstrap" | "book" | "cancel" | "renew" | "preferences"
+  action?: "bootstrap" | "book" | "cancel" | "renew" | "preferences" | "qr"
   classId?: string
   bookingId?: string
   provider?: "payme" | "click"
@@ -65,6 +66,15 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
 
   const clientId = link.client_id as string
   const action = body.action ?? "bootstrap"
+
+  if (action === "qr") {
+    const { data: clubRow } = await service.from("clubs").select("settings").eq("id", clubId).maybeSingle()
+    const rootSettings = (clubRow?.settings as Record<string, unknown> | null) ?? {}
+    const tgSettings = (rootSettings.tg_settings as { qr_checkin?: boolean } | undefined) ?? {}
+    if (tgSettings.qr_checkin === false) return fail("QR-вход отключён клубом")
+    const pass = createQrPass(clubId, clientId)
+    return Response.json({ qrPass: pass.value, qrExpiresAt: pass.expiresAt }, { headers: { "Cache-Control": "no-store" } })
+  }
 
   if (action === "book") {
     if (!body.classId || !UUID.test(body.classId)) return fail("Занятие не найдено")
@@ -152,7 +162,7 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
   const rangeEnd = tashkentDate(7)
   const [{ data: club }, { data: client }, { data: subscriptions }, { data: visits }, { data: classes }, { data: providers }] = await Promise.all([
     service.from("clubs").select("name, city, settings").eq("id", clubId).single(),
-    service.from("clients").select("id, full_name, qr_token").eq("id", clientId).eq("club_id", clubId).single(),
+    service.from("clients").select("id, full_name").eq("id", clientId).eq("club_id", clubId).single(),
     service.from("subscriptions").select("id, status, starts_at, expires_at, visits_total, visits_used, memberships(name, price)")
       .eq("club_id", clubId).eq("client_id", clientId).order("expires_at", { ascending: false }).limit(5),
     service.from("visits").select("id, checked_in_at, method").eq("club_id", clubId).eq("client_id", clientId)
@@ -166,11 +176,7 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
 
   const rootSettings = (club.settings as Record<string, unknown> | null) ?? {}
   const tgSettings = (rootSettings.tg_settings as { qr_checkin?: boolean } | undefined) ?? {}
-  let qrToken = client.qr_token as string | null
-  if (!qrToken && tgSettings.qr_checkin !== false) {
-    qrToken = crypto.randomUUID()
-    await service.from("clients").update({ qr_token: qrToken }).eq("id", clientId).eq("club_id", clubId)
-  }
+  const qrPass = tgSettings.qr_checkin === false ? null : createQrPass(clubId, clientId)
   const classRows = (classes ?? []).map((item) => {
     const bookings = (item.class_bookings as unknown as Array<{ id: string; client_id: string; status: string }>) ?? []
     const activeBookings = bookings.filter((booking) => booking.status === "booked" || booking.status === "attended")
@@ -191,9 +197,15 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
 
   return Response.json({
     club: { name: club.name, city: club.city },
-    client: { fullName: client.full_name, telegramFirstName: auth.user.first_name },
+    client: {
+      crmFullName: client.full_name,
+      telegramName: [auth.user.first_name, auth.user.last_name].filter(Boolean).join(" "),
+      telegramFirstName: auth.user.first_name,
+      telegramPhotoUrl: auth.user.photo_url ?? null,
+    },
     subscriptions: subscriptions ?? [], visits: visits ?? [], classes: classRows,
-    qrToken: tgSettings.qr_checkin === false ? null : qrToken,
+    qrPass: qrPass?.value ?? null,
+    qrExpiresAt: qrPass?.expiresAt ?? null,
     preferences: link.preferences ?? { expiry_reminders: true, schedule_reminders: true },
     providers: (providers ?? []).map((item) => item.provider),
     serverDate: today,

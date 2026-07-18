@@ -54,11 +54,12 @@ type ClassItem = {
 
 type MiniAppData = {
   club: { name: string; city: string | null }
-  client: { fullName: string; telegramFirstName: string }
+  client: { crmFullName: string; telegramName: string; telegramFirstName: string; telegramPhotoUrl: string | null }
   subscriptions: Subscription[]
   visits: Array<{ id: string; checked_in_at: string; method: string }>
   classes: ClassItem[]
-  qrToken: string | null
+  qrPass: string | null
+  qrExpiresAt: string | null
   preferences: { expiry_reminders?: boolean; schedule_reminders?: boolean }
   providers: Array<"payme" | "click">
   serverDate: string
@@ -98,8 +99,11 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [qrUrl, setQrUrl] = useState<string | null>(null)
+  const [qrImage, setQrImage] = useState<{ pass: string; url: string } | null>(null)
+  const [qrSeconds, setQrSeconds] = useState(30)
+  const [qrRefreshing, setQrRefreshing] = useState(false)
   const tabStack = useRef<Tab[]>(["home"])
+  const qrRefreshInFlight = useRef(false)
 
   const navigate = useCallback((nextTab: Tab) => {
     if (tab === nextTab) return
@@ -150,6 +154,10 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
 
   useEffect(() => {
     queueMicrotask(() => {
+      if (new URLSearchParams(window.location.search).get("tab") === "pass") {
+        tabStack.current = ["home", "pass"]
+        setTab("pass")
+      }
       const telegram = window.Telegram?.WebApp
       if (!telegram?.initData) {
         setError("Откройте личный кабинет через кнопку в Telegram-боте клуба")
@@ -179,13 +187,43 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   }, [goBack, tab])
 
   useEffect(() => {
-    if (!data?.qrToken) return
+    if (!data?.qrPass) return
+    const pass = data.qrPass
     let active = true
-    void import("qrcode").then(({ default: QRCode }) => QRCode.toDataURL(data.qrToken!, { width: 480, margin: 1 }))
-      .then((url) => { if (active) setQrUrl(url) })
-      .catch(() => { if (active) setQrUrl(null) })
+    void import("qrcode").then(({ default: QRCode }) => QRCode.toDataURL(pass, { width: 480, margin: 2 }))
+      .then((url) => { if (active) setQrImage({ pass, url }) })
+      .catch(() => { if (active) setQrImage(null) })
     return () => { active = false }
-  }, [data?.qrToken])
+  }, [data?.qrPass])
+
+  useEffect(() => {
+    if (tab !== "pass" || !data?.qrExpiresAt) return
+    let active = true
+    const tick = async () => {
+      const remaining = Math.max(0, Math.ceil((new Date(data.qrExpiresAt!).getTime() - Date.now()) / 1000))
+      if (active) setQrSeconds(remaining)
+      if (remaining > 0 || qrRefreshInFlight.current) return
+      qrRefreshInFlight.current = true
+      if (active) setQrRefreshing(true)
+      try {
+        const result = await api({ action: "qr" })
+        if (!active) return
+        setData((current) => current ? {
+          ...current,
+          qrPass: String(result.qrPass ?? ""),
+          qrExpiresAt: String(result.qrExpiresAt ?? ""),
+        } : current)
+      } catch (refreshError) {
+        if (active) setError(refreshError instanceof Error ? refreshError.message : "Не удалось обновить QR-код")
+      } finally {
+        qrRefreshInFlight.current = false
+        if (active) setQrRefreshing(false)
+      }
+    }
+    void tick()
+    const timer = window.setInterval(() => void tick(), 1000)
+    return () => { active = false; window.clearInterval(timer) }
+  }, [api, data?.qrExpiresAt, tab])
 
   const activeSubscription = useMemo(() => data?.subscriptions.find((item) => item.status === "active")
     ?? data?.subscriptions[0] ?? null, [data?.subscriptions])
@@ -256,7 +294,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
             </div>
           </div>
           <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            {data.client.fullName.trim().charAt(0).toUpperCase()}
+            {data.client.telegramName.trim().charAt(0).toUpperCase()}
           </div>
         </header>
 
@@ -268,7 +306,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
 
         {tab === "home" && <HomeView data={data} subscription={activeSubscription} onTab={navigate} />}
         {tab === "schedule" && <ScheduleView classes={data.classes} busy={busy} onBook={(id) => mutate("book", id)} onCancel={(id) => mutate("cancel", id)} />}
-        {tab === "pass" && <PassView data={data} qrUrl={qrUrl} />}
+        {tab === "pass" && <PassView data={data} qrUrl={qrSeconds > 0 && qrImage?.pass === data.qrPass ? qrImage.url : null} seconds={qrSeconds} refreshing={qrRefreshing} />}
         {tab === "profile" && (
           <ProfileView data={data} subscription={activeSubscription} busy={busy} onRenew={renew} onPreference={updatePreference} />
         )}
@@ -301,7 +339,7 @@ function HomeView({ data, subscription, onTab }: { data: MiniAppData; subscripti
     <div className="space-y-6 px-4 py-5">
       <section>
         <p className="text-sm text-muted-foreground">Добрый день,</p>
-        <h1 className="mt-1 text-2xl font-semibold">{data.client.fullName.split(" ")[0]}</h1>
+        <h1 className="mt-1 text-2xl font-semibold">{data.client.telegramFirstName}</h1>
       </section>
 
       <section className="rounded-lg bg-primary p-5 text-primary-foreground">
@@ -386,20 +424,25 @@ function ScheduleView({ classes, busy, onBook, onCancel }: { classes: ClassItem[
   )
 }
 
-function PassView({ data, qrUrl }: { data: MiniAppData; qrUrl: string | null }) {
+function PassView({ data, qrUrl, seconds, refreshing }: { data: MiniAppData; qrUrl: string | null; seconds: number; refreshing: boolean }) {
   return (
     <div className="space-y-6 px-4 py-5">
       <div><h1 className="text-2xl font-semibold">QR-пропуск</h1><p className="mt-1 text-sm text-muted-foreground">Покажите код администратору на входе</p></div>
       {qrUrl ? (
         <section className="rounded-lg border border-border bg-card p-5 text-center">
-          <div className="mx-auto aspect-square w-full max-w-[280px] rounded-lg border border-border bg-white p-3">
+          <div className="mx-auto w-full max-w-[280px] overflow-hidden rounded-lg border border-border bg-white p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={qrUrl} alt="QR-код клиента" className="size-full" />
+            <img src={qrUrl} alt="QR-код клиента" className="block aspect-square h-auto w-full max-w-full" />
           </div>
-          <p className="mt-4 font-medium">{data.client.fullName}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Код персональный, не пересылайте его другим</p>
+          <p className="mt-4 font-medium">{data.client.telegramName}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{refreshing ? "Обновляем код…" : `Новый код через ${seconds} сек.`}</p>
+          <div className="mx-auto mt-3 h-1 w-full max-w-[280px] overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-primary transition-[width] duration-1000" style={{ width: `${Math.max(0, Math.min(100, seconds / 30 * 100))}%` }} />
+          </div>
         </section>
-      ) : <EmptyState icon={QrCode} title="QR-вход недоступен" text="Клуб пока не включил вход по QR-коду." />}
+      ) : refreshing || seconds === 0
+        ? <EmptyState icon={RefreshCw} title="Обновляем QR-код" text="Новый защищённый код появится через секунду." />
+        : <EmptyState icon={QrCode} title="QR-вход недоступен" text="Клуб пока не включил вход по QR-коду." />}
 
       <section>
         <div className="flex items-center gap-2"><History size={17} /><h2 className="text-base font-semibold">Последние посещения</h2></div>
@@ -420,7 +463,7 @@ function ProfileView({ data, subscription, busy, onRenew, onPreference }: { data
   const membership = membershipOf(subscription)
   return (
     <div className="space-y-6 px-4 py-5">
-      <div><h1 className="text-2xl font-semibold">Профиль</h1><p className="mt-1 text-sm text-muted-foreground">{data.client.fullName}</p></div>
+      <div><h1 className="text-2xl font-semibold">Профиль</h1><p className="mt-1 text-sm text-muted-foreground">{data.client.telegramName}</p></div>
 
       <section>
         <h2 className="text-base font-semibold">Продление</h2>

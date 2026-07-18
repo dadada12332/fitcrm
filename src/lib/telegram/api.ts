@@ -20,12 +20,13 @@ export function getTelegramWebhookUrl(clubId: string): string {
   return `${origin}/api/telegram/webhook/${clubId}`
 }
 
-export function getTelegramMiniAppUrl(clubId: string): string {
+export function getTelegramMiniAppUrl(clubId: string, tab?: "pass"): string {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "")
   const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
   const origin = configured || (vercelHost ? `https://${vercelHost}` : "")
   if (!origin) throw new Error("Public application URL is not configured")
-  return `${origin}/tg/${clubId}`
+  const url = `${origin}/tg/${clubId}`
+  return tab ? `${url}?tab=${tab}` : url
 }
 
 export async function callTelegramApi<T = unknown>(

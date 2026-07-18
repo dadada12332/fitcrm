@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { getCurrentClub } from "@/lib/club"
 import { searchClientsForCheckin, type ClientSearchResult } from "@/lib/visits"
+import { createServiceClient } from "@/lib/supabase/service"
+import { validateQrPass } from "@/lib/qr-pass"
 
 export type MarkVisitResult = {
   ok?: boolean
@@ -17,21 +19,31 @@ export type QrVisitResult = MarkVisitResult & { clientName?: string }
 
 export async function qrCheckInAction(qrToken: string): Promise<QrVisitResult> {
   const token = qrToken.trim()
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
-    return { error: "Этот QR-код не относится к FitCRM" }
-  }
-
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "visits", "checkin")) return { error: "Недостаточно прав" }
 
+  const pass = validateQrPass(token, club.clubId)
+  if (!pass) return { error: token.startsWith("fitcrm.qr.")
+    ? "QR-код истёк. Попросите клиента открыть новый код"
+    : "Этот QR-код не относится к FitCRM" }
+
   const { data: client } = await supabase.from("clients")
     .select("id, full_name")
     .eq("club_id", club.clubId)
-    .eq("qr_token", token)
+    .eq("id", pass.clientId)
     .maybeSingle()
   if (!client) return { error: "Клиент с этим QR-кодом не найден в вашем клубе" }
+
+  const { error: redemptionError } = await createServiceClient().from("qr_pass_redemptions").insert({
+    jti: pass.jti,
+    club_id: club.clubId,
+    client_id: client.id,
+    expires_at: new Date(pass.exp * 1000).toISOString(),
+  })
+  if (redemptionError?.code === "23505") return { error: "Этот QR-код уже использован", clientName: client.full_name }
+  if (redemptionError) return { error: "Не удалось проверить QR-код", clientName: client.full_name }
 
   const today = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Tashkent", year: "numeric", month: "2-digit", day: "2-digit",
