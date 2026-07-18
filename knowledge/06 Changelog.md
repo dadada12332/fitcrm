@@ -57,6 +57,9 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `119d7f7` · 2026-07-18 · Bind client profile payments to client
+- `cffeb1c` · 2026-07-18 · Record verified production deployment
+- `55d0577` · 2026-07-18 · Allow authenticated cron callbacks through middleware
 - `5032589` · 2026-07-18 · Refresh project handoff after audit
 - `13dd7c2` · 2026-07-18 · Document overnight reliability audit
 - `63a6670` · 2026-07-18 · Harden Telegram tenant boundaries
@@ -84,7 +87,4 @@ tags: [fitcrm, releases]
 - `d3a2f0a` · 2026-07-17 · Fix reports mobile controls
 - `778283f` · 2026-07-17 · Improve schedule mobile toolbar
 - `597e658` · 2026-07-17 · Improve visits mobile filters
-- `53f99c8` · 2026-07-17 · Improve memberships mobile toolbar
-- `3922eac` · 2026-07-17 · Stack revenue period filters on mobile
-- `aaa88d0` · 2026-07-17 · Fix mobile sidebar drawer
 <!-- AUTO:END changelog-candidates -->

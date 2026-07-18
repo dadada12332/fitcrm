@@ -1,7 +1,7 @@
 ---
 id: TASK-0009
 type: bug
-status: review
+status: completed
 priority: P1
 module: payments
 created: 2026-07-18
@@ -58,10 +58,12 @@ Tenant isolation, auth, production data и существующие пользо
 - `npx tsc --noEmit`
 - `npm test`: 85 passed, 1 skipped.
 - `npm run build`: успешно, Next.js 16.2.7.
+- Production deployment `dpl_42MtMJTDNHgLQYSzLihvg7N5M5G2`: `READY`, alias `fitcrm-three.vercel.app` подтверждён.
+- Авторизованный browser smoke: карточка Амира Тураева показывает фиксированный блок клиента; поле `Имя или телефон...` отсутствует; console errors отсутствуют.
 
 ## Remaining
 
-Проверить production deployment после push.
+Нет.
 
 ## Blockers
 

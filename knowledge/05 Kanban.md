@@ -12,7 +12,7 @@ tags: [fitcrm, tasks]
 ## Inbox
 
 <!-- AUTO:START kanban-inbox -->
-- TASK-0009 · Привязать оплату из карточки к клиенту · feature · P3 · general · 2026-07-18 · [[Tasks/TASK-0009-privyazat-oplatu-iz-kartochki-k-klientu]]
+- Нет задач.
 <!-- AUTO:END kanban-inbox -->
 
 ## Backlog
@@ -61,4 +61,5 @@ tags: [fitcrm, tasks]
 - TASK-0006 · Переработать AI Аналитику по дизайн-системе · feature · P1 · ai-analytics · 2026-07-18 · [[Tasks/Completed/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]]
 - TASK-0007 · Ночной аудит надёжности и производительности · security · P1 · platform · 2026-07-18 · [[Tasks/Completed/TASK-0007-nochnoi-audit-nadezhnosti-i-proizvoditel-nosti]]
 - TASK-0008 · Восстановить доступ Vercel Cron к API · bug · P1 · cron-api · 2026-07-18 · [[Tasks/Completed/TASK-0008-vosstanovit-dostup-vercel-cron-k-api]]
+- TASK-0009 · Привязать оплату из карточки к клиенту · bug · P1 · payments · 2026-07-18 · [[Tasks/Completed/TASK-0009-privyazat-oplatu-iz-kartochki-k-klientu]]
 <!-- AUTO:END kanban-done -->
