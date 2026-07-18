@@ -35,7 +35,7 @@ kanban-plugin: board
 ## Review
 
 <!-- AUTO:START kanban-review -->
-
+- [ ] TASK-0022 · Центр удержания клиентов и предотвращения оттока · feature · P1 · retention · 2026-07-19 · [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
 <!-- AUTO:END kanban-review -->
 
 ## Testing

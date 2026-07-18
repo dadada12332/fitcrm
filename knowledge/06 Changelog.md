@@ -70,6 +70,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `511f372` · 2026-07-19 · Record authenticated QA production verification [skip ci]
 - `2e3e312` · 2026-07-19 · Add authenticated local QA gate
 - `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
 - `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
@@ -99,5 +100,4 @@ tags: [fitcrm, releases]
 - `e3af97f` · 2026-07-18 · Rebuild Telegram integration around club bots
 - `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
 - `28efccd` · 2026-07-18 · Fix roles settings loading loop
-- `ec911ad` · 2026-07-18 · Document client payment binding [skip ci]
 <!-- AUTO:END changelog-candidates -->

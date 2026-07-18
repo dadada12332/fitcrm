@@ -1,23 +1,27 @@
 ---
 type: current-task
-status: blocked
-active_task: TASK-0004
-updated: 2026-07-18
+status: review
+active_task: TASK-0022
+updated: 2026-07-19
 tags: [fitcrm, tasks]
 ---
 
-# TASK-0004 — Провести backup/restore drill
+# TASK-0022 — Центр удержания клиентов
 
-Источник задачи: [[Tasks/TASK-0004-backup-restore-drill]].
+Источник задачи: [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]].
 
 ## Цель
 
-Восстановить backup в изолированный Supabase target и измерить фактические RPO/RTO.
+Проверить на localhost новый раздел удержания, который превращает существующие сигналы абонементов, посещений и долгов в рабочую очередь.
 
 ## Что нельзя сломать
 
-Production Supabase нельзя использовать как restore target; нельзя создавать платную branch без подтверждения стоимости.
+Tenant isolation, permissions, карточку клиента, существующие отчеты и production. До одобрения владельца deploy запрещен.
 
 ## Текущий этап
 
-Заблокировано: Free plan, PITR disabled, backups `0`, branches `0`. Guarded runbook и verifier готовы; нужен recoverable backup и изолированный target.
+Реализация, локальная UI-проверка, TypeScript, unit, e2e и build завершены. Ветка готова к продуктовой проверке владельцем; production не изменен.
+
+## Следующий шаг
+
+Владелец проверяет `/retention` на localhost и решает: калибровать правила, одобрить deploy или вернуть задачу в работу.

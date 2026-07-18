@@ -93,6 +93,23 @@ function daysUntil(dateStr: string | null): number | null {
   return Math.ceil(ms / 86_400_000)
 }
 
+async function getTelegramIdentity(clubId: string, clientId: string) {
+  try {
+    const { data } = await createServiceClient()
+      .from("telegram_users")
+      .select("telegram_id, telegram_first_name, telegram_last_name, telegram_username, telegram_photo_url")
+      .eq("club_id", clubId)
+      .eq("client_id", clientId)
+      .eq("role", "client")
+      .maybeSingle()
+    return data
+  } catch {
+    // Telegram identity is service-only. The rest of the CRM profile must
+    // remain available when a local environment intentionally omits that key.
+    return null
+  }
+}
+
 // ── Маппинги бейджей для UI ──
 export const providerMeta: Record<PaymentProvider, { label: string; bg: string; color: string }> = {
   cash: { label: "Наличные", bg: "#f1f5f9", color: "#475569" },
@@ -156,9 +173,7 @@ export async function getClientProfile(
       .select("id, checked_in_at, method")
       .eq("client_id", id)
       .order("checked_in_at", { ascending: false }),
-    createServiceClient().from("telegram_users")
-      .select("telegram_id, telegram_first_name, telegram_last_name, telegram_username, telegram_photo_url")
-      .eq("club_id", clubId).eq("client_id", id).eq("role", "client").maybeSingle(),
+    getTelegramIdentity(clubId, id),
   ])
 
   const subs = (subsRes.data ?? []) as SubRow[]
@@ -203,7 +218,7 @@ export async function getClientProfile(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = client as any
-  const telegramIdentity = telegramRes.data
+  const telegramIdentity = telegramRes
   const telegramName = telegramIdentity ? telegramDisplayName({
     firstName: telegramIdentity.telegram_first_name,
     lastName: telegramIdentity.telegram_last_name,

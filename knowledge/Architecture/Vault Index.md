@@ -51,6 +51,7 @@ updated: 2026-07-18
 ## Research
 
 - [[Research/AI Analytics References]]
+- [[Research/Competitive CRM research 2026-07-19]]
 
 ## Tasks
 
@@ -75,6 +76,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0021-polish-landing-platform-overview]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
+- [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
 
 ## UX
 
