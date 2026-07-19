@@ -36,6 +36,7 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-review -->
 - [ ] TASK-0022 · Центр удержания клиентов и предотвращения оттока · feature · P1 · retention · 2026-07-19 · [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
+- [ ] TASK-0023 · Growth OS и ежедневный центр роста · feature · P1 · growth · 2026-07-19 · [[Tasks/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]]
 <!-- AUTO:END kanban-review -->
 
 ## Testing

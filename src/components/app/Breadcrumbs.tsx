@@ -27,6 +27,7 @@ const LABELS: Record<string, string> = {
   knowledge:     "База знаний",
   reports:       "Отчёты",
   retention:     "Удержание",
+  growth:        "Growth OS",
   warehouse:     "Склад",
   ai:            "AI Аналитика",
 }

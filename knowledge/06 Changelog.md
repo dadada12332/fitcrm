@@ -70,6 +70,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
 - `1086f15` · 2026-07-19 · Add local retention center prototype
 - `511f372` · 2026-07-19 · Record authenticated QA production verification [skip ci]
 - `2e3e312` · 2026-07-19 · Add authenticated local QA gate
@@ -99,5 +100,4 @@ tags: [fitcrm, releases]
 - `56bcd9c` · 2026-07-18 · Document verified Telegram production rollout [skip ci]
 - `7cc3f87` · 2026-07-18 · Enforce one club per Telegram bot
 - `e3af97f` · 2026-07-18 · Rebuild Telegram integration around club bots
-- `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
 <!-- AUTO:END changelog-candidates -->

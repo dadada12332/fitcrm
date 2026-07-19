@@ -34,6 +34,31 @@ tags: [fitcrm, research, crm, retention, leads]
 3. Региональные продукты продают не только список модулей, но и локальную адаптацию, внедрение, коммуникации и быстрый старт.
 4. FitCRM уже имеет достаточно данных для retention MVP без новой схемы: срок абонемента, посещения, долг, заморозка и цена.
 
+## Дополнительный innovation scan
+
+- PerfectGym описывает real-time engagement score, at-risk workflows, behavioral segmentation и personalized re-engagement: https://www.perfectgym.com/en/blog/business/reactive-proactive-role-predictive-analytics-gym-member-retention
+- В релизе PerfectGym за июнь 2026 появились AI Member Chatbot, family/group accounts и referral rewards: https://support.perfectgym.com/hc/en-001/articles/47318913986961-Release-June-2026
+- Perfect Score превращает посещения в видимый клиенту engagement/rank loop: https://help.perfectgym.com/hc/en-001/articles/39316233021713-How-does-Perfect-Score-work-in-the-Mobile-App
+- Gymdesk объединяет automation builder, lead status, источники и referral rewards: https://docs.gymdesk.com/en/help/docs/marketing-settings
+- PerfectGym формулирует наиболее полезную роль AI как усиление сотрудника по всему lifecycle, а не замену человека: https://web-back.perfectgym.com/node/694
+
+Повторяющийся разрыв между продуктами: системы либо показывают BI, либо выполняют отдельные automation rules. Редко встречается единый управленческий цикл `сигнал → приоритет → гипотеза → ожидаемый эффект → human-approved действие → измерение`.
+
+## Решение Growth OS
+
+На существующих данных собран локальный schema-free прототип такого цикла:
+
+1. `Пульс клуба` агрегирует риск, долги, посещения и динамику выручки.
+2. `План на сегодня` переводит сигналы в упорядоченные действия.
+3. `Revenue opportunity radar` показывает денежный пул, который можно вернуть.
+4. `What-if` симулятор отделяет фактические пулы от пользовательских assumptions.
+5. `Playbooks` дают готовый, но не отправленный текст для сотрудника.
+6. `Growth experiments` связывают гипотезу, метрику, срок и ожидаемый диапазон эффекта.
+7. `Experiment-to-playbook` соединяет идею с исполнимым сценарием.
+8. `Human-in-the-loop` исключает автоматическую коммуникацию без проверки контекста.
+
+Это не заявлено как уникальная функция всего мирового рынка без полного patent/product audit. Дифференциатор FitCRM здесь — связность ежедневного управленческого цикла и локальная Telegram/payment среда.
+
 ## Решение для текущей ветки
 
 Реализовать `Удержание BETA` как schema-free read-only очередь на существующих данных. Это позволяет проверить ценность на localhost без миграции общей Supabase и без риска для production.

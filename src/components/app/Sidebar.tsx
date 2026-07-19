@@ -9,7 +9,7 @@ import {
   Settings, HelpCircle, BookOpen, Plug,
   ChevronDown, Check, LogOut,
   GitFork,
-  HeartHandshake,
+  HeartHandshake, Rocket,
 } from "lucide-react"
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 import { signOut } from "@/app/(auth)/actions"
@@ -371,6 +371,9 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
               )}
               {p.reports.view && p.clients.view && (
                 <NavItem href="/retention" icon={HeartHandshake} label="Удержание" collapsed={collapsed} badge="BETA" badgeType="new" />
+              )}
+              {p.reports.view && p.clients.view && (
+                <NavItem href="/growth" icon={Rocket} label="Growth OS" collapsed={collapsed} badge="LAB" badgeType="new" />
               )}
               {p.reports.view && (
                 <NavItem href="/reports" icon={BarChart2} label="Отчёты" collapsed={collapsed} />
