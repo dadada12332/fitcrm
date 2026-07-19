@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 3fdf562 · 2026-07-19T15:33:13+05:00 · Record verified Growth OS production release [skip ci].
+- Последний commit: ca1bc08 · 2026-07-19T16:06:08+05:00 · Fix Growth OS active tab styling.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

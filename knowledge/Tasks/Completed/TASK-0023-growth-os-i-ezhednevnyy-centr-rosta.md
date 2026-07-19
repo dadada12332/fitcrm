@@ -73,6 +73,7 @@ Tenant isolation, auth, permissions, существующие CRM-маршрут
 - Aliases: `https://fitcrm-three.vercel.app`, `https://fitcrm-crm228.vercel.app`, `https://fitcrm-git-main-crm228.vercel.app`.
 - `/login` отвечает HTTP 200; анонимный `/growth` отвечает HTTP 307 и переводит на `/login`.
 - Runtime error logs и HTTP 500 после production smoke не обнаружены.
+- Follow-up tabs deploy: commit `ca1bc08`, Vercel `dpl_3frtbT4XMWoSc9iDHAxKTRVvhc2C`, target `production`, status `READY`, alias `https://fitcrm-three.vercel.app`. Авторизованные «Сегодня» и `Playbooks` имеют фон `rgb(255, 255, 255)`, текст `rgb(9, 9, 11)`, `data-active` и `aria-selected=true`; overlay/browser errors/HTTP 500 отсутствуют.
 
 ## Remaining
 
