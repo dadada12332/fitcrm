@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `5904123` · 2026-07-19 · Add Growth OS decision workspace
 - `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
 - `1086f15` · 2026-07-19 · Add local retention center prototype
 - `511f372` · 2026-07-19 · Record authenticated QA production verification [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
 - `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
 - `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
-- `f78622e` · 2026-07-18 · Polish landing platform overview
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

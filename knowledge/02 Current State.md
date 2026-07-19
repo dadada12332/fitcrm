@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `codex/overnight-growth-readiness-20260719`.
-- Последний commit: a6ac540 · 2026-07-19T04:47:34+05:00 · Record retention prototype verification [skip ci].
+- Последний commit: 5904123 · 2026-07-19T05:06:00+05:00 · Add Growth OS decision workspace.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
