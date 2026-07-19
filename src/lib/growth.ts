@@ -10,7 +10,8 @@ export type GrowthAction = {
   count: number
   value: number
   priority: GrowthPriority
-  href: string
+  destination: "playbooks" | "experiments"
+  playbookId?: GrowthPlaybook["id"]
 }
 
 export type GrowthPools = {
@@ -128,12 +129,12 @@ export function buildGrowthData(dashboard: DashboardData, retention: RetentionDa
   const debtCandidates = candidates.filter((candidate) => candidate.reasons.includes("debt"))
   const dailyPlan: GrowthAction[] = []
 
-  if (retention.summary.critical > 0) dailyPlan.push({ id: "critical", title: "Разобрать критические риски", description: "Начните с клиентов, у которых совпало несколько сигналов оттока.", count: retention.summary.critical, value: sumEstimated(candidates, (candidate) => candidate.level === "critical"), priority: "critical", href: "/retention" })
-  if (expiring.length > 0) dailyPlan.push({ id: "renewals", title: "Закрыть продления до истечения", description: "Связаться до окончания абонемента и предложить удобный сценарий продления.", count: expiring.length, value: sumEstimated(expiring, () => true), priority: "high", href: "/retention" })
-  if (winBack.length > 0) dailyPlan.push({ id: "winback", title: "Запустить возврат клиентов", description: "Выяснить причину паузы и предложить персональный путь возвращения.", count: winBack.length, value: sumEstimated(winBack, () => true), priority: "high", href: "/retention" })
-  if (dashboard.debtCount > 0) dailyPlan.push({ id: "debts", title: "Вернуть задолженность", description: "Сначала обработать долги с понятным способом и сроком оплаты.", count: dashboard.debtCount, value: dashboard.debtTotal, priority: "medium", href: "/clients?status=debt" })
-  if (dashboard.todayNewClients > 0) dailyPlan.push({ id: "onboarding", title: "Активировать новых клиентов", description: "Помочь сделать первые три посещения — это формирует привычку и снижает ранний отток.", count: dashboard.todayNewClients, value: 0, priority: "medium", href: "/clients" })
-  if (dailyPlan.length === 0) dailyPlan.push({ id: "experiment", title: "Запустить один growth-эксперимент", description: "Критических потерь не видно — используйте свободный ресурс команды для контролируемого теста роста.", count: 1, value: 0, priority: "medium", href: "#experiments" })
+  if (retention.summary.critical > 0) dailyPlan.push({ id: "critical", title: "Разобрать критические риски", description: "Начните с клиентов, у которых совпало несколько сигналов оттока.", count: retention.summary.critical, value: sumEstimated(candidates, (candidate) => candidate.level === "critical"), priority: "critical", destination: "playbooks" })
+  if (expiring.length > 0) dailyPlan.push({ id: "renewals", title: "Закрыть продления до истечения", description: "Связаться до окончания абонемента и предложить удобный сценарий продления.", count: expiring.length, value: sumEstimated(expiring, () => true), priority: "high", destination: "playbooks", playbookId: "renewal" })
+  if (winBack.length > 0) dailyPlan.push({ id: "winback", title: "Запустить возврат клиентов", description: "Выяснить причину паузы и предложить персональный путь возвращения.", count: winBack.length, value: sumEstimated(winBack, () => true), priority: "high", destination: "playbooks", playbookId: "comeback" })
+  if (dashboard.debtCount > 0) dailyPlan.push({ id: "debts", title: "Вернуть задолженность", description: "Сначала обработать долги с понятным способом и сроком оплаты.", count: dashboard.debtCount, value: dashboard.debtTotal, priority: "medium", destination: "playbooks", playbookId: "debt" })
+  if (dashboard.todayNewClients > 0) dailyPlan.push({ id: "onboarding", title: "Активировать новых клиентов", description: "Помочь сделать первые три посещения — это формирует привычку и снижает ранний отток.", count: dashboard.todayNewClients, value: 0, priority: "medium", destination: "playbooks", playbookId: "onboarding" })
+  if (dailyPlan.length === 0) dailyPlan.push({ id: "experiment", title: "Запустить один growth-эксперимент", description: "Критических потерь не видно — используйте свободный ресурс команды для контролируемого теста роста.", count: 1, value: 0, priority: "medium", destination: "experiments" })
 
   const pricedCandidates = candidates.filter((candidate) => candidate.estimatedValue > 0)
   const averageTicket = pricedCandidates.length > 0

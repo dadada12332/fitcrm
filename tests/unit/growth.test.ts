@@ -28,6 +28,8 @@ describe("growth operating system", () => {
   it("builds a prioritized daily plan and opportunity pools", () => {
     const result = buildGrowthData(dashboard, retention)
     expect(result.dailyPlan.map((item) => item.id)).toEqual(["critical", "renewals", "winback", "debts", "onboarding"])
+    expect(result.dailyPlan.find((item) => item.id === "winback")).toMatchObject({ destination: "playbooks", playbookId: "comeback" })
+    expect(result.dailyPlan.find((item) => item.id === "debts")).toMatchObject({ destination: "playbooks", playbookId: "debt" })
     expect(result.pools.renewalValue).toBe(500_000)
     expect(result.pools.winBackValue).toBe(500_000)
     expect(result.playbooks).toHaveLength(4)

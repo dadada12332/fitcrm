@@ -24,6 +24,14 @@ export function GrowthCenter({ data }: { data: GrowthData }) {
   const [tab, setTab] = useState("today")
   const [preferredPlaybook, setPreferredPlaybook] = useState<GrowthPlaybook["id"] | null>(null)
   const openPlaybook = (id: GrowthPlaybook["id"]) => { setPreferredPlaybook(id); setTab("playbooks") }
+  const openAction = (destination: "playbooks" | "experiments", playbookId?: GrowthPlaybook["id"]) => {
+    if (destination === "experiments") {
+      setTab("experiments")
+      return
+    }
+    setPreferredPlaybook(playbookId ?? null)
+    setTab("playbooks")
+  }
   const trendCards = [
     { label: "Выручка 30 дней", value: formatMoney(data.metrics.revenue30), hint: formatTrend(data.metrics.revenueTrendPct), positive: data.metrics.revenueTrendPct >= 0, icon: CircleDollarSign },
     { label: "Динамика посещений", value: formatTrend(data.metrics.attendanceTrendPct), hint: "к предыдущим 7 дням", positive: data.metrics.attendanceTrendPct >= 0, icon: UsersRound },
@@ -62,7 +70,7 @@ export function GrowthCenter({ data }: { data: GrowthData }) {
                 <div key={action.id} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center">
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums text-foreground">{index + 1}</div>
                   <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="font-medium text-foreground">{action.title}</p><Badge variant={PRIORITY_META[action.priority].variant}>{PRIORITY_META[action.priority].label}</Badge></div><p className="mt-1 text-xs leading-5 text-muted-foreground">{action.description}</p></div>
-                  <div className="flex items-center justify-between gap-4 sm:justify-end"><div className="text-right"><p className="text-sm font-semibold tabular-nums text-foreground">{action.count} клиентов</p><p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{action.value > 0 ? formatMoney(action.value) : "Рост активности"}</p></div>{action.id === "experiment" ? <Button type="button" variant="ghost" size="icon" onClick={() => setTab("experiments")} aria-label={`Открыть: ${action.title}`}><ArrowRight /></Button> : <Link href={action.href} className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label={`Открыть: ${action.title}`}><ArrowRight /></Link>}</div>
+                  <div className="flex items-center justify-between gap-4 sm:justify-end"><div className="text-right"><p className="text-sm font-semibold tabular-nums text-foreground">{action.count} клиентов</p><p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{action.value > 0 ? formatMoney(action.value) : "Рост активности"}</p></div><Button type="button" variant="ghost" size="icon" onClick={() => openAction(action.destination, action.playbookId)} aria-label={`Открыть внутри Growth OS: ${action.title}`}><ArrowRight /></Button></div>
                 </div>
               ))}
             </CardContent>

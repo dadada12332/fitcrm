@@ -1,7 +1,7 @@
 ---
 id: TASK-0023
 type: feature
-status: review
+status: testing
 priority: P1
 module: growth
 created: 2026-07-19
@@ -34,7 +34,7 @@ tags: [fitcrm, task, growth, research]
 - [x] Расчеты детерминированы и покрыты unit-тестами.
 - [x] Основные интерактивные сценарии проверены на localhost.
 - [x] TypeScript, scoped lint, unit, e2e и build проверены.
-- [ ] Владелец получил готовую ветку для review.
+- [x] Владелец получил готовую ветку для review и одобрил выпуск в production.
 
 ## Files and data
 
@@ -51,6 +51,7 @@ Tenant isolation, auth, permissions, существующие CRM-маршрут
 - Реализованы: пульс клуба, ежедневный план, revenue opportunity radar, приоритизация, what-if симулятор, четыре playbook-сценария, пять growth-экспериментов и human-in-the-loop guardrail.
 - Симулятор связывает конверсии продления, win-back, collection и referral с текущими денежными пулами.
 - Эксперимент открывает связанный playbook; текст можно копировать, но автоматической отправки нет.
+- Стрелки ежедневного плана больше не уводят пользователя в другие CRM-разделы: они остаются в `/growth`, открывают вкладку `Playbooks` или `Эксперименты` и выбирают подходящий сценарий.
 
 ## Verification
 
@@ -60,12 +61,13 @@ Tenant isolation, auth, permissions, существующие CRM-маршрут
 - `npm run test:e2e` — 30 passed в desktop/mobile Chromium.
 - `npm run build` — успешно, `/growth` собран.
 - Авторизованный localhost browser gate — desktop/mobile, light/dark, simulator recalculation, copy playbook и experiment-to-playbook flow; errors/overlay/overflow отсутствуют.
+- Повторная проверка после исправления навигации: TypeScript, scoped ESLint, 105 unit tests, 30 E2E tests и production build — успешно; клик «Запустить возврат клиентов» оставляет URL `/growth`, выбирает `Playbooks` и сценарий «Мягкое возвращение».
 
 ## Remaining
 
-- Продуктовая проверка владельцем и калибровка health/scenario assumptions на обезличенной статистике.
-- После одобрения — отдельное решение о persistence экспериментов, lead pipeline и production deploy.
+- Калибровка health/scenario assumptions на обезличенной статистике.
+- Persistence экспериментов и lead pipeline требуют отдельных продуктовых задач.
 
 ## Blockers
 
-Нет технического blocker. Production намеренно не изменен.
+Нет технического blocker. Владелец одобрил production deploy 2026-07-19; задача ожидает подтверждения фактического deployment и production smoke.

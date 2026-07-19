@@ -1,6 +1,6 @@
 ---
 type: current-task
-status: review
+status: testing
 active_task: TASK-0023
 updated: 2026-07-19
 tags: [fitcrm, tasks]
@@ -16,12 +16,12 @@ tags: [fitcrm, tasks]
 
 ## Что нельзя сломать
 
-Tenant isolation, permissions, существующие CRM-разделы и production. До проверки владельцем deploy запрещен.
+Tenant isolation, permissions и существующие CRM-разделы. Production deploy разрешён владельцем после локальной проверки.
 
 ## Текущий этап
 
-Growth OS реализован и локально проверен: восемь связанных возможностей, unit/e2e/build и browser QA завершены. Production не изменен.
+Growth OS реализован и одобрен владельцем. Исправлена навигация ежедневного плана: стрелки остаются внутри `/growth` и открывают связанный playbook/эксперимент. Повторные unit/e2e/build и browser QA завершены.
 
 ## Следующий шаг
 
-Владелец проверяет `/growth` на localhost и выбирает, какие гипотезы развивать до persistence и production.
+Развернуть одобренную ветку, подтвердить deployment и авторизованный production-сценарий, затем закрыть TASK-0023 и записать ограничения.
