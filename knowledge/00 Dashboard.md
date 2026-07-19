@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
+- `5904123` · 2026-07-19 · Add Growth OS decision workspace
+- `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
+- `1086f15` · 2026-07-19 · Add local retention center prototype
+- `511f372` · 2026-07-19 · Record authenticated QA production verification [skip ci]
 - `2e3e312` · 2026-07-19 · Add authenticated local QA gate
 - `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
 - `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
-- `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
-- `f78622e` · 2026-07-18 · Polish landing platform overview
-- `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
-- `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
-- `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

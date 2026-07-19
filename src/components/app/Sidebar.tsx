@@ -9,8 +9,9 @@ import {
   Settings, HelpCircle, BookOpen, Plug,
   ChevronDown, Check, LogOut,
   GitFork,
+  HeartHandshake, Rocket,
 } from "lucide-react"
-import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
+import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 import { signOut } from "@/app/(auth)/actions"
 import { QuickActionsMenu } from "@/components/app/QuickActionsMenu"
 import { resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
@@ -217,7 +218,7 @@ type Props = {
 export function Sidebar({ clubId, clubName, plan, stats, permissions, role, collapsed = false, mobile = false }: Props) {
   const router = useRouter()
   const [clubOpen, setClubOpen] = useState(false)
-  const [branches, setBranches] = useState<any[]>([])
+  const [branches, setBranches] = useState<Branch[]>([])
   const [, startTransition] = useTransition()
   const clubRef = useRef<HTMLDivElement>(null)
 
@@ -291,7 +292,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
             style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
             {branches.length > 0 && (
               <div className="py-1 border-b border-zinc-100 dark:border-zinc-800">
-                {branches.map((b: any) => (
+                {branches.map((b) => (
                   <button
                     key={b.clubId}
                     onClick={() => switchBranch(b.clubId)}
@@ -367,6 +368,12 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
             <div className="flex flex-col gap-0.5">
               {p.staff.view && (
                 <NavItem href="/staff" icon={UserCog} label="Сотрудники" collapsed={collapsed} />
+              )}
+              {p.reports.view && p.clients.view && (
+                <NavItem href="/retention" icon={HeartHandshake} label="Удержание" collapsed={collapsed} badge="BETA" badgeType="new" />
+              )}
+              {p.reports.view && p.clients.view && (
+                <NavItem href="/growth" icon={Rocket} label="Growth OS" collapsed={collapsed} badge="LAB" badgeType="new" />
               )}
               {p.reports.view && (
                 <NavItem href="/reports" icon={BarChart2} label="Отчёты" collapsed={collapsed} />

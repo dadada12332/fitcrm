@@ -11,8 +11,8 @@ tags: [fitcrm, operations]
 
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
-- Branch: `main`.
-- Последний commit: 2e3e312 · 2026-07-19T01:11:49+05:00 · Add authenticated local QA gate.
+- Branch: `codex/overnight-growth-readiness-20260719`.
+- Последний commit: 350dc23 · 2026-07-19T05:06:06+05:00 · Record Growth OS local verification [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -20,7 +20,7 @@ tags: [fitcrm, operations]
 
 ## Готовность модулей
 
-**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin.
+**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. В feature-ветке `codex/overnight-growth-readiness-20260719` локально готовы Beta-раздел удержания и Growth OS из восьми связанных инструментов; в production их нет.
 
 **Частично:** занятия/бронирования, audit trail UI и тарифные ограничения. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
@@ -44,6 +44,9 @@ tags: [fitcrm, operations]
 - RLS изолирует tenant, но права модулей зависят от корректности каждой Server Action.
 - `npm audit` не фиксирует high/critical advisories; остаются 4 moderate transitive advisories без безопасного автоматического fix.
 - В коде остаётся lint-долг (`any`, unused vars, impure `Date.now()`).
+- Пороги retention scoring пока являются детерминированными продуктовыми гипотезами и требуют калибровки на обезличенной статистике после проверки владельцем.
+- Growth health score, recovery rates и expected impact являются прозрачными сценарными assumptions, а не ML-прогнозом или обещанием результата.
+- На диске `E:` Next.js/Playwright зафиксировал slow filesystem benchmark 288 ms; функциональные тесты прошли, но dev feedback loop может быть медленнее.
 - Нет автоматического CI и тестовой матрицы.
 - Старые документы дают противоречивую картину реализации.
 

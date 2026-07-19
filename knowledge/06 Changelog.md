@@ -12,6 +12,7 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- Growth OS объединяет ежедневный план, пульс клуба, revenue radar, симулятор, playbooks и каталог контролируемых экспериментов; новый центр удержания показывает клиентов с риском оттока и следующие действия.
 - Операционная память проекта в `/knowledge` для команды и AI-агентов.
 - Повторяемый Vitest/Playwright test harness для security, auth и responsive smoke.
 - Telegram Mini App: абонемент, QR, визиты, расписание, бронирование, настройки reminders и онлайн-продление.
@@ -30,6 +31,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Стрелки ежедневного плана Growth OS теперь открывают соответствующий внутренний playbook или эксперимент и не уводят пользователя из `/growth`.
 - Email login and post-login routing no longer require a service-role key when the authenticated user reads their own club memberships.
 - The expiring-membership clock on the dashboard now uses the same neutral icon color as the other KPI tiles.
 - AI Аналитика использует стандартные отступы AppShell без дополнительного внутреннего padding; desktop и mobile теперь совпадают с остальными CRM-разделами.
@@ -70,6 +72,11 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
+- `5904123` · 2026-07-19 · Add Growth OS decision workspace
+- `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
+- `1086f15` · 2026-07-19 · Add local retention center prototype
+- `511f372` · 2026-07-19 · Record authenticated QA production verification [skip ci]
 - `2e3e312` · 2026-07-19 · Add authenticated local QA gate
 - `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
 - `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
@@ -95,9 +102,4 @@ tags: [fitcrm, releases]
 - `e9e64ae` · 2026-07-18 · Document Telegram self-test fix [skip ci]
 - `7a7ce7c` · 2026-07-18 · Fix Telegram self-test pairing
 - `56bcd9c` · 2026-07-18 · Document verified Telegram production rollout [skip ci]
-- `7cc3f87` · 2026-07-18 · Enforce one club per Telegram bot
-- `e3af97f` · 2026-07-18 · Rebuild Telegram integration around club bots
-- `249ee65` · 2026-07-18 · Document roles loading fix [skip ci]
-- `28efccd` · 2026-07-18 · Fix roles settings loading loop
-- `ec911ad` · 2026-07-18 · Document client payment binding [skip ci]
 <!-- AUTO:END changelog-candidates -->

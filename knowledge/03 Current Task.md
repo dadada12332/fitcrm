@@ -1,23 +1,27 @@
 ---
 type: current-task
-status: blocked
-active_task: TASK-0004
-updated: 2026-07-18
+status: testing
+active_task: TASK-0023
+updated: 2026-07-19
 tags: [fitcrm, tasks]
 ---
 
-# TASK-0004 — Провести backup/restore drill
+# TASK-0023 — Growth OS и ежедневный центр роста
 
-Источник задачи: [[Tasks/TASK-0004-backup-restore-drill]].
+Источник задачи: [[Tasks/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]].
 
 ## Цель
 
-Восстановить backup в изолированный Supabase target и измерить фактические RPO/RTO.
+Расширить автономный overnight-прототип набором связанных инструментов роста на существующих данных.
 
 ## Что нельзя сломать
 
-Production Supabase нельзя использовать как restore target; нельзя создавать платную branch без подтверждения стоимости.
+Tenant isolation, permissions и существующие CRM-разделы. Production deploy разрешён владельцем после локальной проверки.
 
 ## Текущий этап
 
-Заблокировано: Free plan, PITR disabled, backups `0`, branches `0`. Guarded runbook и verifier готовы; нужен recoverable backup и изолированный target.
+Growth OS реализован и одобрен владельцем. Исправлена навигация ежедневного плана: стрелки остаются внутри `/growth` и открывают связанный playbook/эксперимент. Повторные unit/e2e/build и browser QA завершены.
+
+## Следующий шаг
+
+Развернуть одобренную ветку, подтвердить deployment и авторизованный production-сценарий, затем закрыть TASK-0023 и записать ограничения.
