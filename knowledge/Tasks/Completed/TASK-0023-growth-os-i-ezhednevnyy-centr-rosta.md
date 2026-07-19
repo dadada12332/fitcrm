@@ -52,6 +52,7 @@ Tenant isolation, auth, permissions, существующие CRM-маршрут
 - Симулятор связывает конверсии продления, win-back, collection и referral с текущими денежными пулами.
 - Эксперимент открывает связанный playbook; текст можно копировать, но автоматической отправки нет.
 - Стрелки ежедневного плана больше не уводят пользователя в другие CRM-разделы: они остаются в `/growth`, открывают вкладку `Playbooks` или `Эксперименты` и выбирают подходящий сценарий.
+- Активное состояние вкладок приведено к общему UI CRM: Base UI атрибут `data-active`, белая/тёмная плашка, `text-foreground` и тень без синего текста.
 
 ## Verification
 
@@ -63,6 +64,7 @@ Tenant isolation, auth, permissions, существующие CRM-маршрут
 - Авторизованный localhost browser gate — desktop/mobile, light/dark, simulator recalculation, copy playbook и experiment-to-playbook flow; errors/overlay/overflow отсутствуют.
 - Повторная проверка после исправления навигации: TypeScript, scoped ESLint, 105 unit tests, 30 E2E tests и production build — успешно; клик «Запустить возврат клиентов» оставляет URL `/growth`, выбирает `Playbooks` и сценарий «Мягкое возвращение».
 - Production browser gate на синтетическом клубе: `/growth` открыт с активной сессией; стрелка остаётся на `/growth`, `aria-selected` вкладки `Playbooks` равно `true`, выбран сценарий «Мягкое возвращение», console errors отсутствуют.
+- Follow-up localhost gate вкладок: все четыре значения получают `data-active` и `aria-selected=true`; light active styles — фон `rgb(255, 255, 255)`, текст `rgb(9, 9, 11)`; dark — фон `rgb(24, 24, 27)`, текст `rgb(250, 250, 250)`. TypeScript, scoped ESLint, 105 unit tests и build — успешно.
 
 ## Deploy
 

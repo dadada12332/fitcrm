@@ -31,6 +31,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Активная вкладка Growth OS теперь визуально выделяется общей для CRM плашкой и нейтральным текстом во всех четырёх разделах и обеих темах.
 - Стрелки ежедневного плана Growth OS теперь открывают соответствующий внутренний playbook или эксперимент и не уводят пользователя из `/growth`.
 - Email login and post-login routing no longer require a service-role key when the authenticated user reads their own club memberships.
 - The expiring-membership clock on the dashboard now uses the same neutral icon color as the other KPI tiles.
@@ -72,6 +73,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
 - `0514d3d` · 2026-07-19 · Release retention center and Growth OS
 - `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 - `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
@@ -101,5 +103,4 @@ tags: [fitcrm, releases]
 - `d2c603e` · 2026-07-18 · Refine Instagram setup layout
 - `7e64c47` · 2026-07-18 · Add Instagram integration foundation
 - `580b9e8` · 2026-07-18 · Add Telegram client Mini App
-- `e9e64ae` · 2026-07-18 · Document Telegram self-test fix [skip ci]
 <!-- AUTO:END changelog-candidates -->
