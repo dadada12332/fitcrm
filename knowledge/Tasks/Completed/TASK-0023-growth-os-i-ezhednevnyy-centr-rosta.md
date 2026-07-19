@@ -1,7 +1,7 @@
 ---
 id: TASK-0023
 type: feature
-status: testing
+status: completed
 priority: P1
 module: growth
 created: 2026-07-19
@@ -62,6 +62,15 @@ Tenant isolation, auth, permissions, существующие CRM-маршрут
 - `npm run build` — успешно, `/growth` собран.
 - Авторизованный localhost browser gate — desktop/mobile, light/dark, simulator recalculation, copy playbook и experiment-to-playbook flow; errors/overlay/overflow отсутствуют.
 - Повторная проверка после исправления навигации: TypeScript, scoped ESLint, 105 unit tests, 30 E2E tests и production build — успешно; клик «Запустить возврат клиентов» оставляет URL `/growth`, выбирает `Playbooks` и сценарий «Мягкое возвращение».
+- Production browser gate на синтетическом клубе: `/growth` открыт с активной сессией; стрелка остаётся на `/growth`, `aria-selected` вкладки `Playbooks` равно `true`, выбран сценарий «Мягкое возвращение», console errors отсутствуют.
+
+## Deploy
+
+- Merge commit: `0514d3d` (`Release retention center and Growth OS`).
+- Vercel deployment: `dpl_8Kye9UKe6VGpHWSmaoAb7byuUkks`, target `production`, status `READY`, function region `syd1`.
+- Aliases: `https://fitcrm-three.vercel.app`, `https://fitcrm-crm228.vercel.app`, `https://fitcrm-git-main-crm228.vercel.app`.
+- `/login` отвечает HTTP 200; анонимный `/growth` отвечает HTTP 307 и переводит на `/login`.
+- Runtime error logs и HTTP 500 после production smoke не обнаружены.
 
 ## Remaining
 
@@ -70,4 +79,4 @@ Tenant isolation, auth, permissions, существующие CRM-маршрут
 
 ## Blockers
 
-Нет технического blocker. Владелец одобрил production deploy 2026-07-19; задача ожидает подтверждения фактического deployment и production smoke.
+Нет.

@@ -74,10 +74,10 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0019-configure-obsidian-kanban-calendar]]
 - [[Tasks/Completed/TASK-0020-install-obsidian-productivity-plugins]]
 - [[Tasks/Completed/TASK-0021-polish-landing-platform-overview]]
+- [[Tasks/Completed/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
-- [[Tasks/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]]
 
 ## UX
 

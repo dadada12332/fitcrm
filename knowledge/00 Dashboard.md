@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `0514d3d` · 2026-07-19 · Release retention center and Growth OS
+- `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 - `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
 - `5904123` · 2026-07-19 · Add Growth OS decision workspace
 - `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
 - `1086f15` · 2026-07-19 · Add local retention center prototype
 - `511f372` · 2026-07-19 · Record authenticated QA production verification [skip ci]
 - `2e3e312` · 2026-07-19 · Add authenticated local QA gate
-- `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
-- `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

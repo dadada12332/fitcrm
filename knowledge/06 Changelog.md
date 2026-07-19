@@ -72,6 +72,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `0514d3d` · 2026-07-19 · Release retention center and Growth OS
+- `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 - `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
 - `5904123` · 2026-07-19 · Add Growth OS decision workspace
 - `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
@@ -100,6 +102,4 @@ tags: [fitcrm, releases]
 - `7e64c47` · 2026-07-18 · Add Instagram integration foundation
 - `580b9e8` · 2026-07-18 · Add Telegram client Mini App
 - `e9e64ae` · 2026-07-18 · Document Telegram self-test fix [skip ci]
-- `7a7ce7c` · 2026-07-18 · Fix Telegram self-test pairing
-- `56bcd9c` · 2026-07-18 · Document verified Telegram production rollout [skip ci]
 <!-- AUTO:END changelog-candidates -->

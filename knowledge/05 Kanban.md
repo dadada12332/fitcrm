@@ -41,7 +41,7 @@ kanban-plugin: board
 ## Testing
 
 <!-- AUTO:START kanban-testing -->
-- [ ] TASK-0023 · Growth OS и ежедневный центр роста · feature · P1 · growth · 2026-07-19 · [[Tasks/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]]
+
 <!-- AUTO:END kanban-testing -->
 
 ## Blocked
@@ -72,4 +72,5 @@ kanban-plugin: board
 - [x] TASK-0019 · Configure Obsidian Kanban and Calendar · documentation · P2 · documentation · 2026-07-18 · [[Tasks/Completed/TASK-0019-configure-obsidian-kanban-calendar]]
 - [x] TASK-0020 · Install Obsidian productivity plugins · documentation · P2 · documentation · 2026-07-18 · [[Tasks/Completed/TASK-0020-install-obsidian-productivity-plugins]]
 - [x] TASK-0021 · Polish landing platform overview · feature · P2 · landing · 2026-07-18 · [[Tasks/Completed/TASK-0021-polish-landing-platform-overview]]
+- [x] TASK-0023 · Growth OS и ежедневный центр роста · feature · P1 · growth · 2026-07-19 · [[Tasks/Completed/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]]
 <!-- AUTO:END kanban-done -->

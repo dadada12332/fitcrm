@@ -11,8 +11,8 @@ tags: [fitcrm, operations]
 
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
-- Branch: `codex/overnight-growth-readiness-20260719`.
-- Последний commit: 350dc23 · 2026-07-19T05:06:06+05:00 · Record Growth OS local verification [skip ci].
+- Branch: `main`.
+- Последний commit: 0514d3d · 2026-07-19T15:26:54+05:00 · Release retention center and Growth OS.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -20,7 +20,7 @@ tags: [fitcrm, operations]
 
 ## Готовность модулей
 
-**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. В feature-ветке `codex/overnight-growth-readiness-20260719` локально готовы Beta-раздел удержания и Growth OS из восьми связанных инструментов; в production их нет.
+**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Beta-раздел удержания и Growth OS из восьми связанных инструментов выпущены в production и проверены на синтетическом QA-клубе.
 
 **Частично:** занятия/бронирования, audit trail UI и тарифные ограничения. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
@@ -36,7 +36,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_8SUpYtebjGtjfiAPeGbW1HncTFyL` для commit `2e3e312` имеет статус `READY`; aliases `fitcrm-three.vercel.app` и `fitcrm-crm228.vercel.app` подтверждены. Для авторизованной UI-проверки создан отдельный синтетический QA-пользователь и клуб без клиентских данных; credentials хранятся только локально.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_8Kye9UKe6VGpHWSmaoAb7byuUkks` для merge commit `0514d3d` имеет статус `READY`; aliases `fitcrm-three.vercel.app` и `fitcrm-crm228.vercel.app` подтверждены. Авторизованный `/growth` проверен на отдельном синтетическом QA-клубе без клиентских данных; credentials хранятся только локально.
 
 ## Риски и долг
 
