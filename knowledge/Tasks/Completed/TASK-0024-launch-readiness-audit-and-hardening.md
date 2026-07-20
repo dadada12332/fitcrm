@@ -1,7 +1,7 @@
 ---
 id: TASK-0024
 type: feature
-status: review
+status: completed
 priority: P0
 module: platform
 created: 2026-07-20
@@ -32,8 +32,8 @@ tags: [fitcrm, task]
 
 - [x] Критические пользовательские сценарии пройдены на синтетическом QA-клубе.
 - [x] Подтверждённые P0/P1 дефекты исправлены или явно отмечены как внешние блокеры.
-- [ ] Проверки проекта проходят, production deployment проверен.
-- [ ] Knowledge и Obsidian синхронизированы.
+- [x] Проверки проекта проходят, production deployment проверен.
+- [x] Knowledge и Obsidian синхронизированы.
 
 ## Files and data
 
@@ -58,7 +58,7 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Remaining
 
-Production deploy/smoke, QA cleanup, docs sync, commit/push.
+Внешние launch blockers вынесены в checklist; продолжать через отдельные задачи.
 
 ## Blockers
 

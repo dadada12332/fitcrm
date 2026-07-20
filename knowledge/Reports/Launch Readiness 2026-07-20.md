@@ -16,6 +16,7 @@ The core CRM is functional on desktop and mobile. Auth, onboarding, client creat
 
 ## Verified
 
+- Production deployment `dpl_Dg9zXEEborGRH7PCNzUBdb13hPwt` for commit `7a01d28` is READY and aliased to `fitcrm-three.vercel.app`.
 - Production build completes on Next.js 16.2.7; TypeScript passes.
 - Vitest: 105 passed, 1 skipped. Playwright: 30 passed.
 - 18 desktop and 10 mobile authenticated routes returned 200, rendered content and had no horizontal overflow.
@@ -26,6 +27,7 @@ The core CRM is functional on desktop and mobile. Auth, onboarding, client creat
 - Supabase security hardening migrations `0065`–`0067` are applied; missing foreign-key indexes and broad storage listing policies were fixed.
 - Scheduled Telegram broadcasts run through Supabase Cron every five minutes; recent HTTP responses were 200.
 - Roles and support creation use right drawers; the roles loading regression and theme hydration mismatch were fixed.
+- Production-domain smoke produced only 200/303 responses and no grouped Vercel runtime errors. Warm authenticated route samples were approximately 1.6–2.7 seconds; further query reduction remains desirable before a large campaign.
 
 ## Fixed in this audit
 

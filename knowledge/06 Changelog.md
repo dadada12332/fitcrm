@@ -20,6 +20,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Регистрация и login теперь корректно возобновляют незавершённый onboarding; шаги сохраняются, а приглашения команды отправляются реально.
+- Уведомления загружают полный список только при открытии drawer; badge приходит вместе с sidebar aggregate.
 - Landing overview получил плавную смену реальных экранов CRM, progress состояния, паузу при взаимодействии и полноценную mobile/keyboard адаптацию.
 - Obsidian Vault получил Dataview, Tasks, Periodic Notes, Templater и Style Settings; Weekly и Templates связаны с существующей структурой заметок.
 - Obsidian Kanban и Calendar включены и связаны с task frontmatter, Daily Notes и понедельником как началом недели.
@@ -31,6 +33,8 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Исправлена повторная поломка «Ролей и прав» после security hardening, theme hydration mismatch и частичное создание клиента при ошибке абонемента.
+- Создание клиента из ручного посещения теперь открывает client drawer; неработающее Telegram-действие в долгах скрыто до реализации.
 - Активная вкладка Growth OS теперь визуально выделяется общей для CRM плашкой и нейтральным текстом во всех четырёх разделах и обеих темах.
 - Стрелки ежедневного плана Growth OS теперь открывают соответствующий внутренний playbook или эксперимент и не уводят пользователя из `/growth`.
 - Email login and post-login routing no longer require a service-role key when the authenticated user reads their own club memberships.
@@ -55,6 +59,8 @@ tags: [fitcrm, releases]
 
 ### Security
 
+- Миграции `0065`–`0067` закрыли broad Storage listing, ограничили upload MIME/size, отозвали лишние RPC grants и добавили недостающие FK indexes.
+- Production two-club RLS probe подтвердил отсутствие cross-tenant read/write доступа.
 - Миграция `0055` закрыла anonymous/cross-tenant вызов публичных `SECURITY DEFINER` RPC; production проверен через Advisor и rollback RLS drill.
 - Неизвестные/повреждённые role keys теперь получают deny-by-default permissions.
 - AI Аналитика переведена в read-only режим: mutating tools исключены до реализации явного подтверждения и модульных permission checks.
@@ -73,6 +79,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
 - `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
 - `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
@@ -102,5 +109,4 @@ tags: [fitcrm, releases]
 - `9cd0b22` · 2026-07-18 · Scope Telegram self-test to current club
 - `e7ea58e` · 2026-07-18 · Document Telegram Mini App and Instagram rollout [skip ci]
 - `b2dc9f2` · 2026-07-18 · Harden Instagram deletion callback
-- `d2c603e` · 2026-07-18 · Refine Instagram setup layout
 <!-- AUTO:END changelog-candidates -->

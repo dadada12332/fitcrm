@@ -36,7 +36,6 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-review -->
 - [ ] TASK-0022 · Центр удержания клиентов и предотвращения оттока · feature · P1 · retention · 2026-07-19 · [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
-- [ ] TASK-0024 · Launch readiness audit and hardening · feature · P0 · platform · 2026-07-20 · [[Tasks/TASK-0024-launch-readiness-audit-and-hardening]]
 <!-- AUTO:END kanban-review -->
 
 ## Testing
@@ -74,4 +73,5 @@ kanban-plugin: board
 - [x] TASK-0020 · Install Obsidian productivity plugins · documentation · P2 · documentation · 2026-07-18 · [[Tasks/Completed/TASK-0020-install-obsidian-productivity-plugins]]
 - [x] TASK-0021 · Polish landing platform overview · feature · P2 · landing · 2026-07-18 · [[Tasks/Completed/TASK-0021-polish-landing-platform-overview]]
 - [x] TASK-0023 · Growth OS и ежедневный центр роста · feature · P1 · growth · 2026-07-19 · [[Tasks/Completed/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]]
+- [x] TASK-0024 · Launch readiness audit and hardening · feature · P0 · platform · 2026-07-20 · [[Tasks/Completed/TASK-0024-launch-readiness-audit-and-hardening]]
 <!-- AUTO:END kanban-done -->

@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: f81cc0b · 2026-07-19T16:09:39+05:00 · Record verified active tab deployment [skip ci].
+- Последний commit: 7a01d28 · 2026-07-20T12:47:22+05:00 · Harden launch-critical flows and infrastructure.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 67; последняя `0067_remaining_foreign_key_indexes.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

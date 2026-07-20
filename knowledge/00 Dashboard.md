@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
 - `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
 - `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 - `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
 - `5904123` · 2026-07-19 · Add Growth OS decision workspace
-- `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
