@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState, useTransition } from "react"
 import {
   AlertTriangle,
   ArrowRight,
@@ -10,6 +10,7 @@ import {
   Clock3,
   Search,
   ShieldAlert,
+  Sparkles,
   UserRoundX,
   UsersRound,
 } from "lucide-react"
@@ -17,9 +18,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { RetentionAiDrawer } from "@/components/app/RetentionAiDrawer"
+import { analyzeRetentionAction } from "@/app/(app)/retention/actions"
 import type { RetentionCandidate, RetentionData, RetentionLevel, RetentionReason } from "@/lib/retention"
+import type { RetentionAiAnalysis, RetentionAiFilter, RetentionAiScope } from "@/lib/retention-ai"
 
-type Filter = "all" | RetentionLevel | RetentionReason
+type Filter = RetentionAiFilter
 
 const LEVEL_META: Record<RetentionLevel, { label: string; variant: "destructive" | "secondary" | "outline" }> = {
   critical: { label: "Критический", variant: "destructive" },
@@ -53,7 +57,7 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value))
 }
 
-function CandidateCard({ item }: { item: RetentionCandidate }) {
+function CandidateCard({ item, onAnalyze }: { item: RetentionCandidate; onAnalyze: (clientId: string) => void }) {
   return (
     <Card size="sm" className="gap-3">
       <CardHeader className="grid-cols-[1fr_auto]">
@@ -80,9 +84,12 @@ function CandidateCard({ item }: { item: RetentionCandidate }) {
         <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
           <span className="font-medium text-foreground">Следующий шаг: </span>{item.recommendedAction}
         </div>
-        <Link href={`/clients/${item.id}`} className={buttonVariants({ variant: "outline", className: "w-full" })}>
-          Открыть клиента <ArrowRight data-icon="inline-end" />
-        </Link>
+        <div className="grid grid-cols-2 gap-2">
+          <Button type="button" variant="outline" onClick={() => onAnalyze(item.id)}><Sparkles /> AI-разбор</Button>
+          <Link href={`/clients/${item.id}`} className={buttonVariants({ variant: "outline" })}>
+            Клиент <ArrowRight data-icon="inline-end" />
+          </Link>
+        </div>
       </CardContent>
     </Card>
   )
@@ -91,6 +98,26 @@ function CandidateCard({ item }: { item: RetentionCandidate }) {
 export function RetentionCenter({ data }: { data: RetentionData }) {
   const [filter, setFilter] = useState<Filter>("all")
   const [query, setQuery] = useState("")
+  const [aiOpen, setAiOpen] = useState(false)
+  const [aiScope, setAiScope] = useState<RetentionAiScope>({ kind: "portfolio", filter: "all" })
+  const [aiAnalysis, setAiAnalysis] = useState<RetentionAiAnalysis | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiPending, startAiTransition] = useTransition()
+  const aiRequestId = useRef(0)
+
+  function runAiAnalysis(scope: RetentionAiScope) {
+    const requestId = ++aiRequestId.current
+    setAiScope(scope)
+    setAiAnalysis(null)
+    setAiError(null)
+    setAiOpen(true)
+    startAiTransition(async () => {
+      const result = await analyzeRetentionAction(scope)
+      if (requestId !== aiRequestId.current) return
+      setAiAnalysis(result.analysis ?? null)
+      setAiError(result.error ?? null)
+    })
+  }
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("ru")
@@ -122,9 +149,9 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
           <Link href="/clients?status=expiring" className={buttonVariants({ variant: "outline" })}>
             <CalendarClock data-icon="inline-start" /> Истекающие
           </Link>
-          <Link href="/ai" className={buttonVariants()}>
-            Разобрать с AI <ArrowRight data-icon="inline-end" />
-          </Link>
+          <Button type="button" onClick={() => runAiAnalysis({ kind: "portfolio", filter })}>
+            <Sparkles /> Разобрать с AI
+          </Button>
         </div>
       </div>
 
@@ -182,7 +209,7 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
           ) : (
             <>
               <div className="grid gap-3 md:hidden">
-                {filtered.map((item) => <CandidateCard key={item.id} item={item} />)}
+                {filtered.map((item) => <CandidateCard key={item.id} item={item} onAnalyze={(clientId) => runAiAnalysis({ kind: "client", clientId })} />)}
               </div>
               <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
                 <table className="w-full min-w-[900px] text-sm">
@@ -207,7 +234,12 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
                         <td className="px-4 py-3"><div className="flex max-w-xs flex-wrap gap-1">{item.reasons.map((reason) => <Badge key={reason} variant="outline">{REASON_LABELS[reason]}</Badge>)}</div></td>
                         <td className="px-4 py-3 text-muted-foreground">{formatDate(item.lastVisit)}</td>
                         <td className="px-4 py-3 font-medium tabular-nums text-foreground">{item.estimatedValue ? formatMoney(item.estimatedValue) : "—"}</td>
-                        <td className="px-4 py-3 text-right"><Link href={`/clients/${item.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>Открыть <ArrowRight data-icon="inline-end" /></Link></td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex items-center gap-1">
+                            <Button type="button" variant="ghost" size="sm" onClick={() => runAiAnalysis({ kind: "client", clientId: item.id })}><Sparkles /> AI-разбор</Button>
+                            <Link href={`/clients/${item.id}`} className={buttonVariants({ variant: "ghost", size: "icon-sm" })} aria-label={`Открыть ${item.name}`}><ArrowRight /></Link>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -217,6 +249,15 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
           )}
         </CardContent>
       </Card>
+
+      <RetentionAiDrawer
+        open={aiOpen}
+        onOpenChange={setAiOpen}
+        analysis={aiAnalysis}
+        pending={aiPending}
+        error={aiError}
+        onRetry={() => runAiAnalysis(aiScope)}
+      />
     </div>
   )
 }

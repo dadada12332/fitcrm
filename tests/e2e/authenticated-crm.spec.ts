@@ -19,7 +19,7 @@ test.describe("authenticated CRM", () => {
     const routes = [
       "/dashboard", "/clients", "/memberships", "/visits", "/schedule",
       "/payments", "/warehouse", "/staff", "/reports", "/integrations",
-      "/settings", "/support",
+      "/retention", "/settings", "/support",
     ]
 
     for (const route of routes) {

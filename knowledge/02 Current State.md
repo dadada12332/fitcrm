@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 7716f9d · 2026-07-20T14:04:04+05:00 · docs: record verified production hardening [skip ci].
+- Последний commit: bc10d6d · 2026-07-20T14:06:28+05:00 · docs: retire resolved launch issues [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 68; последняя `0068_staff_page_aggregate.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

@@ -12,6 +12,7 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- Раздел «Удержание» получил контекстного AI-копилота: анализ сегмента, приоритетная очередь, план на 7 дней и персональные разборы с черновиками сообщений.
 - Добавлены публичный database-aware `/api/health`, структурированные request-error logs и authenticated Playwright gate для основных CRM-маршрутов.
 - Growth OS объединяет ежедневный план, пульс клуба, revenue radar, симулятор, playbooks и каталог контролируемых экспериментов; новый центр удержания показывает клиентов с риском оттока и следующие действия.
 - Операционная память проекта в `/knowledge` для команды и AI-агентов.
@@ -62,6 +63,7 @@ tags: [fitcrm, releases]
 
 ### Security
 
+- Retention AI повторно загружает клиентов по `club_id`, проверяет права и не доверяет ID/данным из браузера; AI не выполняет скрытых мутаций и не может добавить клиента вне server-scoped результата.
 - Миграции `0065`–`0067` закрыли broad Storage listing, ограничили upload MIME/size, отозвали лишние RPC grants и добавили недостающие FK indexes.
 - Production two-club RLS probe подтвердил отсутствие cross-tenant read/write доступа.
 - Миграция `0055` закрыла anonymous/cross-tenant вызов публичных `SECURITY DEFINER` RPC; production проверен через Advisor и rollback RLS drill.
@@ -82,6 +84,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `bc10d6d` · 2026-07-20 · docs: retire resolved launch issues [skip ci]
 - `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
 - `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
 - `ac1a6fe` · 2026-07-20 · Record verified launch readiness status
@@ -111,5 +114,4 @@ tags: [fitcrm, releases]
 - `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
 - `d9295b4` · 2026-07-18 · Document Telegram Mini App back navigation [skip ci]
 - `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
-- `0e869c3` · 2026-07-18 · Document Telegram multi-club self-test fix [skip ci]
 <!-- AUTO:END changelog-candidates -->

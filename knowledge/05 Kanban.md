@@ -41,7 +41,7 @@ kanban-plugin: board
 ## Testing
 
 <!-- AUTO:START kanban-testing -->
-
+- [ ] TASK-0026 · AI-копилот удержания · feature · P1 · retention · 2026-07-20 · [[Tasks/TASK-0026-ai-kopilot-uderzhaniya]]
 <!-- AUTO:END kanban-testing -->
 
 ## Blocked

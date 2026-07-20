@@ -1,10 +1,12 @@
 ---
 type: current-task
-status: empty
+status: testing
 updated: 2026-07-20
 tags: [fitcrm, tasks]
 ---
 
 # Current Task
 
-Нет активной задачи. Следующие продуктовые задачи остаются в [[05 Kanban]]; массовый запуск ограничен внешними пунктами из [[Infrastructure/Launch Checklist]].
+[[Tasks/TASK-0026-ai-kopilot-uderzhaniya|TASK-0026 — AI-копилот удержания]]
+
+Локальный release gate пройден. Выполняется production deployment и финальный smoke-test.
