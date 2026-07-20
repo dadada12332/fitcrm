@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 63d1989 · 2026-07-20T15:09:01+05:00 · feat: add retention AI copilot.
+- Последний commit: b60cc07 · 2026-07-20T16:30:01+05:00 · feat: complete retention outreach workflow.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 68; последняя `0068_staff_page_aggregate.sql`.
+- Миграции в Git: 70; последняя `0070_fix_retention_interactions_client_index.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
