@@ -83,7 +83,9 @@ export function PaymentsClient({
   // Оптимистичные значения фильтров: подсвечиваем выбранный таб мгновенно,
   // не дожидаясь серверного перехода (иначе клик «висит» ~2с без реакции).
   const [optimistic, setOptimistic] = useState<Record<string, string>>({})
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
+  // Clear optimistic URL state after the router confirms navigation.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setOptimistic({}) }, [searchParams])
 
   const period = optimistic.period ?? searchParams.get("period") ?? "month"
@@ -111,6 +113,8 @@ export function PaymentsClient({
   // Поиск (debounce)
   const [search, setSearch] = useState(urlQuery)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Browser back/forward can update the URL independently of the input.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setSearch(urlQuery) }, [urlQuery])
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current)

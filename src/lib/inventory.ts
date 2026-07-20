@@ -50,7 +50,7 @@ export const getInventory = cache(async (supabase: SupabaseClient, clubId: strin
     .eq("is_active", true)
     .order("name")
 
-  return (data ?? []).map((p: any) => {
+  return (data ?? []).map((p) => {
     const inv = Array.isArray(p.inventory) ? p.inventory[0] : p.inventory
     return {
       id: p.id,
@@ -77,7 +77,7 @@ export async function getPosProducts(supabase: SupabaseClient, clubId: string): 
   const since = new Date(Date.now() - 90 * 86_400_000).toISOString()
   const { data: stats } = await supabase.rpc("product_sales_counts", { p_club_id: clubId, p_since: since })
   const map = new Map<string, { cnt: number; last: string | null }>()
-  for (const r of (stats ?? []) as any[]) map.set(r.product_id, { cnt: Number(r.cnt), last: r.last_sold ?? null })
+  for (const r of (stats ?? []) as { product_id: string; cnt: number | string; last_sold: string | null }[]) map.set(r.product_id, { cnt: Number(r.cnt), last: r.last_sold ?? null })
   return products.map((p) => {
     const s = map.get(p.id)
     return { ...p, salesCount: s?.cnt ?? 0, lastSoldAt: s?.last ?? null }
@@ -99,7 +99,7 @@ export async function getInventoryStats(supabase: SupabaseClient, clubId: string
     totalProducts: products.length,
     lowStockCount: products.filter(p => p.quantity <= p.minQuantity && p.minQuantity > 0).length,
     totalValue: products.reduce((s, p) => s + p.quantity * p.buyPrice, 0),
-    totalSalesMonth: (sales ?? []).reduce((s: number, m: any) => s + Number(m.qty) * Number(m.unit_price), 0),
+    totalSalesMonth: (sales ?? []).reduce((sum, movement) => sum + Number(movement.qty) * Number(movement.unit_price), 0),
   }
 }
 
@@ -111,10 +111,10 @@ export async function getRecentMovements(supabase: SupabaseClient, clubId: strin
     .order("created_at", { ascending: false })
     .limit(limit)
 
-  return (data ?? []).map((m: any) => ({
+  return (data ?? []).map((m) => ({
     id: m.id,
     productId: m.product_id,
-    productName: m.products?.name ?? "—",
+    productName: m.products?.[0]?.name ?? "—",
     type: m.type,
     qty: Number(m.qty),
     unitPrice: Number(m.unit_price),

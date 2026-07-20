@@ -29,7 +29,7 @@ const tooltipStyle = {
 
 export function RevenueChart({ data }: { data: DayData[] }) {
   return (
-    <ResponsiveContainer width="100%" height={180}>
+    <ResponsiveContainer width="100%" height={180} initialDimension={{ width: 480, height: 180 }}>
       <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--gray-muted)" }} axisLine={false} tickLine={false} />
@@ -52,7 +52,7 @@ export function RevenueChart({ data }: { data: DayData[] }) {
 
 export function VisitsChart({ data }: { data: DayData[] }) {
   return (
-    <ResponsiveContainer width="100%" height={180}>
+    <ResponsiveContainer width="100%" height={180} initialDimension={{ width: 480, height: 180 }}>
       <LineChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--gray-muted)" }} axisLine={false} tickLine={false} />
@@ -77,7 +77,7 @@ export function VisitsChart({ data }: { data: DayData[] }) {
 
 export function RenewalsChart({ data }: { data: DayData[] }) {
   return (
-    <ResponsiveContainer width="100%" height={180}>
+    <ResponsiveContainer width="100%" height={180} initialDimension={{ width: 480, height: 180 }}>
       <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--gray-muted)" }} axisLine={false} tickLine={false} />

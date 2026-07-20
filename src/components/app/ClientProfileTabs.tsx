@@ -70,6 +70,8 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
 
   useEffect(() => {
     const t = searchParams.get("tab") as TabKey | null
+    // Browser navigation can change the active deep-linked tab.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (t && TABS.some((x) => x.key === t)) setTab(t)
   }, [searchParams])
 

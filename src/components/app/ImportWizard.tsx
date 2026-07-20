@@ -640,10 +640,10 @@ function Step2Mapping({
 // ── Step 3: Preview ───────────────────────────────────────────────────────────
 
 function Step3Preview({
-  parsed, mapping, validated, dupPhones, dupStrategy, onStrategyChange, loading,
+  parsed, mapping, validated, dupStrategy, onStrategyChange, loading,
 }: {
   parsed: ParsedFile; mapping: MappingEntry[]; validated: ValidatedRow[]
-  dupPhones: string[]; dupStrategy: DuplicateStrategy
+  dupStrategy: DuplicateStrategy
   onStrategyChange: (s: DuplicateStrategy) => void; loading: boolean
 }) {
   const errorRows = validated.filter((r) => r.errors.length)
@@ -1165,7 +1165,7 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
           {step === 2 && parsed && (
             <Step3Preview
               parsed={parsed} mapping={mapping} validated={validated}
-              dupPhones={dupPhones} dupStrategy={dupStrategy}
+              dupStrategy={dupStrategy}
               onStrategyChange={setDupStrategy} loading={dupLoading}
             />
           )}

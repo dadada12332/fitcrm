@@ -12,6 +12,7 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- Добавлены публичный database-aware `/api/health`, структурированные request-error logs и authenticated Playwright gate для основных CRM-маршрутов.
 - Growth OS объединяет ежедневный план, пульс клуба, revenue radar, симулятор, playbooks и каталог контролируемых экспериментов; новый центр удержания показывает клиентов с риском оттока и следующие действия.
 - Операционная память проекта в `/knowledge` для команды и AI-агентов.
 - Повторяемый Vitest/Playwright test harness для security, auth и responsive smoke.
@@ -54,6 +55,8 @@ tags: [fitcrm, releases]
 
 ### Performance
 
+- Settings загружает независимые данные параллельно; staff использует один tenant-scoped aggregate RPC вместо серии клиентских подсчётов.
+- Графики получили стабильные initial dimensions, а штатные прерывания навигации больше не засоряют production error logs.
 - Сокращены повторные auth/club round trips и задержки загрузки разделов CRM.
 - Типовые запросы AI Аналитики обходят LLM и получают scoped KPI напрямую из Supabase.
 
@@ -79,6 +82,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `ac1a6fe` · 2026-07-20 · Record verified launch readiness status
 - `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
 - `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
@@ -108,5 +112,4 @@ tags: [fitcrm, releases]
 - `0e869c3` · 2026-07-18 · Document Telegram multi-club self-test fix [skip ci]
 - `9cd0b22` · 2026-07-18 · Scope Telegram self-test to current club
 - `e7ea58e` · 2026-07-18 · Document Telegram Mini App and Instagram rollout [skip ci]
-- `b2dc9f2` · 2026-07-18 · Harden Instagram deletion callback
 <!-- AUTO:END changelog-candidates -->

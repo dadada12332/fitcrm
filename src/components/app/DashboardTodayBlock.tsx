@@ -7,20 +7,6 @@ type StatItem = {
   color: string
 }
 
-function Stat({ icon, label, value, color }: StatItem) {
-  return (
-    <div className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: color + "15" }}>
-        {icon}
-      </div>
-      <div className="flex-1">
-        <p className="text-xs" style={{ color: "var(--gray-muted)" }}>{label}</p>
-      </div>
-      <p className="text-lg font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{value}</p>
-    </div>
-  )
-}
-
 type Props = {
   todayVisits: number
   todayNewClients: number

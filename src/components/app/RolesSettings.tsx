@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Trash2, Check, ShieldCheck, Users, ChevronRight, X, UserCheck } from "lucide-react"
 import {
@@ -11,18 +11,6 @@ import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions } from "@/lib/permissions"
 
 // ── Primitives ───────────────────────────────────────────────────
-
-function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
-  return (
-    <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-        <h3 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{title}</h3>
-        {action}
-      </div>
-      <div className="px-6 py-5">{children}</div>
-    </div>
-  )
-}
 
 function Btn({
   onClick, children, variant = "primary", disabled, small,

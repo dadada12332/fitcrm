@@ -20,11 +20,11 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   ])
   if (!member) notFound()
 
-  const roles = (rolesRes.data ?? []).map((r: any) => ({
-    id: r.id as string,
-    key: r.key as string,
-    name: r.name as string,
-    isSystem: r.is_system as boolean,
+  const roles = (rolesRes.data ?? []).map((r) => ({
+    id: r.id,
+    key: r.key,
+    name: r.name,
+    isSystem: r.is_system,
   }))
 
   return (

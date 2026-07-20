@@ -19,8 +19,13 @@ export function AddClassButton({ rooms, defaultDate, trainers = [] }: { rooms: R
   const [open, setOpen] = useState(false)
   const [state, formAction, pending] = useActionState<ClassFormState, FormData>(createClassAction, {})
 
+  // Reflect the completed Server Action in the drawer state.
   useEffect(() => {
-    if (state.ok) { setOpen(false); toast.success("Занятие создано") }
+    if (state.ok) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOpen(false)
+      toast.success("Занятие создано")
+    }
     else if (state.error) toast.error(state.error)
   }, [state])
 

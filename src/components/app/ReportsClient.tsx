@@ -4,13 +4,13 @@ import { useState, useMemo, useEffect } from "react"
 import {
   AlertTriangle, TrendingUp, TrendingDown, CreditCard,
   Activity, Users, UserCog, Wallet, Sparkles, RefreshCw,
-  ArrowRight, Download, CheckCircle2, BarChart2,
+  ArrowRight, Download, BarChart2,
 } from "lucide-react"
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend,
+  ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid,
 } from "recharts"
-import type { ReportsData, ReportPayment, ReportClient, ReportStaffRow, FinanceAgg, SalesAgg, VisitsAgg, ClientsAgg, RenewalsAgg, DebtsAgg, AlertsAgg } from "@/lib/reports"
+import type { ReportsData, ReportPayment, ReportStaffRow, FinanceAgg, SalesAgg, VisitsAgg, ClientsAgg, RenewalsAgg, DebtsAgg, AlertsAgg } from "@/lib/reports"
 import { loadReportsDataAction, loadFinanceAction, loadSalesAction, loadVisitsAction, loadClientsAction, loadRenewalsAction, loadDebtsAction, loadStaffAction, loadAlertsAction, getReportsForecastAction, type ForecastInput } from "@/app/(app)/reports/actions"
 import { downloadCSV } from "@/lib/csv"
 
@@ -299,7 +299,7 @@ function FinanceSection({ agg, bounds }: {
             </div>
           </div>
           <div style={{ height: 280, padding: "12px 8px 4px" }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 720, height: 260 }}>
               <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="rGrad" x1="0" y1="0" x2="0" y2="1">
@@ -324,7 +324,7 @@ function FinanceSection({ agg, bounds }: {
           {providerData.length > 0 ? (
             <div className="flex flex-col">
               <div style={{ height: 220 }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 360, height: 220 }}>
                   <PieChart>
                     <Pie
                       data={providerData} dataKey="value"
@@ -455,7 +455,7 @@ function SalesSection({ agg }: { agg: SalesAgg }) {
 
         <SectionCard title="Топ тарифы">
           <div style={{ height: 260, padding: "8px 8px 0" }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 720, height: 260 }}>
               <BarChart data={rows.slice(0, 6)} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="0" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} tickFormatter={fmtShort} />
@@ -538,7 +538,7 @@ function AttendanceSection({ agg, bounds }: {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SectionCard title="Посещения по дням">
           <div style={{ height: 220, padding: "8px 8px 0" }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 720, height: 260 }}>
               <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">
@@ -788,7 +788,7 @@ function ClientsSection({ agg }: { agg: ClientsAgg }) {
         {/* New clients chart */}
         <SectionCard title="Новые клиенты в период">
           <div style={{ height: 260, padding: "8px 8px 0" }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 720, height: 260 }}>
               <BarChart
                 data={chartFromByDay(agg.byDayNew.map(d => ({ day: d.day, amount: d.count })))}
                 margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
@@ -809,7 +809,7 @@ function ClientsSection({ agg }: { agg: ClientsAgg }) {
 
 // ── 7. Staff Section ──────────────────────────────────────────────────
 
-function StaffSection({ staff }: { staff: ReportClient[] | any[] }) {
+function StaffSection({ staff }: { staff: ReportStaffRow[] }) {
   return (
     <SectionCard title="Сотрудники">
       {staff.length === 0 ? (
@@ -825,7 +825,7 @@ function StaffSection({ staff }: { staff: ReportClient[] | any[] }) {
               </tr>
             </thead>
             <tbody>
-              {staff.map((s: any) => {
+              {staff.map((s) => {
                 const sm = STATUS_META[s.status] ?? STATUS_META.active
                 return (
                   <tr key={s.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
@@ -1286,7 +1286,6 @@ export function ReportsClient() {
   useEffect(() => {
     if (section !== "finance" && section !== "ai") return
     let cancelled = false
-    setFinanceAgg(null)
     loadFinanceAction(bounds.from, bounds.to, bounds.prevFrom, bounds.prevTo)
       .then((a) => { if (!cancelled) setFinanceAgg(a) })
       .catch(() => { if (!cancelled) setFinanceAgg(null) })
@@ -1297,7 +1296,6 @@ export function ReportsClient() {
   useEffect(() => {
     if (section !== "sales" && section !== "ai") return
     let cancelled = false
-    setSalesAgg(null)
     loadSalesAction(bounds.from, bounds.to)
       .then((a) => { if (!cancelled) setSalesAgg(a) })
       .catch(() => { if (!cancelled) setSalesAgg(null) })
@@ -1308,7 +1306,6 @@ export function ReportsClient() {
   useEffect(() => {
     if (section !== "visits" && section !== "alerts" && section !== "ai") return
     let cancelled = false
-    setVisitsAgg(null)
     loadVisitsAction(bounds.from, bounds.to, bounds.prevFrom, bounds.prevTo)
       .then((a) => { if (!cancelled) setVisitsAgg(a) })
       .catch(() => { if (!cancelled) setVisitsAgg(null) })
@@ -1319,7 +1316,6 @@ export function ReportsClient() {
   useEffect(() => {
     if (section !== "clients") return
     let cancelled = false
-    setClientsAgg(null)
     loadClientsAction(bounds.from, bounds.to, bounds.prevFrom, bounds.prevTo)
       .then((a) => { if (!cancelled) setClientsAgg(a) })
       .catch(() => { if (!cancelled) setClientsAgg(null) })
@@ -1331,7 +1327,6 @@ export function ReportsClient() {
   useEffect(() => {
     if (section !== "renewals") return
     let cancelled = false
-    setRenewalsAgg(null)
     loadRenewalsAction()
       .then((a) => { if (!cancelled) setRenewalsAgg(a) })
       .catch(() => { if (!cancelled) setRenewalsAgg(null) })
@@ -1343,7 +1338,6 @@ export function ReportsClient() {
   useEffect(() => {
     if (section !== "debts") return
     let cancelled = false
-    setDebtsAgg(null)
     loadDebtsAction()
       .then((a) => { if (!cancelled) setDebtsAgg(a) })
       .catch(() => { if (!cancelled) setDebtsAgg(null) })
@@ -1355,7 +1349,6 @@ export function ReportsClient() {
   useEffect(() => {
     if (section !== "staff") return
     let cancelled = false
-    setStaffAgg(null)
     loadStaffAction()
       .then((a) => { if (!cancelled) setStaffAgg(a) })
       .catch(() => { if (!cancelled) setStaffAgg(null) })

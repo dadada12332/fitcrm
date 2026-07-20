@@ -38,7 +38,7 @@ export function PlatformShell({
     return pathname === href || pathname.startsWith(href + "/")
   }
 
-  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
+  const renderSidebar = (mobile = false) => (
     <aside className="flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
@@ -126,12 +126,12 @@ export function PlatformShell({
 
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
-      <div className="hidden w-[260px] shrink-0 lg:block"><Sidebar /></div>
+      <div className="hidden w-[260px] shrink-0 lg:block">{renderSidebar()}</div>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} aria-label="Закрыть меню" />
-          <div className="absolute inset-y-0 left-0 w-[min(300px,86vw)] shadow-2xl"><Sidebar mobile /></div>
+          <div className="absolute inset-y-0 left-0 w-[min(300px,86vw)] shadow-2xl">{renderSidebar(true)}</div>
         </div>
       )}
 

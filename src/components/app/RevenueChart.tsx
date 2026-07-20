@@ -5,7 +5,6 @@ import {
   AreaChart, Area, ResponsiveContainer, Tooltip,
   XAxis, YAxis, CartesianGrid,
 } from "recharts"
-import { ChevronDown } from "lucide-react"
 import type { PeriodKey, PeriodStat } from "@/lib/dashboard"
 
 const PERIODS: { key: PeriodKey; label: string }[] = [
@@ -63,7 +62,7 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
 
       {/* Chart */}
       <div className="min-w-0" style={{ height: 340, padding: "12px 0 16px 0" }}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} initialDimension={{ width: 720, height: 280 }}>
           <AreaChart
             data={cur.chart}
             margin={{ top: 8, right: 20, left: 0, bottom: 0 }}

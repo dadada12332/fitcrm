@@ -93,12 +93,6 @@ function StatusBadge({ row }: { row: VisitRow }) {
   )
 }
 
-function getFilter(row: VisitRow): Filter {
-  if (!row.subscriptionStatus || row.subscriptionStatus === "expired") return "expired"
-  if ((row.daysLeft !== null && row.daysLeft <= 5) || (row.visitsLeft !== null && row.visitsLeft <= 3)) return "ending"
-  return "active"
-}
-
 export function VisitsTable({
   rows, total, page, pageSize,
 }: {
@@ -112,6 +106,8 @@ export function VisitsTable({
   const searchParams = useSearchParams()
   const [optFilter, setOptFilter] = useState<Filter | null>(null)
   const [, startTransition] = useTransition()
+  // Clear optimistic state after the router confirms navigation.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setOptFilter(null) }, [searchParams])
   const filter = (optFilter ?? searchParams.get("status") ?? "all") as Filter
 

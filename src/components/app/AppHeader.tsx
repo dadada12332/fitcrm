@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Search, Bell, Zap, LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { Search, Bell, Zap, LogOut, Menu, PanelLeftClose } from "lucide-react"
 import { useState } from "react"
 import { signOut } from "@/app/(auth)/actions"
 

@@ -23,6 +23,8 @@ export function SupportClient({ clubId, initialTab = "ai" }: { clubId: string; i
   const articleId = params.get("article") ?? undefined
 
   useEffect(() => {
+    // Browser navigation can update the selected support tab.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTab(TABS.some((t) => t.key === urlTab) ? urlTab : "ai")
   }, [urlTab])
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
-import { Search, CheckCircle2, AlertCircle, AlertTriangle, Clock, X } from "lucide-react"
+import { Search, CheckCircle2, AlertCircle, AlertTriangle, X } from "lucide-react"
 import { searchClientsAction, markVisitAction } from "@/app/(app)/visits/actions"
 import type { ClientSearchResult } from "@/lib/visits"
 
@@ -46,6 +46,8 @@ export function VisitsQuickCheckin() {
     }, 220)
   }, [])
 
+  // The debounced search schedules result updates asynchronously.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { search(query) }, [query, search])
 
   useEffect(() => {

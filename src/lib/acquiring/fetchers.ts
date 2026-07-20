@@ -17,6 +17,8 @@ export async function fetchStatement(
 }
 
 async function fetchClickStatement(clubId: string, _from: Date, _to: Date): Promise<StatementRow[]> {
+  void _from
+  void _to
   const creds = await getClubCredentials(clubId, "click")
   if (!creds) return []
   // TODO: реальный запрос к отчётному API Click (merchant_user_id + service_id + secret_key, подпись md5).
@@ -25,6 +27,8 @@ async function fetchClickStatement(clubId: string, _from: Date, _to: Date): Prom
 }
 
 async function fetchPaymeStatement(clubId: string, _from: Date, _to: Date): Promise<StatementRow[]> {
+  void _from
+  void _to
   const creds = await getClubCredentials(clubId, "payme")
   if (!creds) return []
   // TODO: реальный запрос к Payme Business API (ключ бизнес-аккаунта).

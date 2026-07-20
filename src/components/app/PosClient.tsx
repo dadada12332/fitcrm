@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable @next/next/no-img-element -- product and payment images use user/provider URLs outside the static Next image allowlist */
 
 import { useState, useMemo, useRef, useEffect, useTransition } from "react"
 import { toast } from "@/lib/use-action"
@@ -98,9 +99,6 @@ export function PosClient({ clubId, products, connectedProviders, canSell, versi
       }
       return [...prev, { product: p, qty: Math.min(p.quantity, qty) }]
     })
-  }
-  function setLineQty(id: string, qty: number) {
-    setCart((prev) => prev.flatMap((l) => l.product.id === id ? (qty <= 0 ? [] : [{ ...l, qty: Math.min(l.product.quantity, qty) }]) : [l]))
   }
   const cartTotal = cart.reduce((s, l) => s + l.qty * l.product.sellPrice, 0)
   const cartCount = cart.reduce((s, l) => s + l.qty, 0)
@@ -354,6 +352,8 @@ function CheckoutSheet({ lines, connectedProviders, onClose, onDone }: {
   const total = lines.reduce((s, l) => s + l.qty * l.product.sellPrice, 0)
   const canOnline = (method === "click" || method === "payme") && connectedProviders.includes(method)
 
+  // Online mode is only valid for providers that support payment links.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (method !== "click" && method !== "payme") setOnline(false) }, [method])
 
   // Поллинг статуса онлайн-оплаты.

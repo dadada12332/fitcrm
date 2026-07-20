@@ -63,11 +63,11 @@ export async function getSidebarStats(
   ])
 
   const lowStockCount = (stock.data ?? []).filter(
-    (i: any) => Number(i.quantity) <= Number(i.min_quantity) && Number(i.min_quantity) > 0
+    (i) => Number(i.quantity) <= Number(i.min_quantity) && Number(i.min_quantity) > 0
   ).length
 
   const supportUnread = (supportRows.data ?? []).filter(
-    (t: any) => t.agent_last_read_at && new Date(t.agent_last_read_at) > new Date(t.user_last_read_at)
+    (t) => t.agent_last_read_at && new Date(t.agent_last_read_at) > new Date(t.user_last_read_at)
   ).length
 
   return withLocalMeta({
@@ -75,9 +75,9 @@ export async function getSidebarStats(
     activeMembershipCount: memberships.count ?? 0,
     todayVisits:           visits.count ?? 0,
     lowStockCount,
-    userName:     (userRes.data as any)?.full_name ?? "Пользователь",
-    userRole:     ROLE_LABELS[(staffRow.data as any)?.role ?? ""] ?? "Сотрудник",
-    staffId:      (staffRow.data as any)?.id ?? null,
+    userName:     userRes.data?.full_name ?? "Пользователь",
+    userRole:     ROLE_LABELS[staffRow.data?.role ?? ""] ?? "Сотрудник",
+    staffId:      staffRow.data?.id ?? null,
     supportUnread,
     notificationCount: Math.min(expiring.count ?? 0, 10) + Math.min(expired.count ?? 0, 10) + Math.min(pendingPayments.count ?? 0, 10),
   }, trialExpiresAt, Object.keys(userMetadata).length ? userMetadata : (authUser?.user_metadata ?? {}))

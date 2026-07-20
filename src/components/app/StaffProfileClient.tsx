@@ -7,7 +7,7 @@ import {
   ArrowLeft, Check, ChevronDown, ChevronRight,
   User, Users, CalendarDays, Wallet, Shield, BarChart2,
 } from "lucide-react"
-import { type StaffDetail, type StaffSettings, ROLE_LABELS } from "@/lib/staff"
+import { type StaffDetail, ROLE_LABELS } from "@/lib/staff"
 import {
   updateStaffBasicAction,
   updateStaffSalaryAction,
@@ -136,7 +136,7 @@ function BasicSection({
   const [roleSaved, setRoleSaved] = useState(false)
   const [error, setError]   = useState<string | null>(null)
   const [pending, start]    = useTransition()
-  const [stPending, stStart] = useTransition()
+  const [, stStart] = useTransition()
   const [rolePending, roleStart] = useTransition()
 
   function handleSubmit(e: React.FormEvent) {
@@ -562,7 +562,7 @@ const PERM_LABELS: { key: string; label: string; desc: string }[] = [
 function PermissionsSection({ member }: { member: StaffDetail }) {
   const def = member.settings.permissions ?? {}
   const [perms, setPerms] = useState<Record<string, boolean>>(
-    Object.fromEntries(PERM_LABELS.map(({ key }) => [key, (def as any)[key] ?? false]))
+    Object.fromEntries(PERM_LABELS.map(({ key }) => [key, def[key as keyof typeof def] ?? false]))
   )
   const [saved, setSaved]  = useState(false)
   const [pending, start]   = useTransition()

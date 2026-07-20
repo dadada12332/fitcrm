@@ -55,12 +55,16 @@ export function PlatformSupportConsole({ initialRows, initialCounts }: { initial
     setRows(rows); setCounts(counts); setLoading(false)
   }, [tab, q])
 
-  useEffect(() => { refresh() }, [tab]) // eslint-disable-line react-hooks/exhaustive-deps
+  // The tab change starts an asynchronous server refresh.
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+  useEffect(() => { refresh() }, [tab])
 
   // Realtime: у платформенного админа user_club_ids() = все клубы, поэтому RLS
   // пускает подписку на все тикеты. Новые обращения/ответы прилетают моментально.
   const refreshRef = useRef(refresh)
-  refreshRef.current = refresh
+  useEffect(() => {
+    refreshRef.current = refresh
+  }, [refresh])
   useEffect(() => {
     const supabase = createClient()
     let t: ReturnType<typeof setTimeout> | null = null
@@ -157,6 +161,7 @@ function OpThread({ ticketId, onChanged, onBack }: { ticketId: string; onChanged
     setTicket(ticket); onChanged()
   }, [ticketId, onChanged])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load() }, [load])
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }) }, [ticket?.messages.length])
 

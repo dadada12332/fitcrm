@@ -74,7 +74,7 @@ export function BrandingCarousel() {
             transition: "transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {slides.map((s, i) => (
+          {slides.map((s) => (
             <div key={s.badge} className="relative h-full" style={{ width: `${100 / slides.length}%` }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

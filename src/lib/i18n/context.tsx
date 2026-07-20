@@ -1,29 +1,38 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
+import { createContext, useContext, useSyncExternalStore, useCallback } from "react"
 import { messages, LANGS, type Lang, type Messages } from "./messages"
 
 const STORAGE_KEY = "fitcrm_lang"
+const LANGUAGE_EVENT = "fitcrm:language"
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: Messages }
 const LangContext = createContext<Ctx | null>(null)
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
-  // Стартуем с "ru" (совпадает с серверным рендером → нет hydration mismatch),
-  // затем на клиенте читаем сохранённый выбор.
-  const [lang, setLangState] = useState<Lang>("ru")
-
-  useEffect(() => {
-    const stored = (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY)) as Lang | null
-    if (stored && LANGS.includes(stored) && stored !== "ru") setLangState(stored)
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    window.addEventListener("storage", onStoreChange)
+    window.addEventListener(LANGUAGE_EVENT, onStoreChange)
+    return () => {
+      window.removeEventListener("storage", onStoreChange)
+      window.removeEventListener(LANGUAGE_EVENT, onStoreChange)
+    }
   }, [])
+  const lang = useSyncExternalStore<Lang>(
+    subscribe,
+    () => {
+      const stored = localStorage.getItem(STORAGE_KEY) as Lang | null
+      return stored && LANGS.includes(stored) ? stored : "ru"
+    },
+    () => "ru" as Lang,
+  )
 
   const setLang = useCallback((l: Lang) => {
-    setLangState(l)
     try {
       localStorage.setItem(STORAGE_KEY, l)
       document.cookie = `${STORAGE_KEY}=${l}; path=/; max-age=31536000; samesite=lax`
       document.documentElement.lang = l
+      window.dispatchEvent(new Event(LANGUAGE_EVENT))
     } catch {}
   }, [])
 

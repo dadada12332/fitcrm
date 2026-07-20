@@ -17,6 +17,21 @@ export type MarkVisitResult = {
 
 export type QrVisitResult = MarkVisitResult & { clientName?: string }
 
+type ManualClientRecord = {
+  id: string
+  full_name: string
+  phone: string | null
+  photo_url: string | null
+  subscriptions: Array<{
+    id: string
+    status: string
+    expires_at: string | null
+    visits_total: number | null
+    visits_used: number | null
+    memberships: { name: string } | Array<{ name: string }> | null
+  }> | null
+}
+
 export async function qrCheckInAction(qrToken: string): Promise<QrVisitResult> {
   const token = qrToken.trim()
   const supabase = await createClient()
@@ -196,7 +211,8 @@ export async function searchClientsManualAction(query: string): Promise<ManualCl
 
   if (!data?.length) return []
 
-  const clientIds = data.map((c: any) => c.id)
+  const clients = data as unknown as ManualClientRecord[]
+  const clientIds = clients.map((c) => c.id)
   const todayStart = new Date().toISOString().slice(0, 10) + "T00:00:00"
   const todayEnd   = new Date().toISOString().slice(0, 10) + "T23:59:59"
 
@@ -217,7 +233,7 @@ export async function searchClientsManualAction(query: string): Promise<ManualCl
       .limit(clientIds.length * 3),
   ])
 
-  const visitedTodaySet = new Set((todayVisitsRes.data ?? []).map((v: any) => v.client_id))
+  const visitedTodaySet = new Set((todayVisitsRes.data ?? []).map((v) => v.client_id))
 
   const debtMap: Record<string, number> = {}
   for (const p of debtRes.data ?? []) {
@@ -230,14 +246,14 @@ export async function searchClientsManualAction(query: string): Promise<ManualCl
   }
 
   const todayStr = new Date().toISOString().slice(0, 10)
-  return data.map((c: any) => {
+  return clients.map((c) => {
     const subs: ManualClientSub[] = (c.subscriptions ?? [])
-      .map((s: any) => {
+      .map((s) => {
         const vt: number | null = s.visits_total ?? null
         const vu: number = s.visits_used ?? 0
         return {
           id: s.id,
-          membershipName: s.memberships?.name ?? "Абонемент",
+          membershipName: (Array.isArray(s.memberships) ? s.memberships[0]?.name : s.memberships?.name) ?? "Абонемент",
           status: s.status,
           expiresAt: s.expires_at ?? null,
           daysLeft: daysUntil(s.expires_at ?? null),

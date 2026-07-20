@@ -28,7 +28,7 @@ const SALARY_TYPES = [
   { key: "mixed",   label: "Фикс + Процент" },
 ]
 
-function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (row: any) => void }) {
+function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (row: StaffRow) => void }) {
   const [name, setName]       = useState("")
   const [email, setEmail]     = useState("")
   const [phone, setPhone]     = useState("")
@@ -54,8 +54,9 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
         onClose()
         return
       }
+      if (!res.id) { setError("Не удалось получить сотрудника после создания"); return }
       toast.success("Сотрудник добавлен")
-      onAdded({ id: res.id, name: name.trim(), email: email.trim(), role, status: "active", clientCount: 0, revenue: 0, salary: Number(fixed) || 0, settings: {} })
+      onAdded({ id: res.id, userId: "", name: name.trim(), email: email.trim(), role, isActive: true, status: "active", clientCount: 0, revenue: 0, salary: Number(fixed) || 0, settings: {} })
       onClose()
     })
   }

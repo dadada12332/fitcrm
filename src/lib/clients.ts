@@ -87,8 +87,7 @@ export async function getClientsData(supabase: SupabaseClient, clubId: string): 
   }
 
   const primary = await fetchAll(SEL_FIN)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let rawData: any[] | null = primary.data
+  let rawData: unknown[] | null = primary.data
   if (primary.error || !rawData) {
     // Fallback без balance/debt (если колонки ещё не мигрированы).
     rawData = (await fetchAll(SEL_NOFIN)).data
@@ -106,7 +105,6 @@ export async function getClientsData(supabase: SupabaseClient, clubId: string): 
     if (!lastVisitMap.has(v.client_id)) lastVisitMap.set(v.client_id, v.checked_in_at)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clients = (rawData ?? []) as {
     id: string
     full_name: string

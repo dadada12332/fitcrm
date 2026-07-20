@@ -1,12 +1,12 @@
 ---
 type: current-task
-status: in-progress
+status: testing
 updated: 2026-07-20
 tags: [fitcrm, tasks]
 ---
 
 # Current Task
 
-[[Tasks/TASK-0024-launch-readiness-audit-and-hardening|TASK-0024 — Launch readiness audit and hardening]]
+[[Tasks/TASK-0025-production-performance-and-quality-hardening|TASK-0025 — Production performance and quality hardening]]
 
-Проверка готовности FitCRM к массовому запуску: инфраструктура, безопасность, auth/onboarding, основные CRM-флоу, UI consistency, производительность и release gate.
+Локальные проверки завершены. Выполняется production deploy и финальный smoke-test перед закрытием задачи.

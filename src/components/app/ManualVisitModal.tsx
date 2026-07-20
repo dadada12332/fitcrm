@@ -320,6 +320,8 @@ export function ManualVisitModal({ role }: Props) {
     }, 200)
   }, [])
 
+  // The debounced search schedules result updates asynchronously.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { doSearch(query) }, [query, doSearch])
 
   // Click outside dropdown

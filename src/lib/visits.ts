@@ -33,6 +33,31 @@ export type ClientSearchResult = {
   visitedToday: boolean
 }
 
+type VisitSubscriptionRecord = {
+  id?: string
+  status: string
+  expires_at: string | null
+  visits_total: number | null
+  visits_used: number | null
+  memberships: { name: string } | Array<{ name: string }> | null
+}
+
+type VisitRecord = {
+  id: string
+  client_id: string
+  checked_in_at: string
+  clients: { full_name: string; phone: string | null } | Array<{ full_name: string; phone: string | null }> | null
+  subscriptions: VisitSubscriptionRecord | VisitSubscriptionRecord[] | null
+}
+
+type VisitSearchRecord = {
+  id: string
+  full_name: string
+  phone: string | null
+  photo_url: string | null
+  subscriptions: VisitSubscriptionRecord[] | null
+}
+
 function daysUntil(expiresAt: string | null): number | null {
   if (!expiresAt) return null
   return Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86_400_000)
@@ -106,17 +131,19 @@ export async function getTodayVisits(supabase: SupabaseClient, clubId: string): 
     .order("checked_in_at", { ascending: false })
     .limit(100)
 
-  return (data ?? []).map((v: any) => {
-    const sub = v.subscriptions
+  return ((data ?? []) as unknown as VisitRecord[]).map((v) => {
+    const sub = Array.isArray(v.subscriptions) ? v.subscriptions[0] : v.subscriptions
+    const client = Array.isArray(v.clients) ? v.clients[0] : v.clients
+    const membership = Array.isArray(sub?.memberships) ? sub.memberships[0] : sub?.memberships
     const visitsTotal: number | null = sub?.visits_total ?? null
     const visitsUsed: number = sub?.visits_used ?? 0
     return {
       id: v.id,
       clientId: v.client_id,
-      clientName: v.clients?.full_name ?? "—",
-      clientPhone: v.clients?.phone ?? null,
+      clientName: client?.full_name ?? "—",
+      clientPhone: client?.phone ?? null,
       checkedInAt: v.checked_in_at,
-      membershipName: sub?.memberships?.name ?? null,
+      membershipName: membership?.name ?? null,
       subscriptionStatus: sub?.status ?? null,
       daysLeft: daysUntil(sub?.expires_at ?? null),
       visitsLeft: visitsTotal !== null ? visitsTotal - visitsUsed : null,
@@ -240,11 +267,12 @@ export async function searchClientsForCheckin(
 
   if (!data?.length) return []
 
-  const visitedTodaySet = new Set((todayVisits ?? []).map((v: any) => v.client_id))
+  const visitedTodaySet = new Set((todayVisits ?? []).map((v) => v.client_id))
 
-  return data.map((c: any) => {
-    const subs: any[] = c.subscriptions ?? []
-    const sub = subs.find((s: any) => s.status === "active") ?? subs[0] ?? null
+  return ((data ?? []) as unknown as VisitSearchRecord[]).map((c) => {
+    const subs = c.subscriptions ?? []
+    const sub = subs.find((s) => s.status === "active") ?? subs[0] ?? null
+    const membership = Array.isArray(sub?.memberships) ? sub.memberships[0] : sub?.memberships
     const visitsTotal: number | null = sub?.visits_total ?? null
     const visitsUsed: number = sub?.visits_used ?? 0
     return {
@@ -252,7 +280,7 @@ export async function searchClientsForCheckin(
       name: c.full_name,
       phone: c.phone ?? null,
       photoUrl: c.photo_url ?? null,
-      membershipName: sub?.memberships?.name ?? null,
+      membershipName: membership?.name ?? null,
       subscriptionId: sub?.id ?? null,
       subscriptionStatus: sub?.status ?? null,
       daysLeft: daysUntil(sub?.expires_at ?? null),

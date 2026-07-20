@@ -41,7 +41,7 @@ kanban-plugin: board
 ## Testing
 
 <!-- AUTO:START kanban-testing -->
-
+- [ ] TASK-0025 · Production performance and quality hardening · feature · P1 · platform · 2026-07-20 · [[Tasks/TASK-0025-production-performance-and-quality-hardening]]
 <!-- AUTO:END kanban-testing -->
 
 ## Blocked

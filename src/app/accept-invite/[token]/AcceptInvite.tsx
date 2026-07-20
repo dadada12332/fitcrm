@@ -178,15 +178,6 @@ export function AcceptInvite({ state, token, email, roleName, clubName, currentU
 
   const next = `/accept-invite/${token}`
 
-  function handleAccept() {
-    setError(null)
-    startTransition(async () => {
-      const res = await acceptInviteAction(token)
-      if (res?.needsProfile) { setProfileStep(true); return }
-      if (res?.error) setError(res.error)
-    })
-  }
-
   function handleSaveProfile() {
     if (!firstName.trim()) { setError("Введите имя"); return }
     setError(null)

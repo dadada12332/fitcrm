@@ -3,14 +3,17 @@
 import { useState, useMemo, useRef, useEffect } from "react"
 import {
   Search, Star, Sparkles, ArrowLeft, ThumbsUp, ThumbsDown, ChevronRight,
-  Clock, Zap, Play, X, Send, CheckCircle, MessageCircle, Video,
-  BookOpen, AlertCircle, GraduationCap, RotateCcw, FileText,
+  Clock, Zap, Play, X, Send, CheckCircle, Video,
+  BookOpen, AlertCircle, GraduationCap, RotateCcw,
 } from "lucide-react"
 import {
   KB_CATEGORIES, KB_SCENARIOS, KB_VIDEOS, searchKnowledge,
   getPopularArticles, getNewArticles, getArticleById, aiAnswer,
   type KbArticle, type KbCategory,
 } from "@/lib/knowledge"
+
+// Relative labels stay stable for the lifetime of the opened knowledge screen.
+const KNOWLEDGE_REFERENCE_TIME = Date.now()
 
 // ── Local storage helpers ──────────────────────────────────────────────
 
@@ -19,7 +22,9 @@ function useFavorites() {
     try { return new Set(JSON.parse(localStorage.getItem("kb_favs") ?? "[]")) } catch { return new Set() }
   })
   const toggle = (id: string) => setFavs(prev => {
-    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id)
+    const n = new Set(prev)
+    if (n.has(id)) n.delete(id)
+    else n.add(id)
     try { localStorage.setItem("kb_favs", JSON.stringify([...n])) } catch {}
     return n
   })
@@ -100,7 +105,7 @@ function CategoryCard({ cat, onClick }: { cat: KbCategory; onClick: () => void }
     const dates = cat.articles.map(a => a.updatedAt).sort().reverse()
     if (!dates[0]) return ""
     const d = new Date(dates[0])
-    const days = Math.round((Date.now() - d.getTime()) / 86_400_000)
+    const days = Math.round((KNOWLEDGE_REFERENCE_TIME - d.getTime()) / 86_400_000)
     return days === 0 ? "сегодня" : days === 1 ? "вчера" : `${days} дн. назад`
   }, [cat])
 
@@ -395,7 +400,12 @@ function ScenarioView({ scenarioId, onBack }: { scenarioId: string; onBack: () =
   const sc = useMemo(() => KB_SCENARIOS.find(s => s.id === scenarioId), [scenarioId])
   const [done, setDone] = useState<Set<number>>(new Set())
   if (!sc) return null
-  const toggleDone = (i: number) => setDone(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
+  const toggleDone = (i: number) => setDone(prev => {
+    const next = new Set(prev)
+    if (next.has(i)) next.delete(i)
+    else next.add(i)
+    return next
+  })
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -659,6 +669,8 @@ export function KnowledgeClient({ initialArticleId }: { initialArticleId?: strin
 
   useEffect(() => {
     if (initialArticleId && getArticleById(initialArticleId)) {
+      // Keep the view in sync with an article deep link changed by the router.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setView({ kind: "article", articleId: initialArticleId })
     }
   }, [initialArticleId])
@@ -683,7 +695,7 @@ export function KnowledgeClient({ initialArticleId }: { initialArticleId?: strin
   const lastUpdate = useMemo(() => {
     const allDates = KB_CATEGORIES.flatMap(cat => cat.articles.map(a => a.updatedAt)).sort().reverse()
     if (!allDates[0]) return ""
-    const days = Math.round((Date.now() - new Date(allDates[0]).getTime()) / 86_400_000)
+    const days = Math.round((KNOWLEDGE_REFERENCE_TIME - new Date(allDates[0]).getTime()) / 86_400_000)
     return days === 0 ? "сегодня" : days === 1 ? "вчера" : `${days} дня назад`
   }, [])
 

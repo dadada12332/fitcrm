@@ -29,14 +29,26 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (debRef.current) clearTimeout(debRef.current)
-    if (query.trim().length < 1) { setResults([]); return }
-    setLoading(true)
+    if (query.trim().length < 1) return
+    let cancelled = false
     debRef.current = setTimeout(async () => {
       const res = await globalSearchAction(query)
-      setResults(res)
-      setLoading(false)
+      if (!cancelled) {
+        setResults(res)
+        setLoading(false)
+      }
     }, 200)
+    return () => {
+      cancelled = true
+      if (debRef.current) clearTimeout(debRef.current)
+    }
   }, [query])
+
+  function updateQuery(nextQuery: string) {
+    setQuery(nextQuery)
+    setLoading(nextQuery.trim().length > 0)
+    if (nextQuery.trim().length < 1) setResults([])
+  }
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
@@ -58,7 +70,7 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
           <Search className="w-5 h-5 flex-shrink-0 text-zinc-400 dark:text-zinc-500" style={{ color: loading ? "#3b82f6" : undefined }} />
-          <input ref={inputRef} value={query} onChange={(e) => setQuery(e.target.value)}
+          <input ref={inputRef} value={query} onChange={(e) => updateQuery(e.target.value)}
             placeholder="Поиск клиентов по имени или телефону..."
             className="flex-1 text-base outline-none bg-transparent text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-600" />
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
@@ -109,6 +121,31 @@ function fmtNotificationDate(iso: string | null, type: AppNotification["type"]) 
   return new Date(iso).toLocaleDateString("ru-RU", options)
 }
 
+function NotificationTabButton({
+  active,
+  label,
+  count,
+  onClick,
+}: {
+  active: boolean
+  label: string
+  count: number | null
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+    >
+      {label}
+      {count !== null && count > 0 && (
+        <span className={`rounded-full px-1.5 text-[11px] font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{count}</span>
+      )}
+    </button>
+  )
+}
+
 function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"notifs" | "requests">("notifs")
   const [notifs, setNotifs] = useState<AppNotification[] | null>(null)
@@ -147,22 +184,6 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const TabBtn = ({ id, label, count }: { id: "notifs" | "requests"; label: string; count: number | null }) => {
-    const active = tab === id
-    return (
-      <button
-        type="button"
-        onClick={() => setTab(id)}
-        className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-      >
-        {label}
-        {count !== null && count > 0 && (
-          <span className={`rounded-full px-1.5 text-[11px] font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{count}</span>
-        )}
-      </button>
-    )
-  }
-
   return (
     <Sheet open onOpenChange={(open) => { if (!open) onClose() }}>
       <SheetContent className="max-w-[500px]">
@@ -178,8 +199,8 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 
         <div className="border-b border-border px-5 py-3 sm:px-6">
           <div className="flex rounded-lg bg-muted p-1">
-            <TabBtn id="notifs" label="Уведомления" count={notifs?.length ?? null} />
-            <TabBtn id="requests" label="Заявки" count={requests?.length ?? null} />
+            <NotificationTabButton active={tab === "notifs"} label="Уведомления" count={notifs?.length ?? null} onClick={() => setTab("notifs")} />
+            <NotificationTabButton active={tab === "requests"} label="Заявки" count={requests?.length ?? null} onClick={() => setTab("requests")} />
           </div>
         </div>
 
@@ -293,7 +314,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 }
 
 // ── TopBar ───────────────────────────────────────────────────────
-export function TopBar({ clubName, email, initialNotificationCount, onToggleSidebar }: Props) {
+export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
   const [searchOpen, setSearchOpen]   = useState(false)
   const [notifOpen, setNotifOpen]     = useState(false)
   const [notifCount] = useState(initialNotificationCount)

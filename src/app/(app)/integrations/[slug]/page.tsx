@@ -31,7 +31,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   const club = await getCurrentClub()
 
   let connected = false
-  let currentValue = ""
+  const currentValue = ""
   let clientCount = 0
   let subscribers = 0
   let audienceOptions: AudienceOption[] = []

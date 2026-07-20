@@ -20,6 +20,12 @@ function fmtDate(iso: string | null): string {
   return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
+function SortIndicator({ sort, asc, desc }: { sort: string; asc: string; desc: string }) {
+  if (sort === asc) return <ArrowUp className="ml-1 inline size-3" />
+  if (sort === desc) return <ArrowDown className="ml-1 inline size-3" />
+  return null
+}
+
 export function ClientsTable({
   rows,
   total,
@@ -58,7 +64,11 @@ export function ClientsTable({
   // ── Поиск (debounce) ──
   const [search, setSearch] = useState(urlQuery)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => { setSearch(urlQuery) }, [urlQuery])
+  useEffect(() => {
+    // The URL is external navigation state (for example browser back/forward).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearch(urlQuery)
+  }, [urlQuery])
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current)
     debounce.current = setTimeout(() => {
@@ -91,12 +101,6 @@ export function ClientsTable({
       else p.set("sort", asc)
     }, false)
   }
-  function SortIcon({ asc, desc }: { asc: string; desc: string }) {
-    if (sort === asc) return <ArrowUp className="w-3 h-3 inline ml-1" />
-    if (sort === desc) return <ArrowDown className="w-3 h-3 inline ml-1" />
-    return null
-  }
-
   // ── Пагинация ──
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const current = Math.min(page, pageCount - 1)
@@ -147,7 +151,7 @@ export function ClientsTable({
         <div className="grid items-center px-6 h-12 text-sm min-w-[960px]"
           style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
           <button onClick={() => toggleSort("name_asc", "name_desc")} className="text-left flex items-center hover:text-[var(--on-dark)] transition-colors">
-            Имя <SortIcon asc="name_asc" desc="name_desc" />
+            Имя <SortIndicator sort={sort} asc="name_asc" desc="name_desc" />
           </button>
           <span>Телефон</span>
           <span>Абонемент</span>
@@ -156,7 +160,7 @@ export function ClientsTable({
           <span>Осталось посещений</span>
           <span>Источник</span>
           <button onClick={() => toggleSort("debt_asc", "debt_desc")} className="text-right flex items-center justify-end hover:text-[var(--on-dark)] transition-colors">
-            Долг <SortIcon asc="debt_asc" desc="debt_desc" />
+            Долг <SortIndicator sort={sort} asc="debt_asc" desc="debt_desc" />
           </button>
         </div>
 

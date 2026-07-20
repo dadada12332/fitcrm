@@ -15,8 +15,10 @@ export function AddMembershipButton() {
   const [freeze, setFreeze] = useState(true)
   const [state, formAction, pending] = useActionState<MembershipFormState, FormData>(createMembershipAction, {})
 
+  // Reflect the completed Server Action in the drawer state.
   useEffect(() => {
     if (state.ok) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(false)
       toast.success("Абонемент создан")
     } else if (state.error) toast.error(state.error)

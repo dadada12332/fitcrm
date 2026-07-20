@@ -15,6 +15,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   // Жёсткая блокировка доступа: приостановленный клуб / истёкший триал / истёкший план.
   // Админ платформы в режиме impersonation блокировку не видит (чтобы помочь клубу).
+  // Server-side request timestamp; it is intentionally stable for this render.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now()
   const status = club.status
   const trialExp = club.trialExpiresAt ? new Date(club.trialExpiresAt).getTime() : null

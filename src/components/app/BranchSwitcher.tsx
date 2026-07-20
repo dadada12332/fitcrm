@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { Building2, Check, Plus, ChevronsUpDown } from "lucide-react"
+import { Check, Plus, ChevronsUpDown } from "lucide-react"
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 
 const PLAN_LABELS: Record<string, string> = {

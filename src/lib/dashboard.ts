@@ -39,21 +39,6 @@ export type DashboardData = {
   newClients: NewClient[]
 }
 
-const EMPTY_DASHBOARD: DashboardData = {
-  todayRevenue: 0, prevRevenue: 0, activeClients: 0, prevClients: 0,
-  todayVisits: 0, prevVisits: 0, expiringCount: 0, churnCount: 0,
-  debtCount: 0, debtTotal: 0, todayNewClients: 0, todayPaymentsCount: 0,
-  birthdaysToday: 0, alertsCount: 0, attendanceChangePct: 0,
-  chartData: [], newClients: [],
-  periods: {
-    "Сегодня": { revenue: 0, prevRevenue: 0, chart: [], unit: "день" },
-    "7Д":      { revenue: 0, prevRevenue: 0, chart: [], unit: "неделю" },
-    "30Д":     { revenue: 0, prevRevenue: 0, chart: [], unit: "месяц" },
-    "3М":      { revenue: 0, prevRevenue: 0, chart: [], unit: "3 мес" },
-    "Год":     { revenue: 0, prevRevenue: 0, chart: [], unit: "год" },
-  },
-}
-
 async function getDashboardFallback(supabase: SupabaseClient, clubId: string): Promise<DashboardData> {
   const now = Date.now()
   const DAY  = 86_400_000
@@ -137,7 +122,7 @@ async function getDashboardFallback(supabase: SupabaseClient, clubId: string): P
     "Год":     { revenue: sumBetween(now - 365*DAY, now), prevRevenue: 0, chart: monthlyChart(12), unit: "год" },
   }
 
-  const newClients: NewClient[] = (newClientsRes.data ?? []).map((c: any) => ({
+  const newClients: NewClient[] = (newClientsRes.data ?? []).map((c) => ({
     id: c.id, full_name: c.full_name, tags: c.tags ?? [], created_at: c.created_at, membership: null, source: c.source ?? null,
   }))
 
@@ -226,7 +211,7 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
     "Год":     { revenue: sumBetween(now-365*DAY, now), prevRevenue: 0, chart: monthlyChart(12), unit: "год" },
   }
 
-  const newClients = ((d.newClients as NewClient[]) ?? []).map((c: any) => ({
+  const newClients = ((d.newClients as NewClient[]) ?? []).map((c) => ({
     ...c, source: c.source ?? null,
   }))
 

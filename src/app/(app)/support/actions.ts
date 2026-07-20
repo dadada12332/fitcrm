@@ -336,7 +336,6 @@ export async function askSupportAction(history: SupportChatTurn[]): Promise<{
       if (data.error.code === 429) return { reply: "", links: [], error: "Слишком много запросов — подождите минуту." }
       return { reply: "", links: [], error: "no_key" } // мягкий откат на локальный ответчик
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parts = data.candidates?.[0]?.content?.parts ?? []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const reply = parts.map((p: any) => p.text).filter(Boolean).join("").trim()

@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useTransition, useRef, useEffect } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Building2, GitBranch, Users, Wallet, Bell,
-  Plug, Shield, Crown, Check, X, Plus, ArrowRight,
+  Crown, Check, X, Plus, ArrowRight,
   Smartphone, Mail, MessageCircle, Eye, EyeOff,
   Pencil, Trash2,
 } from "lucide-react"
@@ -29,6 +28,7 @@ import { fmtMoney } from "@/lib/money"
 import { runAction } from "@/lib/use-action"
 
 export type ClubData = {
+  generatedAt: number
   id: string
   name: string
   plan: string
@@ -72,17 +72,6 @@ export type PlanForClient = {
 }
 
 type Section = "basic" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "security" | "plan"
-
-const SECTIONS: { key: Section; label: string; icon: typeof Building2 }[] = [
-  { key: "basic",          label: "Основное",          icon: Building2 },
-  { key: "branches",       label: "Филиалы",           icon: GitBranch },
-  { key: "staff",          label: "Сотрудники",        icon: Users },
-  { key: "finance",        label: "Финансы",           icon: Wallet },
-  { key: "notifications",  label: "Уведомления",       icon: Bell },
-  { key: "integrations",   label: "Интеграции",        icon: Plug },
-  { key: "security",       label: "Безопасность",      icon: Shield },
-  { key: "plan",           label: "Подписка",          icon: Crown },
-]
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный", starter: "Starter", standard: "Standard", business: "Business",
@@ -630,7 +619,12 @@ function FinanceSection({ club }: { club: ClubData }) {
   const [pending, start]          = useTransition()
 
   function toggleMethod(key: string) {
-    setMethods((prev) => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s })
+    setMethods((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
   }
 
   function addCat() {
@@ -1013,9 +1007,9 @@ function PlanSection({ club }: { club: ClubData }) {
   const current = plans.find((p) => p.code === plan)
   const paidPlans = plans.filter((p) => !p.isTrial && p.isActive)
   const daysLeft = club.planExpiresAt
-    ? Math.ceil((new Date(club.planExpiresAt).getTime() - Date.now()) / 86_400_000)
+    ? Math.ceil((new Date(club.planExpiresAt).getTime() - club.generatedAt) / 86_400_000)
     : club.trialExpiresAt
-      ? Math.ceil((new Date(club.trialExpiresAt).getTime() - Date.now()) / 86_400_000)
+      ? Math.ceil((new Date(club.trialExpiresAt).getTime() - club.generatedAt) / 86_400_000)
       : null
   const router = useRouter()
   const [pending, start] = useTransition()

@@ -222,16 +222,21 @@ export async function getPaymentsList(
     .order("created_at", { ascending: false })
     .limit(limit)
 
-  return (data ?? []).map((p: any) => ({
+  return (data ?? []).map((p) => {
+    const client = Array.isArray(p.clients) ? p.clients[0] : p.clients
+    const subscription = Array.isArray(p.subscriptions) ? p.subscriptions[0] : p.subscriptions
+    const membership = Array.isArray(subscription?.memberships) ? subscription.memberships[0] : subscription?.memberships
+    return {
     id: p.id,
     clientId: p.client_id ?? null,
-    clientName: p.clients?.full_name ?? null,
-    clientPhone: p.clients?.phone ?? null,
-    serviceName: p.subscriptions?.memberships?.name ?? null,
+    clientName: client?.full_name ?? null,
+    clientPhone: client?.phone ?? null,
+    serviceName: membership?.name ?? null,
     amount: Number(p.amount),
     provider: p.provider as PaymentRow["provider"],
     status: p.status as PaymentRow["status"],
     paidAt: p.paid_at ?? null,
     createdAt: p.created_at,
-  }))
+  }
+  })
 }

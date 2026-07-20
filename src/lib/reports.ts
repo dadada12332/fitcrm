@@ -50,11 +50,48 @@ export type ReportsData = {
   staff: ReportStaffRow[]
 }
 
-function pickSub(subs: any[]) {
+type ReportSubscriptionRecord = {
+  status: string
+  expires_at: string | null
+  memberships: { name: string } | Array<{ name: string }> | null
+}
+type ReportPaymentRecord = {
+  id: string
+  amount: number | string
+  status: string
+  provider: string | null
+  paid_at: string | null
+  created_at: string
+  client_id: string | null
+  clients: { full_name: string; phone: string | null } | Array<{ full_name: string; phone: string | null }> | null
+  subscriptions: { memberships: { name: string } | Array<{ name: string }> | null } | Array<{ memberships: { name: string } | Array<{ name: string }> | null }> | null
+}
+type ReportVisitRecord = { id: string; client_id: string; checked_in_at: string }
+type ReportClientRecord = {
+  id: string
+  full_name: string
+  phone: string | null
+  gender: string | null
+  source: string | null
+  created_at: string
+  subscriptions: ReportSubscriptionRecord[] | null
+}
+type ReportStaffRecord = {
+  id: string
+  role: string
+  salary: number | string | null
+  is_active: boolean
+  settings: { salary_fixed?: number; status?: string } | null
+  users: { email: string; full_name: string | null } | Array<{ email: string; full_name: string | null }> | null
+}
+type ReportStaffVisitRecord = { staff_id: string; client_id: string }
+type PageResult = { data: unknown[] | null; error: unknown }
+
+function pickSub(subs: ReportSubscriptionRecord[]) {
   if (!subs?.length) return null
-  const active = subs.find((s: any) => s.status === "active")
+  const active = subs.find((s) => s.status === "active")
   if (active) return active
-  const frozen = subs.find((s: any) => s.status === "frozen")
+  const frozen = subs.find((s) => s.status === "frozen")
   if (frozen) return frozen
   return [...subs].sort((a, b) => (b.expires_at ?? "").localeCompare(a.expires_at ?? ""))[0]
 }
@@ -66,11 +103,9 @@ function daysUntil(dateStr: string | null): number | null {
 
 // PostgREST отдаёт максимум 1000 строк на запрос — тянем всё страницами по 1000,
 // иначе отчёты считались по первым 1000 строкам (недоучёт на больших клубах).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchAllRows(build: (from: number, to: number) => any): Promise<any[]> {
+async function fetchAllRows(build: (from: number, to: number) => PromiseLike<PageResult>): Promise<unknown[]> {
   const PAGE = 1000
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const acc: any[] = []
+  const acc: unknown[] = []
   for (let from = 0; from < 200 * PAGE; from += PAGE) {
     const { data, error } = await build(from, from + PAGE - 1)
     if (error) break
@@ -122,26 +157,31 @@ export async function getReportsData(supabase: SupabaseClient, clubId: string): 
       .range(f, t)).then((data) => ({ data })),
   ])
 
-  const payments: ReportPayment[] = (paymentsRes.data ?? []).map((p: any) => ({
-    id: p.id,
-    amount: Number(p.amount),
-    status: p.status,
-    provider: p.provider ?? "cash",
-    paidAt: p.paid_at ?? null,
-    createdAt: p.created_at,
-    clientId: p.client_id ?? null,
-    clientName: p.clients?.full_name ?? null,
-    clientPhone: p.clients?.phone ?? null,
-    serviceName: p.subscriptions?.memberships?.name ?? null,
-  }))
+  const payments: ReportPayment[] = (paymentsRes.data as ReportPaymentRecord[]).map((p) => {
+    const client = Array.isArray(p.clients) ? p.clients[0] : p.clients
+    const subscription = Array.isArray(p.subscriptions) ? p.subscriptions[0] : p.subscriptions
+    const membership = Array.isArray(subscription?.memberships) ? subscription.memberships[0] : subscription?.memberships
+    return {
+      id: p.id,
+      amount: Number(p.amount),
+      status: p.status,
+      provider: p.provider ?? "cash",
+      paidAt: p.paid_at ?? null,
+      createdAt: p.created_at,
+      clientId: p.client_id ?? null,
+      clientName: client?.full_name ?? null,
+      clientPhone: client?.phone ?? null,
+      serviceName: membership?.name ?? null,
+    }
+  })
 
-  const visits: ReportVisit[] = (visitsRes.data ?? []).map((v: any) => ({
+  const visits: ReportVisit[] = (visitsRes.data as ReportVisitRecord[]).map((v) => ({
     id: v.id,
     clientId: v.client_id,
     checkedInAt: v.checked_in_at,
   }))
 
-  const clients: ReportClient[] = (clientsRes.data ?? []).map((c: any) => {
+  const clients: ReportClient[] = (clientsRes.data as ReportClientRecord[]).map((c) => {
     const sub = pickSub(c.subscriptions ?? [])
     const status = sub?.status ?? "none"
     const expiresAt = sub?.expires_at ?? null
@@ -161,14 +201,14 @@ export async function getReportsData(supabase: SupabaseClient, clubId: string): 
     }
   })
 
-  const staffRows: any[] = staffRes.data ?? []
-  const allStaffVisits: any[] = staffVisitsRes.data ?? []
+  const staffRows = (staffRes.data ?? []) as unknown as ReportStaffRecord[]
+  const allStaffVisits = staffVisitsRes.data as ReportStaffVisitRecord[]
 
-  const staff: ReportStaffRow[] = staffRows.map((s: any) => {
-    const u = s.users as { email: string; full_name: string | null } | null
-    const settings = (s.settings ?? {}) as any
-    const myVisits = allStaffVisits.filter((v: any) => v.staff_id === s.id)
-    const clientCount = new Set(myVisits.map((v: any) => v.client_id)).size
+  const staff: ReportStaffRow[] = staffRows.map((s) => {
+    const u = Array.isArray(s.users) ? s.users[0] : s.users
+    const settings = s.settings ?? {}
+    const myVisits = allStaffVisits.filter((v) => v.staff_id === s.id)
+    const clientCount = new Set(myVisits.map((v) => v.client_id)).size
     return {
       id: s.id,
       name: u?.full_name ?? u?.email ?? "—",

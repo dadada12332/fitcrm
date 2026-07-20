@@ -73,6 +73,8 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, ro
   const allowWhenLocked = pathname.startsWith("/settings") || pathname.startsWith("/support")
   const showLock = !!lockReason && !allowWhenLocked
 
+  // Route navigation is external state and closes the mobile overlay.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
   useEffect(() => {

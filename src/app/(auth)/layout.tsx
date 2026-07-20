@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { BrandingCarousel } from "./BrandingCarousel"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

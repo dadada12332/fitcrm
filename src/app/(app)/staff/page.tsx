@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { getCurrentClub } from "@/lib/club"
-import { getStaffKPI, getStaffList } from "@/lib/staff"
+import { getStaffPageData } from "@/lib/staff"
 import { StaffClient } from "@/components/app/StaffClient"
 
 export default async function StaffPage() {
@@ -10,10 +10,7 @@ export default async function StaffPage() {
   if (!club) redirect("/onboarding")
   if (!club.permissions.staff.view) redirect("/dashboard")
 
-  const [kpi, list] = await Promise.all([
-    getStaffKPI(supabase, club.clubId),
-    getStaffList(supabase, club.clubId),
-  ])
+  const { kpi, rows: list } = await getStaffPageData(supabase, club.clubId)
 
   return (
     <div className="space-y-5">

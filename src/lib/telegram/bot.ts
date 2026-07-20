@@ -1,5 +1,5 @@
 import { sanitizeSearchTerm } from "@/lib/search"
-import { Bot, InlineKeyboard, Keyboard } from "grammy"
+import { Bot, InlineKeyboard, Keyboard, type Context } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 import { hashTelegramPairingToken, parseTelegramPairingPayload } from "@/lib/telegram/pairing"
 import { getTelegramMiniAppUrl } from "@/lib/telegram/api"
@@ -41,6 +41,12 @@ type ClubTelegramSettings = {
   welcome_message?: string
 }
 
+type ClubContactSettings = { phone?: string; instagram?: string; address?: string }
+
+function firstRelation<T>(value: T | T[] | null | undefined): T | undefined {
+  return Array.isArray(value) ? value[0] : value ?? undefined
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
 
 function fmtMoney(n: number) { return n.toLocaleString("ru-RU") }
@@ -76,7 +82,7 @@ async function getTodaySchedule(clubId: string) {
   if (!data?.length) return "📅 На сегодня занятий нет."
   let text = "📅 *Расписание на сегодня*\n\n"
   for (const item of data) {
-    const room = (item.rooms as unknown as { name?: string } | null)?.name ?? ""
+    const room = firstRelation(item.rooms)?.name ?? ""
     text += `🕐 ${item.start_time.slice(0, 5)}–${item.end_time.slice(0, 5)} *${item.title}*${room ? ` (${room})` : ""}\n`
   }
   return text
@@ -178,7 +184,7 @@ function backBtn(cb = "staff_menu") {
   return new InlineKeyboard().text("⬅️ Назад", cb)
 }
 
-async function sendMenuForUser(ctx: any, tgUser: TgUser) {
+async function sendMenuForUser(ctx: Context, tgUser: TgUser) {
   const role = tgUser.role
   if (role === "client") {
     const name = tgUser.client?.full_name?.split(" ")[0] ?? "друг"
@@ -238,7 +244,6 @@ async function askAI(clubId: string, question: string): Promise<string> {
   if (!apiKey) return "❌ AI аналитика не настроена. Добавьте ANTHROPIC_API_KEY."
 
   const supabase = createServiceClient()
-  const { from, to }        = yesterdayRange()
   const { from: weekAgo }   = { from: new Date(Date.now() - 7 * 86_400_000).toISOString() }
 
   const [visits7, payments7, expiring, inactive] = await Promise.all([
@@ -392,7 +397,7 @@ function setupHandlers(bot: Bot, clubId: string) {
       .order("expires_at", { ascending: false }).limit(1)
     const sub = subs?.[0]
     if (!sub) { await ctx.reply("❌ Нет активного абонемента."); return }
-    const mem      = sub.memberships as any
+    const mem      = firstRelation(sub.memberships)
     const expires  = sub.expires_at ? new Date(sub.expires_at) : null
     const daysLeft = expires ? Math.ceil((expires.getTime() - Date.now()) / 86_400_000) : null
     const visitsLeft = sub.visits_total ? sub.visits_total - sub.visits_used : null
@@ -467,7 +472,7 @@ function setupHandlers(bot: Bot, clubId: string) {
     if (!normalized) return
 
     const supabase = createServiceClient()
-    const removeKb = { reply_markup: { remove_keyboard: true } as any }
+    const removeKb = { reply_markup: { remove_keyboard: true as const } }
 
     // 1. Staff first — staff members always take priority over clients
     const { data: staffList } = await supabase
@@ -476,7 +481,7 @@ function setupHandlers(bot: Bot, clubId: string) {
       .eq("club_id", clubId)
       .eq("is_active", true)
 
-    const matchedStaffList = (staffList ?? []).filter((s: any) => {
+    const matchedStaffList = (staffList ?? []).filter((s) => {
       const staffPhone = normalizeTelegramPhone(s.settings?.phone ?? "")
       return staffPhone && staffPhone === normalized
     })
@@ -505,7 +510,7 @@ function setupHandlers(bot: Bot, clubId: string) {
       }
       await ctx.reply(
         `✅ Вход выполнен!\nРоль: *${roleName[matchedStaff.role] ?? matchedStaff.role}*`,
-        { ...removeKb, parse_mode: "Markdown" } as any
+        { ...removeKb, parse_mode: "Markdown" }
       )
       const tgUser = await getLinkedUser(telegramId, clubId)
       if (tgUser) await sendMenuForUser(ctx, tgUser)
@@ -561,7 +566,7 @@ function setupHandlers(bot: Bot, clubId: string) {
                 : "—",
             },
           )
-      await ctx.reply(welcome, { ...removeKb, parse_mode: "Markdown" } as any)
+      await ctx.reply(welcome, { ...removeKb, parse_mode: "Markdown" })
       await supabase.from("telegram_events").insert({
         club_id: clubId,
         telegram_id: telegramId,
@@ -710,7 +715,7 @@ function setupHandlers(bot: Bot, clubId: string) {
           return
         }
 
-        const mem      = sub.memberships as any
+        const mem      = firstRelation(sub.memberships)
         const expires  = sub.expires_at ? new Date(sub.expires_at) : null
         const daysLeft = expires ? Math.ceil((expires.getTime() - Date.now()) / 86_400_000) : null
         const visitsLeft = sub.visits_total ? sub.visits_total - sub.visits_used : null
@@ -845,7 +850,7 @@ function setupHandlers(bot: Bot, clubId: string) {
 
       if (data === "contacts") {
         const { data: clubData } = await supabase.from("clubs").select("name, city, settings").eq("id", tgUser.client!.club_id).single()
-        const s    = (clubData?.settings as any) ?? {}
+        const s = (clubData?.settings as ClubContactSettings | null) ?? {}
         let text   = `📞 *Контакты клуба*\n\n🏋️ *${clubData?.name ?? "Клуб"}*\n`
         if (clubData?.city) text += `📍 ${clubData.city}\n`
         if (s.phone)        text += `📞 ${s.phone}\n`
@@ -935,7 +940,7 @@ function setupHandlers(bot: Bot, clubId: string) {
 
       let text = `🔔 *Истекающие абонементы*\n\n`
       for (const s of expiring) {
-        const c       = (s as any).clients
+        const c       = firstRelation(s.clients)
         const exp     = new Date(s.expires_at!)
         const daysLeft = Math.ceil((exp.getTime() - Date.now()) / 86_400_000)
         text += `• ${c?.full_name ?? "?"} — *${daysLeft} дн.*\n`
@@ -954,7 +959,7 @@ function setupHandlers(bot: Bot, clubId: string) {
 
       let sent = 0
       for (const s of expiring ?? []) {
-        const c       = (s as any).clients
+        const c       = firstRelation(s.clients)
         const tgId    = c?.telegram_id
         if (!tgId) continue
         const exp     = new Date(s.expires_at!)
@@ -1001,7 +1006,7 @@ function setupHandlers(bot: Bot, clubId: string) {
       let text  = `👤 *${c?.full_name ?? "?"}*\n\n`
       if (c?.phone) text += `📞 ${c.phone}\n`
       if (sub) {
-        const mem  = (sub.memberships as any)
+        const mem  = firstRelation(sub.memberships)
         const exp  = sub.expires_at ? new Date(sub.expires_at) : null
         const days = exp ? Math.ceil((exp.getTime() - Date.now()) / 86_400_000) : null
         text += `🏋️ Абонемент: *${mem?.name ?? "—"}*\n`
@@ -1080,7 +1085,7 @@ function setupHandlers(bot: Bot, clubId: string) {
 
       let text = `📅 *Расписание на сегодня*\n\n`
       for (const s of schedules) {
-        const room = (s.rooms as any)?.name ?? ""
+        const room = firstRelation(s.rooms)?.name ?? ""
         text += `🕐 ${s.start_time.slice(0, 5)}–${s.end_time.slice(0, 5)} *${s.title}*${room ? ` (${room})` : ""}\n`
       }
       await ctx.editMessageText(text, { reply_markup: back, parse_mode: "Markdown" })
@@ -1098,7 +1103,7 @@ function setupHandlers(bot: Bot, clubId: string) {
 
       const unique = new Map<string, string>()
       for (const v of visits ?? []) {
-        if (!unique.has(v.client_id)) unique.set(v.client_id, (v.clients as any)?.full_name ?? v.client_id)
+        if (!unique.has(v.client_id)) unique.set(v.client_id, firstRelation(v.clients)?.full_name ?? v.client_id)
       }
 
       const back = backBtn("staff_menu")

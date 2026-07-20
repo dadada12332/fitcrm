@@ -6,7 +6,7 @@ import { LogIn, CalendarPlus, ArrowUpDown, Ban, CheckCircle2, Loader2, ChevronDo
 import { impersonateClub, extendTrial, changePlan, setClubStatus } from "@/app/platform/(protected)/clubs/[id]/actions"
 import { PT } from "./parts"
 import { fmtMoney } from "@/lib/money"
-import { runAction, toast } from "@/lib/use-action"
+import { runAction } from "@/lib/use-action"
 
 type PlanOption = { code: string; name: string; price: number; currency: string; is_trial: boolean }
 

@@ -1,12 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useCallback, useSyncExternalStore } from "react"
 import type { PosProduct, StockMovement, InventoryStats } from "@/lib/inventory"
 import { InventoryClient } from "./InventoryClient"
 import { PosClient } from "./PosClient"
 import { WarehouseVersionToggle, type WarehouseVersion } from "./WarehouseVersionToggle"
 
 const STORAGE_KEY = "fitcrm.warehouseVersion"
+const STORAGE_EVENT = "fitcrm:warehouse-version"
+
+function readVersion(): WarehouseVersion {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  return saved === "pos" ? "pos" : "table"
+}
 
 type Props = {
   clubId: string
@@ -18,24 +24,22 @@ type Props = {
 }
 
 export function WarehouseSwitcher({ clubId, products, movements, stats, connectedProviders, canSell }: Props) {
-  const [version, setVersion] = useState<WarehouseVersion>("table")
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === "pos" || saved === "table") setVersion(saved)
-    setReady(true)
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    window.addEventListener("storage", onStoreChange)
+    window.addEventListener(STORAGE_EVENT, onStoreChange)
+    return () => {
+      window.removeEventListener("storage", onStoreChange)
+      window.removeEventListener(STORAGE_EVENT, onStoreChange)
+    }
   }, [])
+  const version = useSyncExternalStore<WarehouseVersion>(subscribe, readVersion, () => "table")
 
   function change(v: WarehouseVersion) {
-    setVersion(v)
     localStorage.setItem(STORAGE_KEY, v)
+    window.dispatchEvent(new Event(STORAGE_EVENT))
   }
 
   const toggle = <WarehouseVersionToggle value={version} onChange={change} />
-
-  // До гидратации рисуем таблицу без тумблера — чтобы не мигало.
-  if (!ready) return <InventoryClient clubId={clubId} products={products} movements={movements} stats={stats} />
 
   return version === "pos"
     ? <PosClient clubId={clubId} products={products} connectedProviders={connectedProviders} canSell={canSell} versionControl={toggle} />

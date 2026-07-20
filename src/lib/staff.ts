@@ -75,6 +75,20 @@ const ROLE_LABELS: Record<string, string> = {
 export { ROLE_LABELS }
 
 export type TrainerOption = { id: string; name: string }
+type StaffUserRecord = { full_name: string | null; email: string | null }
+type TrainerRecord = { id: string; users: StaffUserRecord | StaffUserRecord[] | null }
+type StaffKpiRecord = { role: string; salary: number | string | null; is_active: boolean }
+type StaffListRecord = StaffKpiRecord & {
+  id: string
+  user_id: string
+  settings: StaffSettings | null
+  users: StaffUserRecord | StaffUserRecord[] | null
+}
+type StaffVisitRecord = { staff_id: string | null; client_id: string }
+type StaffDetailVisitRecord = {
+  client_id: string | null
+  subscriptions: { status: string; memberships: { name: string } | null } | Array<{ status: string; memberships: { name: string } | Array<{ name: string }> | null }> | null
+}
 
 /** Активные тренеры клуба (для выбора персонального тренера). */
 export async function getTrainers(supabase: SupabaseClient, clubId: string): Promise<TrainerOption[]> {
@@ -84,11 +98,13 @@ export async function getTrainers(supabase: SupabaseClient, clubId: string): Pro
     .eq("club_id", clubId)
     .eq("role", "trainer")
     .eq("is_active", true)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data ?? []).map((s: any) => ({
-    id: s.id as string,
-    name: (s.users?.full_name as string) || (s.users?.email as string)?.split("@")[0] || "Тренер",
-  })).sort((a, b) => a.name.localeCompare(b.name, "ru"))
+  return ((data ?? []) as unknown as TrainerRecord[]).map((s) => {
+    const user = Array.isArray(s.users) ? s.users[0] : s.users
+    return {
+      id: s.id,
+      name: user?.full_name || user?.email?.split("@")[0] || "Тренер",
+    }
+  }).sort((a, b) => a.name.localeCompare(b.name, "ru"))
 }
 
 export async function getStaffKPI(supabase: SupabaseClient, clubId: string): Promise<StaffKPI> {
@@ -97,14 +113,14 @@ export async function getStaffKPI(supabase: SupabaseClient, clubId: string): Pro
     .select("role, salary, is_active")
     .eq("club_id", clubId)
 
-  const list = staffData ?? []
-  const active = list.filter((s: any) => s.is_active)
+  const list = (staffData ?? []) as StaffKpiRecord[]
+  const active = list.filter((s) => s.is_active)
 
   return {
     total:         active.length,
-    trainers:      active.filter((s: any) => s.role === "trainer").length,
-    admins:        active.filter((s: any) => ["admin", "manager"].includes(s.role)).length,
-    monthlySalary: active.reduce((sum: number, s: any) => sum + (Number(s.salary) || 0), 0),
+    trainers:      active.filter((s) => s.role === "trainer").length,
+    admins:        active.filter((s) => ["admin", "manager"].includes(s.role)).length,
+    monthlySalary: active.reduce((sum, s) => sum + (Number(s.salary) || 0), 0),
   }
 }
 
@@ -116,14 +132,14 @@ export async function getStaffList(supabase: SupabaseClient, clubId: string): Pr
     supabase.from("visits").select("staff_id, client_id").eq("club_id", clubId).not("staff_id", "is", null),
   ])
 
-  const staffRows: any[] = staffRes.data ?? []
-  const visits: any[]    = visitsRes.data ?? []
+  const staffRows = (staffRes.data ?? []) as unknown as StaffListRecord[]
+  const visits = (visitsRes.data ?? []) as StaffVisitRecord[]
 
-  return staffRows.map((s: any) => {
-    const u        = s.users as { email: string; full_name: string | null } | null
+  return staffRows.map((s) => {
+    const u        = Array.isArray(s.users) ? s.users[0] : s.users
     const settings: StaffSettings = (s.settings as StaffSettings) ?? {}
-    const myVisits  = visits.filter((v: any) => v.staff_id === s.id)
-    const clientIds = [...new Set(myVisits.map((v: any) => v.client_id as string))]
+    const myVisits  = visits.filter((v) => v.staff_id === s.id)
+    const clientIds = [...new Set(myVisits.map((v) => v.client_id))]
 
     return {
       id:          s.id,
@@ -141,6 +157,53 @@ export async function getStaffList(supabase: SupabaseClient, clubId: string): Pr
   })
 }
 
+type StaffPageRpc = {
+  kpi?: Partial<StaffKPI>
+  rows?: Array<{
+    id: string
+    userId: string
+    role: string
+    name: string
+    email: string
+    isActive: boolean
+    salary: number
+    clientCount: number
+    status: StaffStatus
+    settings: StaffSettings
+  }>
+}
+
+export async function getStaffPageData(
+  supabase: SupabaseClient,
+  clubId: string,
+): Promise<{ kpi: StaffKPI; rows: StaffRow[] }> {
+  const { data, error } = await supabase.rpc("get_staff_page_data", { p_club_id: clubId })
+  if (!error && data) {
+    const result = data as StaffPageRpc
+    return {
+      kpi: {
+        total: Number(result.kpi?.total ?? 0),
+        trainers: Number(result.kpi?.trainers ?? 0),
+        admins: Number(result.kpi?.admins ?? 0),
+        monthlySalary: Number(result.kpi?.monthlySalary ?? 0),
+      },
+      rows: (result.rows ?? []).map((row) => ({
+        ...row,
+        salary: Number(row.salary) || 0,
+        clientCount: Number(row.clientCount) || 0,
+        revenue: 0,
+        settings: row.settings ?? {},
+      })),
+    }
+  }
+
+  const [kpi, rows] = await Promise.all([
+    getStaffKPI(supabase, clubId),
+    getStaffList(supabase, clubId),
+  ])
+  return { kpi, rows }
+}
+
 export async function getStaffMember(supabase: SupabaseClient, id: string, clubId: string): Promise<StaffDetail | null> {
   const [staffRes, visitsRes, schedRes] = await Promise.all([
     supabase.from("staff").select("id, user_id, role, salary, is_active, settings").eq("id", id).eq("club_id", clubId).single(),
@@ -155,7 +218,7 @@ export async function getStaffMember(supabase: SupabaseClient, id: string, clubI
   const { data: userData } = await supabase.from("users").select("id, email, full_name").eq("id", s.user_id).single()
   const u        = userData
   const settings = (s.settings as StaffSettings) ?? {}
-  const visits: any[] = visitsRes.data ?? []
+  const visits = (visitsRes.data ?? []) as StaffDetailVisitRecord[]
 
   const clientMap = new Map<string, { name: string; membershipName: string | null; status: string }>()
   for (const v of visits) {
@@ -183,7 +246,7 @@ export async function getStaffMember(supabase: SupabaseClient, id: string, clubI
     status:         clientMap.get(c.id)?.status ?? "active",
   }))
 
-  const schedule: ScheduleSlot[] = (schedRes.data ?? []).map((r: any) => ({
+  const schedule: ScheduleSlot[] = (schedRes.data ?? []).map((r) => ({
     id:        r.id,
     title:     r.title,
     dayOfWeek: r.day_of_week,

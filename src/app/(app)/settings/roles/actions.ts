@@ -21,11 +21,12 @@ export async function getRolesAction(): Promise<{ roles: RoleRow[]; error?: stri
   const club = await getCurrentClub()
   if (!club) return { roles: [], error: "Клуб не найден" }
 
-  let [rolesRes, staffRes] = await Promise.all([
+  const [initialRolesRes, staffRes] = await Promise.all([
     supabase.from("club_roles").select("id, key, name, description, permissions, is_system").eq("club_id", club.clubId).order("created_at"),
     supabase.from("staff").select("role").eq("club_id", club.clubId).eq("is_active", true),
   ])
 
+  let rolesRes = initialRolesRes
   if (rolesRes.error || staffRes.error) {
     return { roles: [], error: "Не удалось загрузить роли" }
   }

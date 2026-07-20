@@ -3,7 +3,6 @@
 import { sanitizeSearchTerm } from "@/lib/search"
 import { revalidatePath } from "next/cache"
 import { getPlatformAuth } from "@/lib/platform"
-import { getPlanByCode } from "@/lib/plans"
 import { createServiceClient } from "@/lib/supabase/service"
 
 export type PlanPayload = {

@@ -33,8 +33,6 @@ const queue = []
 let busy = false
 
 const short = (s, n = 3800) => (s.length > n ? s.slice(0, n) + "…" : s)
-const escapeNone = (s) => s // отправляем как plain text (без Markdown-парсинга)
-
 async function processNext() {
   if (busy || queue.length === 0) return
   busy = true

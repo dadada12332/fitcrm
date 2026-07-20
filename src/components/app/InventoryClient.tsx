@@ -85,6 +85,8 @@ export function AddProductModal({ clubId, open, onClose }: { clubId: string; ope
         {/* Фото товара */}
         <div className="flex items-center gap-3">
           <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
+            {/* User-provided URLs may come from providers not listed in Next image config. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             {photoUrl ? <img src={photoUrl} alt="" className="w-full h-full object-cover" /> : <span className="text-2xl">📦</span>}
           </div>
           <label className="text-sm cursor-pointer px-3 py-2 rounded-md" style={{ background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>

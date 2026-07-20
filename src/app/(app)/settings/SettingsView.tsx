@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { getCurrentClub } from "@/lib/club"
+import { getAuthUser } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { getPlans, planBenefits } from "@/lib/plans"
 import { SettingsShell } from "./SettingsShell"
 import { getRolesAction, type RoleRow } from "./roles/actions"
@@ -18,15 +20,35 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
 
-  const { data: clubRow } = await supabase
-    .from("clubs")
-    .select("id, name, plan, trial_expires_at, plan_expires_at, plan_price_locked, settings, staff!inner(id, role, user_id, is_active, users(id, email, full_name))")
-    .eq("id", club.clubId)
-    .single()
+  const service = createServiceClient()
+  const [clubResult, user, pendingResult, connectionsResult, dbPlans, rolesResult] = await Promise.all([
+    supabase
+      .from("clubs")
+      .select("id, name, plan, trial_expires_at, plan_expires_at, plan_price_locked, settings, staff!inner(id, role, user_id, is_active, users(id, email, full_name))")
+      .eq("id", club.clubId)
+      .single(),
+    getAuthUser(),
+    service
+      .from("platform_billing_requests")
+      .select("plan, months, amount, created_at")
+      .eq("club_id", club.clubId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    service
+      .from("payment_connection_requests")
+      .select("provider, status, created_at")
+      .eq("club_id", club.clubId)
+      .in("status", ["new", "active"])
+      .order("created_at", { ascending: false }),
+    getPlans({ includeArchived: true }).catch(() => []),
+    tab === "roles" ? getRolesAction() : Promise.resolve({ roles: [] as RoleRow[], error: undefined }),
+  ])
+  const clubRow = clubResult.data
 
   if (!clubRow) redirect("/dashboard")
 
-  const { data: { user } } = await supabase.auth.getUser()
   const userId = user?.id
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,53 +69,31 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     })
 
   // Активная заявка на подписку (для раздела «Подписка»).
-  let pendingRequest: ClubData["pendingRequest"] = null
-  try {
-    const { createServiceClient } = await import("@/lib/supabase/service")
-    const svc = createServiceClient()
-    const { data: pr } = await svc
-      .from("platform_billing_requests")
-      .select("plan, months, amount, created_at")
-      .eq("club_id", club.clubId)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    if (pr) pendingRequest = { plan: pr.plan, months: pr.months, amount: pr.amount, createdAt: pr.created_at }
-  } catch { /* таблица ещё не создана */ }
+  const pending = pendingResult.data
+  const pendingRequest: ClubData["pendingRequest"] = pending
+    ? { plan: pending.plan, months: pending.months, amount: pending.amount, createdAt: pending.created_at }
+    : null
 
   // Статус подключения платёжек (Payme / Click).
   const paymentConnections: Record<string, "new" | "active"> = {}
-  try {
-    const { createServiceClient } = await import("@/lib/supabase/service")
-    const svc = createServiceClient()
-    const { data: pcr } = await svc
-      .from("payment_connection_requests")
-      .select("provider, status, created_at")
-      .eq("club_id", club.clubId)
-      .in("status", ["new", "active"])
-      .order("created_at", { ascending: false })
-    for (const r of (pcr ?? []) as { provider: string; status: "new" | "active" }[]) {
-      // active важнее new; берём первый (самый свежий) статус на провайдер
-      if (!paymentConnections[r.provider]) paymentConnections[r.provider] = r.status
-      if (r.status === "active") paymentConnections[r.provider] = "active"
-    }
-  } catch { /* таблица ещё не создана */ }
+  for (const r of (connectionsResult.data ?? []) as { provider: string; status: "new" | "active" }[]) {
+    if (!paymentConnections[r.provider]) paymentConnections[r.provider] = r.status
+    if (r.status === "active") paymentConnections[r.provider] = "active"
+  }
 
   // Тарифы из БД (раздел «Тарифы» Platform Admin) — без хардкода цен/лимитов в CRM.
-  let plansForClient: PlanForClient[] = []
-  try {
-    const dbPlans = await getPlans({ includeArchived: true }) // включаем архивные, чтобы показать текущий тариф клуба
-    plansForClient = dbPlans.map((p) => ({
-      code: p.code, name: p.name, price: p.price, currency: p.currency, period: p.period,
-      isTrial: p.is_trial, isActive: p.is_active && !p.is_archived,
-      isPopular: p.is_popular || p.is_recommended, color: p.color,
-      subtitle: p.short_description || p.landing_subtitle, benefits: planBenefits(p),
-      clients: p.limits.clients ?? null, staff: p.limits.staff ?? null,
-    }))
-  } catch { /* тарифы ещё не настроены */ }
+  const plansForClient: PlanForClient[] = dbPlans.map((p) => ({
+    code: p.code, name: p.name, price: p.price, currency: p.currency, period: p.period,
+    isTrial: p.is_trial, isActive: p.is_active && !p.is_archived,
+    isPopular: p.is_popular || p.is_recommended, color: p.color,
+    subtitle: p.short_description || p.landing_subtitle, benefits: planBenefits(p),
+    clients: p.limits.clients ?? null, staff: p.limits.staff ?? null,
+  }))
 
   const data: ClubData = {
+    // Server-side request timestamp, stable for this settings render.
+    // eslint-disable-next-line react-hooks/purity
+    generatedAt: Date.now(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     id: (clubRow as any).id,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,13 +127,8 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     subscription:  club.permissions.settings.subscription,
   }
 
-  let initialRoles: RoleRow[] | undefined
-  let initialRolesError: string | undefined
-  if (tab === "roles") {
-    const result = await getRolesAction()
-    initialRoles = result.roles
-    initialRolesError = result.error
-  }
+  const initialRoles = tab === "roles" ? rolesResult.roles : undefined
+  const initialRolesError = tab === "roles" ? rolesResult.error : undefined
 
   return (
     <SettingsShell

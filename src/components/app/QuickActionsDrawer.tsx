@@ -283,6 +283,8 @@ function NewPaymentView({ memberships, onDone }: { memberships: QuickMembership[
     }, 200)
   }, [])
 
+  // The debounced search schedules result updates asynchronously.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (!client) search(query) }, [query, client, search])
 
   useEffect(() => {
@@ -514,8 +516,11 @@ function QuickVisitView() {
     }, 200)
   }, [])
 
+  // The debounced search schedules result updates asynchronously.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { search(query) }, [query, search])
 
+  // Lazily load options only for actions that need memberships.
   useEffect(() => {
     if (!dropOpen) return
     const fn = (e: MouseEvent) => { if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setDropOpen(false) }
@@ -727,16 +732,15 @@ const VIEW_LABELS: Record<QuickActionView, string> = {
 
 export function QuickActionsPanel({ view, onClose }: { view: QuickActionView; onClose: () => void }) {
   const [memberships, setMemberships] = useState<QuickMembership[] | null>(null)
-  const [loadingM, setLoadingM]     = useState(false)
 
   useEffect(() => {
-    if ((view === "client" || view === "payment") && memberships === null && !loadingM) {
-      setLoadingM(true)
-      getMembershipsForDrawer()
-        .then(setMemberships)
-        .finally(() => setLoadingM(false))
-    }
-  }, [view, memberships, loadingM])
+    if ((view !== "client" && view !== "payment") || memberships !== null) return
+    let cancelled = false
+    getMembershipsForDrawer().then((rows) => {
+      if (!cancelled) setMemberships(rows)
+    })
+    return () => { cancelled = true }
+  }, [view, memberships])
 
   function close() {
     onClose()
@@ -783,13 +787,13 @@ export function QuickActionsPanel({ view, onClose }: { view: QuickActionView; on
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-5 py-5">
               {view === "client" && (
-                loadingM
+                memberships === null
                   ? <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "var(--border)", borderTopColor: "#2563eb" }} /></div>
                   : <NewClientView memberships={memberships ?? []} onDone={done} />
               )}
 
               {view === "payment" && (
-                loadingM
+                memberships === null
                   ? <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "var(--border)", borderTopColor: "#2563eb" }} /></div>
                   : <NewPaymentView memberships={memberships ?? []} onDone={done} />
               )}

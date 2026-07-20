@@ -34,3 +34,9 @@ for (const apiRoute of ["/api/broadcasts/run", "/api/cron/reconcile", "/api/tele
     expect(await response.json()).toEqual({ error: "Unauthorized" })
   })
 }
+
+test("health endpoint reports the database status without authentication", async ({ request }) => {
+  const response = await request.get("/api/health")
+  expect(response.status()).toBe(200)
+  expect(await response.json()).toEqual(expect.objectContaining({ status: "ok", database: "reachable" }))
+})

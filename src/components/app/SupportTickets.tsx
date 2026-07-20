@@ -129,6 +129,8 @@ export function SupportTickets({ clubId }: { clubId: string }) {
   // Диплинк из URL (эскалация из AI / уведомление) → открыть тикет.
   useEffect(() => {
     const urlId = params.get("id")
+    // Synchronize a deep link changed outside this component.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (urlId && urlId !== selectedId) setSelectedId(urlId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params])
@@ -142,11 +144,15 @@ export function SupportTickets({ clubId }: { clubId: string }) {
     setTickets(tickets)
   }, [])
 
+  // Initial data is loaded asynchronously by the server action.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { refresh() }, [refresh])
 
   // Реалтайм: подписка на изменения тикетов клуба (ответы поддержки без перезагрузки)
   const selectedRef = useRef(selectedId)
-  selectedRef.current = selectedId
+  useEffect(() => {
+    selectedRef.current = selectedId
+  }, [selectedId])
   useEffect(() => {
     const supabase = createClient()
     const ch = supabase
@@ -306,9 +312,11 @@ function Thread({ ticketId, reloadKey, onBack, onChanged, onCreateNew }: { ticke
     onChanged()
   }, [ticketId, onChanged])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load() }, [load])
   // реалтайм-сигнал из родителя → тихо перезагрузить тред
-  useEffect(() => { if (reloadKey > 0) load() }, [reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+  useEffect(() => { if (reloadKey > 0) load() }, [reloadKey])
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }) }, [ticket?.messages.length])
 
   async function send() {

@@ -24,8 +24,6 @@ export default async function IntegrationsPage() {
       service.from("integration_connections").select("username,last_synced_at").eq("club_id", club.clubId).eq("provider", "instagram").maybeSingle()])
 
     if (data) {
-      const integrations = (data.settings as any)?.integrations ?? {}
-
       if (telegramIntegration) {
         const { count } = await supabase
           .from("clients")
