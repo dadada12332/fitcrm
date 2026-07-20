@@ -339,8 +339,8 @@ function CreateRoleModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(2,6,23,0.4)" }}>
-      <div className="w-full max-w-md rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+    <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(2,6,23,0.4)" }} onClick={onClose}>
+      <div className="flex h-full w-full max-w-[480px] flex-col overflow-hidden" style={{ background: "var(--card)", borderLeft: "1px solid var(--border)", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }} onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h3 className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>
             {step === "template" ? "Выберите шаблон" : "Новая роль"}
@@ -350,7 +350,7 @@ function CreateRoleModal({
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           {assignStaffName && (
             <div className="flex items-center gap-2 mb-4 px-3 py-2.5 rounded-lg text-sm"
               style={{ background: "rgba(37,99,235,0.08)", color: "#2563eb", border: "1px solid rgba(37,99,235,0.2)" }}>

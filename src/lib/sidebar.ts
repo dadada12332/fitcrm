@@ -13,6 +13,7 @@ export type SidebarStats = {
   avatarPreset: string | null
   avatarUrl: string | null
   supportUnread: number
+  notificationCount: number
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -43,7 +44,12 @@ export async function getSidebarStats(
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
 
-  const [clients, memberships, visits, stock, userRes, staffRow, supportRows] = await Promise.all([
+  const nextWeek = new Date()
+  nextWeek.setDate(nextWeek.getDate() + 7)
+  const lastWeek = new Date()
+  lastWeek.setDate(lastWeek.getDate() - 7)
+
+  const [clients, memberships, visits, stock, userRes, staffRow, supportRows, expiring, expired, pendingPayments] = await Promise.all([
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId),
     supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "active"),
     supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", clubId).gte("checked_in_at", todayStart.toISOString()),
@@ -51,6 +57,9 @@ export async function getSidebarStats(
     supabase.from("users").select("full_name").eq("id", userId).maybeSingle(),
     supabase.from("staff").select("id, role").eq("user_id", userId).eq("club_id", clubId).maybeSingle(),
     supabase.from("support_tickets").select("agent_last_read_at, user_last_read_at").eq("club_id", clubId).not("agent_last_read_at", "is", null),
+    supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "active").gte("expires_at", todayStart.toISOString().slice(0, 10)).lte("expires_at", nextWeek.toISOString().slice(0, 10)),
+    supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "expired").gte("expires_at", lastWeek.toISOString().slice(0, 10)).lte("expires_at", todayStart.toISOString().slice(0, 10)),
+    supabase.from("payments").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "pending"),
   ])
 
   const lowStockCount = (stock.data ?? []).filter(
@@ -70,6 +79,7 @@ export async function getSidebarStats(
     userRole:     ROLE_LABELS[(staffRow.data as any)?.role ?? ""] ?? "Сотрудник",
     staffId:      (staffRow.data as any)?.id ?? null,
     supportUnread,
+    notificationCount: Math.min(expiring.count ?? 0, 10) + Math.min(expired.count ?? 0, 10) + Math.min(pendingPayments.count ?? 0, 10),
   }, trialExpiresAt, Object.keys(userMetadata).length ? userMetadata : (authUser?.user_metadata ?? {}))
 }
 

@@ -47,7 +47,7 @@ const inputCls = "w-full px-3 py-2 rounded-md text-sm outline-none"
 const inputStyle = { background: "var(--card-2)", border: "1px solid var(--border)", color: "var(--on-dark)" } as React.CSSProperties
 
 // ── Add Product Modal ──────────────────────────────────────────────────
-export function AddProductModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function AddProductModal({ clubId, open, onClose }: { clubId: string; open: boolean; onClose: () => void }) {
   const [pending, start] = useTransition()
   const [error, setError] = useState("")
   const [photoUrl, setPhotoUrl] = useState("")
@@ -60,7 +60,7 @@ export function AddProductModal({ open, onClose }: { open: boolean; onClose: () 
     try {
       const supabase = createClient()
       const ext = file.name.split(".").pop() || "jpg"
-      const path = `products/${crypto.randomUUID()}.${ext}`
+      const path = `${clubId}/products/${crypto.randomUUID()}.${ext}`
       const { error: upErr } = await supabase.storage.from("product-photos").upload(path, file, { contentType: file.type, upsert: false })
       if (upErr) { setError("Не удалось загрузить фото"); return }
       setPhotoUrl(supabase.storage.from("product-photos").getPublicUrl(path).data.publicUrl)
@@ -252,13 +252,14 @@ export function WriteoffModal({ open, onClose, products }: {
 // ── Main Component ─────────────────────────────────────────────────────
 
 type Props = {
+  clubId: string
   products: Product[]
   movements: StockMovement[]
   stats: InventoryStats
   versionControl?: React.ReactNode
 }
 
-export function InventoryClient({ products, movements, stats, versionControl }: Props) {
+export function InventoryClient({ clubId, products, movements, stats, versionControl }: Props) {
   const [query, setQuery] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [supplyOpen, setSupplyOpen] = useState(false)
@@ -285,7 +286,7 @@ export function InventoryClient({ products, movements, stats, versionControl }: 
 
   return (
     <>
-      <AddProductModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddProductModal clubId={clubId} open={addOpen} onClose={() => setAddOpen(false)} />
       <SupplyModal open={supplyOpen} onClose={() => setSupplyOpen(false)} products={products} />
       <WriteoffModal open={writeoffOpen} onClose={() => setWriteoffOpen(false)} products={products} />
 

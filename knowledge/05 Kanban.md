@@ -36,6 +36,7 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-review -->
 - [ ] TASK-0022 · Центр удержания клиентов и предотвращения оттока · feature · P1 · retention · 2026-07-19 · [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
+- [ ] TASK-0024 · Launch readiness audit and hardening · feature · P0 · platform · 2026-07-20 · [[Tasks/TASK-0024-launch-readiness-audit-and-hardening]]
 <!-- AUTO:END kanban-review -->
 
 ## Testing

@@ -140,7 +140,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, ro
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <TopBar email={email} clubName={clubName} onToggleSidebar={handleMenuToggle} />
+          <TopBar email={email} clubName={clubName} initialNotificationCount={stats.notificationCount} onToggleSidebar={handleMenuToggle} />
           <div className="flex-1 overflow-hidden p-2 lg:pl-0 lg:pt-0">
             <main className="h-full overflow-y-auto rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
               <div className="p-4 lg:p-5">{children}</div>

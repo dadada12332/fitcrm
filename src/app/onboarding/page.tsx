@@ -11,13 +11,23 @@ export default async function OnboardingPage() {
   const supabase = await createClient()
   const { data: staffRow } = await supabase
     .from("staff")
-    .select("club_id")
+    .select("club_id, clubs(name, settings)")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .limit(1)
     .maybeSingle()
 
-  if (staffRow?.club_id) redirect("/dashboard")
+  const club = Array.isArray(staffRow?.clubs) ? staffRow.clubs[0] : staffRow?.clubs
+  const settings = (club?.settings as Record<string, unknown> | null) ?? {}
+  if (staffRow?.club_id && settings.onboarding_started !== true) redirect("/dashboard")
+  if (settings.onboarding_completed === true) redirect("/dashboard")
 
-  return <OnboardingWizard clubName="" />
+  const pendingClubName = typeof user.user_metadata?.pending_club_name === "string"
+    ? user.user_metadata.pending_club_name
+    : ""
+  const initialStep = typeof settings.onboarding_step === "number"
+    ? Math.min(4, Math.max(1, settings.onboarding_step))
+    : 1
+
+  return <OnboardingWizard clubName={club?.name ?? pendingClubName} initialStep={initialStep} />
 }

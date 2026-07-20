@@ -55,7 +55,11 @@ export default async function ClientsPage({
         <div className="flex items-center gap-2 flex-wrap">
           <ExportClientsButton />
           <ImportClientsButton />
-          <AddClientButton memberships={memberships} trainers={trainers} />
+          <AddClientButton
+            memberships={memberships}
+            trainers={trainers}
+            initialOpen={one(sp.create) === "1"}
+          />
         </div>
       </div>
 

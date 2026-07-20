@@ -66,7 +66,7 @@ export function DashboardVisitRadial({ todayVisits, activeClients, attendanceCha
         {/* Radial chart */}
         <div className="flex items-center justify-center px-6 py-2" style={{ height: 222 }}>
           <div className="relative" style={{ width: 221, height: 222 }}>
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie
                   data={data}

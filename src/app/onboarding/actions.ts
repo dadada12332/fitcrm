@@ -38,7 +38,7 @@ export async function saveClubInfoAction(_prev: OnboardingState, formData: FormD
     // Сразу обновляем настройки (адрес, телефон)
     const { error: settingsError } = await supabase
       .from("clubs")
-      .update({ settings: { address, phone } })
+      .update({ settings: { address, phone, onboarding_started: true, onboarding_step: 2 } })
       .eq("id", clubId)
     if (settingsError) return { error: settingsError.message }
     return { ok: true }
@@ -50,7 +50,7 @@ export async function saveClubInfoAction(_prev: OnboardingState, formData: FormD
   const { error } = await supabase.from("clubs").update({
     name,
     city: city || null,
-    settings: { ...currentSettings, address, phone },
+    settings: { ...currentSettings, address, phone, onboarding_started: true, onboarding_step: 2 },
   }).eq("id", clubId)
 
   if (error) return { error: error.message }
@@ -76,7 +76,28 @@ export async function saveWorkingHoursAction(_prev: OnboardingState, formData: F
   const currentSettings = (clubRow?.settings as Record<string, unknown>) ?? {}
 
   const { error } = await supabase.from("clubs").update({
-    settings: { ...currentSettings, working_hours: hours },
+    settings: { ...currentSettings, working_hours: hours, onboarding_started: true, onboarding_step: 3 },
+  }).eq("id", clubId)
+
+  if (error) return { error: error.message }
+
+  return { ok: true }
+}
+
+export async function completeOnboardingAction(): Promise<OnboardingState> {
+  const supabase = await createClient()
+  const clubId = await getClubId()
+  if (!clubId) return { error: "Сначала заполните информацию о клубе" }
+
+  const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", clubId).single()
+  const currentSettings = (clubRow?.settings as Record<string, unknown>) ?? {}
+  const { error } = await supabase.from("clubs").update({
+    settings: {
+      ...currentSettings,
+      onboarding_started: true,
+      onboarding_completed: true,
+      onboarding_step: 4,
+    },
   }).eq("id", clubId)
 
   if (error) return { error: error.message }
@@ -104,5 +125,13 @@ export async function createFirstMembershipAction(_prev: OnboardingState, formDa
   })
 
   if (error) return { error: error.message }
+
+  const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", clubId).single()
+  const currentSettings = (clubRow?.settings as Record<string, unknown>) ?? {}
+  const { error: settingsError } = await supabase.from("clubs").update({
+    settings: { ...currentSettings, onboarding_started: true, onboarding_step: 4 },
+  }).eq("id", clubId)
+  if (settingsError) return { error: settingsError.message }
+
   return { ok: true }
 }

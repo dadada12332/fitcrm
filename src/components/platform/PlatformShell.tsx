@@ -7,7 +7,7 @@ import { useTheme } from "next-themes"
 import {
   LayoutDashboard, Building2, Users, CreditCard, Receipt, BarChart3,
   Activity, ScrollText, LifeBuoy, Send, Ticket, Settings, ShieldCheck,
-  LogOut, Menu, ExternalLink, Tag, Plug, X, Sun, Moon,
+  LogOut, Menu, ExternalLink, Tag, Plug, X, SunMoon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -110,9 +110,9 @@ export function PlatformShell({
             variant="ghost"
             size="icon-xs"
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            aria-label={resolvedTheme === "dark" ? "Светлая тема" : "Тёмная тема"}
+            aria-label="Переключить тему"
           >
-            {resolvedTheme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+            <SunMoon className="size-3.5" />
           </Button>
           <form action={`${base}/logout`} method="post" className="contents">
             <Button type="submit" variant="ghost" size="icon-xs" aria-label="Выйти из платформы">

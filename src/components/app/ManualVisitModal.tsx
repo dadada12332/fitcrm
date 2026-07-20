@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "@/lib/use-action"
 import {
   X, Search, CheckCircle2, AlertTriangle, AlertCircle,
@@ -268,6 +269,7 @@ function PreviewPanel({ client, selectedSubId }: { client: ManualClientResult | 
 type Props = { role: string }
 
 export function ManualVisitModal({ role }: Props) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
 
   // Search
@@ -489,7 +491,13 @@ export function ManualVisitModal({ role }: Props) {
                           <div className="flex flex-col items-center gap-2 py-6">
                             <UserX className="w-6 h-6" style={{ color: "var(--gray-muted)" }} />
                             <p className="text-sm" style={{ color: "var(--gray-muted)" }}>Клиент не найден</p>
-                            <button className="text-xs font-medium flex items-center gap-1" style={{ color: "#2563eb" }}>
+                            <button
+                              onClick={() => {
+                                closeModal()
+                                router.push("/clients?create=1")
+                              }}
+                              className="text-xs font-medium flex items-center gap-1 text-brand"
+                            >
                               <UserPlus className="w-3.5 h-3.5" />Создать нового
                             </button>
                           </div>

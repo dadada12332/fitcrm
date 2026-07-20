@@ -1,7 +1,7 @@
 ---
 type: current-state
 status: active
-updated: 2026-07-18
+updated: 2026-07-20
 tags: [fitcrm, operations]
 ---
 
@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: ca1bc08 · 2026-07-19T16:06:08+05:00 · Fix Growth OS active tab styling.
+- Последний commit: f81cc0b · 2026-07-19T16:09:39+05:00 · Record verified active tab deployment [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 64; последняя `0064_telegram_client_identity.sql`.
+- Миграции в Git: 67; последняя `0067_remaining_foreign_key_indexes.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
@@ -24,11 +24,11 @@ tags: [fitcrm, operations]
 
 **Частично:** занятия/бронирования, audit trail UI и тарифные ограничения. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
-**Не завершено или не подтверждено:** реальные SMS/email, системный мониторинг ошибок, проверенный restore и staging-среда. Базовый Vitest/Playwright/RLS-контур добавлен; data-mutating E2E ждёт отдельную test DB.
+**Не завершено или не подтверждено:** custom SMTP и реальные SMS, системный мониторинг ошибок, проверенный restore, staging-среда и provider-certified Payme/Click flow. Массовый запуск имеет статус NO-GO; controlled beta — GO. См. [[Reports/Launch Readiness 2026-07-20]].
 
 ## База данных
 
-- В репозитории последовательные миграции `0001`–`0059`; последние Telegram migrations `0056`–`0059` применены к production.
+- В репозитории последовательные миграции `0001`–`0067`; launch hardening `0065`–`0067` применён к production.
 - Bot tokens вынесены из публично читаемой `clubs` в service-only `telegram_integrations`; открытых `clubs.tg_token` в production — `0`.
 - Supabase Cron обрабатывает scheduled broadcasts каждые 5 минут; Vercel daily cron отвечает за reminders/report.
 
@@ -47,7 +47,9 @@ tags: [fitcrm, operations]
 - Пороги retention scoring пока являются детерминированными продуктовыми гипотезами и требуют калибровки на обезличенной статистике после проверки владельцем.
 - Growth health score, recovery rates и expected impact являются прозрачными сценарными assumptions, а не ML-прогнозом или обещанием результата.
 - На диске `E:` Next.js/Playwright зафиксировал slow filesystem benchmark 288 ms; функциональные тесты прошли, но dev feedback loop может быть медленнее.
-- Нет автоматического CI и тестовой матрицы.
+- Нет автоматического CI, error monitoring и production-like staging.
+- Supabase Free не даёт managed daily backups и leaked-password protection; custom SMTP/CAPTCHA не настроены.
+- Full ESLint baseline: 122 errors и 45 warnings; TypeScript, build и runtime tests проходят.
 - Старые документы дают противоречивую картину реализации.
 
 ## Производительность

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import {
   Search, Bell,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
-  PanelLeft, Sun, Moon, Inbox, CheckCircle2, Loader2, ChevronRight,
+  PanelLeft, SunMoon, Inbox, CheckCircle2, Loader2, ChevronRight,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useTheme } from "next-themes"
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Breadcrumbs } from "./Breadcrumbs"
 
-type Props = { clubName: string; email: string; onToggleSidebar?: () => void }
+type Props = { clubName: string; email: string; initialNotificationCount: number; onToggleSidebar?: () => void }
 
 // ── Global Search ────────────────────────────────────────────────
 function GlobalSearch({ onClose }: { onClose: () => void }) {
@@ -293,18 +293,14 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 }
 
 // ── TopBar ───────────────────────────────────────────────────────
-export function TopBar({ clubName, email, onToggleSidebar }: Props) {
+export function TopBar({ clubName, email, initialNotificationCount, onToggleSidebar }: Props) {
   const [searchOpen, setSearchOpen]   = useState(false)
   const [notifOpen, setNotifOpen]     = useState(false)
-  const [notifCount, setNotifCount]   = useState<number | null>(null)
+  const [notifCount] = useState(initialNotificationCount)
   const notifRef = useRef<HTMLDivElement>(null)
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
-
-  useEffect(() => {
-    getNotificationsAction().then((n) => setNotifCount(n.length)).catch(() => {})
-  }, [])
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
@@ -355,12 +351,10 @@ export function TopBar({ clubName, email, onToggleSidebar }: Props) {
             onClick={() => setTheme(isDark ? "light" : "dark")}
             className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
             style={{ width: 32, height: 32 }}
-            title={isDark ? "Светлая тема" : "Тёмная тема"}
+            title="Переключить тему"
+            aria-label="Переключить тему"
           >
-            {isDark
-              ? <Sun style={{ width: 20, height: 20 }} />
-              : <Moon style={{ width: 20, height: 20 }} />
-            }
+            <SunMoon style={{ width: 20, height: 20 }} />
           </button>
 
           {/* Bell */}

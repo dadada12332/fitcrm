@@ -6,6 +6,17 @@ tags: [fitcrm, risks]
 
 # Known Issues
 
+## Launch blockers — 2026-07-20
+
+- Supabase custom SMTP отсутствует: email confirmation/recovery нельзя считать production-ready.
+- Нет branded domain; callback/redirect URLs пока привязаны к `fitcrm-three.vercel.app`.
+- Supabase Free: нет managed daily backups, staging branch и leaked-password protection.
+- CAPTCHA, centralized error tracking, uptime alerts и restore drill не настроены.
+- Payme/Click требуют реального provider sandbox/certification E2E.
+- Full ESLint baseline содержит 122 errors / 45 warnings; raw color debt требует отдельной visual-regression работы.
+
+Полный статус: [[Reports/Launch Readiness 2026-07-20]].
+
 ## ISSUE-0001 — Регионы инфраструктуры требуют подтверждения
 
 - Severity: P1

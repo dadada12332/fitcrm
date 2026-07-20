@@ -882,13 +882,7 @@ function DebtsSection({ agg }: { agg: DebtsAgg }) {
         ))}
       </div>
 
-      <SectionCard title="Список долгов"
-        action={
-          <button className="h-7 px-3 rounded-md text-xs font-medium transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
-            Напомнить в Telegram
-          </button>
-        }
-      >
+      <SectionCard title="Список долгов">
         {agg.count === 0 ? (
           <p className="text-sm text-center py-8" style={{ color: "var(--gray-muted)" }}>Долгов нет</p>
         ) : (

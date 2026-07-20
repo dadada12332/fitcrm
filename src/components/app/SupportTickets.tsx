@@ -486,13 +486,13 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(2,6,23,0.4)" }} onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(2,6,23,0.4)" }} onClick={onClose}>
+      <div className="flex h-full w-full max-w-[520px] flex-col overflow-hidden" style={{ background: "var(--card)", borderLeft: "1px solid var(--border)", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <h3 className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>Новое обращение</h3>
           <button onClick={onClose} className="p-1"><X size={18} style={{ color: "var(--gray-muted)" }} /></button>
         </div>
-        <div className="p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Категория</label>
             <div className="flex flex-wrap gap-1.5">

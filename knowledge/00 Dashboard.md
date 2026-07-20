@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
 - `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
 - `0514d3d` · 2026-07-19 · Release retention center and Growth OS
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
 - `5904123` · 2026-07-19 · Add Growth OS decision workspace
 - `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
-- `1086f15` · 2026-07-19 · Add local retention center prototype
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-19 Asia/Tashkent
+2026-07-20 Asia/Tashkent
 <!-- AUTO:END updated-at -->

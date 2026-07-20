@@ -93,8 +93,16 @@ const GENDER_OPTIONS = [
 
 /* ─── Main component ─── */
 
-export function AddClientButton({ memberships, trainers = [] }: { memberships: MembershipOption[]; trainers?: TrainerOption[] }) {
-  const [open, setOpen] = useState(false)
+export function AddClientButton({
+  memberships,
+  trainers = [],
+  initialOpen = false,
+}: {
+  memberships: MembershipOption[]
+  trainers?: TrainerOption[]
+  initialOpen?: boolean
+}) {
+  const [open, setOpen] = useState(initialOpen)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -206,7 +214,7 @@ export function AddClientButton({ memberships, trainers = [] }: { memberships: M
 
                   {/* Фамилия */}
                   <div>
-                    <Label required>Фамилия</Label>
+                    <Label>Фамилия</Label>
                     <StyledInput
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
@@ -230,7 +238,7 @@ export function AddClientButton({ memberships, trainers = [] }: { memberships: M
                   {/* Дата рождения + Пол */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label required>Дата рождения</Label>
+                      <Label>Дата рождения</Label>
                       <div className="relative">
                         <input
                           className={BASE_INPUT}
@@ -244,7 +252,7 @@ export function AddClientButton({ memberships, trainers = [] }: { memberships: M
                       </div>
                     </div>
                     <div>
-                      <Label required>Пол</Label>
+                      <Label>Пол</Label>
                       <SelectWrapper>
                         <select
                           className={SELECT_CLS}
@@ -281,7 +289,7 @@ export function AddClientButton({ memberships, trainers = [] }: { memberships: M
 
                   {/* Абонемент */}
                   <div>
-                    <Label required>Абонемент</Label>
+                    <Label>Абонемент</Label>
                     <SelectWrapper>
                       <select
                         className={SELECT_CLS}

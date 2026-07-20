@@ -26,8 +26,8 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
 
   if (!clubRow) redirect("/dashboard")
 
-  const { data: { session } } = await supabase.auth.getSession()
-  const userId = session?.user?.id
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const staffList = ((clubRow as any).staff ?? [])

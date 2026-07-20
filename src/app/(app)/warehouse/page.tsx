@@ -23,6 +23,7 @@ export default async function WarehousePage() {
 
   return (
     <WarehouseSwitcher
+      clubId={club.clubId}
       products={products}
       stats={stats}
       movements={movements}

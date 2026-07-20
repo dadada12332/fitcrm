@@ -9,6 +9,7 @@ import { WarehouseVersionToggle, type WarehouseVersion } from "./WarehouseVersio
 const STORAGE_KEY = "fitcrm.warehouseVersion"
 
 type Props = {
+  clubId: string
   products: PosProduct[]
   movements: StockMovement[]
   stats: InventoryStats
@@ -16,7 +17,7 @@ type Props = {
   canSell: boolean
 }
 
-export function WarehouseSwitcher({ products, movements, stats, connectedProviders, canSell }: Props) {
+export function WarehouseSwitcher({ clubId, products, movements, stats, connectedProviders, canSell }: Props) {
   const [version, setVersion] = useState<WarehouseVersion>("table")
   const [ready, setReady] = useState(false)
 
@@ -34,9 +35,9 @@ export function WarehouseSwitcher({ products, movements, stats, connectedProvide
   const toggle = <WarehouseVersionToggle value={version} onChange={change} />
 
   // До гидратации рисуем таблицу без тумблера — чтобы не мигало.
-  if (!ready) return <InventoryClient products={products} movements={movements} stats={stats} />
+  if (!ready) return <InventoryClient clubId={clubId} products={products} movements={movements} stats={stats} />
 
   return version === "pos"
-    ? <PosClient products={products} connectedProviders={connectedProviders} canSell={canSell} versionControl={toggle} />
-    : <InventoryClient products={products} movements={movements} stats={stats} versionControl={toggle} />
+    ? <PosClient clubId={clubId} products={products} connectedProviders={connectedProviders} canSell={canSell} versionControl={toggle} />
+    : <InventoryClient clubId={clubId} products={products} movements={movements} stats={stats} versionControl={toggle} />
 }

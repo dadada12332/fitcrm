@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useActionState, useTransition } from "react"
+import { useState, useActionState, useTransition, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Building2, Clock, CreditCard, Users, ArrowLeft, ArrowRight, Check, Plus } from "lucide-react"
 import { BrandingCarousel } from "@/app/(auth)/BrandingCarousel"
-import { saveClubInfoAction, saveWorkingHoursAction, createFirstMembershipAction, type OnboardingState } from "./actions"
+import { inviteStaffAction } from "@/app/(app)/settings/club/actions"
+import { saveClubInfoAction, saveWorkingHoursAction, createFirstMembershipAction, completeOnboardingAction, type OnboardingState } from "./actions"
 import { MoneyInput } from "@/components/app/MoneyInput"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -104,13 +105,13 @@ function NavButtons({ onBack, pending, nextLabel = "Далее", noBack }: {
 
 // ── Step 1 ────────────────────────────────────────────────────────
 
-function Step1({ onNext }: { onNext: () => void }) {
+function Step1({ onNext, clubName }: { onNext: () => void; clubName: string }) {
   const [state, action, pending] = useActionState<OnboardingState, FormData>(
     async (prev, fd) => { const r = await saveClubInfoAction(prev, fd); if (r.ok) onNext(); return r }, {}
   )
   return (
     <form action={action} className="flex flex-col gap-4">
-      <Field label="Название клуба" name="name" placeholder="PowerGym" autoFocus />
+      <Field label="Название клуба" name="name" placeholder="PowerGym" defaultValue={clubName} autoFocus />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3">
         <Field label="Город" name="city" placeholder="Ташкент" />
         <Field label="Телефон" name="phone" type="tel" placeholder="+998 90 000 00 00" />
@@ -189,11 +190,22 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
 function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void }) {
   const [email, setEmail] = useState("")
   const [sent, setSent]   = useState<string[]>([])
+  const [error, setError] = useState("")
   const [pending, startT] = useTransition()
 
   function addInvite() {
     if (!email.trim()) return
-    startT(async () => { setSent(p => [...p, email.trim()]); setEmail("") })
+    startT(async () => {
+      setError("")
+      const normalizedEmail = email.trim().toLowerCase()
+      const result = await inviteStaffAction({ email: normalizedEmail, role: "trainer" })
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      setSent((previous) => [...previous, normalizedEmail])
+      setEmail("")
+    })
   }
 
   return (
@@ -207,7 +219,7 @@ function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void 
             placeholder="trainer@example.com"
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInvite())} />
           <Button type="button" onClick={addInvite} disabled={pending || !email.trim()} className="h-10 w-full sm:w-auto">
-            <Plus className="size-4" /> Добавить
+            <Plus className="size-4" /> Отправить приглашение
           </Button>
         </div>
       </div>
@@ -222,6 +234,8 @@ function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void 
           ))}
         </div>
       )}
+
+      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
       <p className="text-xs text-muted-foreground">
         Вы можете пропустить этот шаг и добавить сотрудников позже в разделе «Настройки → Сотрудники»
@@ -246,10 +260,17 @@ function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void 
 
 // ── Main wizard ───────────────────────────────────────────────────
 
-export function OnboardingWizard({ clubName: _ }: { clubName: string }) {
-  const [step, setStep] = useState(1)
+export function OnboardingWizard({ clubName, initialStep }: { clubName: string; initialStep: number }) {
+  const [step, setStep] = useState(initialStep)
   const router = useRouter()
   const current = STEPS[step - 1]
+
+  function finish() {
+    startTransition(async () => {
+      const result = await completeOnboardingAction()
+      if (result.ok) router.push("/dashboard")
+    })
+  }
 
   return (
     <div className="min-h-svh bg-background lg:flex">
@@ -270,9 +291,11 @@ export function OnboardingWizard({ clubName: _ }: { clubName: string }) {
             </div>
             <span className="text-sm font-semibold text-foreground">fitCRM</span>
           </div>
-          <Button type="button" variant="ghost" size="sm" onClick={() => router.push("/dashboard")} className="h-8">
-            Пропустить настройку
-          </Button>
+          {step > 1 && (
+            <Button type="button" variant="ghost" size="sm" onClick={finish} className="h-8">
+              Пропустить настройку
+            </Button>
+          )}
         </div>
 
         {/* Form area — centered vertically */}
@@ -291,10 +314,10 @@ export function OnboardingWizard({ clubName: _ }: { clubName: string }) {
             </div>
 
             {/* Forms */}
-            {step === 1 && <Step1 onNext={() => setStep(2)} />}
+            {step === 1 && <Step1 clubName={clubName} onNext={() => setStep(2)} />}
             {step === 2 && <Step2 onNext={() => setStep(3)} onBack={() => setStep(1)} />}
             {step === 3 && <Step3 onNext={() => setStep(4)} onBack={() => setStep(2)} />}
-            {step === 4 && <Step4 onFinish={() => router.push("/dashboard")} onBack={() => setStep(3)} />}
+            {step === 4 && <Step4 onFinish={finish} onBack={() => setStep(3)} />}
           </section>
         </div>
 

@@ -35,13 +35,18 @@ export async function GET(request: Request) {
       // Smart redirect: check if user has a club → dashboard or onboarding
       const { data: staff } = await supabase
         .from("staff")
-        .select("club_id")
+        .select("club_id, clubs(settings)")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .limit(1)
         .maybeSingle()
 
-      return NextResponse.redirect(`${origin}${staff ? "/dashboard" : "/onboarding"}`)
+      const joinedClub = Array.isArray(staff?.clubs) ? staff.clubs[0] : staff?.clubs
+      const settings = (joinedClub?.settings as Record<string, unknown> | null) ?? {}
+      const needsOnboarding = !staff
+        || (settings.onboarding_started === true && settings.onboarding_completed !== true)
+
+      return NextResponse.redirect(`${origin}${needsOnboarding ? "/onboarding" : "/dashboard"}`)
     }
   }
 

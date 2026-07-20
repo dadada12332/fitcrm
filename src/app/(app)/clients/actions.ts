@@ -54,13 +54,14 @@ export async function createClientAction(
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!can(club.permissions, "clients", "create")) return { error: "Недостаточно прав" }
+  const clubId = club.clubId
 
   const supabase = await createClient()
 
   const { data: newClient, error: clientErr } = await supabase
     .from("clients")
     .insert({
-      club_id: club.clubId,
+      club_id: clubId,
       full_name: lastName ? `${firstName} ${lastName}` : firstName,
       phone: phone || null,
       gender: gender || null,
@@ -79,14 +80,19 @@ export async function createClientAction(
 
   const clientId = newClient.id as string
 
+  async function rollbackClient(message: string): Promise<ClientFormState> {
+    await supabase.from("clients").delete().eq("id", clientId).eq("club_id", clubId)
+    return { error: message }
+  }
+
   if (membershipId) {
     const today = new Date()
     const todayStr = today.toISOString().split("T")[0]
 
     if (membershipId === "single") {
       const tomorrow = new Date(today.getTime() + 86_400_000)
-      await supabase.from("subscriptions").insert({
-        club_id: club.clubId,
+      const { error: subscriptionError } = await supabase.from("subscriptions").insert({
+        club_id: clubId,
         client_id: clientId,
         membership_id: null,
         visits_total: 1,
@@ -95,26 +101,29 @@ export async function createClientAction(
         expires_at: tomorrow.toISOString().split("T")[0],
         status: "active",
       })
+      if (subscriptionError) return rollbackClient("Не удалось создать разовый абонемент")
     } else {
-      const { data: mem } = await supabase
+      const { data: mem, error: membershipError } = await supabase
         .from("memberships")
         .select("duration_days, visits_limit")
         .eq("id", membershipId)
+        .eq("club_id", clubId)
         .single()
 
-      if (mem) {
-        const expires = new Date(today.getTime() + (mem.duration_days as number) * 86_400_000)
-        await supabase.from("subscriptions").insert({
-          club_id: club.clubId,
-          client_id: clientId,
-          membership_id: membershipId,
-          visits_total: (mem.visits_limit as number | null) ?? null,
-          visits_used: 0,
-          starts_at: todayStr,
-          expires_at: expires.toISOString().split("T")[0],
-          status: "active",
-        })
-      }
+      if (membershipError || !mem) return rollbackClient("Выбранный абонемент не найден")
+
+      const expires = new Date(today.getTime() + (mem.duration_days as number) * 86_400_000)
+      const { error: subscriptionError } = await supabase.from("subscriptions").insert({
+        club_id: clubId,
+        client_id: clientId,
+        membership_id: membershipId,
+        visits_total: (mem.visits_limit as number | null) ?? null,
+        visits_used: 0,
+        starts_at: todayStr,
+        expires_at: expires.toISOString().split("T")[0],
+        status: "active",
+      })
+      if (subscriptionError) return rollbackClient("Клиент не создан: не удалось назначить абонемент")
     }
   }
 

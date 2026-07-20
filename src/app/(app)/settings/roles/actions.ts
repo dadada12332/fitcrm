@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions } from "@/lib/permissions"
@@ -20,17 +21,27 @@ export async function getRolesAction(): Promise<{ roles: RoleRow[]; error?: stri
   const club = await getCurrentClub()
   if (!club) return { roles: [], error: "Клуб не найден" }
 
-  // Ensure default roles exist (lazy creation for older clubs)
-  const { error: defaultsError } = await supabase.rpc("create_default_club_roles", { p_club_id: club.clubId })
-  if (defaultsError) return { roles: [], error: "Не удалось подготовить роли" }
-
-  const [rolesRes, staffRes] = await Promise.all([
+  let [rolesRes, staffRes] = await Promise.all([
     supabase.from("club_roles").select("id, key, name, description, permissions, is_system").eq("club_id", club.clubId).order("created_at"),
     supabase.from("staff").select("role").eq("club_id", club.clubId).eq("is_active", true),
   ])
 
   if (rolesRes.error || staffRes.error) {
     return { roles: [], error: "Не удалось загрузить роли" }
+  }
+
+  // Older clubs may not have defaults yet. Run the privileged helper only once,
+  // instead of adding an extra service-role round trip to every settings load.
+  if (!rolesRes.data?.length) {
+    const service = createServiceClient()
+    const { error: defaultsError } = await service.rpc("create_default_club_roles", { p_club_id: club.clubId })
+    if (defaultsError) return { roles: [], error: "Не удалось подготовить роли" }
+    rolesRes = await supabase
+      .from("club_roles")
+      .select("id, key, name, description, permissions, is_system")
+      .eq("club_id", club.clubId)
+      .order("created_at")
+    if (rolesRes.error) return { roles: [], error: "Не удалось загрузить роли" }
   }
 
   const staffList = staffRes.data ?? []

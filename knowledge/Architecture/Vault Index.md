@@ -16,6 +16,7 @@ updated: 2026-07-18
 
 - [[Daily/2026-07-18]]
 - [[Daily/2026-07-19]]
+- [[Daily/2026-07-20]]
 
 ## Database
 
@@ -48,6 +49,10 @@ updated: 2026-07-18
 
 - [[Releases/v0.1.0]]
 
+## Reports
+
+- [[Reports/Launch Readiness 2026-07-20]]
+
 ## Research
 
 - [[Research/AI Analytics References]]
@@ -78,6 +83,7 @@ updated: 2026-07-18
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
+- [[Tasks/TASK-0024-launch-readiness-audit-and-hardening]]
 
 ## UX
 

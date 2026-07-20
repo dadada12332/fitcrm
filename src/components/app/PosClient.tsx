@@ -50,7 +50,8 @@ const STATUS_META: Record<StockStatus, { color: string; label: (q: number, u: st
 
 type CartLine = { product: PosProduct; qty: number }
 
-export function PosClient({ products, connectedProviders, canSell, versionControl }: {
+export function PosClient({ clubId, products, connectedProviders, canSell, versionControl }: {
+  clubId: string
   products: PosProduct[]
   connectedProviders: string[]
   canSell: boolean
@@ -214,7 +215,7 @@ export function PosClient({ products, connectedProviders, canSell, versionContro
         onClose={() => setCheckout(null)} onDone={onSaleDone} />}
 
       {/* Действия склада (те же дроверы, что во вкладке «Таблица») */}
-      <AddProductModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddProductModal clubId={clubId} open={addOpen} onClose={() => setAddOpen(false)} />
       <SupplyModal open={supplyOpen} onClose={() => setSupplyOpen(false)} products={products} />
       <WriteoffModal open={writeoffOpen} onClose={() => setWriteoffOpen(false)} products={products} />
     </div>

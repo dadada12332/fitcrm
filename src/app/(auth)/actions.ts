@@ -7,6 +7,19 @@ import { createServiceClient } from "@/lib/supabase/service"
 
 export type AuthState = { error?: string; message?: string }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function authErrorMessage(message: string): string {
+  const normalized = message.toLowerCase()
+  if (normalized.includes("already registered") || normalized.includes("already been registered")) {
+    return "Этот email уже зарегистрирован"
+  }
+  if (normalized.includes("invalid") && normalized.includes("email")) return "Введите корректный email"
+  if (normalized.includes("rate limit")) return "Слишком много попыток. Попробуйте немного позже"
+  if (normalized.includes("password")) return "Пароль не соответствует требованиям безопасности"
+  return "Не удалось выполнить операцию. Попробуйте ещё раз"
+}
+
 /* ── helper: where to go after login ── */
 type AuthClient = Awaited<ReturnType<typeof createClient>>
 
@@ -14,12 +27,17 @@ export async function resolvePostLoginRedirect(userId: string, client?: AuthClie
   const supabase = client ?? await createClient()
   const { data } = await supabase
     .from("staff")
-    .select("club_id")
+    .select("club_id, clubs(settings)")
     .eq("user_id", userId)
     .eq("is_active", true)
 
   if (!data || data.length === 0) return "/onboarding"
-  if (data.length === 1) return "/dashboard"
+  if (data.length === 1) {
+    const joinedClub = Array.isArray(data[0].clubs) ? data[0].clubs[0] : data[0].clubs
+    const settings = (joinedClub?.settings as Record<string, unknown> | null) ?? {}
+    if (settings.onboarding_started === true && settings.onboarding_completed !== true) return "/onboarding"
+    return "/dashboard"
+  }
   return "/select-club"
 }
 
@@ -29,25 +47,32 @@ export async function signUpWithClub(_prev: AuthState, formData: FormData): Prom
   const password = String(formData.get("password") ?? "")
   const confirmPassword = String(formData.get("confirmPassword") ?? "")
   const clubName = String(formData.get("clubName") ?? "").trim()
+  const acceptedTerms = formData.get("acceptedTerms") === "on"
 
   if (!email || !password || !clubName) return { error: "Заполните все обязательные поля" }
+  if (!EMAIL_PATTERN.test(email)) return { error: "Введите корректный email" }
   if (password.length < 8) return { error: "Пароль должен быть не короче 8 символов" }
   if (password !== confirmPassword) return { error: "Пароли не совпадают" }
+  if (!acceptedTerms) return { error: "Примите условия использования и политику конфиденциальности" }
 
   const supabase = await createClient()
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        pending_club_name: clubName,
+        terms_accepted_at: new Date().toISOString(),
+      },
+    },
+  })
   if (error) {
-    if (error.message.includes("already registered")) return { error: "Этот email уже зарегистрирован" }
-    return { error: error.message }
+    return { error: authErrorMessage(error.message) }
   }
 
   if (!data.session) {
     return { message: "confirm_email" }
   }
-
-  // Create club + assign owner role via RPC
-  const { error: clubError } = await supabase.rpc("create_club", { p_name: clubName })
-  if (clubError) return { error: clubError.message }
 
   redirect("/onboarding")
 }
@@ -96,6 +121,7 @@ export async function signInWithGoogle(formData?: FormData) {
 export async function sendPasswordReset(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim()
   if (!email) return { error: "Введите email" }
+  if (!EMAIL_PATTERN.test(email)) return { error: "Введите корректный email" }
 
   const origin = (await headers()).get("origin") ?? ""
   const supabase = await createClient()
@@ -103,7 +129,7 @@ export async function sendPasswordReset(_prev: AuthState, formData: FormData): P
     redirectTo: `${origin}/reset-password`,
   })
 
-  if (error) return { error: error.message }
+  if (error) return { error: authErrorMessage(error.message) }
   return { message: "sent" }
 }
 
@@ -118,7 +144,7 @@ export async function resetPassword(_prev: AuthState, formData: FormData): Promi
 
   const supabase = await createClient()
   const { error } = await supabase.auth.updateUser({ password })
-  if (error) return { error: error.message }
+  if (error) return { error: authErrorMessage(error.message) }
 
   redirect("/dashboard")
 }

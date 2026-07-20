@@ -1,10 +1,12 @@
 ---
 type: current-task
-status: empty
-updated: 2026-07-19
+status: in-progress
+updated: 2026-07-20
 tags: [fitcrm, tasks]
 ---
 
 # Current Task
 
-Нет активной задачи. Новую значимую задачу создайте через `npm run docs:task -- "Название"` и назначьте её текущей только по прямому запросу владельца.
+[[Tasks/TASK-0024-launch-readiness-audit-and-hardening|TASK-0024 — Launch readiness audit and hardening]]
+
+Проверка готовности FitCRM к массовому запуску: инфраструктура, безопасность, auth/onboarding, основные CRM-флоу, UI consistency, производительность и release gate.

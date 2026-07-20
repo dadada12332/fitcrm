@@ -172,6 +172,8 @@ export async function createTelegramStaffPairingAction(): Promise<{ error?: stri
 
 /** Загружает картинку рассылки в storage и возвращает public URL. */
 async function uploadBroadcastImage(clubId: string, image: File): Promise<string | null> {
+  const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
+  if (!allowedTypes.has(image.type) || image.size > 8 * 1024 * 1024) return null
   const supabase = await createClient()
   const ext = (image.name.split(".").pop() || "jpg").toLowerCase()
   const path = `${clubId}/${crypto.randomUUID()}.${ext}`

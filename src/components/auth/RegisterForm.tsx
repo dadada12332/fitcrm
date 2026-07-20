@@ -142,7 +142,7 @@ export function RegisterForm() {
 
             {/* Terms */}
             <label className="flex items-start gap-2.5 cursor-pointer select-none">
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
+              <input type="checkbox" name="acceptedTerms" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
                 className="mt-0.5 rounded"
                 style={{ accentColor: "#0f172a", width: 15, height: 15, flexShrink: 0 }} />
               <span className="text-sm leading-snug" style={{ color: "#64748b" }}>
