@@ -20,6 +20,7 @@ RPCs cover layout/dashboard context, KPI, paginated clients/payments/visits, rep
 
 ## Runtime status
 
+- `growth_experiment_runs` хранит club-scoped lifecycle Growth OS; RLS разрешает участникам клуба только чтение, а записи выполняются service-side после permission check. Миграции `0073` и `20260720154135` применены и проверены.
 - Production имеет 38/38 `public` tables с RLS; миграция `0055` проверена по grants/prosecdef.
 - Supabase region: `ap-southeast-2` (Sydney), рядом с Vercel `syd1`.
 - Backup availability проверена: Free plan, PITR off, snapshots `0`; restore drill blocked до isolated target.

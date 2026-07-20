@@ -22,6 +22,7 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Growth OS «Эксперименты» теперь ведут сотрудника по этапам настройки, контакта и результата внутри drawer; запуски и выводы сохраняются на уровне клуба, а «Playbooks» переименованы в «Сценарии» с понятной инструкцией по применению текста.
 - Регистрация и login теперь корректно возобновляют незавершённый onboarding; шаги сохраняются, а приглашения команды отправляются реально.
 - Уведомления загружают полный список только при открытии drawer; badge приходит вместе с sidebar aggregate.
 - Landing overview получил плавную смену реальных экранов CRM, progress состояния, паузу при взаимодействии и полноценную mobile/keyboard адаптацию.
@@ -35,6 +36,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Выход из аккаунта теперь требует подтверждения и защищён от случайного нажатия в sidebar.
 - Исправлена повторная поломка «Ролей и прав» после security hardening, theme hydration mismatch и частичное создание клиента при ошибке абонемента.
 - Создание клиента из ручного посещения теперь открывает client drawer; неработающее Telegram-действие в долгах скрыто до реализации.
 - Активная вкладка Growth OS теперь визуально выделяется общей для CRM плашкой и нейтральным текстом во всех четырёх разделах и обеих темах.
@@ -84,6 +86,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
 - `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
 - `b60cc07` · 2026-07-20 · feat: complete retention outreach workflow
@@ -113,5 +116,4 @@ tags: [fitcrm, releases]
 - `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
 - `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 - `2628a08` · 2026-07-18 · Align AI analytics page spacing
-- `1610389` · 2026-07-18 · Document Telegram client identity model [skip ci]
 <!-- AUTO:END changelog-candidates -->

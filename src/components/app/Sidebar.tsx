@@ -7,13 +7,13 @@ import {
   LayoutDashboard, Users, CreditCard, Activity,
   Calendar, Wallet, Package, UserCog, BarChart2,
   Settings, HelpCircle, BookOpen, Plug,
-  ChevronDown, Check, LogOut,
+  ChevronDown, Check,
   GitFork,
   HeartHandshake, Rocket,
 } from "lucide-react"
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
-import { signOut } from "@/app/(auth)/actions"
 import { QuickActionsMenu } from "@/components/app/QuickActionsMenu"
+import { ConfirmSignOut } from "@/components/app/ConfirmSignOut"
 import { resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
@@ -435,13 +435,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
           )}
         </Link>
         {!collapsed && (
-          <form action={signOut}>
-            <button type="submit" title="Выйти"
-              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 flex-shrink-0"
-              style={{ color: "#ef4444" }}>
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </form>
+          <ConfirmSignOut />
         )}
       </div>
     </aside>

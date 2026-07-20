@@ -21,8 +21,8 @@ export function GrowthPlaybooks({ playbooks }: { playbooks: GrowthPlaybook[] }) 
       <div className="flex gap-3 rounded-xl border border-border bg-muted/40 p-4">
         <ShieldCheck className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
         <div>
-          <p className="text-sm font-medium text-foreground">Human-in-the-loop</p>
-          <p className="mt-1 text-xs text-muted-foreground">FitCRM готовит аудиторию и текст, но ничего не отправляет автоматически. Сотрудник проверяет контекст и только затем выбирает канал.</p>
+          <p className="text-sm font-medium text-foreground">Отправляет сотрудник</p>
+          <p className="mt-1 text-xs text-muted-foreground">FitCRM готовит аудиторию и текст. Скопируйте его для Telegram или используйте как основу разговора по телефону.</p>
         </div>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -40,7 +40,7 @@ export function GrowthPlaybooks({ playbooks }: { playbooks: GrowthPlaybook[] }) 
               <blockquote className="rounded-xl bg-muted p-4 text-sm leading-6 text-foreground">{playbook.message}</blockquote>
               <Button type="button" variant="outline" className="w-full" onClick={() => copy(playbook)}>
                 {copied === playbook.id ? <Check data-icon="inline-start" /> : <Clipboard data-icon="inline-start" />}
-                {copied === playbook.id ? "Скопировано" : "Скопировать сценарий"}
+                {copied === playbook.id ? "Скопировано" : "Скопировать текст"}
               </Button>
             </CardContent>
           </Card>

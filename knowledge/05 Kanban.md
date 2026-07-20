@@ -30,6 +30,7 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-in-progress -->
 - [ ] TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
+- [ ] TASK-0029 · Безопасный выход и понятный flow экспериментов Growth OS · feature · P1 · growth · 2026-07-20 · [[03 Current Task]]
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review

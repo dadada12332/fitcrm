@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: de36532 · 2026-07-20T20:14:17+05:00 · feat: add first-run product onboarding.
+- Последний commit: 70f17dd · 2026-07-20T20:17:51+05:00 · docs: record product onboarding release [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 72; последняя `0072_protect_product_onboarding_state.sql`.
+- Миграции в Git: 74; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 

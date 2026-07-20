@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
 - `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
 - `b60cc07` · 2026-07-20 · feat: complete retention outreach workflow
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `63d1989` · 2026-07-20 · feat: add retention AI copilot
 - `bc10d6d` · 2026-07-20 · docs: retire resolved launch issues [skip ci]
 - `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
-- `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

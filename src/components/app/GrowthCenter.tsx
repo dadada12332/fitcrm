@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@/components/ui/tabs"
-import type { GrowthData, GrowthPlaybook } from "@/lib/growth"
+import type { GrowthData, GrowthExperimentRun, GrowthPlaybook } from "@/lib/growth"
 
 const formatMoney = (value: number) => `${value.toLocaleString("ru-RU")} сум`
 const formatTrend = (value: number) => `${value >= 0 ? "+" : ""}${Math.round(value)}%`
@@ -20,10 +20,11 @@ const PRIORITY_META = {
   medium: { label: "Следом", variant: "outline" as const },
 }
 
-export function GrowthCenter({ data }: { data: GrowthData }) {
+export function GrowthCenter({ data, initialRuns }: { data: GrowthData; initialRuns: GrowthExperimentRun[] }) {
   const [tab, setTab] = useState("today")
   const [preferredPlaybook, setPreferredPlaybook] = useState<GrowthPlaybook["id"] | null>(null)
-  const openPlaybook = (id: GrowthPlaybook["id"]) => { setPreferredPlaybook(id); setTab("playbooks") }
+  const [runs, setRuns] = useState(initialRuns)
+  const updateRun = (run: GrowthExperimentRun) => setRuns((current) => [run, ...current.filter((item) => item.id !== run.id)])
   const openAction = (destination: "playbooks" | "experiments", playbookId?: GrowthPlaybook["id"]) => {
     if (destination === "experiments") {
       setTab("experiments")
@@ -61,7 +62,7 @@ export function GrowthCenter({ data }: { data: GrowthData }) {
       </div>
 
       <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
-        <div className="overflow-x-auto pb-1"><TabsList className="min-w-max"><TabsTab value="today">Сегодня</TabsTab><TabsTab value="simulator">Симулятор</TabsTab><TabsTab value="playbooks">Playbooks</TabsTab><TabsTab value="experiments">Эксперименты</TabsTab></TabsList></div>
+        <div className="overflow-x-auto pb-1"><TabsList className="min-w-max"><TabsTab value="today">Сегодня</TabsTab><TabsTab value="simulator">Симулятор</TabsTab><TabsTab value="playbooks">Сценарии</TabsTab><TabsTab value="experiments">Эксперименты</TabsTab></TabsList></div>
         <TabsPanel value="today" className="mt-4 space-y-4">
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><CalendarCheck2 className="size-4 text-muted-foreground" /> План на сегодня</CardTitle><CardDescription>Очередь автоматически собрана по срочности и денежному потенциалу. Начните сверху.</CardDescription></CardHeader>
@@ -78,7 +79,7 @@ export function GrowthCenter({ data }: { data: GrowthData }) {
         </TabsPanel>
         <TabsPanel value="simulator" className="mt-4"><GrowthSimulator pools={data.pools} /></TabsPanel>
         <TabsPanel value="playbooks" className="mt-4">{preferredPlaybook && <p className="mb-3 text-xs text-muted-foreground">Выбранный эксперимент использует playbook: <span className="font-medium text-foreground">{data.playbooks.find((item) => item.id === preferredPlaybook)?.title}</span></p>}<GrowthPlaybooks playbooks={data.playbooks} /></TabsPanel>
-        <TabsPanel value="experiments" className="mt-4"><GrowthExperiments experiments={data.experiments} onOpenPlaybook={openPlaybook} /></TabsPanel>
+        <TabsPanel value="experiments" className="mt-4"><GrowthExperiments experiments={data.experiments} playbooks={data.playbooks} runs={runs} onRunChange={updateRun} /></TabsPanel>
       </Tabs>
     </div>
   )

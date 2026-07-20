@@ -60,6 +60,46 @@ export type GrowthExperiment = {
   playbookId: GrowthPlaybook["id"]
 }
 
+export type GrowthExperimentRun = {
+  id: string
+  experimentKey: string
+  title: string
+  hypothesis: string
+  primaryMetric: string
+  expectedImpact: string
+  durationDays: number
+  playbookId: GrowthPlaybook["id"]
+  message: string
+  audienceSize: number
+  status: "active" | "completed" | "cancelled"
+  startedAt: string
+  endsAt: string
+  completedAt: string | null
+  result: "won" | "inconclusive" | "lost" | null
+  resultValue: string | null
+  resultNote: string | null
+}
+
+export type GrowthExperimentRunRow = {
+  id: string
+  experiment_key: string
+  title: string
+  hypothesis: string
+  primary_metric: string
+  expected_impact: string
+  duration_days: number
+  playbook_id: GrowthPlaybook["id"]
+  message: string
+  audience_size: number
+  status: GrowthExperimentRun["status"]
+  started_at: string
+  ends_at: string
+  completed_at: string | null
+  result: GrowthExperimentRun["result"]
+  result_value: string | null
+  result_note: string | null
+}
+
 export type GrowthData = {
   health: { score: number; label: string; explanation: string }
   metrics: {
@@ -76,6 +116,36 @@ export type GrowthData = {
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+export const GROWTH_EXPERIMENT_CATALOG: GrowthExperiment[] = [
+  { id: "48h-renewal", title: "Окно продления 48 часов", hypothesis: "Личное предложение до окончания абонемента увеличит долю продлений без скидки.", metric: "Конверсия в продление", durationDays: 14, expectedImpact: "+10–20% к продлениям", playbookId: "renewal" },
+  { id: "three-visits", title: "Первые 3 визита", hypothesis: "Клиент, заранее выбравший первые три тренировки, быстрее формирует привычку.", metric: "Доля с 3 визитами за 14 дней", durationDays: 21, expectedImpact: "Снижение раннего оттока", playbookId: "onboarding" },
+  { id: "human-comeback", title: "Возврат без скидки", hypothesis: "Вопрос о причине паузы работает лучше массового промокода.", metric: "Вернувшиеся за 14 дней", durationDays: 14, expectedImpact: "+5–12% win-back", playbookId: "comeback" },
+  { id: "debt-choice", title: "Выбор способа оплаты", hypothesis: "Предложение двух понятных вариантов снижает игнорирование задолженности.", metric: "Собранная задолженность", durationDays: 10, expectedImpact: "+10% к collection rate", playbookId: "debt" },
+  { id: "member-referral", title: "Приведи партнёра", hypothesis: "Совместная тренировка мотивирует действующих клиентов сильнее денежной скидки.", metric: "Новые клиенты по рекомендации", durationDays: 30, expectedImpact: "1–3 лида на 100 клиентов", playbookId: "onboarding" },
+]
+
+export function mapGrowthExperimentRun(row: GrowthExperimentRunRow): GrowthExperimentRun {
+  return {
+    id: row.id,
+    experimentKey: row.experiment_key,
+    title: row.title,
+    hypothesis: row.hypothesis,
+    primaryMetric: row.primary_metric,
+    expectedImpact: row.expected_impact,
+    durationDays: row.duration_days,
+    playbookId: row.playbook_id,
+    message: row.message,
+    audienceSize: row.audience_size,
+    status: row.status,
+    startedAt: row.started_at,
+    endsAt: row.ends_at,
+    completedAt: row.completed_at,
+    result: row.result,
+    resultValue: row.result_value,
+    resultNote: row.result_note,
+  }
+}
 
 function percentChange(current: number, previous: number) {
   if (previous <= 0) return current > 0 ? 100 : 0
@@ -156,13 +226,7 @@ export function buildGrowthData(dashboard: DashboardData, retention: RetentionDa
     { id: "debt", title: "Оплата без конфликта", trigger: "Есть задолженность", audience: dashboard.debtCount, channel: "Telegram / звонок", message: "Здравствуйте! Напоминаем об оплате по абонементу. Если сейчас неудобно оплатить полностью, свяжитесь с нами — вместе найдём понятный вариант и срок." },
     { id: "onboarding", title: "Первые три посещения", trigger: "Новый клиент ещё не сформировал привычку", audience: dashboard.todayNewClients, channel: "Telegram", message: "Добро пожаловать! Самое важное сейчас — спокойно войти в ритм. Давайте сразу выберем три удобных времени для первых тренировок. Если нужна помощь тренера, просто ответьте на сообщение." },
   ]
-  const experiments: GrowthExperiment[] = [
-    { id: "48h-renewal", title: "Окно продления 48 часов", hypothesis: "Личное предложение до окончания абонемента увеличит долю продлений без скидки.", metric: "Конверсия в продление", durationDays: 14, expectedImpact: "+10–20% к продлениям", playbookId: "renewal" },
-    { id: "three-visits", title: "Первые 3 визита", hypothesis: "Клиент, заранее выбравший первые три тренировки, быстрее формирует привычку.", metric: "Доля с 3 визитами за 14 дней", durationDays: 21, expectedImpact: "Снижение раннего оттока", playbookId: "onboarding" },
-    { id: "human-comeback", title: "Возврат без скидки", hypothesis: "Вопрос о причине паузы работает лучше массового промокода.", metric: "Вернувшиеся за 14 дней", durationDays: 14, expectedImpact: "+5–12% win-back", playbookId: "comeback" },
-    { id: "debt-choice", title: "Выбор способа оплаты", hypothesis: "Предложение двух понятных вариантов снижает игнорирование задолженности.", metric: "Собранная задолженность", durationDays: 10, expectedImpact: "+10% к collection rate", playbookId: "debt" },
-    { id: "member-referral", title: "Приведи партнёра", hypothesis: "Совместная тренировка мотивирует действующих клиентов сильнее денежной скидки.", metric: "Новые клиенты по рекомендации", durationDays: 30, expectedImpact: "1–3 лида на 100 клиентов", playbookId: "onboarding" },
-  ]
+  const experiments = GROWTH_EXPERIMENT_CATALOG
 
   return {
     health: { score: healthScore, label: healthLabel, explanation: healthExplanation },
