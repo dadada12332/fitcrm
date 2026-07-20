@@ -82,6 +82,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
 - `ac1a6fe` · 2026-07-20 · Record verified launch readiness status
 - `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
 - `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
@@ -111,5 +112,4 @@ tags: [fitcrm, releases]
 - `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
 - `0e869c3` · 2026-07-18 · Document Telegram multi-club self-test fix [skip ci]
 - `9cd0b22` · 2026-07-18 · Scope Telegram self-test to current club
-- `e7ea58e` · 2026-07-18 · Document Telegram Mini App and Instagram rollout [skip ci]
 <!-- AUTO:END changelog-candidates -->

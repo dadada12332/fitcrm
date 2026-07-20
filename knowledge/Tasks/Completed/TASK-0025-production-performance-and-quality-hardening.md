@@ -1,7 +1,7 @@
 ---
 id: TASK-0025
 type: feature
-status: testing
+status: completed
 priority: P1
 module: platform
 created: 2026-07-20
@@ -33,7 +33,7 @@ Launch audit подтвердил controlled-beta readiness, но выявил 1
 - [x] TypeScript, unit/security tests, build и E2E проходят.
 - [x] Основные authenticated routes не имеют browser errors/overflow.
 - [x] Подтверждённые slow-path waterfalls сокращены и измерены.
-- [ ] Knowledge и Obsidian синхронизированы, production deployment проверен.
+- [x] Knowledge и Obsidian синхронизированы, production deployment проверен.
 
 ## Files and data
 
@@ -58,12 +58,14 @@ Tenant isolation, auth, production data и существующие пользо
 - `npx tsc --noEmit` — успешно.
 - `npm test` — 107 passed, 1 skipped.
 - `npm run test:e2e` — 34 passed на desktop/mobile.
+- Production `npm run test:e2e` на `fitcrm-three.vercel.app` — 34 passed на desktop/mobile.
 - `npm run build` — успешно, 58 static pages.
 - Supabase Security и Performance Advisors — 0 замечаний после migration 0068.
+- Vercel deployment `dpl_DMJquHdRWL4xHrRgisrnoqtLyW1c` — READY, production alias проверен.
 
 ## Remaining
 
-Проверить deployment на production, удалить disposable QA data, закрыть задачу и синхронизировать Obsidian.
+Нет. Disposable QA club/user удалены после production-проверки.
 
 ## Blockers
 

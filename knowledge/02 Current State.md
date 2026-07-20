@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: ac1a6fe · 2026-07-20T12:53:58+05:00 · Record verified launch readiness status.
+- Последний commit: 6e4e494 · 2026-07-20T13:57:55+05:00 · perf: harden CRM runtime and production checks.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 68; последняя `0068_staff_page_aggregate.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
