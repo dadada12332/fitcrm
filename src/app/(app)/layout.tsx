@@ -5,6 +5,7 @@ import { getSidebarStats } from "@/lib/sidebar"
 import { AppShell } from "@/components/app/AppShell"
 import { DiagnosticsProvider } from "@/components/app/DiagnosticsProvider"
 import { RealtimeProvider } from "@/components/app/RealtimeProvider"
+import { getProductOnboardingData } from "@/lib/product-onboarding"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getAuthUser()
@@ -29,6 +30,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const stats = await getSidebarStats(club.clubId, user.id, club.trialExpiresAt, user.user_metadata)
+  const productOnboarding = await getProductOnboardingData({
+    clubId: club.clubId,
+    userId: user.id,
+    staffId: stats.staffId,
+    role: club.role,
+    plan: club.plan,
+    trialDaysLeft: stats.trialDaysLeft,
+    impersonating: club.impersonating,
+  })
 
   return (
     <AppShell
@@ -41,6 +51,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       role={club.role}
       impersonating={club.impersonating}
       lockReason={lockReason}
+      productOnboarding={productOnboarding}
     >
       <DiagnosticsProvider />
       <RealtimeProvider clubId={club.clubId} />

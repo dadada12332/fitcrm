@@ -7,9 +7,11 @@ import { ShieldCheck, ArrowLeft, Lock, CreditCard, LifeBuoy, LogOut } from "luci
 import { Sidebar } from "./Sidebar"
 import { TopBar } from "./TopBar"
 import { ClubProvider } from "./ClubContext"
+import { ProductOnboarding } from "./ProductOnboarding"
 import { signOut } from "@/app/(auth)/actions"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
+import type { ProductOnboardingData } from "@/lib/product-onboarding"
 
 type LockReason = "suspended" | "trial" | "plan" | null
 
@@ -23,6 +25,7 @@ type Props = {
   role: string
   impersonating?: boolean
   lockReason?: LockReason
+  productOnboarding: ProductOnboardingData
   children: React.ReactNode
 }
 
@@ -63,7 +66,7 @@ function LockScreen({ reason, clubName }: { reason: "suspended" | "trial" | "pla
   )
 }
 
-export function AppShell({ clubId, clubName, plan, email, stats, permissions, role, impersonating, lockReason, children }: Props) {
+export function AppShell({ clubId, clubName, plan, email, stats, permissions, role, impersonating, lockReason, productOnboarding, children }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
@@ -120,6 +123,8 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, ro
         </div>
       )}
       <div className="flex overflow-hidden gap-2 bg-white dark:bg-zinc-950" style={{ height: impersonating ? "calc(100vh - 44px)" : "100vh" }}>
+
+        <ProductOnboarding {...productOnboarding} onMobileSidebarChange={setMobileOpen} />
 
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">

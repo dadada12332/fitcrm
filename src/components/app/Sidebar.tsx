@@ -64,7 +64,7 @@ function Badge({ value, type = "count" }: { value: string | number; type?: "coun
 
 // ── NavItem ──────────────────────────────────────────────────────
 function NavItem({
-  href, icon: Icon, label, badge, badgeType, collapsed,
+  href, icon: Icon, label, badge, badgeType, collapsed, tour,
 }: {
   href: string
   icon: React.ElementType
@@ -72,6 +72,7 @@ function NavItem({
   badge?: string | number
   badgeType?: "count" | "live" | "warn" | "new"
   collapsed?: boolean
+  tour?: string
 }) {
   const pathname = usePathname()
   const [prefetch, setPrefetch] = useState(false)
@@ -79,6 +80,7 @@ function NavItem({
 
   return (
     <Link
+      data-tour={tour}
       href={href}
       prefetch={prefetch ? null : false}
       onMouseEnter={() => setPrefetch(true)}
@@ -322,7 +324,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
       </div>
 
       {/* ── Quick action ── */}
-      <div className="pt-2 flex-shrink-0">
+      <div className="pt-2 flex-shrink-0" data-tour="quick-actions">
         <QuickActionsMenu collapsed={collapsed} />
       </div>
 
@@ -333,10 +335,10 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
         <div className="flex flex-col gap-0.5">
           <NavItem href="/dashboard"   icon={LayoutDashboard} label="Дашборд"    collapsed={collapsed} />
           {p.clients.view && (
-            <NavItem href="/clients" icon={Users} label="Клиенты" collapsed={collapsed} badge={stats.clientCount > 0 ? stats.clientCount : undefined} badgeType="count" />
+            <NavItem href="/clients" icon={Users} label="Клиенты" collapsed={collapsed} tour="nav-clients" badge={stats.clientCount > 0 ? stats.clientCount : undefined} badgeType="count" />
           )}
           {p.memberships.view && (
-            <NavItem href="/memberships" icon={CreditCard} label="Абонементы" collapsed={collapsed} badge={stats.activeMembershipCount > 0 ? stats.activeMembershipCount : undefined} badgeType="count" />
+            <NavItem href="/memberships" icon={CreditCard} label="Абонементы" collapsed={collapsed} tour="nav-memberships" badge={stats.activeMembershipCount > 0 ? stats.activeMembershipCount : undefined} badgeType="count" />
           )}
         </div>
 
@@ -379,7 +381,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
                 <NavItem href="/reports" icon={BarChart2} label="Отчёты" collapsed={collapsed} />
               )}
               {p.settings.integrations && (
-                <NavItem href="/integrations" icon={Plug} label="Интеграции" collapsed={collapsed} />
+                <NavItem href="/integrations" icon={Plug} label="Интеграции" collapsed={collapsed} tour="nav-integrations" />
               )}
               {p.ai.use && (
                 <AINavItem collapsed={collapsed} />
