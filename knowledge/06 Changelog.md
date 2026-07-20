@@ -84,6 +84,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `de36532` · 2026-07-20 · feat: add first-run product onboarding
+- `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
 - `b60cc07` · 2026-07-20 · feat: complete retention outreach workflow
 - `99cf665` · 2026-07-20 · docs: record verified retention AI release [skip ci]
 - `63d1989` · 2026-07-20 · feat: add retention AI copilot
@@ -112,6 +114,4 @@ tags: [fitcrm, releases]
 - `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 - `2628a08` · 2026-07-18 · Align AI analytics page spacing
 - `1610389` · 2026-07-18 · Document Telegram client identity model [skip ci]
-- `2e3e585` · 2026-07-18 · Link Telegram visits by CRM client identity
-- `26e801e` · 2026-07-18 · Document secure Telegram QR rollout [skip ci]
 <!-- AUTO:END changelog-candidates -->

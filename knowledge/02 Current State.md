@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: b60cc07 · 2026-07-20T16:30:01+05:00 · feat: complete retention outreach workflow.
+- Последний commit: de36532 · 2026-07-20T20:14:17+05:00 · feat: add first-run product onboarding.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 70; последняя `0070_fix_retention_interactions_client_index.sql`.
+- Миграции в Git: 72; последняя `0072_protect_product_onboarding_state.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 

@@ -77,4 +77,5 @@ kanban-plugin: board
 - [x] TASK-0025 · Production performance and quality hardening · feature · P1 · platform · 2026-07-20 · [[Tasks/Completed/TASK-0025-production-performance-and-quality-hardening]]
 - [x] TASK-0026 · AI-копилот удержания · feature · P1 · retention · 2026-07-20 · [[Tasks/Completed/TASK-0026-ai-kopilot-uderzhaniya]]
 - [x] TASK-0027 · Контакты и результаты удержания · feature · P1 · retention · 2026-07-20 · [[Tasks/Completed/TASK-0027-kontakty-i-rezul-taty-uderzhaniya]]
+- [x] TASK-0028 · Первый запуск: продуктовый тур и предложение подписки · documentation · P1 · onboarding · unknown · [[Tasks/Completed/TASK-0028-pervyi-zapusk-produktovyi-tur-i-predlozhenie-podpiski]]
 <!-- AUTO:END kanban-done -->
