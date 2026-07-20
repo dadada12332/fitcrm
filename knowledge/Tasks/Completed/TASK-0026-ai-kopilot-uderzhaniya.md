@@ -1,7 +1,7 @@
 ---
 id: TASK-0026
 type: feature
-status: testing
+status: completed
 priority: P1
 module: retention
 created: 2026-07-20
@@ -60,10 +60,12 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm run test:e2e` — 36 passed, включая retention AI на desktop/mobile.
 - `npm run build` — успешно.
 - Визуально проверены desktop 1280×720 и Pixel 7 без переполнения drawer.
+- Production E2E на `fitcrm-three.vercel.app` — 2/2 desktop/mobile retention AI scenarios.
+- Vercel deployment `dpl_Fp4VbYbWGUy9KNrQHEBjEQxkd72s` — READY.
 
 ## Remaining
 
-Развернуть в production, повторить E2E и удалить disposable QA data.
+Нет. Disposable QA club/user удалены после production-проверки.
 
 ## Blockers
 

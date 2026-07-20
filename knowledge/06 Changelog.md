@@ -84,6 +84,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `63d1989` · 2026-07-20 · feat: add retention AI copilot
 - `bc10d6d` · 2026-07-20 · docs: retire resolved launch issues [skip ci]
 - `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
 - `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
@@ -113,5 +114,4 @@ tags: [fitcrm, releases]
 - `26e801e` · 2026-07-18 · Document secure Telegram QR rollout [skip ci]
 - `efd8664` · 2026-07-18 · Secure Telegram Mini App QR passes
 - `d9295b4` · 2026-07-18 · Document Telegram Mini App back navigation [skip ci]
-- `dd013bb` · 2026-07-18 · Add Telegram Mini App back navigation
 <!-- AUTO:END changelog-candidates -->

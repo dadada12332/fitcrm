@@ -41,7 +41,7 @@ kanban-plugin: board
 ## Testing
 
 <!-- AUTO:START kanban-testing -->
-- [ ] TASK-0026 · AI-копилот удержания · feature · P1 · retention · 2026-07-20 · [[Tasks/TASK-0026-ai-kopilot-uderzhaniya]]
+
 <!-- AUTO:END kanban-testing -->
 
 ## Blocked
@@ -75,4 +75,5 @@ kanban-plugin: board
 - [x] TASK-0023 · Growth OS и ежедневный центр роста · feature · P1 · growth · 2026-07-19 · [[Tasks/Completed/TASK-0023-growth-os-i-ezhednevnyy-centr-rosta]]
 - [x] TASK-0024 · Launch readiness audit and hardening · feature · P0 · platform · 2026-07-20 · [[Tasks/Completed/TASK-0024-launch-readiness-audit-and-hardening]]
 - [x] TASK-0025 · Production performance and quality hardening · feature · P1 · platform · 2026-07-20 · [[Tasks/Completed/TASK-0025-production-performance-and-quality-hardening]]
+- [x] TASK-0026 · AI-копилот удержания · feature · P1 · retention · 2026-07-20 · [[Tasks/Completed/TASK-0026-ai-kopilot-uderzhaniya]]
 <!-- AUTO:END kanban-done -->
