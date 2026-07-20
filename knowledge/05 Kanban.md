@@ -30,7 +30,6 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-in-progress -->
 - [ ] TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
-- [ ] TASK-0029 · Безопасный выход и понятный flow экспериментов Growth OS · feature · P1 · growth · 2026-07-20 · [[03 Current Task]]
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review
@@ -79,4 +78,5 @@ kanban-plugin: board
 - [x] TASK-0026 · AI-копилот удержания · feature · P1 · retention · 2026-07-20 · [[Tasks/Completed/TASK-0026-ai-kopilot-uderzhaniya]]
 - [x] TASK-0027 · Контакты и результаты удержания · feature · P1 · retention · 2026-07-20 · [[Tasks/Completed/TASK-0027-kontakty-i-rezul-taty-uderzhaniya]]
 - [x] TASK-0028 · Первый запуск: продуктовый тур и предложение подписки · documentation · P1 · onboarding · unknown · [[Tasks/Completed/TASK-0028-pervyi-zapusk-produktovyi-tur-i-predlozhenie-podpiski]]
+- [x] TASK-0029 · Безопасный выход и понятный flow экспериментов Growth OS · feature · P1 · growth · 2026-07-20 · [[Tasks/Completed/TASK-0029-bezopasnyi-vyhod-i-ponyatnyi-flow-eksperimentov-growth-os]]
 <!-- AUTO:END kanban-done -->

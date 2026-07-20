@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 - `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
 - `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `99cf665` · 2026-07-20 · docs: record verified retention AI release [skip ci]
 - `63d1989` · 2026-07-20 · feat: add retention AI copilot
 - `bc10d6d` · 2026-07-20 · docs: retire resolved launch issues [skip ci]
-- `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

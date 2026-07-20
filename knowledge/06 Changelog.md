@@ -86,6 +86,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 - `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
 - `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
@@ -115,5 +116,4 @@ tags: [fitcrm, releases]
 - `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
 - `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
 - `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
-- `2628a08` · 2026-07-18 · Align AI analytics page spacing
 <!-- AUTO:END changelog-candidates -->

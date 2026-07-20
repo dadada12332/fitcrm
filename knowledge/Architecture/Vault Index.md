@@ -85,6 +85,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0026-ai-kopilot-uderzhaniya]]
 - [[Tasks/Completed/TASK-0027-kontakty-i-rezul-taty-uderzhaniya]]
 - [[Tasks/Completed/TASK-0028-pervyi-zapusk-produktovyi-tur-i-predlozhenie-podpiski]]
+- [[Tasks/Completed/TASK-0029-bezopasnyi-vyhod-i-ponyatnyi-flow-eksperimentov-growth-os]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
