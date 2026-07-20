@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
 - `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
 - `ac1a6fe` · 2026-07-20 · Record verified launch readiness status
 - `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
 - `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
 - `0514d3d` · 2026-07-19 · Release retention center and Growth OS
-- `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

@@ -16,7 +16,7 @@ updated: 2026-07-20
 - [ ] Error monitoring, uptime и алерты настроены.
 - [ ] Legal/privacy/terms соответствуют реальному сбору данных.
 - [ ] Analytics не собирает секреты и лишние персональные данные.
-- [x] Миграции `0065`–`0067` применены и имеют обратимые DDL-изменения; release note обновлён.
+- [x] Миграции `0065`–`0068` применены; Supabase Security/Performance Advisors не показывают замечаний.
 - [x] Desktop и mobile critical flows проверены в light/dark без horizontal overflow.
 
 ## Required before mass launch

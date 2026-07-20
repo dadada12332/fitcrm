@@ -13,7 +13,7 @@ tags: [fitcrm, risks]
 - Supabase Free: нет managed daily backups, staging branch и leaked-password protection.
 - CAPTCHA, centralized error tracking, uptime alerts и restore drill не настроены.
 - Payme/Click требуют реального provider sandbox/certification E2E.
-- Full ESLint baseline содержит 122 errors / 45 warnings; raw color debt требует отдельной visual-regression работы.
+- Общий visual-regression baseline пока не автоматизирован; новые UI-изменения проверяются Playwright на desktop/mobile.
 
 Полный статус: [[Reports/Launch Readiness 2026-07-20]].
 
@@ -74,19 +74,19 @@ tags: [fitcrm, risks]
 - Task: отдельный performance task после production telemetry baseline.
 - Last checked: 2026-07-18.
 
-## ISSUE-0007 — Recharts предупреждает о размере контейнера в headless/HMR
+## ISSUE-0007 — Recharts предупреждал о размере контейнера в headless/HMR
 
 - Severity: P3
-- Status: open
+- Status: resolved
 - Module: dashboard/charts
 - Environment: local headless Chromium
 - Symptoms: warning `width(-1) and height(-1) of chart should be greater than 0` при переходах dashboard во время dev/HMR.
 - Expected: chart mounts only after container receives stable dimensions.
-- Actual: пользовательский blank chart не воспроизведён, build и E2E проходят; warning повторяется в dev console.
+- Actual: все `ResponsiveContainer` получили стабильный `initialDimension`; локальный и production E2E проходят без blank chart.
 - Cause: ResponsiveContainer измеряется во время промежуточного layout state.
-- Workaround: нет пользовательского blocker; проверить с production performance trace.
-- Task: отдельный low-priority UI performance task.
-- Last checked: 2026-07-19; warning reproduced during authenticated localhost dashboard verification, without a blank chart or error overlay.
+- Workaround: не требуется.
+- Task: [[Tasks/Completed/TASK-0025-production-performance-and-quality-hardening]].
+- Last checked: 2026-07-20; resolved, production desktop/mobile gate passed.
 
 ## ISSUE-0008 — Scheduled broadcasts блокировались CRM middleware
 
