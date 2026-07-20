@@ -40,7 +40,32 @@ test.describe("retention AI copilot", () => {
     await clientButtons.first().click()
 
     await expect(drawer.getByText("Персональная рекомендация", { exact: true })).toBeVisible({ timeout: 25_000 })
-    await expect(drawer.getByText("Черновик сообщения", { exact: true })).toBeVisible()
+    const message = drawer.getByLabel("Сообщение клиенту", { exact: true })
+    await expect(message).toBeVisible()
+    await message.fill("Тестовый персональный текст")
+    await expect(message).toHaveValue("Тестовый персональный текст")
+    await expect(drawer.getByRole("button", { name: "Telegram", exact: true })).toBeVisible()
+    await expect(drawer.getByRole("button", { name: "Позвонить", exact: true })).toBeVisible()
     await expect(drawer.getByRole("button", { name: "Копировать", exact: true })).toBeVisible()
+    await expect(drawer.getByText(/WhatsApp/i)).toHaveCount(0)
+  })
+
+  test("records outreach and a follow-up result", async ({ page }) => {
+    const clientButtons = page.getByRole("button", { name: "AI-разбор", exact: true }).filter({ visible: true })
+    await clientButtons.first().click()
+    const drawer = page.getByRole("dialog")
+    const message = drawer.getByLabel("Сообщение клиенту", { exact: true })
+    await expect(message).toBeVisible({ timeout: 25_000 })
+    await message.fill("Камила, добрый день! Подскажите, удобно ли обсудить продление?")
+    await drawer.getByRole("button", { name: "Копировать", exact: true }).click()
+
+    await expect(drawer.getByText("Результат контакта", { exact: true })).toBeVisible({ timeout: 25_000 })
+    await drawer.getByRole("button", { name: "Связаться позже", exact: true }).click()
+    await drawer.getByLabel("Комментарий", { exact: true }).fill("Попросила связаться завтра")
+    await drawer.getByRole("button", { name: "Сохранить", exact: true }).click()
+
+    await expect(drawer.getByText("Повторный контакт", { exact: true })).toBeVisible({ timeout: 25_000 })
+    await expect(drawer.getByText("Копирование · открыто", { exact: true }).first()).toBeVisible()
+    await expect(drawer.getByText("Система · связаться позже", { exact: true }).first()).toBeVisible()
   })
 })

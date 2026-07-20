@@ -33,6 +33,31 @@ export type RetentionAiPriority = {
   rationale: string
   nextAction: string
   messageDraft: string
+  contact: {
+    phone: string | null
+    telegramAvailable: boolean
+    telegramReason: string | null
+  }
+  workflow: RetentionWorkflow | null
+}
+
+export type RetentionInteraction = {
+  id: string
+  channel: "telegram" | "phone" | "copy" | "system"
+  kind: "outreach" | "outcome" | "automation"
+  outcome: string | null
+  message: string | null
+  createdAt: string
+  staffName: string | null
+}
+
+export type RetentionWorkflow = {
+  caseId: string
+  status: "open" | "contacted" | "follow_up" | "won" | "lost"
+  nextFollowUpAt: string | null
+  lastInteractionAt: string | null
+  closeReason: string | null
+  interactions: RetentionInteraction[]
 }
 
 export type RetentionAiPlanItem = {
@@ -140,6 +165,12 @@ function priorityFor(candidate: RetentionCandidate, activity?: RetentionClientAc
     rationale,
     nextAction: candidate.recommendedAction,
     messageDraft: draftFor(candidate),
+    contact: {
+      phone: candidate.phone,
+      telegramAvailable: false,
+      telegramReason: "Telegram-связь проверяется на сервере",
+    },
+    workflow: null,
   }
 }
 

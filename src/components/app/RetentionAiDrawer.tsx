@@ -1,27 +1,58 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import {
   AlertCircle,
   ArrowRight,
   BrainCircuit,
+  CalendarClock,
   Check,
   Copy,
   Database,
+  Phone,
   RefreshCw,
+  Send,
   ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react"
+import {
+  logRetentionOutreachAction,
+  recordRetentionOutcomeAction,
+  sendRetentionTelegramAction,
+} from "@/app/(app)/retention/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Sheet, SheetBody, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Textarea } from "@/components/ui/textarea"
+import { runAction, toast } from "@/lib/use-action"
 import { cn } from "@/lib/utils"
 import type { RetentionAiAnalysis, RetentionAiPriority } from "@/lib/retention-ai"
 
 const LEVEL_LABELS = { critical: "Критический", high: "Высокий", medium: "Средний" } as const
 const CONFIDENCE_LABELS = { high: "Высокая", medium: "Средняя", low: "Низкая" } as const
+const STATUS_LABELS = { open: "Открыт", contacted: "Связались", follow_up: "Повторный контакт", won: "Возвращён", lost: "Закрыт" } as const
+const OUTCOMES = [
+  ["no_answer", "Не ответил"],
+  ["interested", "Заинтересован"],
+  ["renewing", "Продлевает"],
+  ["returned", "Вернулся"],
+  ["declined", "Отказался"],
+  ["follow_up", "Связаться позже"],
+] as const
+const CHANNEL_LABELS = { telegram: "Telegram", phone: "Звонок", copy: "Копирование", system: "Система" } as const
+const OUTCOME_LABELS: Record<string, string> = {
+  sent: "отправлено",
+  opened: "открыто",
+  no_answer: "не ответил",
+  interested: "заинтересован",
+  renewing: "продлевает",
+  returned: "вернулся",
+  declined: "отказался",
+  follow_up: "связаться позже",
+}
 
 function formatMoney(value: number) {
   return `${Math.round(value).toLocaleString("ru-RU")} сум`
@@ -43,19 +74,101 @@ function AnalysisSkeleton() {
   )
 }
 
-function PriorityItem({ item }: { item: RetentionAiPriority }) {
-  const [copied, setCopied] = useState(false)
-  const resetTimer = useRef<number | null>(null)
+function tomorrowLocal() {
+  const value = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  value.setHours(10, 0, 0, 0)
+  const offset = value.getTimezoneOffset() * 60_000
+  return new Date(value.getTime() - offset).toISOString().slice(0, 16)
+}
 
-  useEffect(() => () => {
-    if (resetTimer.current !== null) window.clearTimeout(resetTimer.current)
-  }, [])
+function formatInteractionDate(value: string) {
+  return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value))
+}
+
+async function writeClipboard(value: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    return true
+  } catch {
+    const textarea = document.createElement("textarea")
+    textarea.value = value
+    textarea.setAttribute("readonly", "")
+    textarea.style.position = "fixed"
+    textarea.style.opacity = "0"
+    document.body.appendChild(textarea)
+    textarea.select()
+    const copied = document.execCommand("copy")
+    textarea.remove()
+    return copied
+  }
+}
+
+function PriorityItem({ item, onRefresh }: { item: RetentionAiPriority; onRefresh: () => void }) {
+  const [draft, setDraft] = useState(item.messageDraft)
+  const [copied, setCopied] = useState(false)
+  const [confirmTelegram, setConfirmTelegram] = useState(false)
+  const [outcome, setOutcome] = useState<(typeof OUTCOMES)[number][0] | null>(null)
+  const [followUpAt, setFollowUpAt] = useState(tomorrowLocal)
+  const [note, setNote] = useState("")
+  const [busy, setBusy] = useState(false)
 
   async function copyDraft() {
-    await navigator.clipboard.writeText(item.messageDraft)
+    if (!draft.trim()) return
+    if (!await writeClipboard(draft)) {
+      toast.error("Браузер не разрешил скопировать текст")
+      return
+    }
     setCopied(true)
-    if (resetTimer.current !== null) window.clearTimeout(resetTimer.current)
-    resetTimer.current = window.setTimeout(() => setCopied(false), 1800)
+    window.setTimeout(() => setCopied(false), 1800)
+    setBusy(true)
+    await runAction(() => logRetentionOutreachAction({ clientId: item.clientId, message: draft, channel: "copy" }), {
+      success: "Текст скопирован, действие записано",
+      onSuccess: onRefresh,
+    })
+    setBusy(false)
+  }
+
+  async function callClient() {
+    if (!item.contact.phone || !draft.trim()) return
+    setBusy(true)
+    const result = await runAction(() => logRetentionOutreachAction({ clientId: item.clientId, message: draft, channel: "phone" }), {
+      loading: "Записываем звонок…",
+      success: "Звонок добавлен в историю",
+      onSuccess: onRefresh,
+    })
+    setBusy(false)
+    if (result && !result.error) window.location.href = `tel:${item.contact.phone}`
+  }
+
+  async function sendTelegram() {
+    setBusy(true)
+    await runAction(() => sendRetentionTelegramAction({ clientId: item.clientId, message: draft }), {
+      loading: "Отправляем в Telegram…",
+      success: "Сообщение отправлено",
+      onSuccess: (result) => {
+        setConfirmTelegram(false)
+        if (result?.warning) toast.warning(result.warning)
+        onRefresh()
+      },
+    })
+    setBusy(false)
+  }
+
+  async function saveOutcome() {
+    if (!outcome) return
+    const needsDate = outcome === "follow_up" || outcome === "no_answer"
+    const nextFollowUpAt = needsDate && followUpAt ? new Date(followUpAt).toISOString() : null
+    setBusy(true)
+    await runAction(() => recordRetentionOutcomeAction({ clientId: item.clientId, outcome, nextFollowUpAt, note }), {
+      loading: "Сохраняем результат…",
+      success: "Результат контакта сохранён",
+      onSuccess: () => {
+        setOutcome(null)
+        setNote("")
+        onRefresh()
+      },
+    })
+    setBusy(false)
   }
 
   return (
@@ -91,14 +204,102 @@ function PriorityItem({ item }: { item: RetentionAiPriority }) {
       </div>
 
       <div className="mt-4 rounded-lg bg-muted p-3">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-medium text-foreground">Черновик сообщения</p>
-          <Button type="button" variant="ghost" size="sm" onClick={copyDraft}>
+        <label htmlFor={`retention-draft-${item.clientId}`} className="text-xs font-medium text-foreground">Сообщение клиенту</label>
+        <Textarea
+          id={`retention-draft-${item.clientId}`}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          className="mt-2 min-h-28 bg-background leading-6"
+          maxLength={2000}
+        />
+        <p className="mt-1 text-right text-xs text-muted-foreground">{draft.length}/2000</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <Button type="button" disabled={busy || !draft.trim() || !item.contact.telegramAvailable} onClick={() => setConfirmTelegram(true)}>
+            <Send /> Telegram
+          </Button>
+          <Button type="button" variant="outline" disabled={busy || !draft.trim() || !item.contact.phone} onClick={callClient}>
+            <Phone /> Позвонить
+          </Button>
+          <Button type="button" variant="outline" disabled={busy || !draft.trim()} onClick={copyDraft}>
             {copied ? <Check /> : <Copy />} {copied ? "Скопировано" : "Копировать"}
           </Button>
         </div>
-        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{item.messageDraft}</p>
+        {!item.contact.telegramAvailable && <p className="mt-2 text-xs text-muted-foreground">Telegram: {item.contact.telegramReason}</p>}
+        {!item.contact.phone && <p className="mt-1 text-xs text-muted-foreground">Телефон клиента не указан.</p>}
+
+        {confirmTelegram && (
+          <div className="mt-3 rounded-lg border border-border bg-background p-3">
+            <p className="text-sm font-medium text-foreground">Отправить это сообщение в Telegram?</p>
+            <p className="mt-1 text-xs text-muted-foreground">После подтверждения клиент сразу получит текст через бота клуба.</p>
+            <div className="mt-3 flex justify-end gap-2">
+              <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmTelegram(false)}>Отмена</Button>
+              <Button type="button" size="sm" disabled={busy} onClick={sendTelegram}><Send /> Отправить</Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {item.workflow && (
+        <div className="mt-4 border-t border-border pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-foreground">Результат контакта</p>
+            <Badge variant={item.workflow.status === "won" ? "secondary" : item.workflow.status === "lost" ? "outline" : "default"}>
+              {STATUS_LABELS[item.workflow.status]}
+            </Badge>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {OUTCOMES.map(([value, label]) => (
+              <Button key={value} type="button" size="sm" variant={outcome === value ? "secondary" : "outline"} onClick={() => {
+                setOutcome(value)
+                if (value === "follow_up" || value === "no_answer") setFollowUpAt(tomorrowLocal())
+              }}>
+                {label}
+              </Button>
+            ))}
+          </div>
+          {outcome && (
+            <div className="mt-3 space-y-2 rounded-lg border border-border bg-muted/40 p-3">
+              {(outcome === "follow_up" || outcome === "no_answer") && (
+                <div>
+                  <label htmlFor={`follow-up-${item.clientId}`} className="text-xs font-medium text-foreground">Следующий контакт</label>
+                  <Input id={`follow-up-${item.clientId}`} type="datetime-local" value={followUpAt} onChange={(event) => setFollowUpAt(event.target.value)} className="mt-1" />
+                </div>
+              )}
+              <div>
+                <label htmlFor={`outcome-note-${item.clientId}`} className="text-xs font-medium text-foreground">Комментарий</label>
+                <Input id={`outcome-note-${item.clientId}`} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Что обсудили" maxLength={500} className="mt-1" />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" size="sm" variant="ghost" onClick={() => setOutcome(null)}>Отмена</Button>
+                <Button type="button" size="sm" disabled={busy || ((outcome === "follow_up" || outcome === "no_answer") && !followUpAt)} onClick={saveOutcome}>Сохранить</Button>
+              </div>
+            </div>
+          )}
+
+          {item.workflow.interactions.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-medium uppercase text-muted-foreground">История</p>
+              <div className="mt-2 divide-y divide-border rounded-lg border border-border">
+                {item.workflow.interactions.map((interaction) => (
+                  <div key={interaction.id} className="flex items-start justify-between gap-3 p-3 text-xs">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">{CHANNEL_LABELS[interaction.channel]}{interaction.outcome ? ` · ${OUTCOME_LABELS[interaction.outcome] ?? interaction.outcome}` : ""}</p>
+                      {interaction.message && <p className="mt-1 line-clamp-2 text-muted-foreground">{interaction.message}</p>}
+                    </div>
+                    <div className="shrink-0 text-right text-muted-foreground">
+                      <p>{formatInteractionDate(interaction.createdAt)}</p>
+                      {interaction.staffName && <p className="mt-1">{interaction.staffName}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {item.workflow.nextFollowUpAt && (
+            <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><CalendarClock className="size-4" />Следующий контакт: {formatInteractionDate(item.workflow.nextFollowUpAt)}</p>
+          )}
+        </div>
+      )}
     </article>
   )
 }
@@ -110,6 +311,7 @@ export function RetentionAiDrawer({
   pending,
   error,
   onRetry,
+  onRefresh,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -117,6 +319,7 @@ export function RetentionAiDrawer({
   pending: boolean
   error: string | null
   onRetry: () => void
+  onRefresh: () => void
 }) {
   const isClient = analysis?.scope.kind === "client"
 
@@ -197,7 +400,7 @@ export function RetentionAiDrawer({
                   {!isClient && <Badge variant="outline">Топ {analysis.priorities.length}</Badge>}
                 </div>
                 <div className="mt-3 space-y-3">
-                  {analysis.priorities.map((priority) => <PriorityItem key={priority.clientId} item={priority} />)}
+                  {analysis.priorities.map((priority) => <PriorityItem key={priority.clientId} item={priority} onRefresh={onRefresh} />)}
                   {analysis.priorities.length === 0 && <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">В выбранном сегменте нет клиентов для разбора.</p>}
                 </div>
               </section>

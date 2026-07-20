@@ -105,14 +105,14 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
   const [aiPending, startAiTransition] = useTransition()
   const aiRequestId = useRef(0)
 
-  function runAiAnalysis(scope: RetentionAiScope) {
+  function runAiAnalysis(scope: RetentionAiScope, preserveAnalysis = false) {
     const requestId = ++aiRequestId.current
     setAiScope(scope)
-    setAiAnalysis(null)
+    if (!preserveAnalysis) setAiAnalysis(null)
     setAiError(null)
     setAiOpen(true)
     startAiTransition(async () => {
-      const result = await analyzeRetentionAction(scope)
+      const result = await analyzeRetentionAction(scope, !preserveAnalysis)
       if (requestId !== aiRequestId.current) return
       setAiAnalysis(result.analysis ?? null)
       setAiError(result.error ?? null)
@@ -257,6 +257,7 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
         pending={aiPending}
         error={aiError}
         onRetry={() => runAiAnalysis(aiScope)}
+        onRefresh={() => runAiAnalysis(aiScope, true)}
       />
     </div>
   )
