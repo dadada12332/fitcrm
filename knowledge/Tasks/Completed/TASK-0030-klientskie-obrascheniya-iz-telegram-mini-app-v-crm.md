@@ -60,7 +60,7 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm run test:e2e` — passed; authenticated suites пропускаются без QA credentials.
 - `npm run build` — passed.
 - Browser QA localhost: desktop/mobile list, thread, back, templates, reply/failure state; console errors отсутствуют.
-- Production Telegram delivery и deploy проверяются после push.
+- Production deployment READY; Supabase Cron активен, retry endpoint вернул HTTP 200, тестовое сообщение получило `sent` и Telegram message ID.
 
 ## Remaining
 

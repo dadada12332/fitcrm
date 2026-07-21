@@ -49,7 +49,7 @@ Migration `0061` добавляет service-only RPC бронирования с
 - Сотрудник может привязать собственный Telegram из CRM одноразовой deep link `start`-ссылкой. Ссылка живёт 15 минут, хранится только как SHA-256 hash, используется один раз и не зависит от телефона в `staff.settings`.
 - При нулевой клиентской аудитории массовая отправка недоступна, но владелец может привязать себя и проверить сообщение через «Отправить себе».
 - Рассылки по аудиториям, изображение, тест себе, история и отложенная отправка.
-- Supabase Cron `fitcrm-broadcasts-every-5m` вызывает `/api/broadcasts/run`; secret хранится в Vault. Повторная настройка: `node scripts/configure-broadcast-scheduler.mjs <env-file-with-CRON_SECRET>`.
+- Supabase Cron `fitcrm-broadcasts-every-5m` вызывает `/api/broadcasts/run`; secret хранится в Vault. Повторная настройка с production env без файла: `npx vercel env run -e production -- node scripts/configure-broadcast-scheduler.mjs`.
 - Тот же setup-скрипт создаёт `fitcrm-client-support-every-10m` для повторной доставки ответов клиентского inbox; частый Vercel Cron не используется из-за ограничений Hobby.
 - Ежедневный Vercel Cron `/api/telegram/reminders/run` отправляет expiry reminders и расписание на день.
 - Метрики строятся из `broadcasts`, `telegram_events` и `visits`, без расчётных заглушек.

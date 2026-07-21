@@ -37,7 +37,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_7BiuKA6ZPiHgPj9fxgv9eSbVnU3e` для commit `47c01be` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Авторизованный `/growth` проверен на desktop/mobile в одноразовом синтетическом QA-клубе; тестовые данные удалены.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_Ga6MomQ7R4fZwms3wxpARLXeFLin` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
 
 ## Риски и долг
 
