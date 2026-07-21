@@ -30,7 +30,7 @@ export default async function MembershipsPage() {
       <MembershipsStats stats={stats} />
 
       {/* Cards */}
-      <MembershipsCards rows={rows} />
+      <MembershipsCards rows={rows} canExport={club.permissions.memberships.view} />
     </div>
   )
 }

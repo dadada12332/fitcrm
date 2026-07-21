@@ -1,9 +1,10 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, Users, Clock, CheckCircle2 } from "lucide-react"
+import { Search, Users, Clock, CheckCircle2, Download } from "lucide-react"
 import { pluralDays, membershipStatus, statusMeta, type MembershipRow } from "@/lib/memberships"
 import { MembershipRowMenu } from "./MembershipRowMenu"
+import { downloadCSV } from "@/lib/csv"
 
 function fmtSum(n: number) {
   return n.toLocaleString("ru-RU")
@@ -22,7 +23,23 @@ const CARD_PALETTES = [
 
 type Tab = "active" | "archived"
 
-export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
+function exportMemberships(rows: MembershipRow[]) {
+  const today = new Date().toISOString().slice(0, 10)
+  downloadCSV(
+    `memberships_${today}.csv`,
+    ["Название", "Цена (сум)", "Срок (дней)", "Посещений", "Активных клиентов", "Статус"],
+    rows.map((row) => [
+      row.name,
+      row.price,
+      row.durationDays,
+      row.visitsLimit ?? "Безлимит",
+      row.activeClients,
+      row.isActive ? "Активен" : row.archived ? "Архивирован" : "Неактивен",
+    ]),
+  )
+}
+
+export function MembershipsCards({ rows, canExport }: { rows: MembershipRow[]; canExport: boolean }) {
   const [query, setQuery] = useState("")
   const [tab, setTab] = useState<Tab>("active")
 
@@ -105,6 +122,16 @@ export function MembershipsCards({ rows }: { rows: MembershipRow[] }) {
           </div>
         </div>
 
+        {canExport && (
+          <button
+            type="button"
+            onClick={() => exportMemberships(filtered)}
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
+          >
+            <Download className="h-4 w-4" />
+            Экспорт в CSV
+          </button>
+        )}
       </div>
 
       {/* ── Cards block ── */}
