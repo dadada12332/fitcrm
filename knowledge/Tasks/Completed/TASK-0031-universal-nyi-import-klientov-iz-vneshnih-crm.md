@@ -66,10 +66,12 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm test` — 118 passed, 1 skipped.
 - `npm run build` — passed.
 - Миграция `0075_client_import_data.sql` применена в Supabase.
+- Production deployment `dpl_2ZoLDHFeHYkquqL5HpxbpVtznoeh` — READY; `fitcrm-three.vercel.app` назначен автоматически.
+- Production browser smoke: авторизованный QA-клуб, `/clients`, открытие import drawer, без page overflow и framework errors — passed.
 
 ## Remaining
 
-Production browser QA и deploy фиксируются после push.
+Ручной upload synthetic CSV через OS file picker не выполнен: Mac был заблокирован, а Browser sandbox запрещает прямой local-file upload. Data parsing/normalization покрыты unit tests; финальный click-through стоит повторить при разблокированном Mac.
 
 ## Blockers
 
