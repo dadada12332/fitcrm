@@ -12,6 +12,7 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- Импорт клиентов сохраняет все нераспознанные поля внешней CRM и показывает их отдельным блоком в карточке клиента вместе с источником импорта.
 - Telegram Mini App и CRM получили клиентские обращения: отдельный inbox, темы, история, ответственные, статусы, быстрые ответы и доставка сообщений через бота клуба с retry.
 - Раздел «Удержание» получил контекстного AI-копилота: анализ сегмента, приоритетная очередь, план на 7 дней и персональные разборы с черновиками сообщений.
 - Добавлены публичный database-aware `/api/health`, структурированные request-error logs и authenticated Playwright gate для основных CRM-маршрутов.
@@ -23,6 +24,7 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Импорт CSV/XLSX получил устойчивый parser, автоматический поиск строки заголовков, серверную нормализацию телефона/email/дат/денег и безопасное частичное обновление существующих клиентов.
 - Growth OS «Эксперименты» теперь ведут сотрудника по этапам настройки, контакта и результата внутри drawer; запуски и выводы сохраняются на уровне клуба, а «Playbooks» переименованы в «Сценарии» с понятной инструкцией по применению текста.
 - Регистрация и login теперь корректно возобновляют незавершённый onboarding; шаги сохраняются, а приглашения команды отправляются реально.
 - Уведомления загружают полный список только при открытии drawer; badge приходит вместе с sidebar aggregate.
@@ -37,6 +39,7 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Импорт больше не теряет неизвестные колонки, не затирает заполненные поля отсутствующими значениями, не создаёт скрытые дубли из-за форматирования телефона и не отменяет весь пакет из-за одной ошибочной строки.
 - Выход из аккаунта теперь требует подтверждения и защищён от случайного нажатия в sidebar.
 - Исправлена повторная поломка «Ролей и прав» после security hardening, theme hydration mismatch и частичное создание клиента при ошибке абонемента.
 - Создание клиента из ручного посещения теперь открывает client drawer; неработающее Telegram-действие в долгах скрыто до реализации.
@@ -88,6 +91,9 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `745d121` · 2026-07-21 · docs: record client inbox production verification
+- `9709769` · 2026-07-21 · fix: schedule inbox retries via Supabase
+- `a7be5a8` · 2026-07-21 · feat: add Telegram client support inbox
 - `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
 - `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 - `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
@@ -115,7 +121,4 @@ tags: [fitcrm, releases]
 - `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
 - `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
 - `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
-- `f78622e` · 2026-07-18 · Polish landing platform overview
-- `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
-- `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
 <!-- AUTO:END changelog-candidates -->

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { toast } from "@/lib/use-action"
 import { useRouter } from "next/navigation"
-import { Snowflake, Trash2, X } from "lucide-react"
+import { FileSpreadsheet, Snowflake, Trash2, X } from "lucide-react"
 import type { ClientProfile } from "@/lib/client-profile"
 import type { ClientStatus } from "@/lib/clients"
 import { deleteClientAction, toggleFreezeAction } from "@/app/(app)/clients/actions"
@@ -121,6 +121,7 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
   const [status, setStatus] = useState<ClientStatus>(client.status)
   const sm = statusMeta[status]
   const comment = client.notes && client.notes !== "[demo]" ? client.notes : ""
+  const importedFields = Object.entries(client.importData?.extraFields ?? {})
   const isFrozen = status === "frozen"
   const canFreeze = status === "active" || status === "frozen"
 
@@ -249,6 +250,31 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
             style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
           />
         </div>
+
+        {importedFields.length > 0 && (
+          <section className="relative border-t border-border py-3" aria-labelledby="imported-client-data">
+            <div className="mb-3 flex items-start gap-2">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                <FileSpreadsheet className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p id="imported-client-data" className="text-sm font-semibold text-foreground">Данные из прежней CRM</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {client.importData?.sourceFile ?? "Импортированный файл"}
+                  {client.importData?.importedAt ? ` · ${fmtDate(client.importData.importedAt)}` : ""}
+                </p>
+              </div>
+            </div>
+            <dl className="divide-y divide-border overflow-hidden rounded-md border border-border bg-muted/30">
+              {importedFields.map(([label, value]) => (
+                <div key={label} className="grid gap-1 px-3 py-2.5 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:gap-3">
+                  <dt className="break-words text-xs text-muted-foreground">{label}</dt>
+                  <dd className="break-words text-sm font-medium text-foreground">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
 
         {/* Действия */}
         <div className="flex flex-col gap-2 mt-2 relative">

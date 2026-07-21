@@ -80,4 +80,5 @@ kanban-plugin: board
 - [x] TASK-0028 · Первый запуск: продуктовый тур и предложение подписки · documentation · P1 · onboarding · unknown · [[Tasks/Completed/TASK-0028-pervyi-zapusk-produktovyi-tur-i-predlozhenie-podpiski]]
 - [x] TASK-0029 · Безопасный выход и понятный flow экспериментов Growth OS · feature · P1 · growth · 2026-07-20 · [[Tasks/Completed/TASK-0029-bezopasnyi-vyhod-i-ponyatnyi-flow-eksperimentov-growth-os]]
 - [x] TASK-0030 · Клиентские обращения из Telegram Mini App в CRM · feature · P1 · telegram-inbox · 2026-07-21 · [[Tasks/Completed/TASK-0030-klientskie-obrascheniya-iz-telegram-mini-app-v-crm]]
+- [x] TASK-0031 · Универсальный импорт клиентов из внешних CRM · feature · P1 · clients-import · 2026-07-21 · [[Tasks/Completed/TASK-0031-universal-nyi-import-klientov-iz-vneshnih-crm]]
 <!-- AUTO:END kanban-done -->

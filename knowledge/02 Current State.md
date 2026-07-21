@@ -12,9 +12,9 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: cd25340 · 2026-07-20T20:55:43+05:00 · docs: record verified growth workflow release [skip ci].
+- Последний commit: 745d121 · 2026-07-21T21:07:34+05:00 · docs: record client inbox production verification.
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 75; последняя `20260720154135_index_growth_experiment_creator.sql`.
+- Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 

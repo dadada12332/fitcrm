@@ -12,6 +12,7 @@ import {
   type FieldKey, type MappingEntry, type ParsedFile,
   type ValidatedRow, type DuplicateStrategy, type ColStatus,
 } from "@/lib/import-wizard"
+import { parseDelimitedText } from "@/lib/client-import"
 import {
   checkPhonesAction, batchImportClientsAction,
   type ImportClientRow, type BatchImportResult, type ImportAudit,
@@ -23,22 +24,6 @@ function fmtBytes(b: number) {
   if (b < 1024) return `${b} Б`
   if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} КБ`
   return `${(b / 1024 / 1024).toFixed(1)} МБ`
-}
-
-function parseCSVLine(line: string, delim: string): string[] {
-  const fields: string[] = []; let cur = "", inQ = false
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i]
-    if (c === '"') { inQ = !inQ; continue }
-    if (c === delim && !inQ) { fields.push(cur.trim()); cur = ""; continue }
-    cur += c
-  }
-  fields.push(cur.trim())
-  return fields
-}
-
-function detectDelim(line: string) {
-  return (line.match(/;/g)?.length ?? 0) > (line.match(/,/g)?.length ?? 0) ? ";" : ","
 }
 
 function fieldLabel(k: FieldKey) {
@@ -56,6 +41,34 @@ function excelCellText(value: unknown): string {
     }
   }
   return String(value)
+}
+
+function selectHeaderRow(data: string[][]): { headers: string[]; rows: string[][] } {
+  let bestIndex = 0
+  let bestScore = -1
+  for (let index = 0; index < Math.min(data.length, 20); index++) {
+    const headers = data[index].map((cell) => String(cell ?? "").trim())
+    const candidate: ParsedFile = {
+      headers,
+      rows: data.slice(index + 1, index + 31),
+      totalRows: Math.max(0, data.length - index - 1),
+      fileName: "",
+      fileSize: 0,
+    }
+    const mapped = buildAutoMapping(candidate).filter((entry) => entry.fieldKey !== "__skip__").length
+    const populated = headers.filter(Boolean).length
+    const score = mapped * 20 + Math.min(populated, 12)
+    if (score > bestScore) { bestScore = score; bestIndex = index }
+  }
+
+  const seen = new Map<string, number>()
+  const headers = data[bestIndex].map((cell, index) => {
+    const base = String(cell ?? "").trim() || `Колонка ${index + 1}`
+    const count = (seen.get(base) ?? 0) + 1
+    seen.set(base, count)
+    return count === 1 ? base : `${base} (${count})`
+  })
+  return { headers, rows: data.slice(bestIndex + 1) }
 }
 
 // ── Step bar ──────────────────────────────────────────────────────────────────
@@ -112,11 +125,9 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
 
       if (ext === "csv") {
         const text = await file.text()
-        const lines = text.split(/\r?\n/).filter((l) => l.trim())
-        if (!lines.length) { setError("Файл пустой"); setParsing(false); return }
-        const delim = detectDelim(lines[0])
-        headers = parseCSVLine(lines[0], delim)
-        rawRows = lines.slice(1).map((l) => parseCSVLine(l, delim))
+        const data = parseDelimitedText(text)
+        if (!data.length) { setError("Файл пустой"); setParsing(false); return }
+        ;({ headers, rows: rawRows } = selectHeaderRow(data))
       } else {
         const ExcelJS = (await import("exceljs")).default
         const buf = await file.arrayBuffer()
@@ -129,8 +140,7 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
           data.push(values)
         })
         if (!data.length) { setError("Файл пустой"); setParsing(false); return }
-        headers = data[0].map(String)
-        rawRows = data.slice(1).map((r) => r.map(String))
+        ;({ headers, rows: rawRows } = selectHeaderRow(data))
       }
 
       const rows = rawRows.filter((r) => r.some((v) => String(v ?? "").trim()))
@@ -225,7 +235,7 @@ const STATUS_CONFIG: Record<ColStatus, { dot: string; badge: string; badgeBg: st
   suggested: { dot: "#f59e0b", badge: "#92400e", badgeBg: "rgba(217,119,6,0.14)", label: "Вероятно" },
   manual:    { dot: "#3b82f6", badge: "#1d4ed8", badgeBg: "rgba(37,99,235,0.14)", label: "Вручную" },
   unknown:   { dot: "#f97316", badge: "#c2410c", badgeBg: "rgba(249,115,22,0.14)", label: "?" },
-  skip:      { dot: "var(--border)", badge: "var(--gray-muted)", badgeBg: "var(--card-2)", label: "Пропуск" },
+  skip:      { dot: "var(--border)", badge: "var(--gray-muted)", badgeBg: "var(--card-2)", label: "Доп. поле" },
 }
 
 function Step2Mapping({
@@ -388,11 +398,11 @@ function Step2Mapping({
           { dot: STATUS_CONFIG.suggested.dot, count: stats.suggested, label: "вероятно" },
           { dot: STATUS_CONFIG.manual.dot,    count: stats.manual,    label: "вручную" },
           { dot: STATUS_CONFIG.unknown.dot,   count: stats.unknown,   label: "не определено" },
-          { dot: "var(--border)",             count: stats.skip,      label: "пропущено" },
+          { dot: "var(--border)",             count: stats.skip,      label: "доп. поля" },
         ].filter(i => i.count > 0).map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ background: item.dot, border: item.label === "пропущено" ? "1px solid var(--gray-muted)" : "none" }} />
+              style={{ background: item.dot, border: item.label === "доп. поля" ? "1px solid var(--gray-muted)" : "none" }} />
             <span style={{ color: "var(--on-dark)" }}><strong>{item.count}</strong> {item.label}</span>
           </div>
         ))}
@@ -472,7 +482,7 @@ function Step2Mapping({
                       style={isSystem
                         ? { background: "var(--card-2)", color: "var(--on-dark-soft)", border: "1px solid var(--border)" }
                         : { background: "rgba(2,132,199,0.12)", color: "#0284c7", border: "1px solid rgba(2,132,199,0.3)" }}>
-                      {isSystem ? "🔒 Создаётся системой" : "⚙ Вычисляется системой"}
+                      {isSystem ? "Сохранится как доп. поле" : "Сохранится как исходное значение"}
                     </span>
                   </div>
                 </div>
@@ -533,7 +543,7 @@ function Step2Mapping({
                     {(status === "unknown" || status === "suggested") && m.fieldKey === "__skip__" && (
                       <option value="__skip__" disabled>↓ Выберите поле</option>
                     )}
-                    <option value="__skip__">— Не импортировать —</option>
+                    <option value="__skip__">Сохранить как доп. поле</option>
                     <optgroup label="── Данные клиента ──">
                       {CLIENT_FIELDS.filter(f => f.group === "client").map((f) => {
                         const taken = isTakenByOther(f.key, m.fieldKey)
@@ -619,7 +629,7 @@ function Step2Mapping({
             style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.2)" }}>
             <Info className="w-4 h-4 flex-shrink-0" style={{ color: "#f97316" }} />
             <p className="text-xs" style={{ color: "#c2410c" }}>
-              <strong>{stats.unknown}</strong> {stats.unknown === 1 ? "колонка" : "колонок"} не определились автоматически — назначьте поля вручную или оставьте «Не импортировать»
+              <strong>{stats.unknown}</strong> {stats.unknown === 1 ? "колонка" : "колонок"} не определились автоматически — назначьте поля вручную или оставьте как есть. Значения сохранятся в карточке клиента.
             </p>
           </div>
         )}
@@ -628,7 +638,7 @@ function Step2Mapping({
             style={{ background: "rgba(100,116,139,0.06)", border: "1px solid rgba(100,116,139,0.2)" }}>
             <Info className="w-4 h-4 flex-shrink-0" style={{ color: "#64748b" }} />
             <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
-              <strong>{stats.skip}</strong> {stats.skip === 1 ? "колонка будет пропущена" : "колонок будут пропущены"} при импорте
+              <strong>{stats.skip}</strong> {stats.skip === 1 ? "колонка сохранится" : "колонок сохранятся"} в блоке «Данные из прежней CRM»
             </p>
           </div>
         )}
@@ -839,6 +849,8 @@ function Step5Report({ result, onClose }: {
               { label: "Посещений записано", value: result.audit.visitsCreated },
               { label: "Тренеров связано", value: result.audit.trainersLinked },
               { label: "Финансы заполнены", value: result.audit.financialsSet },
+              { label: "Доп. полей сохранено", value: result.audit.extraFieldsSaved },
+              { label: "Дублей строк объединено", value: result.audit.rowsMerged },
             ].map((r) => (
               <div key={r.label} className="flex items-center justify-between gap-2">
                 <span style={{ color: "var(--on-dark-soft)" }}>{r.label}</span>
@@ -917,7 +929,6 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
   const [manualCols, setManualCols]         = useState<Set<string>>(new Set())
   const [autoMode, setAutoMode]             = useState(false)
   const [validated, setValidated]           = useState<ValidatedRow[]>([])
-  const [dupPhones, setDupPhones]           = useState<string[]>([])
   const [dupStrategy, setDupStrategy]       = useState<DuplicateStrategy>("skip")
   const [dupLoading, setDupLoading]         = useState(false)
   const [progress, setProgress]             = useState(0)
@@ -992,6 +1003,7 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
     const trainerCols    = active.filter((e) => e.fieldKey === "trainer")
     const debtCols       = active.filter((e) => e.fieldKey === "debt")
     const customCols     = active.filter((e) => e.fieldKey === "custom")
+    const skippedCols    = m.filter((e) => e.fieldKey === "__skip__")
     const SPECIAL        = new Set(["first_name", "last_name", "full_name", "trainer", "debt", "custom"])
     const otherCols      = active.filter((e) => !SPECIAL.has(e.fieldKey))
 
@@ -1014,7 +1026,7 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
       if (lastName)  values.last_name  = lastName
       values.full_name = fullNameDirect || [lastName, firstName].filter(Boolean).join(" ")
 
-      // Trainer → store as dedicated field (action will append to notes if no DB column)
+      // Trainer remains visible even when it cannot be linked to a staff record.
       const trainer = trainerCols.map((e) => val(e, row)).filter(Boolean).join(", ")
       if (trainer) values.trainer = trainer
 
@@ -1022,17 +1034,23 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
       const debt = debtCols.map((e) => val(e, row)).filter(Boolean).join(", ")
       if (debt) values.debt = debt
 
-      // Custom-labeled columns → append to notes
-      const customParts = customCols
-        .map((e) => { const v = val(e, row); return v && e.customLabel ? `${e.customLabel}: ${v}` : "" })
-        .filter(Boolean)
-      if (customParts.length) {
-        values.notes = [values.notes, ...customParts].filter(Boolean).join("\n")
+      // Every non-empty source field without a canonical destination is kept
+      // structurally and shown in the client card after import.
+      const extraFields: Record<string, string> = {}
+      for (const e of [...customCols, ...skippedCols]) {
+        const value = val(e, row)
+        if (!value) continue
+        const baseLabel = e.fieldKey === "custom" ? e.customLabel?.trim() : e.fileCol.trim()
+        if (!baseLabel) continue
+        let label = baseLabel
+        let suffix = 2
+        while (label in extraFields) label = `${baseLabel} (${suffix++})`
+        extraFields[label] = value
       }
 
       const errors: string[] = []
       if (!values.full_name) errors.push("Нет имени")
-      return { index: i + 1, values: values as Record<FieldKey, string>, errors }
+      return { index: i + 1, values: values as Record<FieldKey, string>, errors, extraFields }
     })
   }
 
@@ -1046,7 +1064,6 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
     const phones = [...new Set(vRows.map((r) => r.values.phone).filter(Boolean))]
     if (phones.length) {
       const dups = await checkPhonesAction(phones)
-      setDupPhones(dups)
       const dupSet = new Set(dups)
       setValidated(vRows.map((r) => ({ ...r, dupPhone: !!(r.values.phone && dupSet.has(r.values.phone)) })))
     }
@@ -1079,6 +1096,8 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
         sub_end:         r.values.sub_end         || undefined,
         visits_total:    r.values.visits_total    || undefined,
         last_visit:      r.values.last_visit      || undefined,
+        extra_fields:    r.extraFields,
+        source_file:     parsed.fileName,
       }))
 
     // Larger chunks = fewer Server Action round-trips.
@@ -1087,15 +1106,15 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
     setTotal(toProcess.length); setProgress(0)
     let imported = 0, updated = 0, skipped = 0
     const errors: WizardResult["errors"] = []
-    const dupSet = [...new Set(dupPhones)]
     const audit: ImportAudit = {
       clientsInserted: 0, clientsUpdated: 0, subscriptionsCreated: 0, subscriptionsUpdated: 0,
       membershipsMatched: 0, membershipsCreated: 0, visitsCreated: 0,
       trainersLinked: 0, trainersUnmatched: 0, financialsSet: 0, financialColumns: true,
+      extraFieldsSaved: 0, rowsMerged: 0,
     }
 
     for (let i = 0; i < toProcess.length; i += CHUNK) {
-      const res = await batchImportClientsAction(toProcess.slice(i, i + CHUNK), dupStrategy, dupSet)
+      const res = await batchImportClientsAction(toProcess.slice(i, i + CHUNK), dupStrategy)
       imported += res.imported; updated += res.updated; skipped += res.skipped
       errors.push(...res.errors)
       // accumulate audit
@@ -1107,6 +1126,8 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
       audit.trainersLinked       += res.audit.trainersLinked
       audit.trainersUnmatched    += res.audit.trainersUnmatched
       audit.financialsSet        += res.audit.financialsSet
+      audit.extraFieldsSaved     += res.audit.extraFieldsSaved
+      audit.rowsMerged           += res.audit.rowsMerged
       if (!res.audit.financialColumns) audit.financialColumns = false
       setProgress(Math.min(i + CHUNK, toProcess.length))
     }

@@ -1,11 +1,23 @@
 "use server"
 
+import { randomUUID } from "node:crypto"
+import { revalidatePath } from "next/cache"
+import { getCurrentClub } from "@/lib/club"
+import {
+  mergeImportData,
+  normalizeImportEmail,
+  normalizeImportPhone,
+  parseImportDate,
+  parseImportDateTime,
+  parseImportInteger,
+  parseImportMoney,
+  type ImportExtraFields,
+} from "@/lib/client-import"
 import { can } from "@/lib/permissions"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
-import { revalidatePath } from "next/cache"
 import type { DuplicateStrategy } from "@/lib/import-wizard"
 
+// Supabase's generated database types are not present in this repository yet.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any
 
@@ -29,6 +41,8 @@ export interface ImportClientRow {
   sub_end?: string
   visits_total?: string
   last_visit?: string
+  extra_fields?: ImportExtraFields
+  source_file?: string
 }
 
 export interface ImportAudit {
@@ -42,8 +56,9 @@ export interface ImportAudit {
   trainersLinked: number
   trainersUnmatched: number
   financialsSet: number
-  /** true when balance/debt/trainer columns exist on the clients table */
   financialColumns: boolean
+  extraFieldsSaved: number
+  rowsMerged: number
 }
 
 export interface BatchImportResult {
@@ -54,6 +69,15 @@ export interface BatchImportResult {
   audit: ImportAudit
 }
 
+type ExistingClient = {
+  id: string
+  phone_normalized: string | null
+  email_normalized: string | null
+  import_data: unknown
+}
+
+type ClientPair = { id: string; row: ImportClientRow }
+
 function emptyAudit(): ImportAudit {
   return {
     clientsInserted: 0, clientsUpdated: 0,
@@ -61,483 +85,421 @@ function emptyAudit(): ImportAudit {
     membershipsMatched: 0, membershipsCreated: 0,
     visitsCreated: 0, trainersLinked: 0, trainersUnmatched: 0,
     financialsSet: 0, financialColumns: true,
+    extraFieldsSaved: 0, rowsMerged: 0,
   }
 }
 
 export async function checkPhonesAction(phones: string[]): Promise<string[]> {
-  if (!phones.length) return []
-  const supabase = await createClient()
   const club = await getCurrentClub()
-  if (!club) return []
-  const { data } = await supabase
-    .from("clients")
-    .select("phone")
-    .eq("club_id", club.clubId)
-    .in("phone", phones)
-  return (data ?? []).map((r) => r.phone).filter(Boolean) as string[]
+  if (!club || !phones.length) return []
+  const supabase = await createClient()
+  const normalizedToRaw = new Map<string, string[]>()
+  for (const phone of phones.slice(0, 15_000)) {
+    const normalized = normalizeImportPhone(phone)
+    if (normalized) normalizedToRaw.set(normalized, [...(normalizedToRaw.get(normalized) ?? []), phone])
+  }
+  const found = new Set<string>()
+  for (const values of chunks([...normalizedToRaw.keys()], 100)) {
+    const { data } = await supabase
+      .from("clients")
+      .select("phone_normalized")
+      .eq("club_id", club.clubId)
+      .in("phone_normalized", values)
+    for (const item of (data ?? []) as Array<{ phone_normalized: string | null }>) {
+      if (item.phone_normalized) found.add(item.phone_normalized)
+    }
+  }
+  return [...found].flatMap((phone) => normalizedToRaw.get(phone) ?? [])
 }
 
 export async function batchImportClientsAction(
-  rows: ImportClientRow[],
+  inputRows: ImportClientRow[],
   strategy: DuplicateStrategy,
-  existingPhones: string[],
 ): Promise<BatchImportResult> {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   const audit = emptyAudit()
-  if (!club) return { imported: 0, updated: 0, skipped: 0, errors: [], audit }
-  if (!can(club.permissions, "clients", "create")) return { imported: 0, updated: 0, skipped: 0, errors: [{ row: 0, reason: "Недостаточно прав", name: "" }], audit }
-
-  const clubId = club.clubId
   const result: BatchImportResult = { imported: 0, updated: 0, skipped: 0, errors: [], audit }
-  const dupSet = new Set(existingPhones)
+  if (!club) return result
+  if (!can(club.permissions, "clients", "create")) return denied(result)
+  if (strategy === "update" && !can(club.permissions, "clients", "edit")) return denied(result)
+  if (inputRows.length > 1_000) {
+    result.errors.push({ row: 0, reason: "За один запрос можно импортировать не более 1000 строк", name: "" })
+    return result
+  }
 
+  const supabase = await createClient()
+  const clubId = club.clubId
+  const validRows: ImportClientRow[] = []
+  for (const raw of inputRows) {
+    const row = cleanRow(raw)
+    const errors = validateRow(row)
+    if (errors.length) result.errors.push({ row: row._rowIndex, reason: errors.join(", "), name: buildName(row) || "—" })
+    else validRows.push(row)
+  }
+
+  const rows = collapseFileDuplicates(validRows, strategy, result)
+  const existing = await fetchExistingClients(supabase, clubId, rows)
+  const byPhone = new Map(existing.filter((c) => c.phone_normalized).map((c) => [c.phone_normalized!, c]))
+  const byEmail = new Map(existing.filter((c) => c.email_normalized).map((c) => [c.email_normalized!, c]))
   const toInsert: ImportClientRow[] = []
-  const toUpdate: ImportClientRow[] = []
+  const toUpdate: Array<{ row: ImportClientRow; client: ExistingClient }> = []
 
   for (const row of rows) {
-    const isDup = row.phone && dupSet.has(row.phone)
-    if (isDup) {
-      if (strategy === "skip")   { result.skipped++; continue }
-      if (strategy === "update") { toUpdate.push(row); continue }
+    const phoneMatch = row.phone ? byPhone.get(normalizeImportPhone(row.phone) ?? "") : undefined
+    const emailMatch = row.email ? byEmail.get(normalizeImportEmail(row.email) ?? "") : undefined
+    if (phoneMatch && emailMatch && phoneMatch.id !== emailMatch.id) {
+      result.errors.push({ row: row._rowIndex, reason: "Телефон и email принадлежат разным клиентам", name: buildName(row) })
+      continue
     }
-    toInsert.push(row)
+    const match = phoneMatch ?? emailMatch
+    if (!match || strategy === "create") toInsert.push(row)
+    else if (strategy === "skip") result.skipped++
+    else toUpdate.push({ row, client: match })
   }
 
-  // Shared lookups built once per batch
-  const membershipMap = await resolveMemberships(supabase, clubId, [...toInsert, ...toUpdate], audit)
-  const trainerMap    = await fetchTrainers(supabase, clubId)
+  const allRows = [...toInsert, ...toUpdate.map((item) => item.row)]
+  const membershipMap = await resolveMemberships(supabase, clubId, allRows, audit, result)
+  const trainerMap = await fetchTrainers(supabase, clubId)
+  const insertedPairs = await insertClients(supabase, clubId, toInsert, trainerMap, audit, result)
+  const updatedPairs = await updateClients(supabase, clubId, toUpdate, trainerMap, audit, result)
 
-  // ── Phase 1: INSERT new clients (fresh — no existing sub/visit) ────────────
-  const insertedPairs: Array<{ id: string; row: ImportClientRow }> = []
-  if (toInsert.length > 0) {
-    const { records, financialColumns } = buildClientInsertRecords(toInsert, clubId, trainerMap, audit)
-    audit.financialColumns = financialColumns
+  await createSubscriptions(supabase, clubId, insertedPairs, membershipMap, audit, result)
+  await repairSubscriptions(supabase, clubId, updatedPairs, membershipMap, audit, result)
+  await importVisits(supabase, clubId, [...insertedPairs, ...updatedPairs], audit, result)
 
-    const res = await insertClientsReturning(supabase, records, financialColumns, toInsert, clubId, trainerMap, audit)
-    if (res.error) {
-      for (const r of toInsert) {
-        result.errors.push({ row: r._rowIndex, reason: res.error, name: buildName(r) || "—" })
-      }
-    }
-    const data = res.data
-    if (data) {
-      result.imported += data.length
-      audit.clientsInserted += data.length
-      data.forEach((ins, i) => {
-        const row = toInsert[i]
-        if (hasSubscriptionData(row) || row.last_visit) insertedPairs.push({ id: ins.id, row })
-      })
-    }
-  }
-
-  // ── Phase 2: UPDATE existing clients (repair — may already have sub/visit) ─
-  const updatedPairs: Array<{ id: string; row: ImportClientRow }> = []
-  if (toUpdate.length > 0) {
-    const PARALLEL = 25
-    for (let i = 0; i < toUpdate.length; i += PARALLEL) {
-      const batch = toUpdate.slice(i, i + PARALLEL)
-      const settled = await Promise.all(batch.map((row) => updateOneClient(supabase, clubId, row, trainerMap, audit, result)))
-      for (const r of settled) if (r) updatedPairs.push(r)
-    }
-    result.updated += audit.clientsUpdated
-  }
-
-  // ── Phase 3: Subscriptions + Visits for freshly INSERTED clients ──────────
-  if (insertedPairs.length > 0) {
-    await createSubscriptionsBulk(supabase, clubId, insertedPairs, membershipMap, audit)
-    await createVisitsBulk(supabase, clubId, insertedPairs, audit)
-  }
-
-  // ── Phase 4: Subscriptions + Visits for UPDATED clients (repair) ──────────
-  if (updatedPairs.length > 0) {
-    await repairSubscriptions(supabase, clubId, updatedPairs, membershipMap, audit)
-    await repairVisits(supabase, clubId, updatedPairs, audit)
-  }
-
+  result.imported = audit.clientsInserted
+  result.updated = audit.clientsUpdated
   revalidatePath("/clients")
+  revalidatePath("/dashboard")
   return result
 }
 
-// ── Client insert helpers ──────────────────────────────────────────────────
-
-function buildClientInsertRecords(
-  rows: ImportClientRow[],
-  clubId: string,
-  trainerMap: Map<string, string>,
-  audit: ImportAudit,
-  forceBase = false,
-): { records: DB[]; financialColumns: boolean } {
-  const financialColumns = !forceBase
-  const records = rows.map((r) => {
-    const base: DB = {
-      club_id:    clubId,
-      full_name:  buildName(r),
-      phone:      r.phone      || null,
-      email:      r.email      || null,
-      birth_date: parseDate(r.birth_date),
-      gender:     normalizeGender(r.gender),
-      source:     r.source     || null,
-      notes:      r.notes      || null,
-      tags:       [],
-    }
-    if (financialColumns) {
-      const balance = parseMoney(r.balance)
-      const debt    = parseMoney(r.debt)
-      if (balance > 0 || debt > 0) audit.financialsSet++
-      base.balance = balance
-      base.debt    = debt
-      if (r.trainer) {
-        base.trainer_name = r.trainer
-        const tid = resolveTrainerId(r.trainer, trainerMap)
-        if (tid) { base.trainer_id = tid; audit.trainersLinked++ }
-        else audit.trainersUnmatched++
-      }
-    }
-    return base
-  })
-  return { records, financialColumns }
+function denied(result: BatchImportResult) {
+  result.errors.push({ row: 0, reason: "Недостаточно прав", name: "" })
+  return result
 }
 
-async function insertClientsReturning(
-  supabase: DB,
-  records: DB[],
-  financialColumns: boolean,
-  rows: ImportClientRow[],
-  clubId: string,
-  trainerMap: Map<string, string>,
-  audit: ImportAudit,
-): Promise<{ data: Array<{ id: string }> | null; error: string | null }> {
-  const { data, error } = await supabase.from("clients").insert(records).select("id")
-  if (error && isMissingColumn(error) && financialColumns) {
-    audit.financialColumns = false
-    audit.financialsSet = 0
-    audit.trainersLinked = 0
-    const base = buildClientInsertRecords(rows, clubId, trainerMap, audit, true)
-    const retry = await supabase.from("clients").insert(base.records).select("id")
-    return { data: retry.data ?? null, error: retry.error ? retry.error.message : null }
+function cleanRow(row: ImportClientRow): ImportClientRow {
+  const cleaned: ImportClientRow = { _rowIndex: Number(row._rowIndex) || 0 }
+  for (const [key, value] of Object.entries(row)) {
+    if (key === "_rowIndex" || key === "extra_fields") continue
+    if (typeof value === "string") cleaned[key as keyof ImportClientRow] = value.trim() as never
   }
-  return { data: data ?? null, error: error ? error.message : null }
+  cleaned.extra_fields = Object.fromEntries(
+    Object.entries(row.extra_fields ?? {}).slice(0, 100)
+      .map(([key, value]) => [key.trim().slice(0, 120), String(value).trim().slice(0, 2_000)])
+      .filter(([key, value]) => key && value),
+  )
+  return cleaned
 }
 
-async function updateOneClient(
+function validateRow(row: ImportClientRow): string[] {
+  const errors: string[] = []
+  if (!buildName(row)) errors.push("Нет имени")
+  if (row.phone && (normalizeImportPhone(row.phone)?.length ?? 0) < 7) errors.push("Некорректный телефон")
+  if (row.email && !normalizeImportEmail(row.email)) errors.push("Некорректный email")
+  for (const [value, label] of [[row.birth_date, "дата рождения"], [row.sub_start, "дата начала"], [row.sub_end, "дата окончания"]] as const) {
+    if (value && !parseImportDate(value)) errors.push(`Некорректная ${label}`)
+  }
+  if (row.last_visit && !parseImportDateTime(row.last_visit)) errors.push("Некорректная дата посещения")
+  for (const [value, label] of [[row.balance, "баланс"], [row.debt, "долг"]] as const) {
+    if (value && parseImportMoney(value) === null) errors.push(`Некорректное поле «${label}»`)
+  }
+  if (row.visits_total && parseImportInteger(row.visits_total) === null) errors.push("Некорректный остаток посещений")
+  return errors
+}
+
+function identityKey(row: ImportClientRow): string | null {
+  const phone = normalizeImportPhone(row.phone)
+  if (phone) return `phone:${phone}`
+  const email = normalizeImportEmail(row.email)
+  return email ? `email:${email}` : null
+}
+
+function collapseFileDuplicates(rows: ImportClientRow[], strategy: DuplicateStrategy, result: BatchImportResult): ImportClientRow[] {
+  if (strategy === "create") return rows
+  const output: ImportClientRow[] = []
+  const positions = new Map<string, number>()
+  for (const row of rows) {
+    const key = identityKey(row)
+    const position = key ? positions.get(key) : undefined
+    if (position === undefined) {
+      if (key) positions.set(key, output.length)
+      output.push(row)
+      continue
+    }
+    if (strategy === "skip") result.skipped++
+    else {
+      output[position] = mergeRows(output[position], row)
+      result.audit.rowsMerged++
+    }
+  }
+  return output
+}
+
+function mergeRows(first: ImportClientRow, second: ImportClientRow): ImportClientRow {
+  const merged = { ...first }
+  for (const [key, value] of Object.entries(second)) {
+    if (key === "extra_fields" || key === "_rowIndex") continue
+    if (value) (merged as DB)[key] = value
+  }
+  merged.extra_fields = { ...first.extra_fields, ...second.extra_fields }
+  return merged
+}
+
+async function fetchExistingClients(supabase: DB, clubId: string, rows: ImportClientRow[]): Promise<ExistingClient[]> {
+  const found = new Map<string, ExistingClient>()
+  const phones = [...new Set(rows.map((row) => normalizeImportPhone(row.phone)).filter(Boolean))] as string[]
+  const emails = [...new Set(rows.map((row) => normalizeImportEmail(row.email)).filter(Boolean))] as string[]
+  for (const [column, values] of [["phone_normalized", phones], ["email_normalized", emails]] as const) {
+    for (const part of chunks(values, 100)) {
+      const { data } = await supabase.from("clients")
+        .select("id, phone_normalized, email_normalized, import_data")
+        .eq("club_id", clubId).in(column, part)
+      for (const client of (data ?? []) as ExistingClient[]) found.set(client.id, client)
+    }
+  }
+  return [...found.values()]
+}
+
+async function insertClients(
   supabase: DB,
   clubId: string,
-  row: ImportClientRow,
+  rows: ImportClientRow[],
   trainerMap: Map<string, string>,
   audit: ImportAudit,
   result: BatchImportResult,
-): Promise<{ id: string; row: ImportClientRow } | null> {
-  const patch: DB = {
-    full_name:  buildName(row),
-    email:      row.email  || null,
-    birth_date: parseDate(row.birth_date),
-    gender:     normalizeGender(row.gender),
-    source:     row.source || null,
-    notes:      row.notes  || null,
-  }
-  if (audit.financialColumns) {
-    const balance = parseMoney(row.balance)
-    const debt    = parseMoney(row.debt)
-    if (balance > 0 || debt > 0) audit.financialsSet++
-    patch.balance = balance
-    patch.debt    = debt
-    if (row.trainer) {
-      patch.trainer_name = row.trainer
-      const tid = resolveTrainerId(row.trainer, trainerMap)
-      if (tid) { patch.trainer_id = tid; audit.trainersLinked++ }
-      else audit.trainersUnmatched++
+): Promise<ClientPair[]> {
+  const records = rows.map((row) => {
+    const importKey = randomUUID()
+    const record = buildClientPatch(row, trainerMap, audit, true)
+    record.club_id = clubId
+    record.tags = []
+    record.import_data = { ...mergeImportData(null, importData(row)), importKey }
+    return { row, importKey, record }
+  })
+  const pairs: ClientPair[] = []
+
+  async function insertPart(part: typeof records): Promise<void> {
+    if (!part.length) return
+    const { data, error } = await supabase.from("clients").insert(part.map((item) => item.record)).select("id, import_data")
+    if (error) {
+      if (part.length > 1) {
+        const middle = Math.ceil(part.length / 2)
+        await insertPart(part.slice(0, middle)); await insertPart(part.slice(middle))
+      } else {
+        result.errors.push({ row: part[0].row._rowIndex, reason: error.message, name: buildName(part[0].row) })
+      }
+      return
+    }
+    const ids = new Map<string, string>((data ?? []).map((item: DB) => [String(item.import_data?.importKey ?? ""), String(item.id)]))
+    for (const item of part) {
+      const id = ids.get(item.importKey)
+      if (id) { pairs.push({ id, row: item.row }); audit.clientsInserted++ }
+      else result.errors.push({ row: item.row._rowIndex, reason: "База не вернула ID созданного клиента", name: buildName(item.row) })
     }
   }
 
-  let { data, error } = await supabase
-    .from("clients").update(patch).eq("club_id", clubId).eq("phone", row.phone!).select("id")
-
-  if (error && isMissingColumn(error) && audit.financialColumns) {
-    audit.financialColumns = false
-    const base: DB = {
-      full_name: buildName(row), email: row.email || null,
-      birth_date: parseDate(row.birth_date), gender: normalizeGender(row.gender),
-      source: row.source || null, notes: row.notes || null,
-    }
-    ;({ data, error } = await supabase
-      .from("clients").update(base).eq("club_id", clubId).eq("phone", row.phone!).select("id"))
-  }
-
-  if (error) {
-    result.errors.push({ row: row._rowIndex, reason: error.message, name: buildName(row) || "—" })
-    return null
-  }
-  audit.clientsUpdated++
-  const id = data?.[0]?.id
-  if (id && (hasSubscriptionData(row) || row.last_visit)) return { id, row }
-  return null
+  for (const part of chunks(records, 100)) await insertPart(part)
+  return pairs
 }
 
-// ── Membership resolution (find-or-create — NEVER random) ───────────────────
-
-async function resolveMemberships(
+async function updateClients(
   supabase: DB,
   clubId: string,
-  rows: ImportClientRow[],
+  items: Array<{ row: ImportClientRow; client: ExistingClient }>,
+  trainerMap: Map<string, string>,
   audit: ImportAudit,
-): Promise<Map<string, string>> {
-  const map = new Map<string, string>()
-  const wanted = [...new Set(
-    rows.map((r) => r.membership_name?.trim()).filter((n): n is string => !!n),
-  )]
-  if (wanted.length === 0) return map
-
-  // Fetch existing memberships for the club
-  const { data: existing } = await supabase
-    .from("memberships").select("id, name").eq("club_id", clubId)
-  for (const m of (existing ?? []) as Array<{ id: string; name: string }>) {
-    map.set(m.name.trim().toLowerCase(), m.id)
-  }
-
-  // Determine which names are missing and create them
-  const missing = wanted.filter((n) => !map.has(n.toLowerCase()))
-  audit.membershipsMatched += wanted.length - missing.length
-
-  if (missing.length > 0) {
-    const newRecords = missing.map((name) => ({
-      club_id: clubId,
-      name,
-      price: 0,
-      duration_days: 30,
-      visits_limit: null,
-      is_active: true,
+  result: BatchImportResult,
+): Promise<ClientPair[]> {
+  const pairs: ClientPair[] = []
+  for (const part of chunks(items, 25)) {
+    await Promise.all(part.map(async ({ row, client }) => {
+      const patch = buildClientPatch(row, trainerMap, audit, false)
+      patch.import_data = mergeImportData(client.import_data, importData(row))
+      const { error } = await supabase.from("clients").update(patch).eq("club_id", clubId).eq("id", client.id)
+      if (error) result.errors.push({ row: row._rowIndex, reason: error.message, name: buildName(row) })
+      else { audit.clientsUpdated++; pairs.push({ id: client.id, row }) }
     }))
-    const { data: created } = await supabase.from("memberships").insert(newRecords).select("id, name")
-    for (const m of (created ?? []) as Array<{ id: string; name: string }>) {
-      map.set(m.name.trim().toLowerCase(), m.id)
-      audit.membershipsCreated++
-    }
   }
-  return map
+  return pairs
 }
 
-// ── Trainer resolution (staff by user full_name) ────────────────────────────
+function buildClientPatch(row: ImportClientRow, trainerMap: Map<string, string>, audit: ImportAudit, insert: boolean): DB {
+  const patch: DB = {}
+  const set = (key: string, value: unknown, present: boolean) => { if (insert || present) patch[key] = value }
+  set("full_name", buildName(row), !!buildName(row))
+  set("phone", row.phone || null, !!row.phone)
+  set("email", normalizeImportEmail(row.email), !!row.email)
+  set("birth_date", parseImportDate(row.birth_date), !!row.birth_date)
+  set("gender", normalizeGender(row.gender), !!row.gender)
+  set("source", row.source || null, !!row.source)
+  set("notes", row.notes || null, !!row.notes)
+
+  const balance = parseImportMoney(row.balance)
+  const debt = parseImportMoney(row.debt)
+  if (balance !== null || debt !== null) audit.financialsSet++
+  set("balance", balance ?? 0, balance !== null)
+  set("debt", debt ?? 0, debt !== null)
+  if (row.trainer) {
+    patch.trainer_name = row.trainer
+    const trainerId = trainerMap.get(normalizeLookup(row.trainer))
+    if (trainerId) { patch.trainer_id = trainerId; audit.trainersLinked++ }
+    else { patch.trainer_id = null; audit.trainersUnmatched++ }
+  } else if (insert) {
+    patch.trainer_name = null; patch.trainer_id = null
+  }
+  audit.extraFieldsSaved += Object.keys(row.extra_fields ?? {}).length
+  return patch
+}
+
+function importData(row: ImportClientRow) {
+  return { sourceFile: row.source_file, sourceRow: row._rowIndex + 1, extraFields: row.extra_fields ?? {} }
+}
 
 async function fetchTrainers(supabase: DB, clubId: string): Promise<Map<string, string>> {
   const map = new Map<string, string>()
-  const { data } = await supabase
-    .from("staff").select("id, users(full_name)").eq("club_id", clubId).eq("is_active", true)
-  for (const s of (data ?? []) as Array<{ id: string; users: { full_name: string | null } | { full_name: string | null }[] | null }>) {
-    const u = Array.isArray(s.users) ? s.users[0] : s.users
-    const name = u?.full_name?.trim().toLowerCase()
-    if (name) map.set(name, s.id)
+  const { data } = await supabase.from("staff").select("id, users(full_name)").eq("club_id", clubId).eq("is_active", true)
+  for (const staff of (data ?? []) as DB[]) {
+    const user = Array.isArray(staff.users) ? staff.users[0] : staff.users
+    if (user?.full_name) map.set(normalizeLookup(user.full_name), staff.id)
   }
   return map
 }
 
-function resolveTrainerId(name: string, map: Map<string, string>): string | null {
-  const key = name.trim().toLowerCase()
-  if (map.has(key)) return map.get(key)!
-  // token-overlap fallback: match if trainer first name matches a staff name token
-  for (const [staffName, id] of map) {
-    if (staffName.includes(key) || key.includes(staffName)) return id
+async function resolveMemberships(
+  supabase: DB, clubId: string, rows: ImportClientRow[], audit: ImportAudit, result: BatchImportResult,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  const { data } = await supabase.from("memberships").select("id, name").eq("club_id", clubId)
+  for (const membership of (data ?? []) as DB[]) map.set(normalizeLookup(membership.name), membership.id)
+  const wanted = [...new Map(rows.filter((row) => row.membership_name).map((row) => [normalizeLookup(row.membership_name!), row.membership_name!])).entries()]
+  const missing = wanted.filter(([key]) => !map.has(key))
+  audit.membershipsMatched += wanted.length - missing.length
+  if (!missing.length) return map
+
+  const { data: created, error } = await supabase.from("memberships").insert(missing.map(([, name]) => ({
+    club_id: clubId, name, price: 0, duration_days: 30, visits_limit: null, is_active: true,
+  }))).select("id, name")
+  if (error) {
+    result.errors.push({ row: 0, reason: `Не удалось создать импортированные тарифы: ${error.message}`, name: "" })
+    return map
   }
-  return null
+  for (const membership of (created ?? []) as DB[]) {
+    map.set(normalizeLookup(membership.name), membership.id); audit.membershipsCreated++
+  }
+  return map
 }
 
-// ── Subscription creation (fresh inserts) ───────────────────────────────────
-
-async function createSubscriptionsBulk(
-  supabase: DB,
-  clubId: string,
-  pairs: Array<{ id: string; row: ImportClientRow }>,
-  membershipMap: Map<string, string>,
-  audit: ImportAudit,
+async function createSubscriptions(
+  supabase: DB, clubId: string, pairs: ClientPair[], memberships: Map<string, string>, audit: ImportAudit, result: BatchImportResult,
 ) {
-  const records = pairs
-    .filter(({ row }) => hasSubscriptionData(row))
-    .map(({ id, row }) => buildSubRecord(clubId, id, row, membershipMap))
-  if (records.length > 0) {
-    const { error } = await supabase.from("subscriptions").insert(records)
-    if (!error) audit.subscriptionsCreated += records.length
+  const records = pairs.filter(({ row }) => hasSubscriptionData(row)).map(({ id, row }) => buildNewSubscription(clubId, id, row, memberships))
+  for (const part of chunks(records, 100)) {
+    const { error } = await supabase.from("subscriptions").insert(part)
+    if (error) result.errors.push({ row: 0, reason: `Клиенты сохранены, ошибка абонементов: ${error.message}`, name: "" })
+    else audit.subscriptionsCreated += part.length
   }
 }
 
 async function repairSubscriptions(
-  supabase: DB,
-  clubId: string,
-  pairs: Array<{ id: string; row: ImportClientRow }>,
-  membershipMap: Map<string, string>,
-  audit: ImportAudit,
+  supabase: DB, clubId: string, pairs: ClientPair[], memberships: Map<string, string>, audit: ImportAudit, result: BatchImportResult,
 ) {
-  const withSub = pairs.filter(({ row }) => hasSubscriptionData(row))
-  if (withSub.length === 0) return
-  const clientIds = withSub.map((p) => p.id)
+  const relevant = pairs.filter(({ row }) => hasSubscriptionData(row))
+  if (!relevant.length) return
+  const { data } = await supabase.from("subscriptions")
+    .select("id, client_id, visits_used, created_at").eq("club_id", clubId)
+    .in("client_id", relevant.map((pair) => pair.id)).order("created_at", { ascending: false })
+  const latest = new Map<string, DB>()
+  for (const subscription of (data ?? []) as DB[]) if (!latest.has(subscription.client_id)) latest.set(subscription.client_id, subscription)
 
-  // Latest existing subscription per client
-  const { data: existing } = await supabase
-    .from("subscriptions").select("id, client_id, created_at")
-    .in("client_id", clientIds).order("created_at", { ascending: false })
-  const latest = new Map<string, string>()
-  for (const s of (existing ?? []) as Array<{ id: string; client_id: string }>) {
-    if (!latest.has(s.client_id)) latest.set(s.client_id, s.id)
-  }
-
-  const toInsert: DB[] = []
-  const updates: Array<{ subId: string; patch: DB }> = []
-  for (const { id, row } of withSub) {
-    const rec = buildSubRecord(clubId, id, row, membershipMap)
-    const subId = latest.get(id)
-    if (subId) {
-      // patch existing — do not overwrite club/client
-      const { club_id, client_id, ...patch } = rec // eslint-disable-line @typescript-eslint/no-unused-vars
-      updates.push({ subId, patch })
-    } else {
-      toInsert.push(rec)
+  for (const { id, row } of relevant) {
+    const current = latest.get(id)
+    if (!current) {
+      const { error } = await supabase.from("subscriptions").insert(buildNewSubscription(clubId, id, row, memberships))
+      if (error) result.errors.push({ row: row._rowIndex, reason: `Клиент обновлён, абонемент не создан: ${error.message}`, name: buildName(row) })
+      else audit.subscriptionsCreated++
+      continue
     }
-  }
-
-  if (toInsert.length > 0) {
-    const { error } = await supabase.from("subscriptions").insert(toInsert)
-    if (!error) audit.subscriptionsCreated += toInsert.length
-  }
-  const PARALLEL = 25
-  for (let i = 0; i < updates.length; i += PARALLEL) {
-    const batch = updates.slice(i, i + PARALLEL)
-    const done = await Promise.all(batch.map(async ({ subId, patch }) => {
-      const { error } = await supabase.from("subscriptions").update(patch).eq("id", subId)
-      return !error
-    }))
-    audit.subscriptionsUpdated += done.filter(Boolean).length
+    const patch = buildSubscriptionPatch(row, memberships, Number(current.visits_used ?? 0))
+    const { error } = await supabase.from("subscriptions").update(patch).eq("club_id", clubId).eq("id", current.id)
+    if (error) result.errors.push({ row: row._rowIndex, reason: `Клиент обновлён, абонемент не обновлён: ${error.message}`, name: buildName(row) })
+    else audit.subscriptionsUpdated++
   }
 }
 
-function buildSubRecord(clubId: string, clientId: string, row: ImportClientRow, membershipMap: Map<string, string>): DB {
-  const nameLower = row.membership_name?.trim().toLowerCase() ?? ""
-  const membershipId = nameLower ? (membershipMap.get(nameLower) ?? null) : null
-  const remaining = row.visits_total != null && row.visits_total !== "" ? parseIntSafe(row.visits_total) : null
-  const startsAt = parseDate(row.sub_start) ?? new Date().toISOString().slice(0, 10)
-  const expiresAt = parseDate(row.sub_end) ?? null
-  const status = deriveSubStatus(row.sub_status, expiresAt)
+function buildNewSubscription(clubId: string, clientId: string, row: ImportClientRow, memberships: Map<string, string>): DB {
+  const expiresAt = parseImportDate(row.sub_end)
+  const remaining = parseImportInteger(row.visits_total)
   return {
-    club_id:       clubId,
-    client_id:     clientId,
-    membership_id: membershipId,
-    starts_at:     startsAt,
-    expires_at:    expiresAt,
-    visits_total:  remaining,
-    visits_used:   0,
-    status,
+    club_id: clubId,
+    client_id: clientId,
+    membership_id: row.membership_name ? memberships.get(normalizeLookup(row.membership_name)) ?? null : null,
+    starts_at: parseImportDate(row.sub_start) ?? new Date().toISOString().slice(0, 10),
+    expires_at: expiresAt,
+    visits_total: remaining,
+    visits_used: 0,
+    status: deriveSubStatus(row.sub_status, expiresAt),
   }
 }
 
-// ── Visit creation (last visit → history row) ───────────────────────────────
+function buildSubscriptionPatch(row: ImportClientRow, memberships: Map<string, string>, visitsUsed: number): DB {
+  const patch: DB = {}
+  if (row.membership_name) patch.membership_id = memberships.get(normalizeLookup(row.membership_name)) ?? null
+  if (row.sub_start) patch.starts_at = parseImportDate(row.sub_start)
+  if (row.sub_end) patch.expires_at = parseImportDate(row.sub_end)
+  if (row.visits_total) patch.visits_total = visitsUsed + (parseImportInteger(row.visits_total) ?? 0)
+  if (row.sub_status || row.sub_end) patch.status = deriveSubStatus(row.sub_status, parseImportDate(row.sub_end))
+  return patch
+}
 
-async function createVisitsBulk(
-  supabase: DB,
-  clubId: string,
-  pairs: Array<{ id: string; row: ImportClientRow }>,
-  audit: ImportAudit,
+async function importVisits(
+  supabase: DB, clubId: string, pairs: ClientPair[], audit: ImportAudit, result: BatchImportResult,
 ) {
-  const records = pairs
-    .map(({ id, row }) => {
-      const at = parseDateTime(row.last_visit)
-      return at ? { club_id: clubId, client_id: id, checked_in_at: at, method: "manual" } : null
-    })
-    .filter(Boolean) as DB[]
-  if (records.length > 0) {
-    const { error } = await supabase.from("visits").insert(records)
-    if (!error) audit.visitsCreated += records.length
+  const wanted = pairs.map(({ id, row }) => ({ id, row, at: parseImportDateTime(row.last_visit) })).filter((item) => item.at)
+  if (!wanted.length) return
+  const { data } = await supabase.from("visits").select("client_id, checked_in_at").eq("club_id", clubId).in("client_id", wanted.map((item) => item.id))
+  const existing = new Set((data ?? []).map((visit: DB) => `${visit.client_id}:${new Date(visit.checked_in_at).toISOString()}`))
+  const records = wanted.filter((item) => !existing.has(`${item.id}:${item.at}`)).map((item) => ({
+    club_id: clubId, client_id: item.id, checked_in_at: item.at, method: "manual",
+  }))
+  for (const part of chunks(records, 100)) {
+    const { error } = await supabase.from("visits").insert(part)
+    if (error) result.errors.push({ row: 0, reason: `Клиенты сохранены, ошибка посещений: ${error.message}`, name: "" })
+    else audit.visitsCreated += part.length
   }
 }
 
-async function repairVisits(
-  supabase: DB,
-  clubId: string,
-  pairs: Array<{ id: string; row: ImportClientRow }>,
-  audit: ImportAudit,
-) {
-  const withVisit = pairs.filter(({ row }) => !!parseDateTime(row.last_visit))
-  if (withVisit.length === 0) return
-  const clientIds = withVisit.map((p) => p.id)
-  // Skip clients who already have visits (avoid duplicate history on re-import)
-  const { data: existing } = await supabase
-    .from("visits").select("client_id").in("client_id", clientIds)
-  const has = new Set((existing ?? []).map((v: { client_id: string }) => v.client_id))
-  const records = withVisit
-    .filter((p) => !has.has(p.id))
-    .map(({ id, row }) => ({ club_id: clubId, client_id: id, checked_in_at: parseDateTime(row.last_visit)!, method: "manual" }))
-  if (records.length > 0) {
-    const { error } = await supabase.from("visits").insert(records)
-    if (!error) audit.visitsCreated += records.length
-  }
+function hasSubscriptionData(row: ImportClientRow): boolean {
+  return !!(row.membership_name || row.sub_status || row.sub_start || row.sub_end || row.visits_total)
 }
 
-// ── Predicates & parsing ────────────────────────────────────────────────────
-
-function hasSubscriptionData(r: ImportClientRow): boolean {
-  return !!(r.membership_name || r.sub_start || r.sub_end || (r.visits_total != null && r.visits_total !== "") || r.sub_status)
+function buildName(row: ImportClientRow): string {
+  return (row.full_name || [row.last_name, row.first_name].filter(Boolean).join(" ")).trim()
 }
 
-function isMissingColumn(error: { code?: string; message?: string }): boolean {
-  return error?.code === "42703" || /column .* does not exist/i.test(error?.message ?? "")
+function normalizeLookup(value: string): string {
+  return value.toLocaleLowerCase("ru").replace(/\s+/g, " ").trim()
 }
 
-function buildName(r: ImportClientRow): string {
-  return r.full_name || [r.last_name, r.first_name].filter(Boolean).join(" ")
+function normalizeGender(value?: string): "male" | "female" | null {
+  const normalized = normalizeLookup(value ?? "")
+  if (["м", "m", "male", "мужской", "мужчина", "муж"].includes(normalized)) return "male"
+  if (["ж", "f", "female", "женский", "женщина", "жен"].includes(normalized)) return "female"
+  return null
 }
 
-function deriveSubStatus(v: string | undefined, expiresAt: string | null): "active" | "expired" | "frozen" | "cancelled" {
-  const explicit = normalizeSubStatus(v)
-  if (explicit) return explicit
+function deriveSubStatus(value: string | undefined, expiresAt: string | null): "active" | "expired" | "frozen" | "cancelled" {
+  const normalized = normalizeLookup(value ?? "")
+  if (["просрочен", "expired", "истёк", "истек", "закончился", "истекший"].includes(normalized)) return "expired"
+  if (["заморожен", "frozen", "заморожено", "заморозка"].includes(normalized)) return "frozen"
+  if (["отменён", "отменен", "cancelled", "canceled"].includes(normalized)) return "cancelled"
   if (expiresAt && expiresAt < new Date().toISOString().slice(0, 10)) return "expired"
   return "active"
 }
 
-function normalizeSubStatus(v?: string): "active" | "expired" | "frozen" | "cancelled" | null {
-  if (!v) return null
-  const l = v.toLowerCase().trim()
-  if (["активен", "active", "действует", "действителен", "активный"].includes(l)) return "active"
-  if (["просрочен", "expired", "истёк", "истек", "закончился", "истекший"].includes(l)) return "expired"
-  if (["заморожен", "frozen", "заморожено", "заморозка"].includes(l)) return "frozen"
-  if (["отменён", "отменен", "cancelled", "canceled"].includes(l)) return "cancelled"
-  return null
-}
-
-function normalizeGender(v?: string): string | null {
-  if (!v) return null
-  const l = v.toLowerCase().trim()
-  if (["м", "m", "male", "мужской", "мужчина", "муж"].includes(l)) return "male"
-  if (["ж", "f", "female", "женский", "женщина", "жен"].includes(l)) return "female"
-  return null
-}
-
-function parseMoney(v?: string): number {
-  if (!v?.trim()) return 0
-  const n = parseFloat(v.replace(/\s/g, "").replace(/[^\d.,-]/g, "").replace(",", "."))
-  return isNaN(n) ? 0 : n
-}
-
-function parseIntSafe(v?: string): number | null {
-  if (!v?.trim()) return null
-  const n = parseInt(v.replace(/[^\d-]/g, ""), 10)
-  return isNaN(n) ? null : n
-}
-
-function parseDate(v?: string): string | null {
-  if (!v?.trim()) return null
-  const s = v.trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
-  const m1 = s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/)
-  if (m1) return `${m1[3]}-${m1[2].padStart(2, "0")}-${m1[1].padStart(2, "0")}`
-  const m2 = s.match(/^(\d{4})[./](\d{1,2})[./](\d{1,2})$/)
-  if (m2) return `${m2[1]}-${m2[2].padStart(2, "0")}-${m2[3].padStart(2, "0")}`
-  return null
-}
-
-/** Last-visit may include time; fall back to date-only → midnight. Returns ISO timestamp. */
-function parseDateTime(v?: string): string | null {
-  if (!v?.trim()) return null
-  const s = v.trim()
-  // Try native parse for ISO-like values with time
-  const native = Date.parse(s)
-  if (!isNaN(native) && /[:t]/i.test(s)) return new Date(native).toISOString()
-  const d = parseDate(s)
-  return d ? new Date(`${d}T12:00:00`).toISOString() : null
+function chunks<T>(items: T[], size: number): T[][] {
+  const result: T[][] = []
+  for (let index = 0; index < items.length; index += size) result.push(items.slice(index, index + size))
+  return result
 }

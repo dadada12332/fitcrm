@@ -56,6 +56,7 @@ export interface ValidatedRow {
   values: Record<FieldKey, string>
   errors: string[]
   dupPhone?: boolean
+  extraFields?: Record<string, string>
 }
 
 export type DuplicateStrategy = "skip" | "update" | "create"

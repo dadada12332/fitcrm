@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import type { ClientStatus } from "@/lib/clients"
 import { createServiceClient } from "@/lib/supabase/service"
 import { telegramDisplayName } from "@/lib/telegram/identity"
+import type { ClientImportData } from "@/lib/client-import"
 
 export type PaymentProvider = "click" | "payme" | "uzum" | "cash"
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded"
@@ -51,6 +52,7 @@ export type ClientProfile = {
   balance: number
   debt: number
   notes: string | null
+  importData: ClientImportData | null
   tags: string[]
   photoUrl: string | null
   createdAt: string
@@ -139,7 +141,7 @@ export async function getClientProfile(
   // Try full select (incl. balance/debt/trainer); fall back if columns not migrated
   const full = await supabase
     .from("clients")
-    .select("id, full_name, phone, telegram_id, photo_url, tags, notes, created_at, email, birth_date, gender, source, balance, debt, trainer_name")
+    .select("id, full_name, phone, telegram_id, photo_url, tags, notes, import_data, created_at, email, birth_date, gender, source, balance, debt, trainer_name")
     .eq("id", id)
     .eq("club_id", clubId)
     .maybeSingle()
@@ -241,6 +243,14 @@ export async function getClientProfile(
     balance: c.balance != null ? Number(c.balance) : 0,
     debt: c.debt != null ? Number(c.debt) : 0,
     notes: (c.notes as string | null) ?? null,
+    importData: c.import_data && typeof c.import_data === "object"
+      ? {
+          sourceFile: typeof c.import_data.sourceFile === "string" ? c.import_data.sourceFile : undefined,
+          sourceRow: typeof c.import_data.sourceRow === "number" ? c.import_data.sourceRow : undefined,
+          importedAt: typeof c.import_data.importedAt === "string" ? c.import_data.importedAt : undefined,
+          extraFields: c.import_data.extraFields && typeof c.import_data.extraFields === "object" ? c.import_data.extraFields : {},
+        }
+      : null,
     tags: (c.tags as string[] | null) ?? [],
     photoUrl: (c.photo_url as string | null) ?? null,
     createdAt: c.created_at as string,
