@@ -17,6 +17,7 @@ updated: 2026-07-18
 - [[Daily/2026-07-18]]
 - [[Daily/2026-07-19]]
 - [[Daily/2026-07-20]]
+- [[Daily/2026-07-21]]
 
 ## Database
 
@@ -27,6 +28,7 @@ updated: 2026-07-18
 - [[Decisions/ADR-0001-infrastructure-regions]]
 - [[Decisions/ADR-0002-server-action-authorization]]
 - [[Decisions/ADR-0003-repository-knowledge-vault]]
+- [[Decisions/ADR-0004-klientskie-obrascheniya-kak-otdel-nyi-channel-agnostic-inbox]]
 
 ## Infrastructure
 
@@ -86,6 +88,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0027-kontakty-i-rezul-taty-uderzhaniya]]
 - [[Tasks/Completed/TASK-0028-pervyi-zapusk-produktovyi-tur-i-predlozhenie-podpiski]]
 - [[Tasks/Completed/TASK-0029-bezopasnyi-vyhod-i-ponyatnyi-flow-eksperimentov-growth-os]]
+- [[Tasks/Completed/TASK-0030-klientskie-obrascheniya-iz-telegram-mini-app-v-crm]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]

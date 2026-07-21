@@ -8,6 +8,7 @@ export type RolePermissions = {
   warehouse:   { view: boolean; sell: boolean; supply: boolean; writeoff: boolean; view_cost_price: boolean }
   staff:       { view: boolean; create: boolean; edit: boolean; delete: boolean; salaries: boolean }
   reports:     { view: boolean; finance: boolean; export: boolean }
+  inbox:       { view: boolean; reply: boolean; assign: boolean; manage_templates: boolean }
   ai:          { use: boolean }
   telegram:    { view: boolean; manage: boolean }
   settings:    { general: boolean; integrations: boolean; subscription: boolean; roles: boolean }
@@ -33,6 +34,7 @@ const ALL_TRUE_PERMS: RolePermissions = {
   warehouse:   { view: true,  sell: true,    supply: true,  writeoff: true,  view_cost_price: true  },
   staff:       { view: true,  create: true,  edit: true,  delete: true,  salaries: true  },
   reports:     { view: true,  finance: true, export: true  },
+  inbox:       { view: true,  reply: true, assign: true, manage_templates: true },
   ai:          { use: true  },
   telegram:    { view: true,  manage: true  },
   settings:    { general: true, integrations: true, subscription: true, roles: true  },
@@ -48,6 +50,7 @@ const ALL_FALSE_PERMS: RolePermissions = {
   warehouse:   { view: false, sell: false,   supply: false, writeoff: false, view_cost_price: false },
   staff:       { view: false, create: false, edit: false, delete: false, salaries: false },
   reports:     { view: false, finance: false, export: false },
+  inbox:       { view: false, reply: false, assign: false, manage_templates: false },
   ai:          { use: false },
   telegram:    { view: false, manage: false },
   settings:    { general: false, integrations: false, subscription: false, roles: false },
@@ -66,6 +69,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     warehouse:   { view: true,  sell: true,    supply: true,  writeoff: true,  view_cost_price: false },
     staff:       { view: true,  create: false, edit: false, delete: false, salaries: false },
     reports:     { view: true,  finance: false, export: false },
+    inbox:       { view: true,  reply: true, assign: true, manage_templates: true },
     ai:          { use: true },
     telegram:    { view: true,  manage: false },
     settings:    { general: true, integrations: false, subscription: false, roles: false },
@@ -81,6 +85,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     warehouse:   { view: true,  sell: true,    supply: false, writeoff: false, view_cost_price: false },
     staff:       { view: true,  create: false, edit: false, delete: false, salaries: false },
     reports:     { view: true,  finance: false, export: false },
+    inbox:       { view: true,  reply: true, assign: true, manage_templates: true },
     ai:          { use: false },
   },
   trainer: {
@@ -110,6 +115,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     payments:    { view: true,  create: true,  refund: false, view_revenue: false, export: false },
     visits:      { view: true,  checkin: true, checkout: true, manual: false, delete_history: false },
     schedule:    { view: true,  create: false, edit: false, delete: false },
+    inbox:       { view: true,  reply: true, assign: false, manage_templates: false },
   },
 }
 

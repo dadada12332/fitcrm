@@ -4,7 +4,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getAuthUser } from "@/lib/auth"
 import { cookies } from "next/headers"
 import type { RolePermissions } from "@/lib/permissions"
-import { getDefaultPermissions } from "@/lib/permissions"
+import { getDefaultPermissions, mergePermissions } from "@/lib/permissions"
 
 export type CurrentClub = {
   clubId: string
@@ -132,6 +132,11 @@ async function resolvePermissions(
     .eq("key", role)
     .maybeSingle()
 
-  if (data?.permissions) return data.permissions as RolePermissions
+  if (data?.permissions) {
+    return mergePermissions(
+      getDefaultPermissions(role),
+      data.permissions as Partial<RolePermissions>,
+    )
+  }
   return getDefaultPermissions(role)
 }

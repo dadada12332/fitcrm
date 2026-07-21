@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import type { RolePermissions } from "@/lib/permissions"
-import { getDefaultPermissions } from "@/lib/permissions"
+import { getDefaultPermissions, mergePermissions } from "@/lib/permissions"
 
 export type RoleRow = {
   id: string
@@ -54,7 +54,7 @@ export async function getRolesAction(): Promise<{ roles: RoleRow[]; error?: stri
     key: r.key,
     name: r.name,
     description: r.description ?? "",
-    permissions: r.permissions as RolePermissions,
+    permissions: mergePermissions(getDefaultPermissions(r.key), r.permissions as Partial<RolePermissions>),
     isSystem: r.is_system,
     staffCount: countByKey[r.key] ?? 0,
   }))

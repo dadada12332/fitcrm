@@ -10,6 +10,7 @@ import {
   ChevronDown, Check,
   GitFork,
   HeartHandshake, Rocket,
+  MessagesSquare,
 } from "lucide-react"
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 import { QuickActionsMenu } from "@/components/app/QuickActionsMenu"
@@ -342,13 +343,16 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
           )}
         </div>
 
-        {(p.visits.view || p.schedule.view || p.payments.view || p.warehouse.view) && (
+        {(p.visits.view || p.inbox.view || p.schedule.view || p.payments.view || p.warehouse.view) && (
           <>
             <Divider />
             {!collapsed && <SectionLabel label="Операции" />}
             <div className="flex flex-col gap-0.5">
               {p.visits.view && (
                 <NavItem href="/visits" icon={Activity} label="Посещения" collapsed={collapsed} badge={stats.todayVisits > 0 ? "LIVE" : undefined} badgeType="live" />
+              )}
+              {p.inbox.view && (
+                <NavItem href="/inbox" icon={MessagesSquare} label="Обращения" collapsed={collapsed} badge={stats.inboxUnread > 0 ? stats.inboxUnread : undefined} badgeType="count" />
               )}
               {p.schedule.view && (
                 <NavItem href="/schedule" icon={Calendar} label="Расписание" collapsed={collapsed} />

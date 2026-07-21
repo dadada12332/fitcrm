@@ -178,6 +178,15 @@ const MODULES: ModuleCfg[] = [
     ],
   },
   {
+    key: "inbox", label: "Обращения клиентов", emoji: "💬",
+    actions: [
+      { key: "view",             label: "Просмотр" },
+      { key: "reply",            label: "Ответ клиентам" },
+      { key: "assign",           label: "Назначение сотрудников" },
+      { key: "manage_templates", label: "Управление шаблонами" },
+    ],
+  },
+  {
     key: "ai", label: "AI Аналитика", emoji: "🤖",
     actions: [
       { key: "use", label: "Использовать AI" },

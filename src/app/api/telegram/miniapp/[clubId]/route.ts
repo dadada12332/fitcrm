@@ -2,16 +2,22 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { validateTelegramMiniAppInitData } from "@/lib/telegram/miniapp-auth"
 import { buildClickPayUrl, buildPaymePayUrl } from "@/lib/payment-links"
 import { createQrPass } from "@/lib/qr-pass"
+import { loadMiniAppSupport, sendMiniAppSupportMessage } from "@/lib/telegram/client-support"
+import type { ClientConversationCategory } from "@/lib/client-inbox"
 
 export const dynamic = "force-dynamic"
 
 type MiniAppBody = {
   initData?: string
-  action?: "bootstrap" | "book" | "cancel" | "renew" | "preferences" | "qr"
+  action?: "bootstrap" | "book" | "cancel" | "renew" | "preferences" | "qr" | "support_load" | "support_send"
   classId?: string
   bookingId?: string
   provider?: "payme" | "click"
   preferences?: { expiry_reminders?: boolean; schedule_reminders?: boolean }
+  conversationId?: string
+  category?: ClientConversationCategory
+  message?: string
+  idempotencyKey?: string
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -172,9 +178,30 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
     return Response.json({ ok: true, paymentUrl })
   }
 
+  if (action === "support_send") {
+    const result = await sendMiniAppSupportMessage({
+      service,
+      clubId,
+      clientId,
+      telegramId: auth.user.id,
+      body: body.message ?? "",
+      idempotencyKey: body.idempotencyKey,
+      conversationId: body.conversationId,
+      category: body.category,
+    })
+    if (!result.ok) return fail(result.error ?? "Не удалось отправить сообщение")
+    const support = await loadMiniAppSupport(service, clubId, clientId, result.conversationId)
+    return Response.json({ ok: true, support }, { headers: { "Cache-Control": "no-store" } })
+  }
+
+  if (action === "support_load") {
+    const support = await loadMiniAppSupport(service, clubId, clientId, body.conversationId)
+    return Response.json({ support }, { headers: { "Cache-Control": "no-store" } })
+  }
+
   const today = tashkentDate()
   const rangeEnd = tashkentDate(7)
-  const [{ data: club }, { data: subscriptions }, { data: visits }, { data: classes }, { data: providers }] = await Promise.all([
+  const [{ data: club }, { data: subscriptions }, { data: visits }, { data: classes }, { data: providers }, support] = await Promise.all([
     service.from("clubs").select("name, city, settings").eq("id", clubId).single(),
     service.from("subscriptions").select("id, status, starts_at, expires_at, visits_total, visits_used, memberships(name, price)")
       .eq("club_id", clubId).eq("client_id", clientId).order("expires_at", { ascending: false }).limit(5),
@@ -184,6 +211,7 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
       .eq("club_id", clubId).eq("status", "scheduled").gte("date", today).lte("date", rangeEnd)
       .order("date", { ascending: true }).order("start_time", { ascending: true }).limit(80),
     service.from("club_payment_credentials").select("provider").eq("club_id", clubId).eq("enabled", true).in("provider", ["payme", "click"]),
+    loadMiniAppSupport(service, clubId, clientId, body.conversationId),
   ])
   if (!club) return fail("Профиль не найден", 404)
 
@@ -222,6 +250,7 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
     qrExpiresAt: qrPass?.expiresAt ?? null,
     preferences: link.preferences ?? { expiry_reminders: true, schedule_reminders: true },
     providers: (providers ?? []).map((item) => item.provider),
+    support,
     serverDate: today,
   }, { headers: { "Cache-Control": "no-store" } })
 }

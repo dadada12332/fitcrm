@@ -12,6 +12,7 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- Telegram Mini App и CRM получили клиентские обращения: отдельный inbox, темы, история, ответственные, статусы, быстрые ответы и доставка сообщений через бота клуба с retry.
 - Раздел «Удержание» получил контекстного AI-копилота: анализ сегмента, приоритетная очередь, план на 7 дней и персональные разборы с черновиками сообщений.
 - Добавлены публичный database-aware `/api/health`, структурированные request-error logs и authenticated Playwright gate для основных CRM-маршрутов.
 - Growth OS объединяет ежедневный план, пульс клуба, revenue radar, симулятор, playbooks и каталог контролируемых экспериментов; новый центр удержания показывает клиентов с риском оттока и следующие действия.
@@ -65,6 +66,7 @@ tags: [fitcrm, releases]
 
 ### Security
 
+- Клиентские обращения связываются только через подтверждённый `client_id`; прямые authenticated-записи в inbox-таблицы запрещены, а действия сотрудников защищены модульными permissions.
 - Retention AI повторно загружает клиентов по `club_id`, проверяет права и не доверяет ID/данным из браузера; AI не выполняет скрытых мутаций и не может добавить клиента вне server-scoped результата.
 - Миграции `0065`–`0067` закрыли broad Storage listing, ограничили upload MIME/size, отозвали лишние RPC grants и добавили недостающие FK indexes.
 - Production two-club RLS probe подтвердил отсутствие cross-tenant read/write доступа.
@@ -86,6 +88,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
 - `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 - `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
@@ -115,5 +118,4 @@ tags: [fitcrm, releases]
 - `f78622e` · 2026-07-18 · Polish landing platform overview
 - `699ac9f` · 2026-07-18 · Document Obsidian productivity plugins [skip ci]
 - `62a645a` · 2026-07-18 · Configure Obsidian Kanban and Calendar [skip ci]
-- `9c6d5a6` · 2026-07-18 · Document AI page spacing fix [skip ci]
 <!-- AUTO:END changelog-candidates -->

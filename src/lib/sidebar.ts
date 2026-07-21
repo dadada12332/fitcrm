@@ -13,6 +13,7 @@ export type SidebarStats = {
   avatarPreset: string | null
   avatarUrl: string | null
   supportUnread: number
+  inboxUnread: number
   notificationCount: number
 }
 
@@ -49,7 +50,7 @@ export async function getSidebarStats(
   const lastWeek = new Date()
   lastWeek.setDate(lastWeek.getDate() - 7)
 
-  const [clients, memberships, visits, stock, userRes, staffRow, supportRows, expiring, expired, pendingPayments] = await Promise.all([
+  const [clients, memberships, visits, stock, userRes, staffRow, supportRows, inboxRows, expiring, expired, pendingPayments] = await Promise.all([
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId),
     supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "active"),
     supabase.from("visits").select("id", { count: "exact", head: true }).eq("club_id", clubId).gte("checked_in_at", todayStart.toISOString()),
@@ -57,6 +58,7 @@ export async function getSidebarStats(
     supabase.from("users").select("full_name").eq("id", userId).maybeSingle(),
     supabase.from("staff").select("id, role").eq("user_id", userId).eq("club_id", clubId).maybeSingle(),
     supabase.from("support_tickets").select("agent_last_read_at, user_last_read_at").eq("club_id", clubId).not("agent_last_read_at", "is", null),
+    supabase.from("client_conversations").select("last_client_message_at, client_conversation_reads(last_read_at, staff_id)").eq("club_id", clubId).in("status", ["new", "open", "waiting_client"]),
     supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "active").gte("expires_at", todayStart.toISOString().slice(0, 10)).lte("expires_at", nextWeek.toISOString().slice(0, 10)),
     supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "expired").gte("expires_at", lastWeek.toISOString().slice(0, 10)).lte("expires_at", todayStart.toISOString().slice(0, 10)),
     supabase.from("payments").select("id", { count: "exact", head: true }).eq("club_id", clubId).eq("status", "pending"),
@@ -70,6 +72,13 @@ export async function getSidebarStats(
     (t) => t.agent_last_read_at && new Date(t.agent_last_read_at) > new Date(t.user_last_read_at)
   ).length
 
+  const inboxUnread = (inboxRows.data ?? []).filter((conversation) => {
+    if (!conversation.last_client_message_at || !staffRow.data?.id) return false
+    const reads = (conversation.client_conversation_reads as unknown as Array<{ last_read_at: string; staff_id: string }>) ?? []
+    const read = reads.find((item) => item.staff_id === staffRow.data?.id)
+    return !read || new Date(conversation.last_client_message_at) > new Date(read.last_read_at)
+  }).length
+
   return withLocalMeta({
     clientCount:           clients.count ?? 0,
     activeMembershipCount: memberships.count ?? 0,
@@ -79,6 +88,7 @@ export async function getSidebarStats(
     userRole:     ROLE_LABELS[staffRow.data?.role ?? ""] ?? "Сотрудник",
     staffId:      staffRow.data?.id ?? null,
     supportUnread,
+    inboxUnread,
     notificationCount: Math.min(expiring.count ?? 0, 10) + Math.min(expired.count ?? 0, 10) + Math.min(pendingPayments.count ?? 0, 10),
   }, trialExpiresAt, Object.keys(userMetadata).length ? userMetadata : (authUser?.user_metadata ?? {}))
 }
@@ -86,6 +96,7 @@ export async function getSidebarStats(
 function withLocalMeta(data: SidebarRpc, trialExpiresAt: string | null, meta: Record<string, unknown>): SidebarStats {
   return {
     ...data,
+    inboxUnread: data.inboxUnread ?? 0,
     trialDaysLeft: trialExpiresAt
       ? Math.max(0, Math.ceil((new Date(trialExpiresAt).getTime() - Date.now()) / 86_400_000))
       : null,

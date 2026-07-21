@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
 - `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 - `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `b60cc07` · 2026-07-20 · feat: complete retention outreach workflow
 - `99cf665` · 2026-07-20 · docs: record verified retention AI release [skip ci]
 - `63d1989` · 2026-07-20 · feat: add retention AI copilot
-- `bc10d6d` · 2026-07-20 · docs: retire resolved launch issues [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-20 Asia/Tashkent
+2026-07-21 Asia/Tashkent
 <!-- AUTO:END updated-at -->

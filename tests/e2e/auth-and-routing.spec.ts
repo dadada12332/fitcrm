@@ -19,14 +19,14 @@ for (const route of publicAuthRoutes) {
   })
 }
 
-for (const privateRoute of ["/dashboard", "/clients", "/memberships", "/visits", "/schedule", "/payments", "/reports"]) {
+for (const privateRoute of ["/dashboard", "/clients", "/memberships", "/visits", "/inbox", "/schedule", "/payments", "/reports"]) {
   test(privateRoute + " redirects an anonymous user to login", async ({ page }) => {
     await page.goto(privateRoute)
     await expect(page).toHaveURL(/\/login(?:\?|$)/)
   })
 }
 
-for (const apiRoute of ["/api/broadcasts/run", "/api/cron/reconcile", "/api/telegram/daily-report"]) {
+for (const apiRoute of ["/api/broadcasts/run", "/api/cron/reconcile", "/api/telegram/daily-report", "/api/telegram/client-support/run"]) {
   test(apiRoute + " reaches its server-to-server authorization boundary", async ({ request }) => {
     const response = await request.get(apiRoute, { maxRedirects: 0 })
 

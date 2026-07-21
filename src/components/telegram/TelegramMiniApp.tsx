@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  ArrowLeft, Bell, CalendarDays, Check, ChevronRight, Clock3, CreditCard, Dumbbell,
-  History, Home, LoaderCircle, MapPin, QrCode, RefreshCw, TicketCheck, UserRound,
+  ArrowLeft, Bell, CalendarDays, Check, CheckCheck, ChevronRight, Clock3, CreditCard, Dumbbell,
+  Headphones, History, Home, LoaderCircle, MapPin, MessageCircle, QrCode, RefreshCw,
+  SendHorizontal, TicketCheck, UserRound,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 
 type TelegramWebApp = {
   initData: string
@@ -63,15 +65,48 @@ type MiniAppData = {
   preferences: { expiry_reminders?: boolean; schedule_reminders?: boolean }
   providers: Array<"payme" | "click">
   serverDate: string
+  support: MiniAppSupportData
 }
 
-type Tab = "home" | "schedule" | "pass" | "profile"
+type MiniAppSupportMessage = {
+  id: string
+  senderType: "client" | "staff" | "system"
+  body: string
+  deliveryStatus: string
+  createdAt: string
+}
+
+type MiniAppSupportConversation = {
+  id: string
+  conversationNo: number
+  category: SupportCategory
+  status: "new" | "open" | "waiting_client" | "resolved" | "closed"
+  lastMessageAt: string
+  messages: MiniAppSupportMessage[]
+}
+
+type MiniAppSupportData = {
+  conversation: MiniAppSupportConversation | null
+  recent: Array<Omit<MiniAppSupportConversation, "messages">>
+}
+
+type SupportCategory = "membership" | "payment" | "schedule" | "freeze" | "visit_qr" | "other"
+type Tab = "home" | "schedule" | "pass" | "profile" | "support"
 
 const TABS: Array<{ id: Tab; label: string; icon: typeof Home }> = [
   { id: "home", label: "Главная", icon: Home },
   { id: "schedule", label: "Занятия", icon: CalendarDays },
   { id: "pass", label: "Пропуск", icon: QrCode },
   { id: "profile", label: "Профиль", icon: UserRound },
+]
+
+const SUPPORT_CATEGORIES: Array<{ id: SupportCategory; label: string }> = [
+  { id: "membership", label: "Абонемент" },
+  { id: "payment", label: "Оплата" },
+  { id: "schedule", label: "Расписание" },
+  { id: "freeze", label: "Заморозка" },
+  { id: "visit_qr", label: "Посещение и QR" },
+  { id: "other", label: "Другое" },
 ]
 
 function membershipOf(subscription?: Subscription | null) {
@@ -102,6 +137,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   const [qrImage, setQrImage] = useState<{ pass: string; url: string } | null>(null)
   const [qrSeconds, setQrSeconds] = useState(30)
   const [qrRefreshing, setQrRefreshing] = useState(false)
+  const [supportBusy, setSupportBusy] = useState(false)
   const tabStack = useRef<Tab[]>(["home"])
   const qrRefreshInFlight = useRef(false)
 
@@ -140,7 +176,11 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
       const response = await fetch(`/api/telegram/miniapp/${clubId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: telegramInitData, action: "bootstrap" }),
+        body: JSON.stringify({
+          initData: telegramInitData,
+          action: "bootstrap",
+          conversationId: new URLSearchParams(window.location.search).get("conversation") ?? undefined,
+        }),
       })
       const result = await response.json() as MiniAppData & { error?: string }
       if (!response.ok) throw new Error(result.error ?? "Не удалось загрузить кабинет")
@@ -154,9 +194,10 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
 
   useEffect(() => {
     queueMicrotask(() => {
-      if (new URLSearchParams(window.location.search).get("tab") === "pass") {
-        tabStack.current = ["home", "pass"]
-        setTab("pass")
+      const requestedTab = new URLSearchParams(window.location.search).get("tab")
+      if (requestedTab === "pass" || requestedTab === "support") {
+        tabStack.current = ["home", requestedTab]
+        setTab(requestedTab)
       }
       const telegram = window.Telegram?.WebApp
       if (!telegram?.initData) {
@@ -225,6 +266,22 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
     return () => { active = false; window.clearInterval(timer) }
   }, [api, data?.qrExpiresAt, tab])
 
+  const refreshSupport = useCallback(async () => {
+    if (!data) return
+    try {
+      const result = await api({ action: "support_load", conversationId: data.support.conversation?.id })
+      setData((current) => current ? { ...current, support: result.support as MiniAppSupportData } : current)
+    } catch {
+      // Background refresh is best-effort; sending still surfaces actionable errors.
+    }
+  }, [api, data])
+
+  useEffect(() => {
+    if (tab !== "support" || !data) return
+    const timer = window.setInterval(() => void refreshSupport(), 10_000)
+    return () => window.clearInterval(timer)
+  }, [data, refreshSupport, tab])
+
   const activeSubscription = useMemo(() => data?.subscriptions.find((item) => item.status === "active")
     ?? data?.subscriptions[0] ?? null, [data?.subscriptions])
 
@@ -275,6 +332,46 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
     }
   }
 
+  async function sendSupportMessage(message: string, category?: SupportCategory) {
+    if (!data) return
+    setSupportBusy(true)
+    setError(null)
+    try {
+      const result = await api({
+        action: "support_send",
+        conversationId: data.support.conversation?.status === "closed" ? undefined : data.support.conversation?.id,
+        category,
+        message,
+        idempotencyKey: crypto.randomUUID(),
+      })
+      setData({ ...data, support: result.support as MiniAppSupportData })
+      window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success")
+    } catch (supportError) {
+      window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("error")
+      setError(supportError instanceof Error ? supportError.message : "Не удалось отправить сообщение")
+      throw supportError
+    } finally {
+      setSupportBusy(false)
+    }
+  }
+
+  function startNewSupportConversation() {
+    if (!data) return
+    setData({ ...data, support: { ...data.support, conversation: null } })
+  }
+
+  async function openSupportConversation(conversationId: string) {
+    setSupportBusy(true)
+    try {
+      const result = await api({ action: "support_load", conversationId })
+      setData((current) => current ? { ...current, support: result.support as MiniAppSupportData } : current)
+    } catch (supportError) {
+      setError(supportError instanceof Error ? supportError.message : "Не удалось открыть диалог")
+    } finally {
+      setSupportBusy(false)
+    }
+  }
+
   if (loading) return <MiniAppLoading />
   if (!data) return <MiniAppError message={error ?? "Кабинет недоступен"} />
 
@@ -308,8 +405,9 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
         {tab === "schedule" && <ScheduleView classes={data.classes} busy={busy} onBook={(id) => mutate("book", id)} onCancel={(id) => mutate("cancel", id)} />}
         {tab === "pass" && <PassView data={data} qrUrl={qrSeconds > 0 && qrImage?.pass === data.qrPass ? qrImage.url : null} seconds={qrSeconds} refreshing={qrRefreshing} />}
         {tab === "profile" && (
-          <ProfileView data={data} subscription={activeSubscription} busy={busy} onRenew={renew} onPreference={updatePreference} />
+          <ProfileView data={data} subscription={activeSubscription} busy={busy} onRenew={renew} onPreference={updatePreference} onSupport={() => navigate("support")} />
         )}
+        {tab === "support" && <SupportView support={data.support} busy={supportBusy} onSend={sendSupportMessage} onNew={startNewSupportConversation} onOpen={openSupportConversation} />}
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
@@ -360,10 +458,11 @@ function HomeView({ data, subscription, onTab }: { data: MiniAppData; subscripti
 
       <section>
         <h2 className="text-base font-semibold">Быстрые действия</h2>
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <QuickAction icon={CalendarDays} label="Занятия" onClick={() => onTab("schedule")} />
           <QuickAction icon={QrCode} label="QR-пропуск" onClick={() => onTab("pass")} />
           <QuickAction icon={CreditCard} label="Продлить" onClick={() => onTab("profile")} />
+          <QuickAction icon={MessageCircle} label="Написать клубу" onClick={() => onTab("support")} />
         </div>
       </section>
 
@@ -459,7 +558,7 @@ function PassView({ data, qrUrl, seconds, refreshing }: { data: MiniAppData; qrU
   )
 }
 
-function ProfileView({ data, subscription, busy, onRenew, onPreference }: { data: MiniAppData; subscription: Subscription | null; busy: string | null; onRenew: (provider: "payme" | "click") => void; onPreference: (key: "expiry_reminders" | "schedule_reminders", checked: boolean) => void }) {
+function ProfileView({ data, subscription, busy, onRenew, onPreference, onSupport }: { data: MiniAppData; subscription: Subscription | null; busy: string | null; onRenew: (provider: "payme" | "click") => void; onPreference: (key: "expiry_reminders" | "schedule_reminders", checked: boolean) => void; onSupport: () => void }) {
   const membership = membershipOf(subscription)
   return (
     <div className="space-y-6 px-4 py-5">
@@ -470,6 +569,12 @@ function ProfileView({ data, subscription, busy, onRenew, onPreference }: { data
         <p className="mt-1 font-medium">{data.client.crmFullName}</p>
         <p className="mt-1 font-mono text-xs text-muted-foreground">ID {data.client.id.slice(0, 8)}</p>
       </section>
+
+      <button type="button" onClick={onSupport} className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-left">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted"><Headphones size={19} /></div>
+        <div className="min-w-0 flex-1"><p className="font-medium">Помощь и связь с клубом</p><p className="mt-1 text-sm text-muted-foreground">Задайте вопрос администратору</p></div>
+        <ChevronRight size={18} className="text-muted-foreground" />
+      </button>
 
       <section>
         <h2 className="text-base font-semibold">Продление</h2>
@@ -507,8 +612,130 @@ function ProfileView({ data, subscription, busy, onRenew, onPreference }: { data
   )
 }
 
+function SupportView({ support, busy, onSend, onNew, onOpen }: {
+  support: MiniAppSupportData
+  busy: boolean
+  onSend: (message: string, category?: SupportCategory) => Promise<void>
+  onNew: () => void
+  onOpen: (conversationId: string) => Promise<void>
+}) {
+  const [category, setCategory] = useState<SupportCategory | null>(null)
+  const [text, setText] = useState("")
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const conversation = support.conversation
+
+  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }) }, [conversation?.messages.length])
+
+  async function send() {
+    const message = text.trim()
+    if (!message || busy || (!conversation && !category)) return
+    setText("")
+    try {
+      await onSend(message, conversation ? undefined : category ?? undefined)
+      setCategory(null)
+    } catch {
+      setText(message)
+    }
+  }
+
+  const statusLabel = conversation ? {
+    new: "Сообщение получено",
+    open: "Клуб отвечает",
+    waiting_client: "Ждём ваш ответ",
+    resolved: "Вопрос решён",
+    closed: "Диалог закрыт",
+  }[conversation.status] : null
+
+  return (
+    <div className="flex min-h-[calc(100dvh-132px-env(safe-area-inset-bottom))] flex-col">
+      <div className="px-4 pt-5">
+        <div className="flex items-start justify-between gap-3">
+          <div><h1 className="text-2xl font-semibold">Помощь клуба</h1><p className="mt-1 text-sm text-muted-foreground">Ответ придёт сюда и сообщением в Telegram</p></div>
+          {conversation && conversation.status !== "new" && conversation.status !== "open" && conversation.status !== "waiting_client" && (
+            <Button type="button" size="sm" variant="outline" onClick={onNew}>Новый вопрос</Button>
+          )}
+        </div>
+      </div>
+
+      {!conversation ? (
+        <div className="flex-1 space-y-6 px-4 py-6">
+          <section>
+            <h2 className="text-sm font-semibold">О чём вопрос?</h2>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {SUPPORT_CATEGORIES.map((item) => (
+                <button key={item.id} type="button" onClick={() => setCategory(item.id)}
+                  className={`min-h-11 rounded-lg border px-3 text-left text-sm font-medium transition-colors ${category === item.id ? "border-foreground bg-muted" : "border-border bg-card"}`}>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </section>
+          <section className="rounded-lg border border-border bg-card p-3">
+            <Textarea value={text} onChange={(event) => setText(event.target.value)} maxLength={4000} placeholder="Опишите вопрос подробнее…" className="min-h-32 resize-none border-0 bg-transparent p-1 shadow-none focus-visible:ring-0" />
+            <Button type="button" size="lg" className="mt-3 w-full" disabled={!category || !text.trim() || busy} onClick={send}>
+              {busy ? <LoaderCircle className="animate-spin" /> : <SendHorizontal />}Отправить обращение
+            </Button>
+          </section>
+          {support.recent.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold">Предыдущие обращения</h2>
+              <div className="mt-3 divide-y divide-border rounded-lg border border-border bg-card">
+                {support.recent.slice(0, 5).map((item) => (
+                  <button key={item.id} type="button" onClick={() => onOpen(item.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left">
+                    <MessageCircle size={17} className="shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{SUPPORT_CATEGORIES.find((categoryItem) => categoryItem.id === item.category)?.label ?? "Другое"}</p><p className="mt-0.5 text-xs text-muted-foreground">#{item.conversationNo} · {new Date(item.lastMessageAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}</p></div>
+                    <ChevronRight size={16} className="text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
+            <div className="min-w-0"><p className="truncate text-sm font-medium">{SUPPORT_CATEGORIES.find((item) => item.id === conversation.category)?.label ?? "Другое"}</p><p className="mt-0.5 text-xs text-muted-foreground">Обращение #{conversation.conversationNo}</p></div>
+            <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{statusLabel}</span>
+          </div>
+          <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
+            {conversation.messages.map((message) => {
+              if (message.senderType === "system") return <p key={message.id} className="text-center text-xs text-muted-foreground">{message.body}</p>
+              const mine = message.senderType === "client"
+              return (
+                <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                  <div className="max-w-[84%]">
+                    {!mine && <p className="mb-1 text-[11px] text-muted-foreground">Клуб</p>}
+                    <div className={`rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${mine ? "bg-primary text-primary-foreground" : "border border-border bg-card"}`}>
+                      <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                    </div>
+                    <div className={`mt-1 flex items-center gap-1 text-[10px] text-muted-foreground ${mine ? "justify-end" : ""}`}>
+                      {new Date(message.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
+                      {mine && <CheckCheck size={12} />}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {conversation.status === "closed" ? (
+            <div className="border-t border-border bg-card p-4"><Button type="button" size="lg" className="w-full" onClick={onNew}>Задать новый вопрос</Button></div>
+          ) : (
+            <div className="border-t border-border bg-card p-3">
+              {conversation.status === "resolved" && <p className="mb-2 text-xs text-muted-foreground">Новый ответ снова откроет обращение.</p>}
+              <div className="rounded-lg border border-border bg-background p-2 focus-within:ring-2 focus-within:ring-ring">
+                <Textarea value={text} onChange={(event) => setText(event.target.value)} maxLength={4000} placeholder="Написать клубу…" className="min-h-20 resize-none border-0 bg-transparent p-2 shadow-none focus-visible:ring-0" />
+                <div className="flex justify-end pt-1"><Button type="button" size="sm" disabled={!text.trim() || busy} onClick={send}>{busy ? <LoaderCircle className="animate-spin" /> : <SendHorizontal />}Отправить</Button></div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 function QuickAction({ icon: Icon, label, onClick }: { icon: typeof Home; label: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="flex aspect-square min-w-0 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card p-2 text-xs font-medium"><Icon size={21} /><span className="max-w-full truncate">{label}</span></button>
+  return <button type="button" onClick={onClick} className="flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card p-2 text-xs font-medium"><Icon size={21} /><span className="max-w-full truncate">{label}</span></button>
 }
 
 function CompactClass({ item }: { item: ClassItem }) {
