@@ -12,7 +12,8 @@ import {
 } from "recharts"
 import type { ReportsData, ReportPayment, ReportStaffRow, FinanceAgg, SalesAgg, VisitsAgg, ClientsAgg, RenewalsAgg, DebtsAgg, AlertsAgg } from "@/lib/reports"
 import { loadReportsDataAction, loadFinanceAction, loadSalesAction, loadVisitsAction, loadClientsAction, loadRenewalsAction, loadDebtsAction, loadStaffAction, loadAlertsAction, getReportsForecastAction, type ForecastInput } from "@/app/(app)/reports/actions"
-import { downloadCSV } from "@/lib/csv"
+import { downloadBlob } from "@/lib/csv"
+import { toast } from "sonner"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -1274,7 +1275,7 @@ ${tbl(
   win.document.close()
 }
 
-export function ReportsClient() {
+export function ReportsClient({ canExport = false }: { canExport?: boolean }) {
   const [period,  setPeriod]  = useState<Period>("30d")
   const [section, setSection] = useState<Section>("alerts")
 
@@ -1372,7 +1373,7 @@ export function ReportsClient() {
   function navigate(s: Section) { setSection(s); window.scrollTo({ top: 0, behavior: "smooth" }) }
 
   // Экспорт грузит сырые данные по требованию (не на каждый заход в отчёты).
-  const [exporting, setExporting] = useState<null | "pdf" | "csv">(null)
+  const [exporting, setExporting] = useState<null | "pdf" | "xlsx">(null)
 
   async function handlePdf() {
     if (exporting) return
@@ -1391,43 +1392,16 @@ export function ReportsClient() {
 
   async function handleExcel() {
     if (exporting) return
-    setExporting("csv")
+    setExporting("xlsx")
     try {
-      const data = await loadReportsDataAction()
-      if (!data) { alert("Не удалось загрузить данные для экспорта"); return }
-      const paidPayments = data.payments.filter(p => p.status === "paid" && p.paidAt && p.paidAt >= bounds.from && p.paidAt <= bounds.to)
+      const response = await fetch(`/reports/export/excel?period=${encodeURIComponent(period)}`)
+      if (!response.ok) throw new Error(await response.text())
+      const blob = await response.blob()
       const today = new Date().toISOString().slice(0, 10)
-
-    // Sheet 1: payments
-    const paymentRows = paidPayments.map((p) => [
-      p.paidAt ? new Date(p.paidAt).toLocaleDateString("ru-RU") : "—",
-      p.clientName ?? "—",
-      p.clientPhone ?? "—",
-      p.serviceName ?? "—",
-      p.amount,
-      { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }[p.provider] ?? p.provider,
-      { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }[p.status] ?? p.status,
-    ])
-
-    downloadCSV(`report_payments_${period}_${today}.csv`,
-      ["Дата", "Клиент", "Телефон", "Услуга", "Сумма (сум)", "Способ оплаты", "Статус"],
-      paymentRows,
-    )
-
-    // Sheet 2: clients (separate file)
-    setTimeout(() => {
-      downloadCSV(`report_clients_${period}_${today}.csv`,
-        ["Имя", "Телефон", "Статус", "Абонемент", "Дней осталось", "Источник"],
-        data.clients.map((c) => [
-          c.name,
-          c.phone ?? "—",
-          { active: "Активный", expired: "Истёк", frozen: "Заморожен" }[c.status] ?? c.status,
-          c.membershipName ?? "—",
-          c.daysLeft ?? "—",
-          c.source ?? "—",
-        ]),
-      )
-    }, 300)
+      downloadBlob(`fitcrm-reports-${period}-${today}.xlsx`, blob)
+      toast.success("Отчёт XLSX готов")
+    } catch {
+      toast.error("Не удалось скачать отчёт")
     } finally {
       setExporting(null)
     }
@@ -1442,13 +1416,13 @@ export function ReportsClient() {
           <h1 className="font-semibold tracking-[-0.144px]" style={{ fontSize: 24, color: "var(--on-dark)" }}>Отчёты</h1>
           <p style={{ fontSize: 15, color: "var(--on-dark-soft)", marginTop: 2 }}>Аналитика и статистика клуба</p>
         </div>
-        <div className="grid w-full grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] items-center gap-2 pt-1 sm:flex sm:w-auto sm:flex-shrink-0">
+        {canExport && <div className="grid w-full grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] items-center gap-2 pt-1 sm:flex sm:w-auto sm:flex-shrink-0">
           <button
             onClick={handleExcel}
             disabled={exporting !== null}
             className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:cursor-default disabled:opacity-60 sm:w-auto sm:px-4"
             style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
-            <Download className="w-4 h-4" /> {exporting === "csv" ? "Готовим…" : "Экспорт в CSV"}
+            <Download className="w-4 h-4" /> {exporting === "xlsx" ? "Готовим…" : "Экспорт XLSX"}
           </button>
           <button
             onClick={handlePdf}
@@ -1457,7 +1431,7 @@ export function ReportsClient() {
             style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
             <Download className="w-4 h-4" /> {exporting === "pdf" ? "Готовим…" : "PDF"}
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* Controls */}

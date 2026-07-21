@@ -9,6 +9,7 @@ import { headers } from "next/headers"
 import { can } from "@/lib/permissions"
 
 export type SaveResult = { ok?: boolean; error?: string }
+type WorkingDay = { open: string; close: string; closed: boolean }
 
 /** Заявка клуба на оформление/продление тарифа. Подтверждает админ платформы. */
 export async function requestPlanAction(plan: string, months = 1): Promise<SaveResult> {
@@ -106,17 +107,26 @@ export async function saveClubBasicAction(data: {
   website: string
   timezone: string
   currency: string
+  workingHours: Record<string, WorkingDay>
 }): Promise<SaveResult> {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!can(club.permissions, "settings", "general")) return { error: "Недостаточно прав" }
+  if (!data.name.trim()) return { error: "Укажите название клуба" }
+  if (!/^\S+@\S+\.\S+$/.test(data.email) && data.email) return { error: "Проверьте email" }
+  for (const hours of Object.values(data.workingHours)) {
+    if (!/^\d{2}:\d{2}$/.test(hours.open) || !/^\d{2}:\d{2}$/.test(hours.close)) {
+      return { error: "Проверьте рабочие часы" }
+    }
+    if (!hours.closed && hours.open >= hours.close) return { error: "Время закрытия должно быть позже времени открытия" }
+  }
 
   const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
   const currentSettings = (clubRow?.settings as Record<string, unknown>) ?? {}
 
   const { error } = await supabase.from("clubs").update({
-    name: data.name,
+    name: data.name.trim(),
     settings: {
       ...currentSettings,
       address: data.address,
@@ -125,6 +135,7 @@ export async function saveClubBasicAction(data: {
       website: data.website,
       timezone: data.timezone,
       currency: data.currency,
+      working_hours: data.workingHours,
     },
   }).eq("id", club.clubId)
 
@@ -153,8 +164,6 @@ export async function saveNotificationsAction(settings: Record<string, boolean>)
 
 export async function saveFinanceAction(data: {
   methods: string[]
-  autoNum: boolean
-  categories: string[]
 }): Promise<SaveResult> {
   const supabase = await createClient()
   const club = await getCurrentClub()
@@ -163,9 +172,10 @@ export async function saveFinanceAction(data: {
 
   const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
   const cur = (clubRow?.settings as Record<string, unknown>) ?? {}
+  const currentFinance = (cur.finance as Record<string, unknown>) ?? {}
 
   const { error } = await supabase.from("clubs").update({
-    settings: { ...cur, finance: data },
+    settings: { ...cur, finance: { ...currentFinance, methods: data.methods } },
   }).eq("id", club.clubId)
 
   if (error) return { error: error.message }
@@ -173,30 +183,24 @@ export async function saveFinanceAction(data: {
   return { ok: true }
 }
 
-export async function changePasswordAction(password: string): Promise<SaveResult> {
+export async function changePasswordAction(currentPassword: string, password: string): Promise<SaveResult> {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) return { error: "Не удалось определить аккаунт" }
+  if (!currentPassword) return { error: "Введите текущий пароль" }
+  const { error: verifyError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword })
+  if (verifyError) return { error: "Текущий пароль неверен" }
   const { error } = await supabase.auth.updateUser({ password })
   if (error) return { error: error.message }
   return { ok: true }
 }
 
-export async function saveBranchAction(data: { name: string; address: string }): Promise<SaveResult> {
+export async function signOutOtherSessionsAction(): Promise<SaveResult> {
   const supabase = await createClient()
-  const club = await getCurrentClub()
-  if (!club) return { error: "Клуб не найден" }
-  if (!can(club.permissions, "settings", "general")) return { error: "Недостаточно прав" }
-
-  const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
-  const cur = (clubRow?.settings as Record<string, unknown>) ?? {}
-  const branches = (cur.branches as { name: string; address: string }[]) ?? []
-
-  const { error } = await supabase.from("clubs").update({
-    settings: { ...cur, branches: [...branches, data] },
-  }).eq("id", club.clubId)
-
-  if (error) return { error: error.message }
-  revalidatePath("/settings/club")
-  return { ok: true }
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+  const { error } = await supabase.auth.signOut({ scope: "others" })
+  return error ? { error: error.message } : { ok: true }
 }
 
 export async function inviteStaffAction(data: { email: string; role: string }): Promise<SaveResult> {
@@ -357,6 +361,9 @@ export async function createBranchAction(data: {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Не авторизован" }
+  const currentClub = await getCurrentClub()
+  if (!currentClub || currentClub.role !== "owner") return { error: "Только владелец может создать филиал" }
+  if (!data.name.trim()) return { error: "Укажите название филиала" }
 
   const { data: clubId, error } = await supabase.rpc("create_club", {
     p_name: data.name.trim(),

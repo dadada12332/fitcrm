@@ -2,6 +2,8 @@ import ExcelJS from "exceljs"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { getReportsData } from "@/lib/reports"
+import { can } from "@/lib/permissions"
+import { styleWorkbook } from "@/lib/xlsx"
 
 export const runtime = "nodejs"
 
@@ -56,6 +58,8 @@ export async function GET(req: Request) {
   if (!user) return new Response("Unauthorized", { status: 401 })
   const club = await getCurrentClub()
   if (!club) return new Response("Club not found", { status: 403 })
+  if (!can(club.permissions, "reports", "export")) return new Response("Forbidden", { status: 403 })
+  if (!can(club.permissions, "reports", "finance")) return new Response("Forbidden", { status: 403 })
 
   const period = new URL(req.url).searchParams.get("period") ?? "30d"
   const { from, to } = periodBounds(period)
@@ -223,6 +227,8 @@ export async function GET(req: Request) {
     wb.worksheets.splice(idx, 1)
     wb.worksheets.unshift(wsSummary)
   }
+
+  styleWorkbook(wb)
 
   const buffer = await wb.xlsx.writeBuffer()
   const stamp  = new Date().toISOString().slice(0, 10)

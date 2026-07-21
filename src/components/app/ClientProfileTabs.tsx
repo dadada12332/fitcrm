@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, Download, SlidersHorizontal, CalendarCheck, CreditCard, UserPlus, Snowflake, User, Clock } from "lucide-react"
+import { Search, Download, CalendarCheck, CreditCard, UserPlus, Snowflake, User, Clock } from "lucide-react"
 import {
   type ClientProfile,
   type ProfilePayment,
@@ -61,7 +61,7 @@ function MobileDetail({ label, children }: { label: string; children: React.Reac
   )
 }
 
-export function ClientProfileTabs({ client }: { client: ClientProfile }) {
+export function ClientProfileTabs({ client, canExport = false }: { client: ClientProfile; canExport?: boolean }) {
   const searchParams = useSearchParams()
   const initialTab = (searchParams.get("tab") as TabKey | null) ?? "profile"
   const [tab, setTab] = useState<TabKey>(
@@ -98,7 +98,7 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
         })}
       </div>
 
-      {tab === "profile" && <ProfileTab client={client} />}
+      {tab === "profile" && <ProfileTab client={client} canExport={canExport} />}
       {tab === "visits" && <VisitsTab visits={client.visits} />}
       {tab === "payments" && <PaymentsTab payments={client.payments} />}
       {tab === "history" && <HistoryTab client={client} />}
@@ -108,7 +108,7 @@ export function ClientProfileTabs({ client }: { client: ClientProfile }) {
 
 /* ───────────────────────── Профиль ───────────────────────── */
 
-function ProfileTab({ client }: { client: ClientProfile }) {
+function ProfileTab({ client, canExport }: { client: ClientProfile; canExport: boolean }) {
   const sub = client.subscription
   return (
     <>
@@ -149,7 +149,7 @@ function ProfileTab({ client }: { client: ClientProfile }) {
 
       {/* История транзакций */}
       <Card>
-        <TransactionsTable payments={client.payments} />
+        <TransactionsTable payments={client.payments} canExport={canExport} />
       </Card>
     </>
   )
@@ -177,7 +177,7 @@ function exportTransactions(payments: ProfilePayment[]) {
   )
 }
 
-function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
+function TransactionsTable({ payments, canExport }: { payments: ProfilePayment[]; canExport: boolean }) {
   const [query, setQuery] = useState("")
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -207,16 +207,12 @@ function TransactionsTable({ payments }: { payments: ProfilePayment[] }) {
             />
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-            <button className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-3 text-sm font-medium sm:w-auto"
-              style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
-              <SlidersHorizontal className="w-4 h-4" />Фильтр
-            </button>
-            <button
+            {canExport && <button
               onClick={() => exportTransactions(filtered)}
               className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 sm:w-auto sm:px-4"
               style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
               <Download className="w-4 h-4" />Экспорт в CSV
-            </button>
+            </button>}
           </div>
         </div>
       </div>

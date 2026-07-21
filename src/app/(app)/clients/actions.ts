@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { getClientsForExport, type ClientsQuery, type ClientRow } from "@/lib/clients"
+import { serializeCSV } from "@/lib/csv"
 
 export type ClientFormState = { error?: string; ok?: boolean }
 
 function clientsToCSV(rows: ClientRow[]): string {
   const header = ["Имя", "Телефон", "Дата рожд.", "Пол", "Абонемент", "Источник", "Статус"]
-  const line = (r: ClientRow) => [
+  return serializeCSV(header, rows.map((r) => [
     r.name,
     r.phone ?? "",
     r.birthDate ?? "",
@@ -18,8 +19,7 @@ function clientsToCSV(rows: ClientRow[]): string {
     r.membership ?? "",
     r.source ?? "",
     r.status === "active" ? "Активный" : r.status === "frozen" ? "Заморожен" : r.status === "expired" ? "Истёк" : "Нет",
-  ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
-  return [header.join(","), ...rows.map(line)].join("\r\n")
+  ]))
 }
 
 /** Экспорт ВСЕХ клиентов с учётом текущих фильтров (не только текущей страницы). */
@@ -129,42 +129,6 @@ export async function createClientAction(
 
   revalidatePath("/clients")
   return { ok: true }
-}
-
-export type ImportClientRow = {
-  full_name: string
-  phone?: string
-  email?: string
-  notes?: string
-  gender?: string
-}
-
-export async function importClientsAction(
-  rows: ImportClientRow[],
-): Promise<{ error?: string; ok?: boolean; imported?: number }> {
-  if (!rows.length) return { error: "Нет данных для импорта" }
-
-  const club = await getCurrentClub()
-  if (!club) return { error: "Клуб не найден" }
-  if (!can(club.permissions, "clients", "create")) return { error: "Недостаточно прав" }
-
-  const supabase = await createClient()
-
-  const records = rows.map((r) => ({
-    club_id: club.clubId,
-    full_name: r.full_name.trim(),
-    phone: r.phone?.trim() || null,
-    email: r.email?.trim() || null,
-    notes: r.notes?.trim() || null,
-    gender: r.gender?.trim() || null,
-    tags: [],
-  }))
-
-  const { error } = await supabase.from("clients").insert(records)
-  if (error) return { error: error.message }
-
-  revalidatePath("/clients")
-  return { ok: true, imported: records.length }
 }
 
 export async function deleteClientAction(clientId: string): Promise<{ error?: string; ok?: boolean }> {

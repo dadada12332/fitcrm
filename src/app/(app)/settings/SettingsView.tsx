@@ -21,7 +21,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
   if (!club) redirect("/onboarding")
 
   const service = createServiceClient()
-  const [clubResult, user, pendingResult, connectionsResult, dbPlans, rolesResult] = await Promise.all([
+  const [clubResult, user, pendingResult, connectionsResult, dbPlans, rolesResult, clientsResult] = await Promise.all([
     supabase
       .from("clubs")
       .select("id, name, plan, trial_expires_at, plan_expires_at, plan_price_locked, settings, staff!inner(id, role, user_id, is_active, users(id, email, full_name))")
@@ -44,6 +44,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
       .order("created_at", { ascending: false }),
     getPlans({ includeArchived: true }).catch(() => []),
     tab === "roles" ? getRolesAction() : Promise.resolve({ roles: [] as RoleRow[], error: undefined }),
+    supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", club.clubId),
   ])
   const clubRow = clubResult.data
 
@@ -113,6 +114,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     paymentConnections,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     planPriceLocked: (clubRow as any).plan_price_locked ?? null,
+    clientCount: clientsResult.count ?? 0,
   }
 
   const allowedTabs = {
@@ -120,7 +122,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     branches:      club.role === "owner",
     staff:         club.permissions.staff.view,
     finance:       club.permissions.settings.general,
-    notifications: club.permissions.settings.general,
+    notifications: club.permissions.telegram.manage,
     integrations:  club.permissions.settings.integrations,
     roles:         club.permissions.settings.roles,
     security:      true,

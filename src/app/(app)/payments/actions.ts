@@ -6,18 +6,18 @@ import { getCurrentClub } from "@/lib/club"
 import { searchClientsForCheckin, type ClientSearchResult } from "@/lib/visits"
 import { getPaymentsPage, type PaymentsQuery, type PaymentRow } from "@/lib/payments"
 import { can } from "@/lib/permissions"
+import { serializeCSV } from "@/lib/csv"
 
 const PROVIDER_RU: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
 const STATUS_RU: Record<string, string> = { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }
 
 function paymentsToCSV(rows: PaymentRow[]): string {
   const header = ["Клиент", "Телефон", "Услуга", "Сумма", "Метод", "Статус", "Дата"]
-  const line = (r: PaymentRow) => [
+  return serializeCSV(header, rows.map((r) => [
     r.clientName ?? "", r.clientPhone ?? "", r.serviceName ?? "", r.amount,
     PROVIDER_RU[r.provider] ?? r.provider, STATUS_RU[r.status] ?? r.status,
     (r.paidAt ?? r.createdAt)?.slice(0, 10) ?? "",
-  ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
-  return [header.join(","), ...rows.map(line)].join("\r\n")
+  ]))
 }
 
 /** Экспорт ВСЕХ платежей с учётом фильтров (батчами по 1000 — обход лимита RPC). */
@@ -25,6 +25,7 @@ export async function exportPaymentsCsvAction(q: PaymentsQuery): Promise<{ csv?:
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "payments", "export")) return { error: "Недостаточно прав" }
   if (!club.permissions.payments.view) return { error: "Нет прав" }
   const all: PaymentRow[] = []
   let page = 0

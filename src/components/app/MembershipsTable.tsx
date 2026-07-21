@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, SlidersHorizontal, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { Search, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { pluralDays, membershipStatus, statusMeta, type MembershipRow } from "@/lib/memberships"
 import { MembershipRowMenu } from "./MembershipRowMenu"
 import { downloadCSV } from "@/lib/csv"
@@ -58,10 +58,6 @@ export function MembershipsTable({ rows }: { rows: MembershipRow[] }) {
           />
         </div>
         <div className="flex items-center gap-2">
-          <button className="h-9 px-3 rounded-md text-sm font-medium flex items-center gap-2"
-            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}>
-            <SlidersHorizontal className="w-4 h-4" />Фильтр
-          </button>
           <button
             onClick={() => exportMemberships(filtered)}
             className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"

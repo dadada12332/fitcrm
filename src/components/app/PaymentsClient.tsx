@@ -8,6 +8,8 @@ import { type PaymentRow, providerMeta, statusMeta } from "@/lib/payments"
 import { NewPaymentModal } from "./NewPaymentModal"
 import { EmptyState } from "./EmptyState"
 import { exportPaymentsCsvAction } from "@/app/(app)/payments/actions"
+import { downloadBlob } from "@/lib/csv"
+import { toast } from "sonner"
 
 type Membership = { id: string; name: string; price: number }
 
@@ -144,12 +146,17 @@ export function PaymentsClient({
     setExporting(true)
     try {
       const res = await exportPaymentsCsvAction({ search: urlQuery, provider: prov, status, from: periodFrom(period), sort })
-      if (res.error || !res.csv) return
-      const blob = new Blob(["﻿" + res.csv], { type: "text/csv;charset=utf-8;" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url; a.download = `payments_${new Date().toISOString().slice(0, 10)}.csv`; a.click()
-      URL.revokeObjectURL(url)
+      if (res.error || !res.csv) {
+        toast.error(res.error ?? "Не удалось подготовить экспорт")
+        return
+      }
+      downloadBlob(
+        `fitcrm-payments-${new Date().toISOString().slice(0, 10)}.csv`,
+        new Blob(["﻿" + res.csv], { type: "text/csv;charset=utf-8;" }),
+      )
+      toast.success("Экспорт платежей готов")
+    } catch {
+      toast.error("Не удалось скачать экспорт")
     } finally { setExporting(false) }
   }
 

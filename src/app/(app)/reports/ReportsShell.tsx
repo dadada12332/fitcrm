@@ -11,6 +11,6 @@ const ReportsClient = dynamic(
 
 // Данные больше не грузятся одним тяжёлым массивом: каждая вкладка тянет свой
 // серверный агрегат (RPC) лениво. Экспорт грузит сырые данные по требованию.
-export function ReportsShell() {
-  return <ReportsClient />
+export function ReportsShell({ canExport }: { canExport: boolean }) {
+  return <ReportsClient canExport={canExport} />
 }

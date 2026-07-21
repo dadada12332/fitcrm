@@ -4,7 +4,7 @@ import ts from "typescript"
 import { describe, expect, it } from "vitest"
 
 const criticalMutations: Record<string, string[]> = {
-  "clients/actions.ts": ["createClientAction", "importClientsAction", "deleteClientAction", "updateClientAction", "toggleFreezeAction", "renewSubscriptionAction"],
+  "clients/actions.ts": ["createClientAction", "deleteClientAction", "updateClientAction", "toggleFreezeAction", "renewSubscriptionAction"],
   "clients/import-actions.ts": ["batchImportClientsAction"],
   "memberships/actions.ts": ["createMembershipAction", "updateMembershipAction", "duplicateMembershipAction", "setMembershipActiveAction", "setMembershipArchivedAction", "deleteMembershipAction"],
   "payments/actions.ts": ["createPaymentAction", "createOnlinePaymentAction", "sendPaymentLinkTelegramAction"],
@@ -13,7 +13,7 @@ const criticalMutations: Record<string, string[]> = {
   "staff/actions.ts": ["addStaffAction", "updateStaffBasicAction", "updateStaffSalaryAction", "payStaffAction", "updateStaffPermissionsAction", "updateStaffRoleAction", "updateStaffStatusAction"],
   "schedule/actions.ts": ["createRoomAction", "deleteRoomAction", "createClassAction", "cancelClassAction", "rescheduleClassAction", "addClientToClassAction", "markAttendanceAction"],
   "settings/roles/actions.ts": ["saveRoleAction", "createRoleAction", "deleteRoleAction"],
-  "settings/club/actions.ts": ["requestPlanAction", "requestPaymentConnectionAction", "cancelPaymentConnectionAction", "cancelPlanRequestAction", "saveClubBasicAction", "saveNotificationsAction", "saveFinanceAction", "saveBranchAction", "inviteStaffAction", "saveIntegrationAction", "createInviteLinkAction", "updateStaffRoleAction", "removeStaffAction"],
+  "settings/club/actions.ts": ["requestPlanAction", "requestPaymentConnectionAction", "cancelPaymentConnectionAction", "cancelPlanRequestAction", "saveClubBasicAction", "saveNotificationsAction", "saveFinanceAction", "inviteStaffAction", "saveIntegrationAction", "createInviteLinkAction", "updateStaffRoleAction", "removeStaffAction", "createBranchAction"],
   "integrations/actions.ts": ["connectTelegramAction", "disconnectTelegramAction", "broadcastTelegramAction", "scheduleBroadcastAction", "testBroadcastAction", "saveTelegramSettingsAction"],
   "payments/reconcile/actions.ts": ["confirmReconAction", "ignoreReconAction", "rematchReconAction", "manualAttachAction"],
 }

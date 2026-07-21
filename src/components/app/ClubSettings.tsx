@@ -2,18 +2,18 @@
 
 import { useState, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import {
   Crown, Check, X, Plus, ArrowRight,
-  Smartphone, Mail, MessageCircle, Eye, EyeOff,
+  MessageCircle, Eye, EyeOff, LogOut,
   Pencil, Trash2,
 } from "lucide-react"
 import {
   saveClubBasicAction,
-  saveNotificationsAction,
   saveFinanceAction,
   changePasswordAction,
+  signOutOtherSessionsAction,
   inviteStaffAction,
-  saveIntegrationAction,
   createBranchAction,
   createInviteLinkAction,
   updateStaffRoleAction,
@@ -23,6 +23,8 @@ import {
   requestPaymentConnectionAction,
   cancelPaymentConnectionAction,
 } from "@/app/(app)/settings/club/actions"
+import { saveTelegramSettingsAction } from "@/app/(app)/integrations/actions"
+import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
 import { fmtMoney } from "@/lib/money"
 import { runAction } from "@/lib/use-action"
@@ -42,9 +44,10 @@ export type ClubData = {
     website?: string
     timezone?: string
     currency?: string
-    notifications?: Record<string, boolean>
+    working_hours?: Record<string, { open: string; close: string; closed: boolean }>
+    tg_settings?: Partial<TelegramSettings>
     branches?: { name: string; address: string }[]
-    finance?: { methods: string[]; autoNum: boolean; categories: string[] }
+    finance?: { methods: string[] }
   }
   staffList: { id: string; name: string; role: string; email: string; isMe: boolean }[]
   pendingRequest?: { plan: string; months: number; amount: number | null; createdAt: string } | null
@@ -52,6 +55,7 @@ export type ClubData = {
   planPriceLocked?: number | null
   /** Статус подключения платёжек: провайдер → статус последней заявки (new/active). */
   paymentConnections?: Record<string, "new" | "active">
+  clientCount: number
 }
 
 /** Тариф для отображения в CRM (данные из раздела «Тарифы» Platform Admin). */
@@ -178,6 +182,10 @@ function BasicSection({ club }: { club: ClubData }) {
   const [website, setWebsite]   = useState(s.website ?? "")
   const [tz, setTz]             = useState(s.timezone ?? "Asia/Tashkent")
   const [currency, setCurrency] = useState(s.currency ?? "UZS")
+  const [workingHours, setWorkingHours] = useState(() => {
+    const defaults = Object.fromEntries(["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((key) => [key, { open: "06:00", close: "23:00", closed: false }]))
+    return { ...defaults, ...(s.working_hours ?? {}) }
+  })
   const [saved, setSaved]       = useState(false)
   const [error, setError]       = useState<string | null>(null)
   const [pending, start]        = useTransition()
@@ -185,7 +193,7 @@ function BasicSection({ club }: { club: ClubData }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaved(false); setError(null)
     start(async () => {
-      const res = await saveClubBasicAction({ name, address, phone, email, website, timezone: tz, currency })
+      const res = await saveClubBasicAction({ name, address, phone, email, website, timezone: tz, currency, workingHours })
       if (res.error) { setError(res.error); return }
       setSaved(true); setTimeout(() => setSaved(false), 2500)
     })
@@ -205,13 +213,17 @@ function BasicSection({ club }: { club: ClubData }) {
 
       <Card title="Рабочие часы">
         <div className="space-y-2.5">
-          {["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"].map((day) => (
-            <div key={day} className="flex items-center justify-between">
-              <span className="text-sm w-28" style={{ color: "var(--on-dark-soft)" }}>{day}</span>
+          {([["mon","Понедельник"],["tue","Вторник"],["wed","Среда"],["thu","Четверг"],["fri","Пятница"],["sat","Суббота"],["sun","Воскресенье"]] as const).map(([key, day]) => (
+            <div key={key} className="flex flex-wrap items-center justify-between gap-2">
+              <span className="w-28 text-sm" style={{ color: "var(--on-dark-soft)" }}>{day}</span>
               <div className="flex items-center gap-2">
-                <input defaultValue="06:00" type="time" className="h-8 px-2 rounded-md text-sm outline-none" style={{ border: "1px solid var(--border)" }} />
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <input type="checkbox" checked={workingHours[key].closed} onChange={(event) => setWorkingHours((value) => ({ ...value, [key]: { ...value[key], closed: event.target.checked } }))} />
+                  Выходной
+                </label>
+                <input value={workingHours[key].open} onChange={(event) => setWorkingHours((value) => ({ ...value, [key]: { ...value[key], open: event.target.value } }))} disabled={workingHours[key].closed} type="time" className="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none disabled:opacity-40" />
                 <span className="text-xs" style={{ color: "var(--gray-muted)" }}>—</span>
-                <input defaultValue="23:00" type="time" className="h-8 px-2 rounded-md text-sm outline-none" style={{ border: "1px solid var(--border)" }} />
+                <input value={workingHours[key].close} onChange={(event) => setWorkingHours((value) => ({ ...value, [key]: { ...value[key], close: event.target.value } }))} disabled={workingHours[key].closed} type="time" className="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none disabled:opacity-40" />
               </div>
             </div>
           ))}
@@ -611,9 +623,6 @@ const PAYMENT_METHODS = [
 function FinanceSection({ club }: { club: ClubData }) {
   const fin = club.settings.finance
   const [methods, setMethods]     = useState(new Set(fin?.methods ?? ["cash", "click", "payme", "uzum"]))
-  const [autoNum, setAutoNum]     = useState(fin?.autoNum ?? true)
-  const [cats, setCats]           = useState<string[]>(fin?.categories ?? ["Аренда","Зарплаты","Реклама","Коммунальные"])
-  const [newCat, setNewCat]       = useState("")
   const [saved, setSaved]         = useState(false)
   const [error, setError]         = useState<string | null>(null)
   const [pending, start]          = useTransition()
@@ -627,18 +636,10 @@ function FinanceSection({ club }: { club: ClubData }) {
     })
   }
 
-  function addCat() {
-    const v = newCat.trim()
-    if (!v || cats.includes(v)) return
-    setCats((prev) => [...prev, v]); setNewCat("")
-  }
-
-  function removeCat(cat: string) { setCats((prev) => prev.filter((c) => c !== cat)) }
-
   function handleSave(e: React.FormEvent) {
     e.preventDefault(); setSaved(false); setError(null)
     start(async () => {
-      const res = await saveFinanceAction({ methods: [...methods], autoNum, categories: cats })
+      const res = await saveFinanceAction({ methods: [...methods] })
       if (res.error) { setError(res.error); return }
       setSaved(true); setTimeout(() => setSaved(false), 2500)
     })
@@ -656,40 +657,6 @@ function FinanceSection({ club }: { club: ClubData }) {
               <Toggle checked={methods.has(key)} onChange={() => toggleMethod(key)} />
             </div>
           ))}
-        </div>
-      </Card>
-
-      <Card title="Настройки кассы">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Автоматическая нумерация платежей</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Платежи будут нумероваться автоматически: #001, #002…</p>
-          </div>
-          <Toggle checked={autoNum} onChange={setAutoNum} />
-        </div>
-      </Card>
-
-      <Card title="Категории расходов">
-        <div className="space-y-1 mb-3">
-          {cats.map((cat) => (
-            <div key={cat} className="flex items-center justify-between py-2 px-1" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-              <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{cat}</span>
-              <button type="button" onClick={() => removeCat(cat)}
-                className="w-6 h-6 flex items-center justify-center rounded-md transition-colors hover:bg-red-50"
-                style={{ color: "var(--gray-muted)" }}>
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input value={newCat} onChange={(e) => setNewCat(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCat() } }}
-            placeholder="Новая категория..." className="flex-1 h-9 px-3 rounded-lg text-sm outline-none"
-            style={{ border: "1px dashed var(--border)", color: "var(--on-dark)" }} />
-          <Btn small onClick={addCat} disabled={!newCat.trim()}>
-            <Plus className="w-3.5 h-3.5" /> Добавить
-          </Btn>
         </div>
       </Card>
 
@@ -773,49 +740,53 @@ function PaymentConnect({ club }: { club: ClubData }) {
 
 // ── Notifications ─────────────────────────────────────────────────
 
-const NOTIF_SETTINGS = [
-  { key: "sms_3d",        label: "SMS за 3 дня до окончания",        icon: Smartphone },
-  { key: "sms_7d",        label: "SMS за 7 дней до окончания",       icon: Smartphone },
-  { key: "tg_owner",      label: "Telegram-уведомления владельцу",   icon: MessageCircle },
-  { key: "email_reports", label: "Email-отчёты",                     icon: Mail },
-]
-
 function NotificationsSection({ club }: { club: ClubData }) {
-  const def = club.settings.notifications ?? {}
-  const [settings, setSettings] = useState<Record<string, boolean>>({
-    sms_3d:        def.sms_3d        ?? true,
-    sms_7d:        def.sms_7d        ?? false,
-    tg_owner:      def.tg_owner      ?? true,
-    email_reports: def.email_reports ?? false,
+  const [settings, setSettings] = useState<TelegramSettings>({
+    ...DEFAULT_TG_SETTINGS,
+    ...(club.settings.tg_settings ?? {}),
   })
   const [saved, setSaved]   = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [pending, start]    = useTransition()
 
   function handleSave(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault(); setError(null)
     start(async () => {
-      await saveNotificationsAction(settings)
+      const result = await saveTelegramSettingsAction(settings)
+      if (result.error) { setError(result.error); return }
       setSaved(true); setTimeout(() => setSaved(false), 2500)
     })
   }
 
+  const options: { key: keyof TelegramSettings; label: string; description: string }[] = [
+    { key: "auto_expiry_3d", label: "За 3 дня до окончания", description: "Telegram-напоминание клиенту" },
+    { key: "auto_expiry_1d", label: "За 1 день до окончания", description: "Повторное Telegram-напоминание" },
+    { key: "renewal_reminder", label: "Быстрое продление", description: "Добавить в напоминание кнопку абонемента" },
+    { key: "class_reminders", label: "Занятия на сегодня", description: "Утром отправить клиенту его записи" },
+  ]
+
   return (
     <form onSubmit={handleSave} className="space-y-4">
-      <Card title="Настройки уведомлений">
+      <Card title="Telegram-уведомления">
         <div className="space-y-4">
-          {NOTIF_SETTINGS.map(({ key, label, icon: Icon }) => (
+          {options.map(({ key, label, description }) => (
             <div key={key} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--card-2)" }}>
-                  <Icon className="w-4 h-4" style={{ color: "var(--on-dark-soft)" }} />
+                  <MessageCircle className="w-4 h-4" style={{ color: "var(--on-dark-soft)" }} />
                 </div>
-                <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
+                <div>
+                  <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</p>
+                  <p className="text-xs text-muted-foreground">{description}</p>
+                </div>
               </div>
-              <Toggle checked={settings[key]} onChange={(v) => setSettings((s) => ({ ...s, [key]: v }))} />
+              <Toggle checked={Boolean(settings[key])} onChange={(value) => setSettings((current) => ({ ...current, [key]: value }))} />
             </div>
           ))}
         </div>
       </Card>
+      <p className="text-xs text-muted-foreground">Шаблоны сообщений и подключение бота находятся в разделе «Интеграции».</p>
+      {error && <Alert msg={error} type="err" />}
       <div className="flex justify-end"><SaveBtn pending={pending} saved={saved} /></div>
     </form>
   )
@@ -823,89 +794,26 @@ function NotificationsSection({ club }: { club: ClubData }) {
 
 // ── Integrations ──────────────────────────────────────────────────
 
-type IntegrationField = { key: string; label: string; placeholder: string }
-
-const INTEGRATIONS: { key: string; label: string; desc: string; color: string; fields: IntegrationField[] }[] = [
-  {
-    key: "telegram", label: "Telegram Bot", desc: "OTP-коды и уведомления клиентам", color: "#2563eb",
-    fields: [{ key: "token", label: "Bot Token", placeholder: "1234567890:AAF..." }],
-  },
-  {
-    key: "click", label: "Click", desc: "Приём онлайн-платежей через Click", color: "#16a34a",
-    fields: [
-      { key: "merchant_id", label: "Merchant ID", placeholder: "12345" },
-      { key: "secret_key",  label: "Secret Key",  placeholder: "••••••••" },
-    ],
-  },
-  {
-    key: "payme", label: "Payme", desc: "Приём онлайн-платежей через Payme", color: "#7c3aed",
-    fields: [
-      { key: "merchant_id", label: "Merchant ID", placeholder: "merchant_id" },
-      { key: "key",         label: "Key",          placeholder: "••••••••" },
-    ],
-  },
-]
-
-function IntegrationCard({ integration }: { integration: typeof INTEGRATIONS[0] }) {
-  const [open, setOpen]       = useState(false)
-  const [vals, setVals]       = useState<Record<string, string>>({})
-  const [msg, setMsg]         = useState<{ text: string; type: "ok" | "err" } | null>(null)
-  const [pending, start]      = useTransition()
-
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault(); setMsg(null)
-    const primary = integration.fields[0]
-    const value = vals[primary.key] ?? ""
-    if (!value.trim()) return
-    start(async () => {
-      const res = await saveIntegrationAction(integration.key, value.trim())
-      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
-      setMsg({ text: "Сохранено!", type: "ok" })
-      setOpen(false); setTimeout(() => setMsg(null), 2500)
-    })
-  }
-
-  return (
-    <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
-      <div className="flex items-center gap-4 p-4">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-          style={{ background: integration.color }}>
-          {integration.label[0]}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{integration.label}</p>
-          <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>{integration.desc}</p>
-        </div>
-        <Btn small variant="secondary" onClick={() => setOpen((v) => !v)}>
-          {open ? "Отмена" : "Подключить"}
-        </Btn>
-      </div>
-      {open && (
-        <form onSubmit={handleSave} className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-          <div className="pt-4 space-y-3">
-            {integration.fields.map((f) => (
-              <Field key={f.key} label={f.label}>
-                <Input value={vals[f.key] ?? ""} onChange={(v) => setVals((prev) => ({ ...prev, [f.key]: v }))}
-                  placeholder={f.placeholder} type={f.key.includes("key") || f.key === "token" ? "password" : "text"} />
-              </Field>
-            ))}
-          </div>
-          {msg && <Alert msg={msg.text} type={msg.type} />}
-          <Btn type="submit" disabled={pending || !vals[integration.fields[0].key]?.trim()}>
-            {pending ? "Сохранение..." : "Сохранить"}
-          </Btn>
-        </form>
-      )}
-      {msg && !open && <div className="px-4 pb-4"><Alert msg={msg.text} type={msg.type} /></div>}
-    </div>
-  )
-}
-
 function IntegrationsSection() {
+  const integrations = [
+    { slug: "telegram", label: "Telegram Bot", description: "Бот, рассылки, Mini App и автонапоминания" },
+    { slug: "payme", label: "Payme", description: "Заявка на подключение и статус онлайн-оплат" },
+    { slug: "click", label: "Click", description: "Заявка на подключение и статус онлайн-оплат" },
+    { slug: "instagram", label: "Instagram", description: "Публикации, метрики и атрибуция клиентов" },
+  ]
   return (
     <Card title="Интеграции">
       <div className="space-y-3">
-        {INTEGRATIONS.map((intg) => <IntegrationCard key={intg.key} integration={intg} />)}
+        {integrations.map((integration) => (
+          <Link key={integration.slug} href={`/integrations/${integration.slug}`} className="flex items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted font-semibold text-foreground">{integration.label[0]}</div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground">{integration.label}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{integration.description}</p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
+        ))}
       </div>
     </Card>
   )
@@ -920,18 +828,28 @@ function SecuritySection() {
   const [show, setShow]     = useState(false)
   const [msg, setMsg]       = useState<{ text: string; type: "ok" | "err" } | null>(null)
   const [pending, start]    = useTransition()
-  const [twofa, setTwofa]   = useState(false)
+  const [sessionsMsg, setSessionsMsg] = useState<{ text: string; type: "ok" | "err" } | null>(null)
 
   function handlePw(e: React.FormEvent) {
     e.preventDefault(); setMsg(null)
     if (next.length < 8) { setMsg({ text: "Пароль должен быть не менее 8 символов", type: "err" }); return }
     if (next !== conf)   { setMsg({ text: "Пароли не совпадают", type: "err" }); return }
     start(async () => {
-      const res = await changePasswordAction(next)
+      const res = await changePasswordAction(cur, next)
       if (res.error) { setMsg({ text: res.error, type: "err" }); return }
       setMsg({ text: "Пароль успешно изменён", type: "ok" })
       setCur(""); setNext(""); setConf("")
       setTimeout(() => setMsg(null), 3000)
+    })
+  }
+
+  function handleSignOutOthers() {
+    setSessionsMsg(null)
+    start(async () => {
+      const result = await signOutOtherSessionsAction()
+      setSessionsMsg(result.error
+        ? { text: result.error, type: "err" }
+        : { text: "Другие сессии завершены", type: "ok" })
     })
   }
 
@@ -957,35 +875,23 @@ function SecuritySection() {
             <Input value={conf} onChange={setConf} type={type} placeholder="••••••••" />
           </Field>
           {msg && <Alert msg={msg.text} type={msg.type} />}
-          <Btn type="submit" disabled={pending || !next || !conf}>
+          <Btn type="submit" disabled={pending || !cur || !next || !conf}>
             {pending ? "Сохранение..." : "Сменить пароль"}
           </Btn>
         </form>
       </Card>
 
       <Card title="Активные сессии">
-        <div className="flex items-center justify-between py-2">
+        <div className="flex flex-col gap-3 py-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Текущее устройство</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Сейчас онлайн</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Останется в системе после завершения других сессий</p>
           </div>
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(22,163,74,0.14)", color: "#16a34a" }}>Активна</span>
+          <Btn variant="secondary" onClick={handleSignOutOthers} disabled={pending}>
+            <LogOut className="h-4 w-4" /> Выйти на других
+          </Btn>
         </div>
-      </Card>
-
-      <Card title="Двухфакторная авторизация">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>2FA через Telegram</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Дополнительная защита входа</p>
-          </div>
-          <Toggle checked={twofa} onChange={setTwofa} />
-        </div>
-        {twofa && (
-          <div className="mt-3 p-3 rounded-lg text-sm" style={{ background: "rgba(37,99,235,0.1)", color: "#2563eb" }}>
-            Для активации 2FA сначала подключите Telegram Bot в разделе Интеграции.
-          </div>
-        )}
+        {sessionsMsg && <div className="mt-3"><Alert msg={sessionsMsg.text} type={sessionsMsg.type} /></div>}
       </Card>
     </div>
   )
@@ -1070,7 +976,7 @@ function PlanSection({ club }: { club: ClubData }) {
 
         <div className="space-y-3">
           {[
-            { label: "Клиенты",    used: club.staffList.length > 0 ? 18 : 0, max: current?.clients ?? null },
+            { label: "Клиенты",    used: club.clientCount,      max: current?.clients ?? null },
             { label: "Сотрудники", used: club.staffList.length,               max: current?.staff ?? null },
           ].map(({ label, used, max }) => (
             <div key={label}>

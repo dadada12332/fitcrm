@@ -7,7 +7,7 @@ import type { ReportsData, FinanceAgg, SalesAgg, VisitsAgg, ClientsAgg, Renewals
 export async function loadReportsDataAction(): Promise<ReportsData | null> {
   const club = await getCurrentClub()
   if (!club) return null
-  if (!club.permissions.reports.view) return null
+  if (!club.permissions.reports.view || !club.permissions.reports.export || !club.permissions.reports.finance) return null
   // Кешированные агрегаты (service-role, безопасно — права проверены выше).
   return getReportsDataCached(club.clubId)
 }

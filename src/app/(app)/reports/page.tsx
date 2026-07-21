@@ -9,5 +9,5 @@ export default async function ReportsPage() {
 
   // Auth check only — heavy data is loaded client-side in ReportsShell
   // This makes the initial page render instant (~50ms) vs 2-3s with SSR data fetch
-  return <ReportsShell />
+  return <ReportsShell canExport={club.permissions.reports.export && club.permissions.reports.finance} />
 }

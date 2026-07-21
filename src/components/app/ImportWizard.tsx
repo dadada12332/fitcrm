@@ -17,6 +17,8 @@ import {
   checkPhonesAction, batchImportClientsAction,
   type ImportClientRow, type BatchImportResult, type ImportAudit,
 } from "@/app/(app)/clients/import-actions"
+import { downloadBlob, downloadCSV } from "@/lib/csv"
+import { styleWorkbook } from "@/lib/xlsx"
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -162,13 +164,12 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
       ["Сидорова Мария", "+998909876543", "maria@example.com", "1995-08-22", "ж", "Реклама", "VIP"],
     ])
     worksheet.columns = [24, 16, 24, 14, 6, 14, 20].map((width) => ({ width }))
+    styleWorkbook(workbook)
     const buffer = await workbook.xlsx.writeBuffer()
-    const url = URL.createObjectURL(new Blob([buffer as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }))
-    const link = document.createElement("a")
-    link.href = url
-    link.download = "fitcrm_clients_template.xlsx"
-    link.click()
-    URL.revokeObjectURL(url)
+    downloadBlob(
+      "fitcrm-clients-template.xlsx",
+      new Blob([buffer as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+    )
   }
 
   return (
@@ -801,11 +802,11 @@ function Step5Report({ result, onClose }: {
 
   function downloadReport() {
     if (!allErrors.length) return
-    const csv = ["Строка,Имя,Причина", ...allErrors.map((e) =>
-      `${e.row},"${e.name.replace(/"/g, '""')}","${e.reason.replace(/"/g, '""')}"`
-    )]
-    const blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8" })
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "import_report.csv"; a.click()
+    downloadCSV(
+      `fitcrm-import-errors-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["Строка", "Имя", "Причина"],
+      allErrors.map((error) => [error.row, error.name, error.reason]),
+    )
   }
 
   return (

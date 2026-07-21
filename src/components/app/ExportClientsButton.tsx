@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Download, Loader2 } from "lucide-react"
 import { exportClientsCsvAction } from "@/app/(app)/clients/actions"
+import { downloadBlob } from "@/lib/csv"
+import { toast } from "sonner"
 
 export function ExportClientsButton() {
   const searchParams = useSearchParams()
@@ -20,14 +22,17 @@ export function ExportClientsButton() {
         days: searchParams.getAll("days"),
         sort: searchParams.get("sort") ?? undefined,
       })
-      if (res.error || !res.csv) return
-      const blob = new Blob(["﻿" + res.csv], { type: "text/csv;charset=utf-8;" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `clients_${new Date().toISOString().slice(0, 10)}.csv`
-      a.click()
-      URL.revokeObjectURL(url)
+      if (res.error || !res.csv) {
+        toast.error(res.error ?? "Не удалось подготовить экспорт")
+        return
+      }
+      downloadBlob(
+        `fitcrm-clients-${new Date().toISOString().slice(0, 10)}.csv`,
+        new Blob(["﻿" + res.csv], { type: "text/csv;charset=utf-8;" }),
+      )
+      toast.success("Экспорт клиентов готов")
+    } catch {
+      toast.error("Не удалось скачать экспорт")
     } finally {
       setLoading(false)
     }

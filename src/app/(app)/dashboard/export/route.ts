@@ -2,6 +2,8 @@ import ExcelJS from "exceljs"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { getDashboardData } from "@/lib/dashboard"
+import { can } from "@/lib/permissions"
+import { styleWorkbook } from "@/lib/xlsx"
 
 export const runtime = "nodejs"
 
@@ -13,6 +15,8 @@ export async function GET() {
   if (!user) return new Response("Unauthorized", { status: 401 })
   const club = await getCurrentClub()
   if (!club) return new Response("Club not found", { status: 403 })
+  if (!can(club.permissions, "reports", "export")) return new Response("Forbidden", { status: 403 })
+  if (!can(club.permissions, "dashboard", "view_finance")) return new Response("Forbidden", { status: 403 })
 
   const d = await getDashboardData(supabase, club.clubId)
 
@@ -54,6 +58,8 @@ export async function GET() {
       value: point.value,
     })
   })
+
+  styleWorkbook(wb)
 
   const buffer = await wb.xlsx.writeBuffer()
   const stamp = new Date().toISOString().slice(0, 10)
