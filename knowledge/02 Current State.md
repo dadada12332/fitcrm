@@ -31,7 +31,7 @@ tags: [fitcrm, operations]
 - В репозитории последовательные миграции `0001`–`0067`; launch hardening `0065`–`0067` применён к production.
 - Bot tokens вынесены из публично читаемой `clubs` в service-only `telegram_integrations`; открытых `clubs.tg_token` в production — `0`.
 - Supabase Cron обрабатывает scheduled broadcasts каждые 5 минут; Vercel daily cron отвечает за reminders/report.
-- Vercel cron каждые 10 минут повторяет pending/failed ответы клиентского inbox; сообщения остаются сохранёнными даже при временной недоступности Telegram.
+- Supabase Cron каждые 10 минут повторяет pending/failed ответы клиентского inbox; сообщения остаются сохранёнными даже при временной недоступности Telegram.
 
 См. [[Database/Database State]].
 

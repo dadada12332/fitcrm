@@ -13,10 +13,6 @@
     {
       "path": "/api/cron/reconcile",
       "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/telegram/client-support/run",
-      "schedule": "*/10 * * * *"
     }
   ]
 }

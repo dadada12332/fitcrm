@@ -49,7 +49,7 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Changes
 
-Реализован отдельный channel-agnostic inbox с первым каналом Telegram, защищённым Mini App API, CRM workflow, шаблонами, realtime обновлением и cron retry. List/detail сведены в агрегированные RPC для сокращения сетевых round trips.
+Реализован отдельный channel-agnostic inbox с первым каналом Telegram, защищённым Mini App API, CRM workflow, шаблонами, realtime обновлением и Supabase Cron retry. List/detail сведены в агрегированные RPC для сокращения сетевых round trips.
 
 ## Verification
 

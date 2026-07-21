@@ -31,12 +31,31 @@ select cron.unschedule(jobid)
 from cron.job
 where jobname = 'fitcrm-broadcasts-every-5m';
 
+select cron.unschedule(jobid)
+from cron.job
+where jobname = 'fitcrm-client-support-every-10m';
+
 select cron.schedule(
   'fitcrm-broadcasts-every-5m',
   '*/5 * * * *',
   $job$
     select net.http_get(
       url := ${quote(`${appUrl}/api/broadcasts/run`)},
+      headers := jsonb_build_object(
+        'Authorization',
+        'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'fitcrm_cron_secret' limit 1)
+      ),
+      timeout_milliseconds := 55000
+    );
+  $job$
+);
+
+select cron.schedule(
+  'fitcrm-client-support-every-10m',
+  '*/10 * * * *',
+  $job$
+    select net.http_get(
+      url := ${quote(`${appUrl}/api/telegram/client-support/run`)},
       headers := jsonb_build_object(
         'Authorization',
         'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'fitcrm_cron_secret' limit 1)
@@ -57,4 +76,4 @@ if (!response.ok) {
   console.error(`Scheduler setup failed (HTTP ${response.status}): ${details.slice(0, 800)}`)
   process.exit(1)
 }
-console.log("Supabase broadcast scheduler configured (every 5 minutes).")
+console.log("Supabase schedulers configured (broadcasts every 5 minutes, client support every 10 minutes).")
