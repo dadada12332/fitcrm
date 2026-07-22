@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: a598b22 · 2026-07-22T14:29:14+05:00 · docs: record pricing rollback release [skip ci].
+- Последний commit: 26331e9 · 2026-07-22T14:38:07+05:00 · fix: align landing FAQ with product.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -37,7 +37,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_31DbH9Cpkm5RSj68CmvBjEAUzSZR` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Telegram KPI redesign, bot avatar release и binary preview repair доступны в production; template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_FHqktTb9cQjXA55RF5kQFu1DQ39Z` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Актуализированный FAQ доступен на домене и проверен через production Browser smoke; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
 
 ## Риски и долг
 

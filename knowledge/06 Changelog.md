@@ -121,6 +121,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `26331e9` · 2026-07-22 · fix: align landing FAQ with product
 - `a598b22` · 2026-07-22 · docs: record pricing rollback release [skip ci]
 - `6880dab` · 2026-07-22 · revert: restore original landing pricing
 - `1ed8b1c` · 2026-07-22 · docs: record pricing width release [skip ci]
@@ -150,5 +151,4 @@ tags: [fitcrm, releases]
 - `35a0164` · 2026-07-21 · feat: make client imports lossless and resilient
 - `745d121` · 2026-07-21 · docs: record client inbox production verification
 - `9709769` · 2026-07-21 · fix: schedule inbox retries via Supabase
-- `a7be5a8` · 2026-07-21 · feat: add Telegram client support inbox
 <!-- AUTO:END changelog-candidates -->

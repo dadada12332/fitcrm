@@ -55,6 +55,7 @@ Tenant isolation, auth, production data и существующие пользо
 - `npx eslint src/lib/i18n/messages.ts` — passed.
 - `npm run build` — passed.
 - Browser QA: desktop 1280×720 и mobile 390×844; ответы раскрываются, горизонтального overflow нет.
+- Production deployment `dpl_FHqktTb9cQjXA55RF5kQFu1DQ39Z` — READY; alias `fitcrm-three.vercel.app` показывает новые вопросы, `/api/health` — `ok` (DB reachable, 124 ms).
 
 ## Remaining
 
