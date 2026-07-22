@@ -58,10 +58,11 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm run build` — passed.
 - Runtime image probe — PNG 800x400 успешно преобразован в JPEG 512x512.
 - Local `/integrations/telegram` — экран без подключённого бота проверен в QA-клубе; реальный вызов смены avatar не выполнялся без пользовательского изображения.
+- Production deployment `dpl_4ShHMFj3ohmmqMU1LAXj8zxPa5AW` — READY; alias `fitcrm-three.vercel.app` подтверждён.
 
 ## Remaining
 
-Production deploy и проверка alias.
+Нет.
 
 ## Blockers
 

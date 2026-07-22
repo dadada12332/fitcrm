@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: f677b06 · 2026-07-22T11:19:46+05:00 · docs: record Telegram templates redesign [skip ci].
+- Последний commit: e30e513 · 2026-07-22T11:37:55+05:00 · feat: manage Telegram bot avatar.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -37,7 +37,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_722rE3jd2QAgHqwZKkZD1P4X1NDN` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Telegram template editor проверен на production; импорт/экспорт и settings tabs ранее прошли production desktop/mobile gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_4ShHMFj3ohmmqMU1LAXj8zxPa5AW` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Telegram bot avatar release и template editor доступны в production; импорт/экспорт и settings tabs ранее прошли production desktop/mobile gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
 
 ## Риски и долг
 

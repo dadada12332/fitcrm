@@ -99,6 +99,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `e30e513` · 2026-07-22 · feat: manage Telegram bot avatar
 - `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
 - `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
 - `970660e` · 2026-07-22 · docs: record data exchange and settings audit [skip ci]
@@ -128,5 +129,4 @@ tags: [fitcrm, releases]
 - `0514d3d` · 2026-07-19 · Release retention center and Growth OS
 - `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 - `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
-- `5904123` · 2026-07-19 · Add Growth OS decision workspace
 <!-- AUTO:END changelog-candidates -->
