@@ -28,7 +28,7 @@ export type StockMovement = {
   id: string
   productId: string
   productName: string
-  type: "supply" | "sale" | "writeoff" | "adjustment"
+  type: "in" | "sale" | "writeoff" | "return"
   qty: number
   unitPrice: number
   createdAt: string

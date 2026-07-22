@@ -1,10 +1,10 @@
 ---
 type: current-task
-status: empty
+status: active
 updated: 2026-07-22
 tags: [fitcrm, tasks]
 ---
 
 # Current Task
 
-Нет активной задачи. Новую значимую задачу создайте через `npm run docs:task -- "Название"` и назначьте её текущей.
+[[Tasks/TASK-0045-deistviya-s-tovarami-i-celostnost-sklada]] — локальная реализация и QA завершены, ожидается production deployment и smoke.

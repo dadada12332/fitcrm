@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `4e72358` · 2026-07-22 · docs: require screenshots for UI change reports [skip ci]
 - `db482fa` · 2026-07-22 · docs: record upgrade CTA refinement [skip ci]
 - `fe68f58` · 2026-07-22 · fix: preserve upgrade button height
 - `057d003` · 2026-07-22 · style: strengthen plan upgrade call to action
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
 - `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
 - `908eae6` · 2026-07-22 · fix: show previous plan price on landing
-- `a080c10` · 2026-07-22 · docs: record plan enforcement release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

@@ -1,22 +1,33 @@
 "use client"
 
 import { useState, useMemo, useTransition } from "react"
-import { Plus, Minus, Search, Package, AlertTriangle, TrendingUp, DollarSign, X, ChevronDown, Truck as TruckIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Plus, Minus, Search, Package, AlertTriangle, TrendingUp, DollarSign, X, ChevronDown, Truck as TruckIcon, MoreHorizontal, Trash2, PackageMinus } from "lucide-react"
 import type { Product, StockMovement, InventoryStats } from "@/lib/inventory"
-import { addProductAction, addSupplyAction, writeoffAction } from "@/app/(app)/warehouse/actions"
+import { addProductAction, addSupplyAction, deleteProductAction, writeoffAction } from "@/app/(app)/warehouse/actions"
 import { createClient } from "@/lib/supabase/client"
 import { MoneyInput } from "./MoneyInput"
 import { showActionError } from "@/lib/plan-limit-client"
+import { toast } from "@/lib/use-action"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 export function fmtQty(n: number, unit: string) { return `${n % 1 === 0 ? n : n.toFixed(2)} ${unit}` }
 export function fmtDate(iso: string) { return new Date(iso).toLocaleDateString("ru-RU") }
 
 export const MOVE_LABELS: Record<string, string> = {
-  supply: "Поставка", sale: "Продажа", writeoff: "Списание", adjustment: "Корректировка",
+  in: "Поставка", supply: "Поставка", sale: "Продажа", writeoff: "Списание", adjustment: "Корректировка",
 }
 export const MOVE_COLORS: Record<string, string> = {
-  supply: "#16a34a", sale: "#2563eb", writeoff: "#dc2626", adjustment: "#d97706",
+  in: "#16a34a", supply: "#16a34a", sale: "#2563eb", writeoff: "#dc2626", adjustment: "#d97706",
 }
 
 // ── Drawer wrapper (правый дровер — наш стандарт) ───────────────────────
@@ -49,6 +60,7 @@ const inputStyle = { background: "var(--card-2)", border: "1px solid var(--borde
 
 // ── Add Product Modal ──────────────────────────────────────────────────
 export function AddProductModal({ clubId, open, onClose }: { clubId: string; open: boolean; onClose: () => void }) {
+  const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState("")
   const [photoUrl, setPhotoUrl] = useState("")
@@ -74,7 +86,10 @@ export function AddProductModal({ clubId, open, onClose }: { clubId: string; ope
     start(async () => {
       const res = await addProductAction(fd)
       if (res?.error) { setError(res.error); showActionError(res.error); return }
-      setPhotoUrl(""); onClose()
+      setPhotoUrl("")
+      toast.success("Товар добавлен")
+      onClose()
+      router.refresh()
     })
   }
 
@@ -155,11 +170,17 @@ export function AddProductModal({ clubId, open, onClose }: { clubId: string; ope
 }
 
 // ── Supply Modal ───────────────────────────────────────────────────────
-export function SupplyModal({ open, onClose, products }: {
-  open: boolean; onClose: () => void; products: Product[]
+export function SupplyModal({ open, onClose, products, selectedProduct }: {
+  open: boolean; onClose: () => void; products: Product[]; selectedProduct?: Product | null
 }) {
+  const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState("")
+
+  function close() {
+    setError("")
+    onClose()
+  }
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -167,20 +188,32 @@ export function SupplyModal({ open, onClose, products }: {
     start(async () => {
       const res = await addSupplyAction(fd)
       if (res?.error) { setError(res.error); return }
-      onClose()
+      toast.success("Поставка добавлена")
+      close()
+      router.refresh()
     })
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Добавить поставку">
+    <Modal open={open} onClose={close} title="Добавить поставку">
       <form onSubmit={submit} className="space-y-3">
         {error && <div className="text-xs px-3 py-2 rounded-lg" style={{ background: "rgba(220,38,38,0.1)", color: "#dc2626" }}>{error}</div>}
         <div className="space-y-1">
           <label className="text-xs" style={{ color: "var(--on-dark-soft)" }}>Товар *</label>
-          <select name="product_id" required className={inputCls} style={inputStyle}>
-            <option value="">Выберите товар...</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          {selectedProduct ? (
+            <>
+              <input type="hidden" name="product_id" value={selectedProduct.id} />
+              <div className="rounded-md border border-border bg-muted/40 px-3 py-2.5">
+                <p className="text-sm font-medium text-foreground">{selectedProduct.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Сейчас на складе: {fmtQty(selectedProduct.quantity, selectedProduct.unit)}</p>
+              </div>
+            </>
+          ) : (
+            <select name="product_id" required className={inputCls} style={inputStyle}>
+              <option value="">Выберите товар...</option>
+              {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -207,11 +240,17 @@ export function SupplyModal({ open, onClose, products }: {
 }
 
 // ── Writeoff Modal ─────────────────────────────────────────────────────
-export function WriteoffModal({ open, onClose, products }: {
-  open: boolean; onClose: () => void; products: Product[]
+export function WriteoffModal({ open, onClose, products, selectedProduct }: {
+  open: boolean; onClose: () => void; products: Product[]; selectedProduct?: Product | null
 }) {
+  const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState("")
+
+  function close() {
+    setError("")
+    onClose()
+  }
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -219,20 +258,32 @@ export function WriteoffModal({ open, onClose, products }: {
     start(async () => {
       const res = await writeoffAction(fd)
       if (res?.error) { setError(res.error); return }
-      onClose()
+      toast.success("Товар списан")
+      close()
+      router.refresh()
     })
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Списание товара">
+    <Modal open={open} onClose={close} title="Списание товара">
       <form onSubmit={submit} className="space-y-3">
         {error && <div className="text-xs px-3 py-2 rounded-lg" style={{ background: "rgba(220,38,38,0.1)", color: "#dc2626" }}>{error}</div>}
         <div className="space-y-1">
           <label className="text-xs" style={{ color: "var(--on-dark-soft)" }}>Товар *</label>
-          <select name="product_id" required className={inputCls} style={inputStyle}>
-            <option value="">Выберите товар...</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name} (остаток: {fmtQty(p.quantity, p.unit)})</option>)}
-          </select>
+          {selectedProduct ? (
+            <>
+              <input type="hidden" name="product_id" value={selectedProduct.id} />
+              <div className="rounded-md border border-border bg-muted/40 px-3 py-2.5">
+                <p className="text-sm font-medium text-foreground">{selectedProduct.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Доступно для списания: {fmtQty(selectedProduct.quantity, selectedProduct.unit)}</p>
+              </div>
+            </>
+          ) : (
+            <select name="product_id" required className={inputCls} style={inputStyle}>
+              <option value="">Выберите товар...</option>
+              {products.map(p => <option key={p.id} value={p.id}>{p.name} (остаток: {fmtQty(p.quantity, p.unit)})</option>)}
+            </select>
+          )}
         </div>
         <div className="space-y-1">
           <label className="text-xs" style={{ color: "var(--on-dark-soft)" }}>Количество *</label>
@@ -252,6 +303,113 @@ export function WriteoffModal({ open, onClose, products }: {
   )
 }
 
+function ProductActionsMenu({
+  product,
+  canSupply,
+  canWriteoff,
+  onSupply,
+  onWriteoff,
+  onDelete,
+}: {
+  product: Product
+  canSupply: boolean
+  canWriteoff: boolean
+  onSupply: () => void
+  onWriteoff: () => void
+  onDelete: () => void
+}) {
+  if (!canSupply && !canWriteoff) return null
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Действия с товаром ${product.name}`}
+        title="Действия"
+        className="ml-auto flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <MoreHorizontal className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52 rounded-lg">
+        {canSupply && (
+          <DropdownMenuItem onClick={onSupply}>
+            <TruckIcon /> Добавить поставку
+          </DropdownMenuItem>
+        )}
+        {canWriteoff && (
+          <DropdownMenuItem onClick={onWriteoff} disabled={product.quantity <= 0}>
+            <PackageMinus /> Списать товар
+          </DropdownMenuItem>
+        )}
+        {canSupply && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={onDelete}>
+              <Trash2 /> Удалить товар
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function DeleteProductDialog({ product, open, onOpenChange }: {
+  product: Product | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const router = useRouter()
+  const [pending, start] = useTransition()
+  const [error, setError] = useState("")
+
+  function changeOpen(nextOpen: boolean) {
+    if (pending) return
+    if (!nextOpen) setError("")
+    onOpenChange(nextOpen)
+  }
+
+  function remove() {
+    if (!product) return
+    setError("")
+    start(async () => {
+      const result = await deleteProductAction(product.id)
+      if (result.error) {
+        setError(result.error)
+        toast.error(result.error)
+        return
+      }
+      toast.success("Товар удалён")
+      changeOpen(false)
+      router.refresh()
+    })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={changeOpen}>
+      <DialogContent className="mx-4 max-w-sm rounded-lg">
+        <DialogHeader>
+          <DialogTitle>Удалить товар?</DialogTitle>
+          <DialogDescription>
+            «{product?.name}» исчезнет из склада и витрины. История поставок, продаж и списаний сохранится в отчётах.
+          </DialogDescription>
+        </DialogHeader>
+        {product && product.quantity > 0 && (
+          <div className="rounded-md border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground">
+            Текущий остаток: <span className="font-medium">{fmtQty(product.quantity, product.unit)}</span>
+          </div>
+        )}
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <DialogFooter className="flex-col-reverse sm:flex-row">
+          <Button variant="outline" className="min-h-10" onClick={() => changeOpen(false)} disabled={pending}>Отмена</Button>
+          <Button className="min-h-10 bg-destructive px-4 text-white hover:bg-destructive/90" onClick={remove} disabled={pending}>
+            {pending ? "Удаление..." : "Удалить товар"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ── Main Component ─────────────────────────────────────────────────────
 
 type Props = {
@@ -259,14 +417,18 @@ type Props = {
   products: Product[]
   movements: StockMovement[]
   stats: InventoryStats
+  canSupply: boolean
+  canWriteoff: boolean
   versionControl?: React.ReactNode
 }
 
-export function InventoryClient({ clubId, products, movements, stats, versionControl }: Props) {
+export function InventoryClient({ clubId, products, movements, stats, canSupply, canWriteoff, versionControl }: Props) {
   const [query, setQuery] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [supplyOpen, setSupplyOpen] = useState(false)
   const [writeoffOpen, setWriteoffOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
   const [tab, setTab] = useState<"products" | "movements">("products")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [lowStockDismissed, setLowStockDismissed] = useState(false)
@@ -287,11 +449,32 @@ export function InventoryClient({ clubId, products, movements, stats, versionCon
 
   const lowStock = products.filter(p => p.minQuantity > 0 && p.quantity <= p.minQuantity)
 
+  function openSupply(product: Product | null = null) {
+    setSelectedProduct(product)
+    setSupplyOpen(true)
+  }
+
+  function openWriteoff(product: Product | null = null) {
+    setSelectedProduct(product)
+    setWriteoffOpen(true)
+  }
+
+  function closeSupply() {
+    setSupplyOpen(false)
+    setSelectedProduct(null)
+  }
+
+  function closeWriteoff() {
+    setWriteoffOpen(false)
+    setSelectedProduct(null)
+  }
+
   return (
     <>
       <AddProductModal clubId={clubId} open={addOpen} onClose={() => setAddOpen(false)} />
-      <SupplyModal open={supplyOpen} onClose={() => setSupplyOpen(false)} products={products} />
-      <WriteoffModal open={writeoffOpen} onClose={() => setWriteoffOpen(false)} products={products} />
+      <SupplyModal open={supplyOpen} onClose={closeSupply} products={products} selectedProduct={selectedProduct} />
+      <WriteoffModal open={writeoffOpen} onClose={closeWriteoff} products={products} selectedProduct={selectedProduct} />
+      <DeleteProductDialog product={deleteProduct} open={Boolean(deleteProduct)} onOpenChange={(nextOpen) => { if (!nextOpen) setDeleteProduct(null) }} />
 
       {/* Header */}
       <div className="flex items-start justify-between mb-5 gap-3 flex-wrap">
@@ -301,21 +484,24 @@ export function InventoryClient({ clubId, products, movements, stats, versionCon
         </div>
         <div className="flex gap-2 items-center flex-wrap">
           {versionControl}
-          <button onClick={() => setWriteoffOpen(true)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-colors"
-            style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
-            <Minus size={15} /> Списать
-          </button>
-          <button onClick={() => setSupplyOpen(true)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-colors"
-            style={{ background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.25)", color: "#16a34a" }}>
-            <TruckIcon size={15} /> Добавить поставку
-          </button>
-          <button onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
-            style={{ background: "#2563eb" }}>
-            <Plus size={15} /> Добавить товар
-          </button>
+          {canWriteoff && (
+            <button onClick={() => openWriteoff()}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+              <Minus size={15} /> Списать
+            </button>
+          )}
+          {canSupply && (
+            <button onClick={() => openSupply()}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+              <TruckIcon size={15} /> Добавить поставку
+            </button>
+          )}
+          {canSupply && (
+            <button onClick={() => setAddOpen(true)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+              <Plus size={15} /> Добавить товар
+            </button>
+          )}
         </div>
       </div>
 
@@ -400,7 +586,7 @@ export function InventoryClient({ clubId, products, movements, stats, versionCon
             <div className="flex flex-col items-center gap-3 py-16" style={{ color: "var(--on-dark-soft)" }}>
               <Package size={28} />
               <p className="text-sm">{query ? "Товары не найдены" : "Добавьте первый товар"}</p>
-              {!query && (
+              {!query && canSupply && (
                 <button onClick={() => setAddOpen(true)}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm"
                   style={{ background: "#2563eb", color: "white" }}>
@@ -411,29 +597,30 @@ export function InventoryClient({ clubId, products, movements, stats, versionCon
           ) : (
             <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
               {/* Header */}
-              <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium"
+              <div className="grid grid-cols-12 items-center px-3 py-2.5 text-xs font-medium sm:px-4"
                 style={{ background: "var(--card-2)", color: "var(--on-dark-soft)", borderBottom: "1px solid var(--border)" }}>
-                <span className="col-span-4">Название</span>
-                <span className="col-span-2">Категория</span>
-                <span className="col-span-2 text-right">Остаток</span>
-                <span className="col-span-2 text-right">Цена продажи</span>
-                <span className="col-span-2 text-right">Сумма</span>
+                <span className="col-span-6 sm:col-span-4 lg:col-span-3">Название</span>
+                <span className="hidden sm:col-span-3 sm:block lg:col-span-2">Категория</span>
+                <span className="col-span-4 text-right sm:col-span-3 lg:col-span-2">Остаток</span>
+                <span className="hidden text-right lg:col-span-2 lg:block">Цена продажи</span>
+                <span className="hidden text-right lg:col-span-2 lg:block">Сумма</span>
+                <span className="col-span-2 text-right lg:col-span-1"><span className="sr-only">Действия</span></span>
               </div>
 
               {filtered.map((p, i) => {
                 const isLow = p.minQuantity > 0 && p.quantity <= p.minQuantity
                 return (
                   <div key={p.id}
-                    className="grid grid-cols-12 items-center px-4 py-3 transition-colors hover:bg-white/5"
+                    className="grid min-h-16 grid-cols-12 items-center px-3 py-3 transition-colors hover:bg-muted/40 sm:px-4"
                     style={{ borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : undefined }}>
-                    <div className="col-span-4">
-                      <div className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{p.name}</div>
-                      {p.sku && <div className="text-xs" style={{ color: "var(--on-dark-soft)" }}>SKU: {p.sku}</div>}
+                    <div className="col-span-6 min-w-0 pr-2 sm:col-span-4 lg:col-span-3">
+                      <div className="truncate text-sm font-medium text-foreground">{p.name}</div>
+                      {p.sku && <div className="truncate text-xs text-muted-foreground">SKU: {p.sku}</div>}
                     </div>
-                    <div className="col-span-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
+                    <div className="hidden text-sm text-muted-foreground sm:col-span-3 sm:block lg:col-span-2">
                       {p.category ?? "—"}
                     </div>
-                    <div className="col-span-2 text-right">
+                    <div className="col-span-4 text-right sm:col-span-3 lg:col-span-2">
                       <span className="text-sm font-medium px-2 py-0.5 rounded-lg"
                         style={{
                           background: isLow ? "rgba(220,38,38,0.1)" : "rgba(22,163,74,0.1)",
@@ -447,11 +634,21 @@ export function InventoryClient({ clubId, products, movements, stats, versionCon
                         </div>
                       )}
                     </div>
-                    <div className="col-span-2 text-right text-sm" style={{ color: "var(--on-dark)" }}>
+                    <div className="hidden text-right text-sm text-foreground lg:col-span-2 lg:block">
                       {fmtSum(p.sellPrice)} сум
                     </div>
-                    <div className="col-span-2 text-right text-sm font-medium" style={{ color: "var(--on-dark)" }}>
+                    <div className="hidden text-right text-sm font-medium text-foreground lg:col-span-2 lg:block">
                       {fmtSum(p.quantity * p.buyPrice)} сум
+                    </div>
+                    <div className="col-span-2 flex justify-end lg:col-span-1">
+                      <ProductActionsMenu
+                        product={p}
+                        canSupply={canSupply}
+                        canWriteoff={canWriteoff}
+                        onSupply={() => openSupply(p)}
+                        onWriteoff={() => openWriteoff(p)}
+                        onDelete={() => setDeleteProduct(p)}
+                      />
                     </div>
                   </div>
                 )
@@ -490,9 +687,8 @@ export function InventoryClient({ clubId, products, movements, stats, versionCon
                     </span>
                   </div>
                   <div className="col-span-3 text-sm" style={{ color: "var(--on-dark)" }}>{m.productName}</div>
-                  <div className="col-span-1 text-right text-sm font-medium"
-                    style={{ color: m.type === "supply" ? "#16a34a" : "#dc2626" }}>
-                    {m.type === "supply" ? "+" : "-"}{m.qty}
+                  <div className={`col-span-1 text-right text-sm font-medium ${m.type === "in" || m.type === "return" ? "text-chart-2" : "text-destructive"}`}>
+                    {m.type === "in" || m.type === "return" ? "+" : "-"}{m.qty}
                   </div>
                   <div className="col-span-2 text-right text-sm" style={{ color: "var(--on-dark-soft)" }}>
                     {m.unitPrice > 0 ? fmtSum(m.qty * m.unitPrice) + " сум" : "—"}

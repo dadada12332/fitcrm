@@ -21,9 +21,11 @@ type Props = {
   stats: InventoryStats
   connectedProviders: string[]
   canSell: boolean
+  canSupply: boolean
+  canWriteoff: boolean
 }
 
-export function WarehouseSwitcher({ clubId, products, movements, stats, connectedProviders, canSell }: Props) {
+export function WarehouseSwitcher({ clubId, products, movements, stats, connectedProviders, canSell, canSupply, canWriteoff }: Props) {
   const subscribe = useCallback((onStoreChange: () => void) => {
     window.addEventListener("storage", onStoreChange)
     window.addEventListener(STORAGE_EVENT, onStoreChange)
@@ -43,5 +45,5 @@ export function WarehouseSwitcher({ clubId, products, movements, stats, connecte
 
   return version === "pos"
     ? <PosClient clubId={clubId} products={products} connectedProviders={connectedProviders} canSell={canSell} versionControl={toggle} />
-    : <InventoryClient clubId={clubId} products={products} movements={movements} stats={stats} versionControl={toggle} />
+    : <InventoryClient clubId={clubId} products={products} movements={movements} stats={stats} canSupply={canSupply} canWriteoff={canWriteoff} versionControl={toggle} />
 }

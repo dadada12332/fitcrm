@@ -29,6 +29,8 @@ export default async function WarehousePage() {
       movements={movements}
       connectedProviders={connectedProviders}
       canSell={club.permissions.warehouse.sell}
+      canSupply={club.permissions.warehouse.supply}
+      canWriteoff={club.permissions.warehouse.writeoff}
     />
   )
 }

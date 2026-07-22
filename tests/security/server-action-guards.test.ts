@@ -9,7 +9,7 @@ const criticalMutations: Record<string, string[]> = {
   "memberships/actions.ts": ["createMembershipAction", "updateMembershipAction", "duplicateMembershipAction", "setMembershipActiveAction", "setMembershipArchivedAction", "deleteMembershipAction"],
   "payments/actions.ts": ["createPaymentAction", "createOnlinePaymentAction", "sendPaymentLinkTelegramAction"],
   "visits/actions.ts": ["markVisitAction", "manualVisitAction"],
-  "warehouse/actions.ts": ["addProductAction", "addSupplyAction", "writeoffAction"],
+  "warehouse/actions.ts": ["addProductAction", "addSupplyAction", "writeoffAction", "deleteProductAction"],
   "staff/actions.ts": ["addStaffAction", "updateStaffBasicAction", "updateStaffSalaryAction", "payStaffAction", "updateStaffPermissionsAction", "updateStaffRoleAction", "updateStaffStatusAction"],
   "schedule/actions.ts": ["createRoomAction", "deleteRoomAction", "createClassAction", "cancelClassAction", "rescheduleClassAction", "addClientToClassAction", "markAttendanceAction"],
   "settings/roles/actions.ts": ["saveRoleAction", "createRoleAction", "deleteRoleAction"],
