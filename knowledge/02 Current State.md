@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: fe68f58 · 2026-07-22T17:10:04+05:00 · fix: preserve upgrade button height.
+- Последний commit: db482fa · 2026-07-22T17:13:33+05:00 · docs: record upgrade CTA refinement [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 80; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
