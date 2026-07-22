@@ -28,6 +28,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- FAQ лендинга актуализирован на русском, английском и узбекском: неподтверждённые обещания заменены фактическими сценариями trial, подписки, оплат, импорта, ролей и Telegram.
+
 - Лендинг Growth OS теперь прямо показывает, что сотрудник получает готовый скрипт обзвона и текст SMS для работы с клиентом.
 
 - Вкладка «Внимание» в отчётах стала рабочей сводкой: задачи сгруппированы по приоритету, посещаемость отделена от проблем, а desktop/mobile-компоновка приведена к дизайн-системе CRM.
@@ -119,6 +121,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `a598b22` · 2026-07-22 · docs: record pricing rollback release [skip ci]
 - `6880dab` · 2026-07-22 · revert: restore original landing pricing
 - `1ed8b1c` · 2026-07-22 · docs: record pricing width release [skip ci]
 - `e6a8ef6` · 2026-07-22 · style: widen landing pricing cards
@@ -148,5 +151,4 @@ tags: [fitcrm, releases]
 - `745d121` · 2026-07-21 · docs: record client inbox production verification
 - `9709769` · 2026-07-21 · fix: schedule inbox retries via Supabase
 - `a7be5a8` · 2026-07-21 · feat: add Telegram client support inbox
-- `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
 <!-- AUTO:END changelog-candidates -->

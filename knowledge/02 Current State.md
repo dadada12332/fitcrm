@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 6880dab · 2026-07-22T14:26:46+05:00 · revert: restore original landing pricing.
+- Последний commit: a598b22 · 2026-07-22T14:29:14+05:00 · docs: record pricing rollback release [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

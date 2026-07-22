@@ -101,6 +101,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0038-privesti-blok-vnimanie-v-otchetah-k-dizain-sisteme]]
 - [[Tasks/Completed/TASK-0039-dobavit-growth-os-i-uderzhanie-na-lending]]
 - [[Tasks/Completed/TASK-0040-pererabotat-tarify-lendinga-i-usilit-standart]]
+- [[Tasks/Completed/TASK-0041-aktualizirovat-faq-lendinga]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
