@@ -115,6 +115,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `e12b856` · 2026-07-22 · feat: highlight ready outreach scripts on landing
 - `a721ffb` · 2026-07-22 · docs: record Growth OS landing release [skip ci]
 - `89ef57f` · 2026-07-22 · feat: add Growth OS story to landing
 - `57f4b92` · 2026-07-22 · docs: record reports attention release [skip ci]
@@ -144,5 +145,4 @@ tags: [fitcrm, releases]
 - `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
 - `b60cc07` · 2026-07-20 · feat: complete retention outreach workflow
 - `99cf665` · 2026-07-20 · docs: record verified retention AI release [skip ci]
-- `63d1989` · 2026-07-20 · feat: add retention AI copilot
 <!-- AUTO:END changelog-candidates -->

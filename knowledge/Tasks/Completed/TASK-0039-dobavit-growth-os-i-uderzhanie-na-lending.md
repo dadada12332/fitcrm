@@ -61,6 +61,7 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm run build` — passed, 59 routes.
 - Local browser QA: desktop 1440×1000, mobile 390×844, RU/UZ, ручное переключение сценария, horizontal overflow отсутствует.
 - Outreach copy QA: desktop/mobile, готовые форматы звонка и SMS видимы без переполнения; TypeScript, lint, tests и build повторно passed.
+- Outreach copy deployment `dpl_F13ZoPetzgNNkrG8djNFDYS6mimj` — Ready; production содержит оба формата, health check passed.
 - Production deployment `dpl_97fEZU87rLX2s8eQCjMhptHBepFC` — Ready; desktop/mobile browser QA passed, `/api/health` returned `status: ok` and `database: reachable`.
 
 ## Remaining
