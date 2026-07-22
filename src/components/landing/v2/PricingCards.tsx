@@ -51,7 +51,7 @@ export function PricingCards({ plans }: { plans: LandingPlan[] }) {
     plans.find((plan) => plan.code.toLowerCase() === "standard")?.code ??
     plans.find((plan) => plan.popular)?.code ??
     [...paid].sort((a, b) => b.price - a.price)[0]?.code
-  const colClass = plans.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"
+  const colClass = plans.length >= 4 ? "lg:grid-cols-2 min-[1680px]:grid-cols-4" : "lg:grid-cols-3"
 
   const planName = (plan: LandingPlan) => {
     const code = plan.code.toLowerCase() as keyof typeof t.pricing.planNames
@@ -60,7 +60,7 @@ export function PricingCards({ plans }: { plans: LandingPlan[] }) {
 
   return (
     <section id="pricing" className="relative bg-background py-24 md:py-32">
-      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1760px] px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-[760px] text-center">
           <motion.p {...fadeUp()} className="font-mono text-xs font-medium tracking-normal text-brand">{t.pricing.eyebrow}</motion.p>
           <motion.h2 {...fadeUp(0.04)} className="mt-4 text-[40px] font-semibold leading-[1.05] tracking-normal text-foreground md:text-[52px]">{t.pricing.title}</motion.h2>
@@ -88,7 +88,7 @@ export function PricingCards({ plans }: { plans: LandingPlan[] }) {
           </div>
         </motion.div>
 
-        <div className={`mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 ${colClass} lg:items-stretch`}>
+        <div className={`mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 ${colClass} lg:items-stretch xl:gap-6`}>
           {plans.map((plan, index) => {
             const featured = plan.code === featuredCode
             const free = plan.isTrial || plan.price === 0

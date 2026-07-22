@@ -44,6 +44,7 @@ final result: passed
 - Standard now has a focused blue CTA, proof block and stable visual emphasis without changing database pricing.
 - Plan names and conversion copy are localized instead of mixing English names into Russian and Uzbek pages.
 - All cards remain readable in a 4-column desktop grid and a single-column mobile flow.
+- The pricing container expands to 1760px; laptop widths use a 2×2 grid instead of compressing four narrow columns.
 - No horizontal overflow was found at 390px; billing controls and long Uzbek copy fit correctly.
 
 ## Result

@@ -28,7 +28,7 @@ tags: [fitcrm, releases]
 
 ### Changed
 
-- Блок тарифов на лендинге получил новую иерархию: «Стандарт» объясняет свою ценность, названия и CTA локализованы, а месяц/год и мобильная сетка стали понятнее.
+- Блок тарифов на лендинге получил новую иерархию и более широкие карточки: «Стандарт» объясняет свою ценность, названия и CTA локализованы, а на ноутбуках сетка перестраивается в удобные два столбца.
 
 - Лендинг Growth OS теперь прямо показывает, что сотрудник получает готовый скрипт обзвона и текст SMS для работы с клиентом.
 
@@ -117,6 +117,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `e80f8b5` · 2026-07-22 · docs: record pricing redesign release [skip ci]
 - `6dfb2a6` · 2026-07-22 · feat: redesign landing pricing around Standard
 - `94845ad` · 2026-07-22 · docs: record outreach copy release [skip ci]
 - `e12b856` · 2026-07-22 · feat: highlight ready outreach scripts on landing
@@ -146,5 +147,4 @@ tags: [fitcrm, releases]
 - `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 - `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
-- `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
 <!-- AUTO:END changelog-candidates -->

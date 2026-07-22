@@ -49,6 +49,7 @@ Tenant isolation, auth, production data и существующие пользо
 
 - Удалена устаревшая угловая лента; Standard получил спокойный badge, ценностный тезис, proof-блок и синюю CTA.
 - Карточки переведены на дизайн-токены и стабильную адаптивную сетку.
+- Контейнер расширен до `1760px`: на широких экранах карточки имеют около `402px`, а на ноутбуках сетка перестраивается в `2×2` с карточками около `565px`.
 - Добавлены локализованные названия тарифов и пояснения оплаты.
 
 ## Verification
@@ -58,6 +59,7 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm test` — 126 passed, 1 skipped.
 - `npm run build` — passed, 59 routes.
 - Local browser QA: desktop 1440×1000 и mobile 390×844, RU/UZ, month/year switch, 4 registration CTA, horizontal overflow отсутствует.
+- Width QA: 1920px — 4 карточки по 402px; 1234px — сетка 2×2 по 565px; overflow `0`.
 - Production deployment `dpl_Ahif6zPnihctmqejFhg94kPVkxEs` — Ready; alias `fitcrm-three.vercel.app` назначен, production browser QA and health check passed.
 
 ## Remaining
