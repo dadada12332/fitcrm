@@ -103,7 +103,7 @@ export function PlanLimitUpgradeDialog() {
           </div>
 
           <div className="mt-5 flex flex-col gap-2 sm:flex-row-reverse">
-            <Button nativeButton={false} className="h-12 flex-1 px-5 text-sm font-semibold" render={<Link href={upgradeHref} onClick={() => setOpen(false)} />}>
+            <Button nativeButton={false} className="min-h-12 flex-1 px-5 py-3 text-sm font-semibold" render={<Link href={upgradeHref} onClick={() => setOpen(false)} />}>
               {offer ? <>Перейти на {offer.name}<ArrowRight /></> : <>Связаться с поддержкой<ArrowRight /></>}
             </Button>
             <Button variant="ghost" className="h-10" onClick={() => setOpen(false)}>Остаться пока</Button>
