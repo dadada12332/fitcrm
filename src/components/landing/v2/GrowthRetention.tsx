@@ -8,6 +8,8 @@ import {
   CalendarClock,
   Check,
   Gauge,
+  MessageSquareText,
+  PhoneCall,
   Sparkles,
   Target,
   TrendingUp,
@@ -147,6 +149,19 @@ export function GrowthRetention() {
                       {signal.insight}
                     </motion.p>
                   </AnimatePresence>
+                  <div className="mt-3 border-t border-border pt-3">
+                    <p className="text-xs leading-5 text-muted-foreground">{t.scriptReady}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground">
+                        <PhoneCall className="size-3.5 text-muted-foreground" />
+                        {t.contactFormats[0]}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground">
+                        <MessageSquareText className="size-3.5 text-muted-foreground" />
+                        {t.contactFormats[1]}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

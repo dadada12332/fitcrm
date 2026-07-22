@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 89ef57f · 2026-07-22T13:22:59+05:00 · feat: add Growth OS story to landing.
+- Последний commit: a721ffb · 2026-07-22T13:26:32+05:00 · docs: record Growth OS landing release [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

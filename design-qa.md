@@ -94,6 +94,7 @@ final result: passed
 - Retention signals, AI recommendation, next action and expected result form one clear left-to-right story on desktop.
 - Mobile stacks the two product surfaces without horizontal overflow or clipped labels.
 - Automatic scenario rotation pauses on hover/focus and respects reduced-motion preferences.
+- The AI recommendation now exposes two concrete employee outputs: a call script and SMS copy, both readable on desktop and mobile.
 - Russian, English and Uzbek dictionaries are complete and type-safe.
 
 ## Result

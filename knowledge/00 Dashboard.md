@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `a721ffb` · 2026-07-22 · docs: record Growth OS landing release [skip ci]
 - `89ef57f` · 2026-07-22 · feat: add Growth OS story to landing
 - `57f4b92` · 2026-07-22 · docs: record reports attention release [skip ci]
 - `50bb457` · 2026-07-22 · feat: redesign reports attention workspace
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
 - `481c70e` · 2026-07-22 · docs: record Telegram KPI redesign [skip ci]
 - `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
-- `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
