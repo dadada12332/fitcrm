@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 26331e9 · 2026-07-22T14:38:07+05:00 · fix: align landing FAQ with product.
+- Последний commit: 8a04d0d · 2026-07-22T14:41:27+05:00 · docs: record FAQ production release [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

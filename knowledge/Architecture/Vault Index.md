@@ -56,6 +56,7 @@ updated: 2026-07-18
 ## Reports
 
 - [[Reports/Launch Readiness 2026-07-20]]
+- [[Reports/Plan Access Matrix 2026-07-22]]
 
 ## Research
 
@@ -102,6 +103,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0039-dobavit-growth-os-i-uderzhanie-na-lending]]
 - [[Tasks/Completed/TASK-0040-pererabotat-tarify-lendinga-i-usilit-standart]]
 - [[Tasks/Completed/TASK-0041-aktualizirovat-faq-lendinga]]
+- [[Tasks/Completed/TASK-0042-peresobrat-dostupy-tarifov-po-fakticheskomu-funkcionalu]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]

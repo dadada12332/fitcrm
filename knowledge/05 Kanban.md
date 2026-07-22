@@ -91,4 +91,5 @@ kanban-plugin: board
 - [x] TASK-0039 · Добавить Growth OS и удержание на лендинг · feature · P2 · marketing · 2026-07-22 · [[Tasks/Completed/TASK-0039-dobavit-growth-os-i-uderzhanie-na-lending]]
 - [x] TASK-0040 · Переработать тарифы лендинга и усилить Стандарт · feature · P2 · marketing · 2026-07-22 · [[Tasks/Completed/TASK-0040-pererabotat-tarify-lendinga-i-usilit-standart]]
 - [x] TASK-0041 · Актуализировать FAQ лендинга · feature · P3 · marketing · 2026-07-22 · [[Tasks/Completed/TASK-0041-aktualizirovat-faq-lendinga]]
+- [x] TASK-0042 · Пересобрать доступы тарифов по фактическому функционалу · feature · P3 · pricing · 2026-07-22 · [[Tasks/Completed/TASK-0042-peresobrat-dostupy-tarifov-po-fakticheskomu-funkcionalu]]
 <!-- AUTO:END kanban-done -->
