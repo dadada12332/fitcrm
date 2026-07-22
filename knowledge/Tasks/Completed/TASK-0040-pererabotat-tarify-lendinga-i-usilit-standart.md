@@ -1,7 +1,7 @@
 ---
 id: TASK-0040
 type: feature
-status: in-progress
+status: completed
 priority: P2
 module: marketing
 created: 2026-07-22
@@ -58,10 +58,11 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm test` — 126 passed, 1 skipped.
 - `npm run build` — passed, 59 routes.
 - Local browser QA: desktop 1440×1000 и mobile 390×844, RU/UZ, month/year switch, 4 registration CTA, horizontal overflow отсутствует.
+- Production deployment `dpl_Ahif6zPnihctmqejFhg94kPVkxEs` — Ready; alias `fitcrm-three.vercel.app` назначен, production browser QA and health check passed.
 
 ## Remaining
 
-Production deployment и финальная проверка.
+Нет.
 
 ## Blockers
 

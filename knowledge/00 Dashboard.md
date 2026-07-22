@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `6dfb2a6` · 2026-07-22 · feat: redesign landing pricing around Standard
 - `94845ad` · 2026-07-22 · docs: record outreach copy release [skip ci]
 - `e12b856` · 2026-07-22 · feat: highlight ready outreach scripts on landing
 - `a721ffb` · 2026-07-22 · docs: record Growth OS landing release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `57f4b92` · 2026-07-22 · docs: record reports attention release [skip ci]
 - `50bb457` · 2026-07-22 · feat: redesign reports attention workspace
 - `62ee8aa` · 2026-07-22 · docs: record Telegram broadcast release [skip ci]
-- `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

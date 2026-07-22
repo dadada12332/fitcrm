@@ -30,7 +30,6 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-in-progress -->
 - [ ] TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
-- [ ] TASK-0040 · Переработать тарифы лендинга и усилить Стандарт · feature · P2 · marketing · 2026-07-22 · [[Tasks/TASK-0040-pererabotat-tarify-lendinga-i-usilit-standart]]
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review
@@ -90,4 +89,5 @@ kanban-plugin: board
 - [x] TASK-0037 · Улучшить экран Telegram-рассылки · feature · P2 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0037-uluchshit-ekran-telegram-rassylki]]
 - [x] TASK-0038 · Привести блок Внимание в отчётах к дизайн-системе · feature · P2 · reports · 2026-07-22 · [[Tasks/Completed/TASK-0038-privesti-blok-vnimanie-v-otchetah-k-dizain-sisteme]]
 - [x] TASK-0039 · Добавить Growth OS и удержание на лендинг · feature · P2 · marketing · 2026-07-22 · [[Tasks/Completed/TASK-0039-dobavit-growth-os-i-uderzhanie-na-lending]]
+- [x] TASK-0040 · Переработать тарифы лендинга и усилить Стандарт · feature · P2 · marketing · 2026-07-22 · [[Tasks/Completed/TASK-0040-pererabotat-tarify-lendinga-i-usilit-standart]]
 <!-- AUTO:END kanban-done -->
