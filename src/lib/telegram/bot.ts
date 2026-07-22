@@ -555,7 +555,7 @@ function setupHandlers(bot: Bot, clubId: string) {
           .in("status", ["active", "frozen"]).order("expires_at", { ascending: false }).limit(1).maybeSingle(),
       ])
       const welcome = settings.welcome_enabled === false
-        ? `✅ Добро пожаловать, *${firstName}*!`
+        ? `✅ Добро пожаловать, ${firstName}!`
         : renderTemplate(
             settings.welcome_message || "Привет, {{name}}! Добро пожаловать в {{club}}.",
             {
@@ -566,7 +566,7 @@ function setupHandlers(bot: Bot, clubId: string) {
                 : "—",
             },
           )
-      await ctx.reply(welcome, { ...removeKb, parse_mode: "Markdown" })
+      await ctx.reply(welcome, removeKb)
       await supabase.from("telegram_events").insert({
         club_id: clubId,
         telegram_id: telegramId,

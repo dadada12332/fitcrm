@@ -13,9 +13,9 @@ import { saveIntegrationAction } from "@/app/(app)/settings/club/actions"
 import { TelegramBroadcast, type BroadcastHistoryItem } from "./TelegramBroadcast"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import type { AudienceOption, Recipient } from "@/lib/broadcast"
+import { TelegramTemplatesEditor, type TelegramTemplateKey } from "./TelegramTemplatesEditor"
 
 // ── Simple integrations (Click / Payme) ──────────────────────────
 
@@ -80,13 +80,12 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
   const [disconnectPending, startDisconnect] = useTransition()
   const [connectPending, startConnect] = useTransition()
 
-  // Automation state
-  const [auto, setAuto] = useState(tgSettings)
+  // Automation and templates share one state so saving either tab never restores stale values.
+  const [settings, setSettings] = useState(tgSettings)
   const [autoMsg, setAutoMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [autoPending, startAuto] = useTransition()
 
-  // Templates state
-  const [tpl, setTpl] = useState({
+  const [savedTemplates, setSavedTemplates] = useState({
     welcome_message: tgSettings.welcome_message,
     expiry_template: tgSettings.expiry_template,
     payment_template: tgSettings.payment_template,
@@ -114,7 +113,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
 
   function handleSaveAuto() {
     startAuto(async () => {
-      const res = await saveTelegramSettingsAction(auto)
+      const res = await saveTelegramSettingsAction(settings)
       setAutoMsg(res.error ? { text: res.error, ok: false } : { text: "Настройки сохранены", ok: true })
       setTimeout(() => setAutoMsg(null), 3000)
     })
@@ -122,7 +121,14 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
 
   function handleSaveTpl() {
     startTpl(async () => {
-      const res = await saveTelegramSettingsAction({ ...auto, ...tpl })
+      const res = await saveTelegramSettingsAction(settings)
+      if (!res.error) {
+        setSavedTemplates({
+          welcome_message: settings.welcome_message,
+          expiry_template: settings.expiry_template,
+          payment_template: settings.payment_template,
+        })
+      }
       setTplMsg(res.error ? { text: res.error, ok: false } : { text: "Шаблоны сохранены", ok: true })
       setTimeout(() => setTplMsg(null), 3000)
     })
@@ -303,7 +309,7 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
                   <p className="text-sm font-medium text-foreground">{item.label}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">{item.desc}</p>
                 </div>
-                <Switch checked={auto[item.key]} onCheckedChange={(v) => setAuto((p) => ({ ...p, [item.key]: v }))} />
+                <Switch checked={settings[item.key]} onCheckedChange={(v) => setSettings((p) => ({ ...p, [item.key]: v }))} />
               </div>
             ))}
           </div>
@@ -328,35 +334,21 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
 
       {/* ── Templates tab ── */}
       {tab === "templates" && (
-        <div className="space-y-5 rounded-lg border border-border bg-card p-5">
-          {!connected && (
-            <div className="rounded-lg bg-chart-3/10 p-3 text-sm text-chart-3">
-              Сначала подключите бота на вкладке «Основное»
-            </div>
-          )}
-          <p className="text-xs" style={{ color: "var(--on-dark-soft)" }}>
-            Переменные: <code>{"{{name}}"}</code> — имя клиента, <code>{"{{club}}"}</code> — название клуба,{" "}
-            <code>{"{{expires}}"}</code> — дата, <code>{"{{days}}"}</code> — дней, <code>{"{{amount}}"}</code> — сумма
-          </p>
-          {[
-            { key: "welcome_message" as const, label: "Приветственное сообщение" },
-            { key: "expiry_template" as const, label: "Уведомление об истечении" },
-            { key: "payment_template" as const, label: "Подтверждение оплаты" },
-          ].map((t) => (
-            <div key={t.key}>
-              <label className="block text-sm font-medium mb-2" style={{ color: "var(--on-dark)" }}>{t.label}</label>
-              <Textarea
-                value={tpl[t.key]}
-                onChange={(e) => setTpl((p) => ({ ...p, [t.key]: e.target.value }))}
-                rows={4}
-                className="rounded-md px-3 py-2.5 font-mono"
-              />
-            </div>
-          ))}
+        <div className="space-y-3">
+          <TelegramTemplatesEditor
+            values={{
+              welcome_message: settings.welcome_message,
+              expiry_template: settings.expiry_template,
+              payment_template: settings.payment_template,
+            }}
+            savedValues={savedTemplates}
+            connected={connected}
+            pending={tplPending}
+            clubName={clubName}
+            onChange={(key: TelegramTemplateKey, value: string) => setSettings((current) => ({ ...current, [key]: value }))}
+            onSave={handleSaveTpl}
+          />
           <Feedback msg={tplMsg} />
-          <Button onClick={handleSaveTpl} size="lg" disabled={tplPending || !connected}>
-            {tplPending ? "Сохранение…" : "Сохранить шаблоны"}
-          </Button>
         </div>
       )}
 

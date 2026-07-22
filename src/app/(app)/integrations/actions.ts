@@ -309,6 +309,23 @@ export async function saveTelegramSettingsAction(
   if (!cc) return { error: "Клуб не найден" }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
 
+  const templates = [settings.welcome_message, settings.expiry_template, settings.payment_template]
+  if (templates.some((template) => typeof template !== "string" || !template.trim())) {
+    return { error: "Шаблоны сообщений не могут быть пустыми" }
+  }
+  if (templates.some((template) => template.length > 4096)) {
+    return { error: "Шаблон Telegram не может быть длиннее 4096 символов" }
+  }
+  const allowedVariables: Array<[string, Set<string>]> = [
+    [settings.welcome_message, new Set(["name", "club", "expires"])],
+    [settings.expiry_template, new Set(["name", "club", "days", "expires"])],
+    [settings.payment_template, new Set(["amount", "membership", "expires"])],
+  ]
+  for (const [template, allowed] of allowedVariables) {
+    const unknown = [...template.matchAll(/\{\{([^{}]+)\}\}/g)].map((match) => match[1].trim().toLowerCase()).find((key) => !allowed.has(key))
+    if (unknown) return { error: `Неизвестная переменная в шаблоне: {{${unknown}}}` }
+  }
+
   const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
   const cur = (club?.settings as Record<string, unknown>) ?? {}
 
