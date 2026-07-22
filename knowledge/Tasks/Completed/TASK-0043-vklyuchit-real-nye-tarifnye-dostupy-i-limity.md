@@ -50,7 +50,7 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Verification
 
-`npx tsc --noEmit`; `npm test` — 130 passed, 1 skipped; `npm run build` — 59 routes; localhost dashboard/integrations — 200, overflow 0, console errors 0. Production Supabase migrations 0076–0078 applied; матрица проверена read-only запросом.
+`npx tsc --noEmit`; `npm test` — 130 passed, 1 skipped; `npm run build` — 59 routes; localhost dashboard/integrations — 200, overflow 0, console errors 0. Production Supabase migrations 0076–0078 applied; матрица проверена read-only запросом. Vercel deployment `dpl_PVT2ruGX9jtKEYcXkXVrevB4q4t4` — READY; `fitcrm-three.vercel.app` назначен на новую сборку; `/api/health` вернул `status: ok`, database reachable.
 
 ## Remaining
 
