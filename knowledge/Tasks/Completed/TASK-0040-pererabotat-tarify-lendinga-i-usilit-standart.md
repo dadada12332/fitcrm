@@ -61,6 +61,7 @@ Tenant isolation, auth, production data и существующие пользо
 - Local browser QA: desktop 1440×1000 и mobile 390×844, RU/UZ, month/year switch, 4 registration CTA, horizontal overflow отсутствует.
 - Width QA: 1920px — 4 карточки по 402px; 1234px — сетка 2×2 по 565px; overflow `0`.
 - Production deployment `dpl_Ahif6zPnihctmqejFhg94kPVkxEs` — Ready; alias `fitcrm-three.vercel.app` назначен, production browser QA and health check passed.
+- Width refinement deployment `dpl_GmLd9qKgh6rJNKvxt3y5Gm9uNcWX` — Ready; alias подтверждён, production показывает сетку 2×2 на 1234px.
 
 ## Remaining
 

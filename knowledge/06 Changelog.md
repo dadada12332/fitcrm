@@ -117,6 +117,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `e6a8ef6` · 2026-07-22 · style: widen landing pricing cards
 - `e80f8b5` · 2026-07-22 · docs: record pricing redesign release [skip ci]
 - `6dfb2a6` · 2026-07-22 · feat: redesign landing pricing around Standard
 - `94845ad` · 2026-07-22 · docs: record outreach copy release [skip ci]
@@ -146,5 +147,4 @@ tags: [fitcrm, releases]
 - `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
 - `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 - `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
-- `de36532` · 2026-07-20 · feat: add first-run product onboarding
 <!-- AUTO:END changelog-candidates -->

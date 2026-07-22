@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: e80f8b5 · 2026-07-22T13:58:00+05:00 · docs: record pricing redesign release [skip ci].
+- Последний commit: e6a8ef6 · 2026-07-22T14:21:04+05:00 · style: widen landing pricing cards.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
