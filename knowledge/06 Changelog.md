@@ -130,6 +130,9 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `fe68f58` · 2026-07-22 · fix: preserve upgrade button height
+- `057d003` · 2026-07-22 · style: strengthen plan upgrade call to action
+- `2f37b01` · 2026-07-22 · docs: record plan limit audit release [skip ci]
 - `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
 - `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
 - `908eae6` · 2026-07-22 · fix: show previous plan price on landing
@@ -157,7 +160,4 @@ tags: [fitcrm, releases]
 - `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
 - `260df15` · 2026-07-22 · fix: preserve Telegram avatar preview bytes
 - `8d41ce0` · 2026-07-22 · docs: record Telegram bot avatar release [skip ci]
-- `e30e513` · 2026-07-22 · feat: manage Telegram bot avatar
-- `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
-- `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
 <!-- AUTO:END changelog-candidates -->
