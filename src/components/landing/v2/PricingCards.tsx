@@ -104,6 +104,9 @@ export function PricingCards({ plans }: { plans: LandingPlan[] }) {
             const dark = p.code === popularCode
             const free = p.isTrial || p.price === 0
             const shown = billing === "year" ? Math.round(p.price * (1 - YEAR_DISCOUNT)) : p.price
+            const shownOld = p.oldPrice && p.oldPrice > p.price
+              ? billing === "year" ? Math.round(p.oldPrice * (1 - YEAR_DISCOUNT)) : p.oldPrice
+              : null
             const annualTotal = shown * 12
             return (
               <motion.div key={p.code} {...fadeUp(0.16 + i * 0.06)}
@@ -126,11 +129,19 @@ export function PricingCards({ plans }: { plans: LandingPlan[] }) {
                 <div className="text-[22px] font-semibold" style={{ color: dark ? "#ffffff" : "#0a0a0a" }}>{p.name}</div>
 
                 {/* Price */}
-                <div className="flex items-baseline gap-1.5 mt-5 whitespace-nowrap">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-5">
                   {free ? (
                     <span className="text-[38px] font-semibold leading-none tracking-[-1.2px]" style={{ color: dark ? "#ffffff" : "#0a0a0a" }}>{t.pricing.free}</span>
                   ) : (
                     <>
+                      {shownOld !== null && (
+                        <span
+                          className="text-[18px] leading-none line-through"
+                          style={{ color: dark ? "#71717a" : "#9ca3af" }}
+                        >
+                          {ru(shownOld)}
+                        </span>
+                      )}
                       <span className="text-[38px] font-semibold leading-none tracking-[-1.2px]" style={{ color: dark ? "#ffffff" : "#0a0a0a" }}>{ru(shown)}</span>
                       <span className="text-[14px]" style={{ color: dark ? "#a1a1aa" : "#9ca3af" }}>{t.pricing.perMonth}</span>
                     </>
