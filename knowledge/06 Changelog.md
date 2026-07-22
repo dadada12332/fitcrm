@@ -130,6 +130,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
 - `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
 - `908eae6` · 2026-07-22 · fix: show previous plan price on landing
 - `a080c10` · 2026-07-22 · docs: record plan enforcement release [skip ci]
@@ -159,5 +160,4 @@ tags: [fitcrm, releases]
 - `e30e513` · 2026-07-22 · feat: manage Telegram bot avatar
 - `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
 - `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
-- `970660e` · 2026-07-22 · docs: record data exchange and settings audit [skip ci]
 <!-- AUTO:END changelog-candidates -->

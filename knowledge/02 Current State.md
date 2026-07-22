@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 898f6b8 · 2026-07-22T16:24:53+05:00 · docs: record landing previous-price release [skip ci].
+- Последний commit: f4f7cb2 · 2026-07-22T16:48:37+05:00 · feat: audit plan limits and add upgrade dialog.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 80; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -37,7 +37,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_FHqktTb9cQjXA55RF5kQFu1DQ39Z` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Актуализированный FAQ доступен на домене и проверен через production Browser smoke; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_2ES6ueG5zG98r2kcs1BrXAKSjngH` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
 
 ## Риски и долг
 

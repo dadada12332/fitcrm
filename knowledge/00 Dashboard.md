@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
 - `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
 - `908eae6` · 2026-07-22 · fix: show previous plan price on landing
 - `a080c10` · 2026-07-22 · docs: record plan enforcement release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `75221d4` · 2026-07-22 · docs: define recommended plan access matrix [skip ci]
 - `8a04d0d` · 2026-07-22 · docs: record FAQ production release [skip ci]
 - `26331e9` · 2026-07-22 · fix: align landing FAQ with product
-- `a598b22` · 2026-07-22 · docs: record pricing rollback release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

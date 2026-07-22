@@ -105,10 +105,10 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0041-aktualizirovat-faq-lendinga]]
 - [[Tasks/Completed/TASK-0042-peresobrat-dostupy-tarifov-po-fakticheskomu-funkcionalu]]
 - [[Tasks/Completed/TASK-0043-vklyuchit-real-nye-tarifnye-dostupy-i-limity]]
+- [[Tasks/Completed/TASK-0044-proverit-tarifnye-limity-i-dobavit-predlozhenie-apgreida]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
-- [[Tasks/TASK-0044-proverit-tarifnye-limity-i-dobavit-predlozhenie-apgreida]]
 
 ## UX
 

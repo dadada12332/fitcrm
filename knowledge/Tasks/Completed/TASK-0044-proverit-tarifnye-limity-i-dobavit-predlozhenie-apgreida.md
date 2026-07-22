@@ -1,7 +1,7 @@
 ---
 id: TASK-0044
 type: feature
-status: in-progress
+status: completed
 priority: P1
 module: pricing
 created: 2026-07-22
@@ -33,7 +33,7 @@ tags: [fitcrm, task]
 - [x] Все 10 лимитов имеют server-side enforcement и boundary tests.
 - [x] Повтор одного import reservation не расходует лимит повторно.
 - [x] Ошибка лимита открывает единый upgrade dialog на desktop и mobile.
-- [ ] Production deployment и browser smoke подтверждены.
+- [x] Production deployment и browser smoke подтверждены.
 
 ## Files and data
 
@@ -50,11 +50,11 @@ Tenant isolation, auth, production data и существующие пользо
 
 ## Verification
 
-Локально: TypeScript и ESLint без ошибок; 141 test passed, 1 skipped; production build собрал 59 страниц; browser QA desktop/mobile показал dialog без overflow и console errors. Production RPC проверен на атомарность и идемпотентность; QA-данные удалены.
+Локально: TypeScript и ESLint без ошибок; 141 test passed, 1 skipped; production build собрал 59 страниц; browser QA desktop/mobile показал dialog без overflow и console errors. Production RPC проверен на атомарность и идемпотентность. Deployment `dpl_2ES6ueG5zG98r2kcs1BrXAKSjngH` — READY и назначен на `fitcrm-three.vercel.app`; production mobile smoke подтвердил блокировку 101-го клиента и предложение Starter без browser errors. Все синтетические записи удалены.
 
 ## Remaining
 
-Commit, deploy и production smoke.
+Нет.
 
 ## Blockers
 
