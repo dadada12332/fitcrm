@@ -26,6 +26,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Экран Telegram-рассылки получил единый рабочий сценарий: получатели, планирование, редактор, тестовая отправка, живой предпросмотр и история теперь адаптивны и соответствуют дизайн-системе CRM.
+
 - KPI Telegram-интеграции и вкладки статистики приведены к общему сегментированному стилю CRM с нейтральными иконками и адаптивной сеткой 2×2/4×1.
 
 - Шаблоны Telegram переработаны в сценарный редактор с подсказками переменных, live preview, сбросом и явным состоянием несохранённых изменений.
@@ -45,6 +47,8 @@ tags: [fitcrm, releases]
 - Центр уведомлений стал информативнее и шире.
 
 ### Fixed
+
+- Ссылка на подключённого Telegram-бота теперь использует его username; client/server validation не позволяет отправить неподдерживаемое изображение или текст сверх лимитов Telegram.
 
 - Предпросмотр аватара Telegram-бота больше не повреждается при записи бинарного JPEG в Supabase Storage; существующий production-файл восстановлен.
 
@@ -103,6 +107,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `481c70e` · 2026-07-22 · docs: record Telegram KPI redesign [skip ci]
 - `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
 - `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
 - `260df15` · 2026-07-22 · fix: preserve Telegram avatar preview bytes
@@ -132,5 +137,4 @@ tags: [fitcrm, releases]
 - `ac1a6fe` · 2026-07-20 · Record verified launch readiness status
 - `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
 - `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
-- `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
 <!-- AUTO:END changelog-candidates -->

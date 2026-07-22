@@ -447,7 +447,8 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
       {tab === "broadcast" && (
         <TelegramBroadcast
           connected={connected}
-          botName={botFirstName}
+          botDisplayName={botFirstName}
+          botUsername={botUsername}
           clubName={clubName}
           audienceOptions={audienceOptions}
           recipients={recipients}

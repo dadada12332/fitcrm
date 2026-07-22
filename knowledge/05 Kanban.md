@@ -86,4 +86,5 @@ kanban-plugin: board
 - [x] TASK-0034 · Аватар Telegram-бота из CRM · feature · P2 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0034-avatar-telegram-bota-iz-crm]]
 - [x] TASK-0035 · Исправить повреждение аватара Telegram в CRM · bug · P1 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0035-ispravit-povrezhdenie-avatara-telegram-v-crm]]
 - [x] TASK-0036 · Унифицировать Telegram KPI с дизайн-системой CRM · feature · P2 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0036-unificirovat-telegram-kpi-s-dizain-sistemoi-crm]]
+- [x] TASK-0037 · Улучшить экран Telegram-рассылки · feature · P2 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0037-uluchshit-ekran-telegram-rassylki]]
 <!-- AUTO:END kanban-done -->

@@ -335,6 +335,24 @@ function parseManualIds(formData: FormData): number[] {
     .split(",").map((s) => Number(s.trim())).filter((n) => Number.isFinite(n) && n > 0)
 }
 
+function validateBroadcastPayload(message: string, image: FormDataEntryValue | null): string | null {
+  const hasImage = image instanceof File && image.size > 0
+  if (!message && !hasImage) return "Добавьте текст или изображение"
+  if (hasImage) {
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(image.type)) {
+      return "Поддерживаются JPG, PNG, WebP и GIF"
+    }
+    if (image.size > 8 * 1024 * 1024) return "Изображение должно быть не больше 8 МБ"
+  }
+  const messageLimit = hasImage ? 1024 : 4096
+  if (message.length > messageLimit) {
+    return hasImage
+      ? "Подпись к изображению должна быть не длиннее 1024 символов"
+      : "Сообщение должно быть не длиннее 4096 символов"
+  }
+  return null
+}
+
 export async function broadcastTelegramAction(
   formData: FormData,
 ): Promise<{ error?: string; ok?: boolean; sent?: number; failed?: number; total?: number }> {
@@ -343,7 +361,8 @@ export async function broadcastTelegramAction(
   const hasImage = image instanceof File && image.size > 0
   const audience = String(formData.get("audience") ?? "all")
   const audienceLabel = String(formData.get("audience_label") ?? "")
-  if (!message && !hasImage) return { error: "Добавьте текст или изображение" }
+  const payloadError = validateBroadcastPayload(message, image)
+  if (payloadError) return { error: payloadError }
 
   const { ctx, error } = await getBroadcastCtx()
   if (!ctx) return { error }
@@ -355,6 +374,7 @@ export async function broadcastTelegramAction(
   if (recipients.length === 0) return { error: "Нет получателей в выбранной аудитории", sent: 0, failed: 0, total: 0 }
 
   const imageUrl = hasImage ? await uploadBroadcastImage(ctx.clubId, image as File) : null
+  if (hasImage && !imageUrl) return { error: "Не удалось загрузить изображение. Попробуйте ещё раз" }
 
   const { delivered, failed } = await sendBroadcast(ctx.token, recipients, message, imageUrl, ctx.clubName)
 
@@ -379,7 +399,8 @@ export async function scheduleBroadcastAction(
   const audience = String(formData.get("audience") ?? "all")
   const audienceLabel = String(formData.get("audience_label") ?? "")
   const scheduledAt = String(formData.get("scheduled_at") ?? "")
-  if (!message && !hasImage) return { error: "Добавьте текст или изображение" }
+  const payloadError = validateBroadcastPayload(message, image)
+  if (payloadError) return { error: payloadError }
   if (!scheduledAt) return { error: "Укажите дату и время" }
   const when = new Date(scheduledAt)
   if (Number.isNaN(when.getTime()) || when.getTime() < Date.now()) return { error: "Время должно быть в будущем" }
@@ -389,6 +410,7 @@ export async function scheduleBroadcastAction(
 
   const supabase = await createClient()
   const imageUrl = hasImage ? await uploadBroadcastImage(ctx.clubId, image as File) : null
+  if (hasImage && !imageUrl) return { error: "Не удалось загрузить изображение. Попробуйте ещё раз" }
 
   const { error: insErr } = await supabase.from("broadcasts").insert({
     club_id: ctx.clubId, message: message || null, image_url: imageUrl,
@@ -409,7 +431,8 @@ export async function testBroadcastAction(
   const message = String(formData.get("message") ?? "").trim()
   const image = formData.get("image")
   const hasImage = image instanceof File && image.size > 0
-  if (!message && !hasImage) return { error: "Добавьте текст или изображение" }
+  const payloadError = validateBroadcastPayload(message, image)
+  if (payloadError) return { error: payloadError }
 
   const { ctx, error } = await getBroadcastCtx()
   if (!ctx) return { error }
@@ -435,6 +458,7 @@ export async function testBroadcastAction(
 
   const { data: profile } = await supabase.from("users").select("full_name").eq("id", ctx.userId).maybeSingle()
   const imageUrl = hasImage ? await uploadBroadcastImage(ctx.clubId, image as File) : null
+  if (hasImage && !imageUrl) return { error: "Не удалось загрузить изображение. Попробуйте ещё раз" }
 
   const { sendBroadcast } = await import("@/lib/broadcast")
   const self = {

@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 440ba3d · 2026-07-22T12:13:34+05:00 · style: align Telegram metrics with CRM.
+- Последний commit: 481c70e · 2026-07-22T12:16:21+05:00 · docs: record Telegram KPI redesign [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
