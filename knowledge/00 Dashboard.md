@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
 - `481c70e` · 2026-07-22 · docs: record Telegram KPI redesign [skip ci]
 - `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
 - `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `8d41ce0` · 2026-07-22 · docs: record Telegram bot avatar release [skip ci]
 - `e30e513` · 2026-07-22 · feat: manage Telegram bot avatar
 - `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
-- `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

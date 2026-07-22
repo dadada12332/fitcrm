@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 481c70e · 2026-07-22T12:16:21+05:00 · docs: record Telegram KPI redesign [skip ci].
+- Последний commit: 5526a88 · 2026-07-22T12:33:33+05:00 · feat: redesign Telegram broadcast workspace.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

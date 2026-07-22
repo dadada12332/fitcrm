@@ -107,6 +107,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
 - `481c70e` · 2026-07-22 · docs: record Telegram KPI redesign [skip ci]
 - `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
 - `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
@@ -136,5 +137,4 @@ tags: [fitcrm, releases]
 - `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
 - `ac1a6fe` · 2026-07-20 · Record verified launch readiness status
 - `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
-- `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
 <!-- AUTO:END changelog-candidates -->

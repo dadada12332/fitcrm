@@ -64,3 +64,7 @@ Tenant isolation, auth, production data и существующие пользо
 ## Blockers
 
 Нет.
+
+## Deploy
+
+Production deployment `dpl_BStsKDvMKUjXg6TVtQE9QRDMGr51` — READY; alias `fitcrm-three.vercel.app` подтверждён. `/api/health` вернул `status: ok`, база доступна.
