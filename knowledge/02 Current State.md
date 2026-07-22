@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: e30e513 · 2026-07-22T11:37:55+05:00 · feat: manage Telegram bot avatar.
+- Последний commit: 8d41ce0 · 2026-07-22T11:41:03+05:00 · docs: record Telegram bot avatar release [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

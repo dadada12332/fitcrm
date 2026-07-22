@@ -44,6 +44,8 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Предпросмотр аватара Telegram-бота больше не повреждается при записи бинарного JPEG в Supabase Storage; существующий production-файл восстановлен.
+
 - Сохранение Telegram-автоматизации больше не возвращает старые тексты шаблонов; неизвестные переменные и сообщения вне лимита Telegram отклоняются до отправки.
 - Экспорт абонементов возвращён в актуальный карточный экран; отчёты теперь скачиваются одним читаемым XLSX, а экспорт оплат проверяет серверное право.
 - Удалены настройки-заглушки и кнопки-фильтры без действия; рабочие часы и Telegram-параметры теперь реально влияют на связанные сценарии.
@@ -99,6 +101,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `8d41ce0` · 2026-07-22 · docs: record Telegram bot avatar release [skip ci]
 - `e30e513` · 2026-07-22 · feat: manage Telegram bot avatar
 - `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
 - `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
@@ -128,5 +131,4 @@ tags: [fitcrm, releases]
 - `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
 - `0514d3d` · 2026-07-19 · Release retention center and Growth OS
 - `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
-- `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
 <!-- AUTO:END changelog-candidates -->

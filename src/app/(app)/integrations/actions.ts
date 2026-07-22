@@ -191,11 +191,12 @@ export async function uploadTelegramBotAvatarAction(formData: FormData): Promise
   } catch {
     return { error: "Не удалось обработать изображение. Попробуйте другой файл" }
   }
+  const jpegBytes = new Uint8Array(jpeg)
 
   try {
     const body = new FormData()
     body.append("photo", JSON.stringify({ type: "static", photo: "attach://avatar" }))
-    body.append("avatar", new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" }), "avatar.jpg")
+    body.append("avatar", new Blob([jpegBytes], { type: "image/jpeg" }), "avatar.jpg")
     const response = await fetch(`https://api.telegram.org/bot${context.token}/setMyProfilePhoto`, {
       method: "POST",
       body,
@@ -210,13 +211,23 @@ export async function uploadTelegramBotAvatarAction(formData: FormData): Promise
   }
 
   const path = `${context.clubId}/${TELEGRAM_AVATAR_PATH}`
-  const { error: uploadError } = await context.service.storage.from("avatars").upload(path, jpeg, {
+  const storageBody = new Blob([jpegBytes], { type: "image/jpeg" })
+  const { error: uploadError } = await context.service.storage.from("avatars").upload(path, storageBody, {
     contentType: "image/jpeg",
     cacheControl: "3600",
     upsert: true,
   })
   if (uploadError) {
     return { ok: true, warning: "Аватар установлен в Telegram, но предпросмотр в CRM не обновился" }
+  }
+
+  const { data: storedAvatar, error: downloadError } = await context.service.storage.from("avatars").download(path)
+  const signature = storedAvatar
+    ? new Uint8Array(await storedAvatar.arrayBuffer()).subarray(0, 3)
+    : new Uint8Array()
+  if (downloadError || signature[0] !== 0xff || signature[1] !== 0xd8 || signature[2] !== 0xff) {
+    await context.service.storage.from("avatars").remove([path])
+    return { ok: true, warning: "Аватар установлен в Telegram, но проверка предпросмотра не прошла" }
   }
 
   const { data } = context.service.storage.from("avatars").getPublicUrl(path)
