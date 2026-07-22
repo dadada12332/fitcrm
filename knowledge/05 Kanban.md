@@ -88,4 +88,5 @@ kanban-plugin: board
 - [x] TASK-0036 · Унифицировать Telegram KPI с дизайн-системой CRM · feature · P2 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0036-unificirovat-telegram-kpi-s-dizain-sistemoi-crm]]
 - [x] TASK-0037 · Улучшить экран Telegram-рассылки · feature · P2 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0037-uluchshit-ekran-telegram-rassylki]]
 - [x] TASK-0038 · Привести блок Внимание в отчётах к дизайн-системе · feature · P2 · reports · 2026-07-22 · [[Tasks/Completed/TASK-0038-privesti-blok-vnimanie-v-otchetah-k-dizain-sisteme]]
+- [x] TASK-0039 · Добавить Growth OS и удержание на лендинг · feature · P2 · marketing · 2026-07-22 · [[Tasks/Completed/TASK-0039-dobavit-growth-os-i-uderzhanie-na-lending]]
 <!-- AUTO:END kanban-done -->

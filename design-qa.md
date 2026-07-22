@@ -73,3 +73,29 @@ final result: passed
 ## Result
 
 final result: passed
+
+# Design QA: Landing Growth OS and Retention
+
+## Target
+
+- Continue the existing light editorial landing style without introducing a separate visual system.
+- Explain Retention and Growth OS as one product flow before the pricing section.
+- Keep the product story readable and interactive on desktop and mobile.
+
+## Captures Reviewed
+
+- Desktop: `/\#growth-os`, 1440x1000, Russian.
+- Mobile: `/\#growth-os`, 390x844, Russian and Uzbek.
+- Interaction: all three retention signals and synchronized Growth OS action state.
+
+## Findings
+
+- The section reuses the landing's large typography, framed product surfaces and restrained blue accent.
+- Retention signals, AI recommendation, next action and expected result form one clear left-to-right story on desktop.
+- Mobile stacks the two product surfaces without horizontal overflow or clipped labels.
+- Automatic scenario rotation pauses on hover/focus and respects reduced-motion preferences.
+- Russian, English and Uzbek dictionaries are complete and type-safe.
+
+## Result
+
+final result: passed

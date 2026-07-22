@@ -5,6 +5,7 @@ import { Features }     from "@/components/landing/v2/Features"
 import { WhyDifferent } from "@/components/landing/v2/WhyDifferent"
 import { HowItWorks }   from "@/components/landing/v2/HowItWorks"
 import { Stats }        from "@/components/landing/v2/Stats"
+import { GrowthRetention } from "@/components/landing/v2/GrowthRetention"
 import { Pricing }      from "@/components/landing/v2/Pricing"
 import { Faq }          from "@/components/landing/v2/Faq"
 import { CtaBand }      from "@/components/landing/v2/CtaBand"
@@ -36,6 +37,7 @@ export default function Home() {
       <WhyDifferent />
       <HowItWorks />
       <Stats />
+      <GrowthRetention />
       <Pricing />
       <Faq />
       <CtaBand />

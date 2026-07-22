@@ -12,6 +12,8 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- На публичном лендинге появился интерактивный блок Growth OS и удержания: он показывает путь от раннего сигнала риска до готового действия и измеримого результата.
+
 - В Telegram-интеграции можно загрузить, заменить и удалить аватар бота прямо из CRM; фото автоматически обрезается до квадрата и синхронизируется с Telegram.
 
 - Импорт клиентов сохраняет все нераспознанные поля внешней CRM и показывает их отдельным блоком в карточке клиента вместе с источником импорта.
@@ -111,6 +113,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `57f4b92` · 2026-07-22 · docs: record reports attention release [skip ci]
 - `50bb457` · 2026-07-22 · feat: redesign reports attention workspace
 - `62ee8aa` · 2026-07-22 · docs: record Telegram broadcast release [skip ci]
 - `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
@@ -140,5 +143,4 @@ tags: [fitcrm, releases]
 - `63d1989` · 2026-07-20 · feat: add retention AI copilot
 - `bc10d6d` · 2026-07-20 · docs: retire resolved launch issues [skip ci]
 - `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
-- `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
 <!-- AUTO:END changelog-candidates -->
