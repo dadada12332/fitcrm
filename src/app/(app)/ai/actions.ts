@@ -1,6 +1,7 @@
 "use server"
 
 import { can } from "@/lib/permissions"
+import { consumeMonthlyLimit } from "@/lib/plan-enforcement"
 import { sanitizeSearchTerm } from "@/lib/search"
 import { getCurrentClub } from "@/lib/club"
 import { createServiceClient } from "@/lib/supabase/service"
@@ -273,6 +274,8 @@ export async function askAiAction(messages: AiMessage[]): Promise<{ reply: strin
   const club = await getCurrentClub()
   if (!club) return { reply: "", cards: [], error: "Не авторизован" }
   if (!can(club.permissions, "ai", "use")) return { reply: "", cards: [], error: "Недостаточно прав" }
+  const usageError = await consumeMonthlyLimit(club, "ai_requests")
+  if (usageError) return { reply: "", cards: [], error: usageError }
 
   const latest = [...messages].reverse().find((message) => message.role === "user")
   const directIntent = latest && !latest.image ? resolveDirectIntent(latest.content) : null

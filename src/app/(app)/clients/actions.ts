@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
 import { getClientsForExport, type ClientsQuery, type ClientRow } from "@/lib/clients"
 import { serializeCSV } from "@/lib/csv"
+import { consumeMonthlyLimit, requireRecordLimit } from "@/lib/plan-enforcement"
 
 export type ClientFormState = { error?: string; ok?: boolean }
 
@@ -29,6 +30,8 @@ export async function exportClientsCsvAction(q: ClientsQuery): Promise<{ csv?: s
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "clients", "export")) return { error: "Недостаточно прав" }
   if (!club.permissions.clients.view) return { error: "Нет прав" }
+  const usageError = await consumeMonthlyLimit(club, "exports")
+  if (usageError) return { error: usageError }
   const rows = await getClientsForExport(supabase, club.clubId, q)
   return { csv: clientsToCSV(rows) }
 }
@@ -57,6 +60,9 @@ export async function createClientAction(
   const clubId = club.clubId
 
   const supabase = await createClient()
+  const { count } = await supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId)
+  const limitError = requireRecordLimit(club, "clients", count ?? 0)
+  if (limitError) return { error: limitError }
 
   const { data: newClient, error: clientErr } = await supabase
     .from("clients")

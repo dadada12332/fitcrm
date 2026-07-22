@@ -3,6 +3,7 @@
 import { getCurrentClub } from "@/lib/club"
 import { getReportsDataCached, getReportsFinance, getReportsSales, getReportsVisits, getReportsClients, getReportsRenewals, getReportsDebts, getReportsStaff, getReportsAlerts } from "@/lib/reports"
 import type { ReportsData, FinanceAgg, SalesAgg, VisitsAgg, ClientsAgg, RenewalsAgg, DebtsAgg, ReportStaffRow, AlertsAgg } from "@/lib/reports"
+import { consumeMonthlyLimit, requirePlanFeature } from "@/lib/plan-enforcement"
 
 export async function loadReportsDataAction(): Promise<ReportsData | null> {
   const club = await getCurrentClub()
@@ -93,6 +94,10 @@ export type ForecastInput = {
 export async function getReportsForecastAction(m: ForecastInput): Promise<{ forecast: string; recommendations: string[]; error?: string }> {
   const club = await getCurrentClub()
   if (!club || !club.permissions.reports.view) return { forecast: "", recommendations: [], error: "Нет доступа" }
+  const featureError = requirePlanFeature(club, "advanced_reports") ?? requirePlanFeature(club, "ai")
+  if (featureError) return { forecast: "", recommendations: [], error: featureError }
+  const usageError = await consumeMonthlyLimit(club, "ai_requests")
+  if (usageError) return { forecast: "", recommendations: [], error: usageError }
   const key = process.env.GEMINI_API_KEY
 
   // Детерминированный фолбэк, если нет ключа/ошибка.

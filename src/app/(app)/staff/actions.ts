@@ -6,6 +6,7 @@ import { getCurrentClub } from "@/lib/club"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import type { StaffSettings } from "@/lib/staff"
+import { requirePlanSection, requireRecordLimit } from "@/lib/plan-enforcement"
 
 type R = { ok?: boolean; error?: string }
 
@@ -16,8 +17,15 @@ export async function addStaffAction(data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.create)) return { error: "Недостаточно прав" }
   if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
+  const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
+    supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
+    supabase.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+  ])
+  const limitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
+  if (limitError) return { error: limitError }
 
   const email = data.email.toLowerCase().trim()
   const origin = (await headers()).get("origin") ?? ""
@@ -90,6 +98,7 @@ export async function updateStaffBasicAction(staffId: string, data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.edit)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
@@ -125,6 +134,7 @@ export async function updateStaffSalaryAction(staffId: string, data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.salaries)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
@@ -155,6 +165,7 @@ export async function payStaffAction(staffId: string, amount: number, note: stri
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.salaries)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
@@ -182,6 +193,7 @@ export async function updateStaffPermissionsAction(staffId: string, permissions:
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase
@@ -207,6 +219,7 @@ export async function updateStaffRoleAction(staffId: string, roleKey: string): P
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав на смену роли" }
 
   // Fetch current role for audit log
@@ -251,6 +264,7 @@ export async function updateStaffStatusAction(staffId: string, status: string): 
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!(["owner", "admin"].includes(club.role) || club.permissions.staff.edit || club.permissions.staff.delete)) return { error: "Недостаточно прав" }
 
   const { data: staffRow } = await supabase

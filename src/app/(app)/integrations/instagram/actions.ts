@@ -8,12 +8,15 @@ import { can } from "@/lib/permissions"
 import { createServiceClient } from "@/lib/supabase/service"
 import { decryptIntegrationSecret } from "@/lib/crypto"
 import { getInstagramConfig, instagramStateHash, syncInstagramConnection, type InstagramConnection } from "@/lib/instagram"
+import { requireIntegrationSlot, requirePlanFeature } from "@/lib/plan-enforcement"
 
 async function context() {
   const [user, club] = await Promise.all([getAuthUser(), getCurrentClub()])
   if (!user) return { ok: false as const, error: "Не авторизован" }
   if (!club) return { ok: false as const, error: "Клуб не найден" }
   if (!can(club.permissions, "settings", "integrations")) return { ok: false as const, error: "Недостаточно прав" }
+  const featureError = requirePlanFeature(club, "instagram")
+  if (featureError) return { ok: false as const, error: featureError }
   return { ok: true as const, user, club }
 }
 
@@ -22,9 +25,15 @@ export async function startInstagramOAuthAction(): Promise<{ url?: string; error
   if (!ctx.ok) return { error: ctx.error }
   const config = getInstagramConfig()
   if (!config.configured) return { error: "Сначала добавьте Instagram App ID и App Secret в Vercel" }
+  const service = createServiceClient()
+  const { data: existing } = await service.from("integration_connections").select("id").eq("club_id", ctx.club.clubId).eq("provider", "instagram").maybeSingle()
+  if (!existing) {
+    const limitError = await requireIntegrationSlot(ctx.club)
+    if (limitError) return { error: limitError }
+  }
 
   const state = crypto.randomBytes(32).toString("base64url")
-  const { error } = await createServiceClient().from("integration_oauth_states").insert({
+  const { error } = await service.from("integration_oauth_states").insert({
     state_hash: instagramStateHash(state),
     club_id: ctx.club.clubId,
     provider: "instagram",

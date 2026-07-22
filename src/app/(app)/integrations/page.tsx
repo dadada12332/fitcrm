@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import { redirect } from "next/navigation"
 import { IntegrationsCatalog, type IntegrationStatus } from "@/components/app/IntegrationsCatalog"
+import { planFeatureEnabled } from "@/lib/plan-access"
 
 export const metadata = { title: "Интеграции — FitCRM" }
 
@@ -73,7 +74,14 @@ export default async function IntegrationsPage() {
         </p>
       </div>
 
-      <IntegrationsCatalog statuses={statuses} />
+      <IntegrationsCatalog
+        statuses={statuses}
+        allowedKeys={[
+          ...(planFeatureEnabled(club.planAccess, "telegram") ? ["telegram"] : []),
+          ...(planFeatureEnabled(club.planAccess, "payment_integrations") ? ["click", "payme"] : []),
+          ...(planFeatureEnabled(club.planAccess, "instagram") ? ["instagram"] : []),
+        ]}
+      />
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { getCurrentClub } from "@/lib/club"
 import { callTelegramApi, registerClubTelegramBot } from "@/lib/telegram/api"
 import { createTelegramPairing } from "@/lib/telegram/pairing"
 import type { TelegramSettings } from "./types"
+import { consumeMonthlyLimit, requireIntegrationSlot, requirePlanFeature, requirePlanSection } from "@/lib/plan-enforcement"
 
 export type TelegramBotInfo = { username: string; firstName: string; id: number }
 
@@ -25,6 +26,8 @@ export async function connectTelegramAction(
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
+  const featureError = requirePlanFeature(cc, "telegram")
+  if (featureError) return { error: featureError }
 
   let bot: TelegramBotInfo
   try {
@@ -44,6 +47,10 @@ export async function connectTelegramAction(
   ])
   if (tokenOwner && tokenOwner.club_id !== cc.clubId) {
     return { error: "Этот бот уже подключён к другому клубу. Создайте отдельного бота через @BotFather" }
+  }
+  if (!existingIntegration) {
+    const limitError = await requireIntegrationSlot(cc)
+    if (limitError) return { error: limitError }
   }
   const cur = (club?.settings as Record<string, unknown>) ?? {}
 
@@ -276,6 +283,10 @@ async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
+  const featureError = requirePlanFeature(cc, "broadcasts")
+  if (featureError) return { error: featureError }
+  const sectionError = requirePlanSection(cc, "broadcasts")
+  if (sectionError) return { error: sectionError }
 
   const [{ data: club }, { data: integration }] = await Promise.all([
     supabase.from("clubs").select("name, settings").eq("id", cc.clubId).single(),
@@ -372,6 +383,10 @@ export async function broadcastTelegramAction(
   const dataset = await getRecipientsDataset(supabase, ctx.clubId)
   const recipients = filterByAudience(dataset, audience, parseManualIds(formData))
   if (recipients.length === 0) return { error: "Нет получателей в выбранной аудитории", sent: 0, failed: 0, total: 0 }
+  const currentClub = await getCurrentClub()
+  if (!currentClub) return { error: "Клуб не найден" }
+  const usageError = await consumeMonthlyLimit(currentClub, "telegram_messages", recipients.length)
+  if (usageError) return { error: usageError }
 
   const imageUrl = hasImage ? await uploadBroadcastImage(ctx.clubId, image as File) : null
   if (hasImage && !imageUrl) return { error: "Не удалось загрузить изображение. Попробуйте ещё раз" }
@@ -480,6 +495,8 @@ export async function saveTelegramSettingsAction(
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
   if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
+  const automationError = requirePlanFeature(cc, "telegram_automation")
+  if (automationError) return { error: automationError }
 
   const templates = [settings.welcome_message, settings.expiry_template, settings.payment_template]
   if (templates.some((template) => typeof template !== "string" || !template.trim())) {

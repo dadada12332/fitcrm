@@ -4,11 +4,13 @@ import { getCurrentClub } from "@/lib/club"
 import { getClientsForExport } from "@/lib/clients"
 import { buildRetentionData } from "@/lib/retention"
 import { createClient } from "@/lib/supabase/server"
+import { planFeatureEnabled, planSectionEnabled } from "@/lib/plan-access"
 
 export default async function RetentionPage() {
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
   if (!club.permissions.reports.view || !club.permissions.clients.view) redirect("/dashboard")
+  if (!planSectionEnabled(club.planAccess, "retention") || !planFeatureEnabled(club.planAccess, "retention")) redirect("/dashboard")
 
   const supabase = await createClient()
   const [clients, membershipsResult] = await Promise.all([

@@ -19,6 +19,7 @@ import {
 } from "@/lib/retention-ai"
 import { createServiceClient } from "@/lib/supabase/service"
 import { callTelegramApi } from "@/lib/telegram/api"
+import { consumeMonthlyLimit, requirePlanFeature, requirePlanSection } from "@/lib/plan-enforcement"
 
 const MODEL = "gemini-2.5-flash"
 const scopeSchema = z.discriminatedUnion("kind", [
@@ -235,9 +236,12 @@ export async function analyzeRetentionAction(input: RetentionAiScope, useAiEnhan
 
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "retention") || requirePlanFeature(club, "retention")) return { error: "Удержание недоступно на текущем тарифе" }
   if (!can(club.permissions, "ai", "use") || !can(club.permissions, "reports", "view") || !can(club.permissions, "clients", "view")) {
     return { error: "Недостаточно прав для AI-разбора" }
   }
+  const usageError = await consumeMonthlyLimit(club, "ai_requests")
+  if (usageError) return { error: usageError }
 
   const service = createServiceClient()
   const [clients, membershipsResult] = await Promise.all([
@@ -288,6 +292,7 @@ const outcomeSchema = z.object({
 })
 
 type MutationContext = {
+  club: NonNullable<Awaited<ReturnType<typeof getCurrentClub>>>
   clubId: string
   userId: string
   staffId: string
@@ -298,6 +303,7 @@ type MutationContext = {
 async function getMutationContext(clientId: string, telegram = false): Promise<{ ctx?: MutationContext; error?: string }> {
   const [club, user] = await Promise.all([getCurrentClub(), getAuthUser()])
   if (!club || !user) return { error: "Не авторизован" }
+  if (requirePlanSection(club, "retention") || requirePlanFeature(club, "retention")) return { error: "Удержание недоступно на текущем тарифе" }
   if (!can(club.permissions, "clients", "edit")) return { error: "Недостаточно прав для контакта с клиентом" }
   if (telegram && !can(club.permissions, "telegram", "view")) return { error: "Недостаточно прав для Telegram" }
 
@@ -308,7 +314,7 @@ async function getMutationContext(clientId: string, telegram = false): Promise<{
   ])
   if (!client) return { error: "Клиент не найден" }
   if (!staff) return { error: "Сотрудник не найден в текущем клубе" }
-  return { ctx: { clubId: club.clubId, userId: user.id, staffId: staff.id, client, service } }
+  return { ctx: { club, clubId: club.clubId, userId: user.id, staffId: staff.id, client, service } }
 }
 
 async function ensureRetentionCase(ctx: MutationContext, status: RetentionWorkflow["status"] = "contacted") {
@@ -366,6 +372,8 @@ export async function sendRetentionTelegramAction(input: { clientId: string; mes
 
   const { data: integration } = await ctx.service.from("telegram_integrations").select("bot_token").eq("club_id", ctx.clubId).maybeSingle()
   if (!integration?.bot_token) return { error: "Telegram-бот клуба не подключён" }
+  const usageError = await consumeMonthlyLimit(ctx.club, "telegram_messages")
+  if (usageError) return { error: usageError }
   const response = await callTelegramApi(integration.bot_token, "sendMessage", { chat_id: ctx.client.telegram_id, text: parsed.data.message })
   if (!response.ok) return { error: response.description ?? "Telegram не принял сообщение" }
 

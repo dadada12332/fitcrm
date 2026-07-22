@@ -220,10 +220,10 @@ function getBenefits(key: string): string[] {
   return map[key] ?? []
 }
 
-export function IntegrationsCatalog({ statuses }: { statuses: IntegrationStatus[] }) {
+export function IntegrationsCatalog({ statuses, allowedKeys }: { statuses: IntegrationStatus[]; allowedKeys?: string[] }) {
   const statusMap = new Map(statuses.map((s) => [s.key, s]))
 
-  const available = CATALOG.filter((c) => c.available)
+  const available = CATALOG.filter((c) => c.available && (!allowedKeys || allowedKeys.includes(c.key)))
   const comingSoon = CATALOG.filter((c) => !c.available)
 
   return (

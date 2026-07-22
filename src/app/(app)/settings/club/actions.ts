@@ -7,6 +7,7 @@ import { getPlanByCode } from "@/lib/plans"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { can } from "@/lib/permissions"
+import { requireIntegrationSlot, requirePlanFeature, requirePlanSection, requireRecordLimit } from "@/lib/plan-enforcement"
 
 export type SaveResult = { ok?: boolean; error?: string }
 type WorkingDay = { open: string; close: string; closed: boolean }
@@ -51,6 +52,8 @@ export async function requestPaymentConnectionAction(provider: "click" | "payme"
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "settings", "integrations")) return { error: "Недостаточно прав" }
+  const featureError = requirePlanFeature(club, "payment_integrations")
+  if (featureError) return { error: featureError }
 
   const { data: { user } } = await supabase.auth.getUser()
   const service = createServiceClient()
@@ -61,6 +64,8 @@ export async function requestPaymentConnectionAction(provider: "click" | "payme"
     .in("status", ["new", "active"]).limit(1).maybeSingle()
   if (existing?.status === "active") return { error: "Уже подключено" }
   if (existing?.status === "new") return { ok: true }
+  const limitError = await requireIntegrationSlot(club)
+  if (limitError) return { error: limitError }
 
   const { error } = await service.from("payment_connection_requests").insert({
     club_id: club.clubId, provider, status: "new",
@@ -206,11 +211,18 @@ export async function signOutOtherSessionsAction(): Promise<SaveResult> {
 export async function inviteStaffAction(data: { email: string; role: string }): Promise<SaveResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав для приглашения" }
   if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
 
   const email = data.email.toLowerCase().trim()
   const supabase = await createClient()
+  const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
+    supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
+    supabase.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+  ])
+  const staffLimitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
+  if (staffLimitError) return { error: staffLimitError }
   const origin = (await headers()).get("origin") ?? ""
 
   // Delete stale unaccepted email invites for this email+club before creating a new one
@@ -284,10 +296,17 @@ export async function saveIntegrationAction(key: string, value: string): Promise
 export async function createInviteLinkAction(data: { role: string }): Promise<{ url?: string; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав для приглашения" }
   if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
 
   const supabase = await createClient()
+  const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
+    supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
+    supabase.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+  ])
+  const staffLimitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
+  if (staffLimitError) return { error: staffLimitError }
   const origin = (await headers()).get("origin") ?? ""
 
   // Delete all stale unaccepted link invites for this club before creating a fresh one
@@ -310,6 +329,7 @@ export async function createInviteLinkAction(data: { role: string }): Promise<{ 
 export async function updateStaffRoleAction(staffId: string, role: string): Promise<SaveResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав" }
 
   if (role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
@@ -329,6 +349,7 @@ export async function updateStaffRoleAction(staffId: string, role: string): Prom
 export async function removeStaffAction(staffId: string): Promise<SaveResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав" }
 
   const supabase = await createClient()
@@ -364,6 +385,13 @@ export async function createBranchAction(data: {
   const currentClub = await getCurrentClub()
   if (!currentClub || currentClub.role !== "owner") return { error: "Только владелец может создать филиал" }
   if (!data.name.trim()) return { error: "Укажите название филиала" }
+  const branchFeatureError = requirePlanFeature(currentClub, "multi_branch")
+  if (branchFeatureError) return { error: branchFeatureError }
+  const { count: branchCount } = await createServiceClient().from("staff")
+    .select("club_id", { count: "exact", head: true })
+    .eq("user_id", user.id).eq("role", "owner").eq("is_active", true)
+  const branchLimitError = requireRecordLimit(currentClub, "branches", branchCount ?? 0)
+  if (branchLimitError) return { error: branchLimitError }
 
   const { data: clubId, error } = await supabase.rpc("create_club", {
     p_name: data.name.trim(),

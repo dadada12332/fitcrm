@@ -18,6 +18,7 @@ import { ConfirmSignOut } from "@/components/app/ConfirmSignOut"
 import { resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
+import { planFeatureEnabled, planSectionEnabled, type PlanAccess } from "@/lib/plan-access"
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный",
@@ -213,12 +214,13 @@ type Props = {
   plan: string
   stats: SidebarStats
   permissions: RolePermissions
+  planAccess: PlanAccess | null
   role: string
   collapsed?: boolean
   mobile?: boolean
 }
 
-export function Sidebar({ clubId, clubName, plan, stats, permissions, role, collapsed = false, mobile = false }: Props) {
+export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess, role, collapsed = false, mobile = false }: Props) {
   const router = useRouter()
   const [clubOpen, setClubOpen] = useState(false)
   const [branches, setBranches] = useState<Branch[]>([])
@@ -227,6 +229,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
 
   const isOwner = role === "owner"
   const p = permissions
+  const canUseBranches = planFeatureEnabled(planAccess, "multi_branch")
 
   useEffect(() => {
     const fn = (e: MouseEvent) => {
@@ -312,7 +315,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
                 ))}
               </div>
             )}
-            {isOwner && (
+            {isOwner && canUseBranches && (
               <div className="py-1">
                 <Link href="/settings?tab=branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
                   <GitFork className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
@@ -375,10 +378,10 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
               {p.staff.view && (
                 <NavItem href="/staff" icon={UserCog} label="Сотрудники" collapsed={collapsed} />
               )}
-              {p.reports.view && p.clients.view && (
+              {p.reports.view && p.clients.view && planSectionEnabled(planAccess, "retention") && planFeatureEnabled(planAccess, "retention") && (
                 <NavItem href="/retention" icon={HeartHandshake} label="Удержание" collapsed={collapsed} badge="BETA" badgeType="new" />
               )}
-              {p.reports.view && p.clients.view && (
+              {p.reports.view && p.clients.view && planSectionEnabled(planAccess, "growth") && planFeatureEnabled(planAccess, "growth") && (
                 <NavItem href="/growth" icon={Rocket} label="Growth OS" collapsed={collapsed} badge="LAB" badgeType="new" />
               )}
               {p.reports.view && (
@@ -401,7 +404,9 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, role, coll
         <div className="flex flex-col gap-0.5">
           <NavItem href="/settings"      icon={Settings}   label="Настройки клуба" collapsed={collapsed} />
           <NavItem href="/support"       icon={HelpCircle} label="Поддержка"        collapsed={collapsed} badge={stats.supportUnread > 0 ? stats.supportUnread : undefined} badgeType="warn" />
-          <NavItem href="/support?tab=kb" icon={BookOpen}  label="База знаний"      collapsed={collapsed} />
+          {planSectionEnabled(planAccess, "knowledge") && planFeatureEnabled(planAccess, "knowledge") && (
+            <NavItem href="/support?tab=kb" icon={BookOpen} label="База знаний" collapsed={collapsed} />
+          )}
         </div>
       </div>
 

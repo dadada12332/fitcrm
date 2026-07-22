@@ -16,6 +16,7 @@ export default async function VisitsPage({
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
+  if (!club.permissions.visits.view) redirect("/dashboard")
 
   const sp = await searchParams
   const [kpi, result] = await Promise.all([

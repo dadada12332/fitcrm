@@ -4,12 +4,16 @@ import { can } from "@/lib/permissions"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { getCurrentClub } from "@/lib/club"
+import { requireRecordLimit } from "@/lib/plan-enforcement"
 
 export async function addProductAction(formData: FormData) {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "warehouse", "supply")) return { error: "Недостаточно прав" }
+  const { count } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("club_id", club.clubId)
+  const limitError = requireRecordLimit(club, "products", count ?? 0)
+  if (limitError) return { error: limitError }
 
   const name = formData.get("name") as string
   const category = formData.get("category") as string | null

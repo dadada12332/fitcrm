@@ -14,6 +14,7 @@ import {
   type ImportExtraFields,
 } from "@/lib/client-import"
 import { can } from "@/lib/permissions"
+import { consumeMonthlyLimit, requirePlanFeature, requireRecordLimit } from "@/lib/plan-enforcement"
 import { createClient } from "@/lib/supabase/server"
 import type { DuplicateStrategy } from "@/lib/import-wizard"
 
@@ -122,6 +123,16 @@ export async function batchImportClientsAction(
   if (!club) return result
   if (!can(club.permissions, "clients", "create")) return denied(result)
   if (strategy === "update" && !can(club.permissions, "clients", "edit")) return denied(result)
+  const featureError = requirePlanFeature(club, "import")
+  if (featureError) {
+    result.errors.push({ row: 0, reason: featureError, name: "" })
+    return result
+  }
+  const usageError = await consumeMonthlyLimit(club, "imports")
+  if (usageError) {
+    result.errors.push({ row: 0, reason: usageError, name: "" })
+    return result
+  }
   if (inputRows.length > 1_000) {
     result.errors.push({ row: 0, reason: "За один запрос можно импортировать не более 1000 строк", name: "" })
     return result
@@ -155,6 +166,13 @@ export async function batchImportClientsAction(
     if (!match || strategy === "create") toInsert.push(row)
     else if (strategy === "skip") result.skipped++
     else toUpdate.push({ row, client: match })
+  }
+
+  const { count: clientCount } = await supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId)
+  const limitError = requireRecordLimit(club, "clients", clientCount ?? 0, toInsert.length)
+  if (limitError) {
+    result.errors.push({ row: 0, reason: limitError, name: "" })
+    return result
   }
 
   const allRows = [...toInsert, ...toUpdate.map((item) => item.row)]

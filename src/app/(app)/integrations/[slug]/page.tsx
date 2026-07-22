@@ -9,6 +9,7 @@ import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrat
 import { resolveAudienceOptions, getRecipientsDataset, type AudienceOption, type Recipient } from "@/lib/broadcast"
 import type { BroadcastHistoryItem } from "@/components/app/TelegramBroadcast"
 import type { TelegramStats } from "@/components/app/IntegrationManage"
+import { planFeatureEnabled } from "@/lib/plan-access"
 
 export const dynamic = "force-dynamic"
 
@@ -29,6 +30,9 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
 
   const supabase = await createClient()
   const club = await getCurrentClub()
+  if (!club) redirect("/login")
+  if (!club.permissions.settings.integrations) redirect("/dashboard")
+  if (slug === "telegram" && !planFeatureEnabled(club.planAccess, "telegram")) redirect("/integrations")
 
   let connected = false
   const currentValue = ""
@@ -186,6 +190,8 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
         audienceOptions={audienceOptions}
         recipients={recipients}
         history={history}
+        automationEnabled={planFeatureEnabled(club.planAccess, "telegram_automation")}
+        broadcastsEnabled={planFeatureEnabled(club.planAccess, "broadcasts")}
       />
     </div>
   )

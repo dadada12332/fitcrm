@@ -3,6 +3,7 @@ import { getCurrentClub } from "@/lib/club"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getInstagramConfig } from "@/lib/instagram"
 import { InstagramIntegration, type InstagramPageData } from "@/components/app/InstagramIntegration"
+import { planFeatureEnabled } from "@/lib/plan-access"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Instagram — Интеграции FitCRM" }
@@ -11,6 +12,7 @@ export default async function InstagramPage({ searchParams }: { searchParams: Pr
   const club = await getCurrentClub()
   if (!club) redirect("/login")
   if (!club.permissions.settings.integrations) redirect("/dashboard")
+  if (!planFeatureEnabled(club.planAccess, "instagram")) redirect("/integrations")
 
   const service = createServiceClient()
   const [{ data: connection }, { data: media }, { data: insights }, { data: touches }] = await Promise.all([

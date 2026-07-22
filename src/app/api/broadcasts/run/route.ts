@@ -36,17 +36,31 @@ export async function GET(req: Request) {
     if (!claimed) continue
 
     const [{ data: club }, { data: integration }] = await Promise.all([
-      supabase.from("clubs").select("name").eq("id", b.club_id).single(),
+      supabase.from("clubs").select("name, plan").eq("id", b.club_id).single(),
       supabase.from("telegram_integrations").select("bot_token").eq("club_id", b.club_id).maybeSingle(),
     ])
+    const { data: plan } = await supabase.from("plans").select("name, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value)")
+      .eq("code", club?.plan ?? "").maybeSingle()
+    const broadcastsEnabled = plan?.plan_features?.some((item) => item.feature_key === "broadcasts" && item.enabled)
     const token = integration?.bot_token as string | null
-    if (!token) {
+    if (!token || !broadcastsEnabled) {
       await supabase.from("broadcasts").update({ status: "failed" }).eq("id", b.id).eq("club_id", b.club_id)
       continue
     }
 
     const dataset = await getRecipientsDataset(supabase, b.club_id)
     const recipients = filterByAudience(dataset, b.audience, (b.recipient_ids as number[] | null) ?? undefined)
+    const messageLimit = plan?.plan_limits?.find((item) => item.limit_key === "telegram_messages")?.limit_value
+    if (messageLimit !== null && messageLimit !== undefined) {
+      const { data: withinLimit } = await supabase.rpc("consume_plan_usage", {
+        p_club_id: b.club_id, p_usage_key: "telegram_messages",
+        p_amount: recipients.length, p_limit: Number(messageLimit),
+      })
+      if (withinLimit !== true) {
+        await supabase.from("broadcasts").update({ status: "failed" }).eq("club_id", b.club_id).eq("id", b.id)
+        continue
+      }
+    }
 
     const { delivered, failed } = await sendBroadcast(token, recipients, b.message ?? "", b.image_url, club?.name ?? "Клуб")
 

@@ -12,17 +12,17 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 8a04d0d · 2026-07-22T14:41:27+05:00 · docs: record FAQ production release [skip ci].
+- Последний commit: 75221d4 · 2026-07-22T15:38:37+05:00 · docs: define recommended plan access matrix [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
+- Миграции в Git: 79; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
 ## Готовность модулей
 
-**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram templates имеют сценарный редактор с live preview, контекстными переменными и двойной валидацией; automation toggles и тексты сохраняются из одного состояния. Брендинг Telegram-бота позволяет установить, заменить и удалить аватар из CRM с серверным приведением к требованиям Bot API. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
+**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Тарифы из Platform Admin теперь реально управляют разделами, функциями и лимитами CRM; UI, Server Actions и Telegram cron используют одну матрицу Trial/Starter/Standard/Business. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram templates имеют сценарный редактор с live preview, контекстными переменными и двойной валидацией; automation toggles и тексты сохраняются из одного состояния. Брендинг Telegram-бота позволяет установить, заменить и удалить аватар из CRM с серверным приведением к требованиям Bot API. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
 
-**Частично:** занятия/бронирования, audit trail UI и тарифные ограничения. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
+**Частично:** занятия/бронирования и audit trail UI. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
 **Не завершено или не подтверждено:** custom SMTP и реальные SMS, системный мониторинг ошибок, проверенный restore, staging-среда и provider-certified Payme/Click flow. Массовый запуск имеет статус NO-GO; controlled beta — GO. См. [[Reports/Launch Readiness 2026-07-20]].
 

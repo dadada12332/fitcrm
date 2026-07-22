@@ -85,7 +85,7 @@ export type TelegramStats = {
   failedMonth: number
 }
 
-function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, connectedAt, webhookReady, clientCount, subscribers, telegramStats, tgSettings, clubName, audienceOptions, recipients, history }: {
+function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, connectedAt, webhookReady, clientCount, subscribers, telegramStats, tgSettings, clubName, audienceOptions, recipients, history, automationEnabled, broadcastsEnabled }: {
   connected: boolean
   botUsername: string
   botFirstName: string
@@ -100,6 +100,8 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
   audienceOptions: AudienceOption[]
   recipients: Recipient[]
   history: BroadcastHistoryItem[]
+  automationEnabled: boolean
+  broadcastsEnabled: boolean
 }) {
   const [tab, setTab] = useState("main")
   const [token, setToken] = useState("")
@@ -124,6 +126,10 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
   })
   const [tplMsg, setTplMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [tplPending, startTpl] = useTransition()
+  const availableTabs = TABS.filter((item) =>
+    (item.id !== "automation" || automationEnabled) &&
+    (item.id !== "broadcast" || broadcastsEnabled),
+  )
 
   function handleConnect(e: React.FormEvent) {
     e.preventDefault()
@@ -222,7 +228,7 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
       {/* Tabs */}
       <div className="overflow-x-auto border-b border-border">
         <nav className="flex min-w-max gap-1">
-          {TABS.map((t) => {
+          {availableTabs.map((t) => {
             const Icon = t.icon
             const active = tab === t.id
             return (
@@ -584,7 +590,7 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
 
 // ── Export ────────────────────────────────────────────────────────
 
-export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, botAvatarUrl, connectedAt, webhookReady, telegramStats, clubName, audienceOptions, recipients, history }: {
+export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, botAvatarUrl, connectedAt, webhookReady, telegramStats, clubName, audienceOptions, recipients, history, automationEnabled = true, broadcastsEnabled = true }: {
   slug: string; label: string; color: string
   connected: boolean; currentValue: string; clientCount: number
   subscribers?: number
@@ -596,6 +602,8 @@ export function IntegrationManage({ slug, label, color, connected, currentValue,
   audienceOptions?: AudienceOption[]
   recipients?: Recipient[]
   history?: BroadcastHistoryItem[]
+  automationEnabled?: boolean
+  broadcastsEnabled?: boolean
 }) {
   if (slug === "telegram") {
     return (
@@ -614,6 +622,8 @@ export function IntegrationManage({ slug, label, color, connected, currentValue,
         audienceOptions={audienceOptions ?? []}
         recipients={recipients ?? []}
         history={history ?? []}
+        automationEnabled={automationEnabled}
+        broadcastsEnabled={broadcastsEnabled}
       />
     )
   }

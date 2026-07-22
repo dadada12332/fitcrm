@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions, mergePermissions } from "@/lib/permissions"
+import { requireRecordLimit } from "@/lib/plan-enforcement"
 
 export type RoleRow = {
   id: string
@@ -69,6 +70,7 @@ export async function saveRoleAction(
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!club.permissions.settings.roles) return { error: "Раздел недоступен на текущем тарифе" }
   if (club.role !== "owner") return { error: "Только владелец может изменять роли" }
 
   const { error } = await supabase
@@ -91,7 +93,11 @@ export async function createRoleAction(data: {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!club.permissions.settings.roles) return { error: "Раздел недоступен на текущем тарифе" }
   if (club.role !== "owner") return { error: "Только владелец может создавать роли" }
+  const { count } = await supabase.from("club_roles").select("id", { count: "exact", head: true }).eq("club_id", club.clubId)
+  const limitError = requireRecordLimit(club, "roles", count ?? 0)
+  if (limitError) return { error: limitError }
 
   const key = `custom_${Date.now()}`
   const basePerms = data.templateKey ? getDefaultPermissions(data.templateKey) : getDefaultPermissions("trainer")
@@ -120,6 +126,7 @@ export async function deleteRoleAction(roleId: string): Promise<{ error?: string
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
+  if (!club.permissions.settings.roles) return { error: "Раздел недоступен на текущем тарифе" }
   if (club.role !== "owner") return { error: "Только владелец может удалять роли" }
 
   // Check if any staff uses this role

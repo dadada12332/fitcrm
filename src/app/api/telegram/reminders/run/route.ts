@@ -40,16 +40,33 @@ export async function GET(req: Request) {
 
   const { data: clubs, error: clubsError } = await supabase
     .from("clubs")
-    .select("id, name, settings")
+    .select("id, name, settings, plan")
     .in("id", clubIds)
 
   if (clubsError) return Response.json({ error: "Could not load Telegram integrations" }, { status: 500 })
+
+  const planCodes = [...new Set((clubs ?? []).map((club) => club.plan).filter(Boolean))]
+  const { data: plans } = planCodes.length
+    ? await supabase.from("plans").select("code, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value)").in("code", planCodes)
+    : { data: [] }
+  const planByCode = new Map((plans ?? []).map((plan) => [plan.code, plan]))
 
   let sent = 0
   let failed = 0
   let skipped = 0
 
   for (const club of clubs ?? []) {
+    const plan = planByCode.get(club.plan)
+    const automationEnabled = plan?.plan_features?.some((item) => item.feature_key === "telegram_automation" && item.enabled)
+    if (!automationEnabled) { skipped++; continue }
+    const telegramLimit = plan?.plan_limits?.find((item) => item.limit_key === "telegram_messages")?.limit_value
+    const consumeMessage = async () => {
+      if (telegramLimit === null || telegramLimit === undefined) return true
+      const { data } = await supabase.rpc("consume_plan_usage", {
+        p_club_id: club.id, p_usage_key: "telegram_messages", p_amount: 1, p_limit: Number(telegramLimit),
+      })
+      return data === true
+    }
     const clubSettings = (club.settings as Record<string, unknown> | null) ?? {}
     const settings: TelegramSettings = {
       ...DEFAULT_TG_SETTINGS,
@@ -116,6 +133,7 @@ export async function GET(req: Request) {
       })
 
       try {
+        if (!(await consumeMessage())) throw new Error("Лимит Telegram-сообщений исчерпан")
         await bot.api.sendMessage(link.telegram_id, message, settings.renewal_reminder
           ? { reply_markup: new InlineKeyboard().text("Открыть абонемент", "sub") }
           : {})
@@ -182,6 +200,7 @@ export async function GET(req: Request) {
           message += `• ${String(classItem.start_time).slice(0, 5)} — ${schedule?.title ?? "Занятие"}${room?.name ? `, ${room.name}` : ""}\n`
         }
         try {
+          if (!(await consumeMessage())) throw new Error("Лимит Telegram-сообщений исчерпан")
           await bot.api.sendMessage(link.telegram_id, message, {
             reply_markup: new InlineKeyboard().text("Расписание клуба", "client_schedule"),
           })

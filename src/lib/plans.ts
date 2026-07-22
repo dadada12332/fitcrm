@@ -5,6 +5,8 @@ export const FEATURE_KEYS = [
   "crm", "reports", "finance", "warehouse", "telegram", "broadcasts",
   "email", "sms", "push", "ai", "knowledge", "import", "export",
   "multi_branch", "instagram", "api", "platform_api", "white_label",
+  "retention", "growth", "inbox", "telegram_automation",
+  "payment_integrations", "advanced_reports",
 ] as const
 export type FeatureKey = typeof FEATURE_KEYS[number]
 
@@ -14,6 +16,9 @@ export const FEATURE_LABELS: Record<string, string> = {
   push: "Push", ai: "AI", knowledge: "База знаний", import: "Импорт",
   export: "Экспорт", multi_branch: "Мультифилиальность", instagram: "Instagram",
   api: "API", platform_api: "Platform API", white_label: "White Label",
+  retention: "Удержание", growth: "Growth OS", inbox: "Поддержка клиентов",
+  telegram_automation: "Автоматизация Telegram",
+  payment_integrations: "Платёжные интеграции", advanced_reports: "Расширенные отчёты",
 }
 
 export const LIMIT_KEYS = [
@@ -34,7 +39,7 @@ export const LIMIT_LABELS: Record<string, string> = {
 export const SECTION_KEYS = [
   "dashboard", "clients", "visits", "payments", "memberships", "schedule",
   "warehouse", "reports", "staff", "integrations", "broadcasts", "ai",
-  "knowledge", "settings",
+  "knowledge", "settings", "retention", "growth", "inbox",
 ] as const
 export type SectionKey = typeof SECTION_KEYS[number]
 
@@ -43,6 +48,7 @@ export const SECTION_LABELS: Record<string, string> = {
   memberships: "Абонементы", schedule: "Расписание", warehouse: "Склад",
   reports: "Отчёты", staff: "Сотрудники", integrations: "Интеграции",
   broadcasts: "Рассылки", ai: "AI", knowledge: "База знаний", settings: "Настройки",
+  retention: "Удержание", growth: "Growth OS", inbox: "Поддержка клиентов",
 }
 
 export const PERIOD_LABELS: Record<string, string> = {
@@ -145,6 +151,27 @@ export async function getPlans(opts: { includeArchived?: boolean } = {}): Promis
 export async function getPlanByCode(code: string): Promise<FullPlan | null> {
   const plans = await loadPlans(true)
   return plans.find((p) => p.code === code) ?? null
+}
+
+/** Лёгкая конфигурация доступа для CRM: один точечный запрос, без подсчёта клубов. */
+export async function getPlanAccessByCode(code: string): Promise<Pick<FullPlan, "code" | "name" | "features" | "limits" | "sections"> | null> {
+  if (!code) return null
+  let service: ReturnType<typeof createServiceClient>
+  try { service = createServiceClient() } catch { return null }
+  const { data, error } = await service.from("plans").select(`
+    code, name,
+    plan_features(feature_key, enabled),
+    plan_limits(limit_key, limit_value),
+    plan_sections(section_key, enabled)
+  `).eq("code", code).maybeSingle()
+  if (error || !data) return null
+  const features: Record<string, boolean> = {}
+  const limits: Record<string, number | null> = {}
+  const sections: Record<string, boolean> = {}
+  for (const item of data.plan_features ?? []) features[item.feature_key] = item.enabled === true
+  for (const item of data.plan_limits ?? []) limits[item.limit_key] = item.limit_value === null ? null : Number(item.limit_value)
+  for (const item of data.plan_sections ?? []) sections[item.section_key] = item.enabled === true
+  return { code: data.code, name: data.name, features, limits, sections }
 }
 
 /** Список преимуществ тарифа для карточек (лендинг + CRM): из поля лендинга или авто из лимитов/фич. */

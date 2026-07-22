@@ -7,6 +7,7 @@ import { getPlans, planBenefits } from "@/lib/plans"
 import { SettingsShell } from "./SettingsShell"
 import { getRolesAction, type RoleRow } from "./roles/actions"
 import type { ClubData, PlanForClient } from "@/components/app/ClubSettings"
+import { planFeatureEnabled } from "@/lib/plan-access"
 
 /**
  * Общий рендер настроек. Используется и главной /settings, и под-роутами
@@ -119,10 +120,10 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
 
   const allowedTabs = {
     club:          club.permissions.settings.general,
-    branches:      club.role === "owner",
+    branches:      club.role === "owner" && planFeatureEnabled(club.planAccess, "multi_branch"),
     staff:         club.permissions.staff.view,
-    finance:       club.permissions.settings.general,
-    notifications: club.permissions.telegram.manage,
+    finance:       club.permissions.settings.general && planFeatureEnabled(club.planAccess, "finance"),
+    notifications: club.permissions.telegram.manage && planFeatureEnabled(club.planAccess, "telegram_automation"),
     integrations:  club.permissions.settings.integrations,
     roles:         club.permissions.settings.roles,
     security:      true,

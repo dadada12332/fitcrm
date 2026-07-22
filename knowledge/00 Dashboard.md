@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `75221d4` · 2026-07-22 · docs: define recommended plan access matrix [skip ci]
 - `8a04d0d` · 2026-07-22 · docs: record FAQ production release [skip ci]
 - `26331e9` · 2026-07-22 · fix: align landing FAQ with product
 - `a598b22` · 2026-07-22 · docs: record pricing rollback release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `1ed8b1c` · 2026-07-22 · docs: record pricing width release [skip ci]
 - `e6a8ef6` · 2026-07-22 · style: widen landing pricing cards
 - `e80f8b5` · 2026-07-22 · docs: record pricing redesign release [skip ci]
-- `6dfb2a6` · 2026-07-22 · feat: redesign landing pricing around Standard
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

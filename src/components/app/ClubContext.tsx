@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from "react"
 import type { RolePermissions } from "@/lib/permissions"
+import type { PlanAccess } from "@/lib/plan-access"
 
 export type ClubCtx = {
   clubId: string
@@ -9,6 +10,7 @@ export type ClubCtx = {
   role: string
   plan: string
   permissions: RolePermissions
+  planAccess: PlanAccess | null
 }
 
 const ClubContext = createContext<ClubCtx | null>(null)

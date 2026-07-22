@@ -12,6 +12,7 @@ import {
 } from "@/lib/growth"
 import { can } from "@/lib/permissions"
 import { createServiceClient } from "@/lib/supabase/service"
+import { requirePlanFeature, requirePlanSection } from "@/lib/plan-enforcement"
 
 type Result = { run?: GrowthExperimentRun; error?: string }
 type MutationContext =
@@ -34,6 +35,9 @@ const completeSchema = z.object({
 async function mutationContext(): Promise<MutationContext> {
   const [club, user] = await Promise.all([getCurrentClub(), getAuthUser()])
   if (!club || !user) return { ok: false, error: "Не авторизован" }
+  if (requirePlanSection(club, "growth") || requirePlanFeature(club, "growth")) {
+    return { ok: false, error: "Growth OS недоступен на текущем тарифе" }
+  }
   if (!can(club.permissions, "reports", "view") || !can(club.permissions, "clients", "view")) {
     return { ok: false, error: "Недостаточно прав для Growth OS" }
   }

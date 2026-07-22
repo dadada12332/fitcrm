@@ -5,6 +5,9 @@ import { getAuthUser } from "@/lib/auth"
 import { cookies } from "next/headers"
 import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions, mergePermissions } from "@/lib/permissions"
+import { applyPlanToPermissions, type PlanAccess } from "@/lib/plan-access"
+
+const CLUB_SELECT = "name, plan, status, trial_expires_at, plan_expires_at, plans(code, name, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value), plan_sections(section_key, enabled))"
 
 export type CurrentClub = {
   clubId: string
@@ -15,6 +18,7 @@ export type CurrentClub = {
   trialExpiresAt: string | null
   planExpiresAt: string | null
   permissions: RolePermissions
+  planAccess: PlanAccess | null
   impersonating?: boolean
 } | null
 
@@ -42,10 +46,11 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
       if (isAdmin) {
         const { data: club } = await service
           .from("clubs")
-          .select("name, plan, status, trial_expires_at, plan_expires_at")
+          .select(CLUB_SELECT)
           .eq("id", impersonateId)
           .maybeSingle()
         if (club) {
+          const planAccess = embeddedPlanAccess(club.plans)
           return {
             clubId: impersonateId,
             role: "owner",
@@ -54,7 +59,8 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
             status: club.status ?? "active",
             trialExpiresAt: club.trial_expires_at ?? null,
             planExpiresAt: club.plan_expires_at ?? null,
-            permissions: getDefaultPermissions("owner"),
+            permissions: applyPlanToPermissions(getDefaultPermissions("owner"), planAccess),
+            planAccess,
             impersonating: true,
           }
         }
@@ -68,7 +74,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
 
   let query = supabase
     .from("staff")
-    .select("club_id, role, clubs(name, plan, status, trial_expires_at, plan_expires_at)")
+    .select(`club_id, role, clubs(${CLUB_SELECT})`)
     .eq("user_id", uid)
     .eq("is_active", true)
 
@@ -79,7 +85,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
   if (!data) {
     const { data: fallback } = await supabase
       .from("staff")
-      .select("club_id, role, clubs(name, plan, status, trial_expires_at, plan_expires_at)")
+      .select(`club_id, role, clubs(${CLUB_SELECT})`)
       .eq("user_id", uid)
       .eq("is_active", true)
       .limit(1)
@@ -88,12 +94,14 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
     if (!fallback) return null
     const fb = fallback.clubs as unknown as ClubRow | null
     const permissions = await resolvePermissions(supabase, fallback.club_id, fallback.role)
-    return clubResult(fallback.club_id, fallback.role, fb, permissions)
+    const planAccess = embeddedPlanAccess(fb?.plans)
+    return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess)
   }
 
   const club = data.clubs as unknown as ClubRow | null
   const permissions = await resolvePermissions(supabase, data.club_id, data.role)
-  return clubResult(data.club_id, data.role, club, permissions)
+  const planAccess = embeddedPlanAccess(club?.plans)
+  return clubResult(data.club_id, data.role, club, permissions, planAccess)
 })
 
 type ClubRow = {
@@ -102,9 +110,30 @@ type ClubRow = {
   status: string | null
   trial_expires_at: string | null
   plan_expires_at: string | null
+  plans: EmbeddedPlan | null
 }
 
-function clubResult(clubId: string, role: string, club: ClubRow | null, permissions: RolePermissions) {
+type EmbeddedPlan = {
+  code: string
+  name: string
+  plan_features: Array<{ feature_key: string; enabled: boolean }>
+  plan_limits: Array<{ limit_key: string; limit_value: number | null }>
+  plan_sections: Array<{ section_key: string; enabled: boolean }>
+}
+
+function embeddedPlanAccess(plan: EmbeddedPlan | EmbeddedPlan[] | null | undefined): PlanAccess | null {
+  const value = Array.isArray(plan) ? plan[0] : plan
+  if (!value) return null
+  return {
+    code: value.code,
+    name: value.name,
+    features: Object.fromEntries((value.plan_features ?? []).map((item) => [item.feature_key, item.enabled === true])),
+    limits: Object.fromEntries((value.plan_limits ?? []).map((item) => [item.limit_key, item.limit_value === null ? null : Number(item.limit_value)])),
+    sections: Object.fromEntries((value.plan_sections ?? []).map((item) => [item.section_key, item.enabled === true])),
+  }
+}
+
+function clubResult(clubId: string, role: string, club: ClubRow | null, permissions: RolePermissions, planAccess: PlanAccess | null) {
   return {
     clubId,
     role,
@@ -113,7 +142,8 @@ function clubResult(clubId: string, role: string, club: ClubRow | null, permissi
     status: club?.status ?? "active",
     trialExpiresAt: club?.trial_expires_at ?? null,
     planExpiresAt: club?.plan_expires_at ?? null,
-    permissions,
+    permissions: applyPlanToPermissions(permissions, planAccess),
+    planAccess,
   }
 }
 

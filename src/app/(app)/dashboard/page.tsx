@@ -7,6 +7,7 @@ import { Download } from "lucide-react"
 export default async function DashboardPage() {
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
+  if (!club.permissions.dashboard.view) redirect("/settings")
 
   return (
     <div className="flex flex-col gap-4 pb-6">

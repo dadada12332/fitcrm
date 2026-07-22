@@ -28,6 +28,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Тарифы из Platform Admin стали рабочими entitlement-настройками: они управляют видимостью разделов, интеграциями, Server Actions, Telegram cron и лимитами клиентов, команды, филиалов, AI, сообщений, импорта и экспорта без повторного deploy.
+
 - FAQ лендинга актуализирован на русском, английском и узбекском: неподтверждённые обещания заменены фактическими сценариями trial, подписки, оплат, импорта, ролей и Telegram.
 
 - Лендинг Growth OS теперь прямо показывает, что сотрудник получает готовый скрипт обзвона и текст SMS для работы с клиентом.
@@ -121,6 +123,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `75221d4` · 2026-07-22 · docs: define recommended plan access matrix [skip ci]
 - `8a04d0d` · 2026-07-22 · docs: record FAQ production release [skip ci]
 - `26331e9` · 2026-07-22 · fix: align landing FAQ with product
 - `a598b22` · 2026-07-22 · docs: record pricing rollback release [skip ci]
@@ -150,5 +153,4 @@ tags: [fitcrm, releases]
 - `6c34951` · 2026-07-21 · feat: harden CRM data exchange and settings
 - `99fef54` · 2026-07-21 · docs: record resilient import release
 - `35a0164` · 2026-07-21 · feat: make client imports lossless and resilient
-- `745d121` · 2026-07-21 · docs: record client inbox production verification
 <!-- AUTO:END changelog-candidates -->
