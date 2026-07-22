@@ -28,8 +28,6 @@ tags: [fitcrm, releases]
 
 ### Changed
 
-- Блок тарифов на лендинге получил новую иерархию и более широкие карточки: «Стандарт» объясняет свою ценность, названия и CTA локализованы, а на ноутбуках сетка перестраивается в удобные два столбца.
-
 - Лендинг Growth OS теперь прямо показывает, что сотрудник получает готовый скрипт обзвона и текст SMS для работы с клиентом.
 
 - Вкладка «Внимание» в отчётах стала рабочей сводкой: задачи сгруппированы по приоритету, посещаемость отделена от проблем, а desktop/mobile-компоновка приведена к дизайн-системе CRM.
@@ -53,6 +51,10 @@ tags: [fitcrm, releases]
 - Основные CRM-сценарии адаптированы для мобильных экранов.
 - Быстрые действия на dashboard открываются компактным dropdown.
 - Центр уведомлений стал информативнее и шире.
+
+### Reverted
+
+- По решению владельца блок «Тарифы и цены» возвращён к исходному виду до редизайна: прежние карточки, размеры, названия и лента «Популярно».
 
 ### Fixed
 
@@ -117,6 +119,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `1ed8b1c` · 2026-07-22 · docs: record pricing width release [skip ci]
 - `e6a8ef6` · 2026-07-22 · style: widen landing pricing cards
 - `e80f8b5` · 2026-07-22 · docs: record pricing redesign release [skip ci]
 - `6dfb2a6` · 2026-07-22 · feat: redesign landing pricing around Standard
@@ -146,5 +149,4 @@ tags: [fitcrm, releases]
 - `a7be5a8` · 2026-07-21 · feat: add Telegram client support inbox
 - `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
 - `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
-- `70f17dd` · 2026-07-20 · docs: record product onboarding release [skip ci]
 <!-- AUTO:END changelog-candidates -->

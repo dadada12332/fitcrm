@@ -26,6 +26,8 @@ final result: passed
 
 # Design QA: Landing Pricing
 
+> Superseded on 2026-07-22: the owner requested a full rollback to the pre-redesign pricing section from `94845ad`.
+
 ## Target
 
 - Make pricing easier to scan while keeping plan data controlled by Platform Admin.

@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `1ed8b1c` · 2026-07-22 · docs: record pricing width release [skip ci]
 - `e6a8ef6` · 2026-07-22 · style: widen landing pricing cards
 - `e80f8b5` · 2026-07-22 · docs: record pricing redesign release [skip ci]
 - `6dfb2a6` · 2026-07-22 · feat: redesign landing pricing around Standard
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `e12b856` · 2026-07-22 · feat: highlight ready outreach scripts on landing
 - `a721ffb` · 2026-07-22 · docs: record Growth OS landing release [skip ci]
 - `89ef57f` · 2026-07-22 · feat: add Growth OS story to landing
-- `57f4b92` · 2026-07-22 · docs: record reports attention release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

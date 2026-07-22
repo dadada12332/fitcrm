@@ -51,6 +51,7 @@ Tenant isolation, auth, production data и существующие пользо
 - Карточки переведены на дизайн-токены и стабильную адаптивную сетку.
 - Контейнер расширен до `1760px`: на широких экранах карточки имеют около `402px`, а на ноутбуках сетка перестраивается в `2×2` с карточками около `565px`.
 - Добавлены локализованные названия тарифов и пояснения оплаты.
+- Итоговое решение владельца: редизайн полностью отменён, `PricingCards.tsx` и pricing-словари восстановлены из контрольной точки `94845ad`.
 
 ## Verification
 
@@ -62,6 +63,7 @@ Tenant isolation, auth, production data и существующие пользо
 - Width QA: 1920px — 4 карточки по 402px; 1234px — сетка 2×2 по 565px; overflow `0`.
 - Production deployment `dpl_Ahif6zPnihctmqejFhg94kPVkxEs` — Ready; alias `fitcrm-three.vercel.app` назначен, production browser QA and health check passed.
 - Width refinement deployment `dpl_GmLd9qKgh6rJNKvxt3y5Gm9uNcWX` — Ready; alias подтверждён, production показывает сетку 2×2 на 1234px.
+- Rollback verification: восстановленные файлы побайтно совпадают с `94845ad`; TypeScript, lint, tests (126 passed, 1 skipped) и build (59 routes) — passed.
 
 ## Remaining
 

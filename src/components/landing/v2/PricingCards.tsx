@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react"
+import { Check } from "lucide-react"
 import { useT } from "@/lib/i18n/context"
 
 const ru = (n: number) => new Intl.NumberFormat("ru-RU").format(n)
@@ -26,19 +26,20 @@ export type LandingPlan = {
 }
 
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
+  initial: { opacity: 0, y: 28 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-80px" },
   transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const, delay },
 })
 
-function PlanCheck({ children, featured }: { children: React.ReactNode; featured: boolean }) {
+function CheckItem({ children, dark }: { children: React.ReactNode; dark: boolean }) {
   return (
-    <li className="flex items-start gap-2.5">
-      <span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md ${featured ? "bg-brand text-white" : "bg-muted text-foreground"}`}>
-        <Check className="size-3" strokeWidth={3} />
+    <li className="flex items-center gap-3">
+      <span className="w-[22px] h-[22px] rounded-[7px] flex items-center justify-center shrink-0"
+        style={dark ? { background: "#ffffff" } : { background: "#f0f1f3", border: "1px solid rgba(0,0,0,0.05)" }}>
+        <Check className="w-3.5 h-3.5" style={{ color: "#0a0a0a" }} strokeWidth={3} />
       </span>
-      <span className={`text-sm leading-5 ${featured ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{children}</span>
+      <span className="text-[14px]" style={{ color: dark ? "#d4d4d8" : "#3f3f46" }}>{children}</span>
     </li>
   )
 }
@@ -46,103 +47,133 @@ function PlanCheck({ children, featured }: { children: React.ReactNode; featured
 export function PricingCards({ plans }: { plans: LandingPlan[] }) {
   const t = useT()
   const [billing, setBilling] = useState<"month" | "year">("year")
-  const paid = plans.filter((plan) => !plan.isTrial)
-  const featuredCode =
-    plans.find((plan) => plan.code.toLowerCase() === "standard")?.code ??
-    plans.find((plan) => plan.popular)?.code ??
+  const paid = plans.filter((p) => !p.isTrial)
+  const popularCode =
+    plans.find((p) => p.popular)?.code ??
     [...paid].sort((a, b) => b.price - a.price)[0]?.code
-  const colClass = plans.length >= 4 ? "lg:grid-cols-2 min-[1680px]:grid-cols-4" : "lg:grid-cols-3"
-
-  const planName = (plan: LandingPlan) => {
-    const code = plan.code.toLowerCase() as keyof typeof t.pricing.planNames
-    return t.pricing.planNames[code] ?? plan.name
-  }
+  const colClass = plans.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"
 
   return (
-    <section id="pricing" className="relative bg-background py-24 md:py-32">
-      <div className="mx-auto max-w-[1760px] px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-[760px] text-center">
-          <motion.p {...fadeUp()} className="font-mono text-xs font-medium tracking-normal text-brand">{t.pricing.eyebrow}</motion.p>
-          <motion.h2 {...fadeUp(0.04)} className="mt-4 text-[40px] font-semibold leading-[1.05] tracking-normal text-foreground md:text-[52px]">{t.pricing.title}</motion.h2>
-          <motion.p {...fadeUp(0.08)} className="mx-auto mt-4 max-w-[650px] text-[17px] leading-7 text-muted-foreground">{t.pricing.subtitle}</motion.p>
+    <section id="pricing" className="relative py-24 md:py-32" style={{ background: "#ffffff" }}>
+      <div className="relative mx-auto max-w-[1840px] px-8">
+        {/* Heading */}
+        <div className="max-w-[720px] mx-auto text-center mb-10">
+          <motion.h2 {...fadeUp(0)} className="text-[40px] md:text-[52px] font-normal leading-[1.05] tracking-[-1.4px] text-[#0a0a0a]">
+            {t.pricing.title}
+          </motion.h2>
+          <motion.p {...fadeUp(0.08)} className="text-[17px] leading-[26px] text-[#52525b] mt-4">
+            {t.pricing.subtitle}
+          </motion.p>
         </div>
 
-        <motion.div {...fadeUp(0.12)} className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-          {t.pricing.badges.map((badge) => (
-            <div key={badge} className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <span className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="size-3" strokeWidth={3} /></span>
-              {badge}
+        {/* Inline check badges */}
+        <motion.div {...fadeUp(0.14)} className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 mb-8">
+          {t.pricing.badges.map((b) => (
+            <div key={b} className="flex items-center gap-2.5">
+              <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "#0a0a0a" }}>
+                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+              </span>
+              <span className="text-[15px] font-medium text-[#0a0a0a]">{b}</span>
             </div>
           ))}
         </motion.div>
 
-        <motion.div {...fadeUp(0.16)} className="mt-10 flex justify-center">
-          <div className="inline-flex min-h-12 items-center rounded-xl border border-border bg-muted p-1" role="group" aria-label={t.pricing.billingLabel}>
-            <button type="button" onClick={() => setBilling("month")} aria-pressed={billing === "month"} className={`h-10 rounded-lg px-5 text-sm font-medium transition-all ${billing === "month" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+        {/* Billing toggle */}
+        <motion.div {...fadeUp(0.18)} className="flex justify-center mb-16">
+          <div className="inline-flex items-center gap-1 p-1 rounded-full" style={{ background: "#f4f5f7", border: "1px solid rgba(0,0,0,0.08)" }}>
+            <button onClick={() => setBilling("month")}
+              className="px-6 h-11 rounded-full text-[14.5px] font-medium transition-all"
+              style={billing === "month" ? { background: "#0a0a0a", color: "#ffffff", boxShadow: "0 2px 8px -2px rgba(0,0,0,0.3)" } : { color: "#52525b" }}>
               {t.pricing.monthly}
             </button>
-            <button type="button" onClick={() => setBilling("year")} aria-pressed={billing === "year"} className={`flex h-10 items-center gap-2 rounded-lg px-5 text-sm font-medium transition-all ${billing === "year" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+            <button onClick={() => setBilling("year")}
+              className="px-6 h-11 rounded-full text-[14.5px] font-medium transition-all flex items-center gap-2"
+              style={billing === "year" ? { background: "#0a0a0a", color: "#ffffff", boxShadow: "0 2px 8px -2px rgba(0,0,0,0.3)" } : { color: "#52525b" }}>
               {t.pricing.yearly}
-              <span className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${billing === "year" ? "bg-brand text-white" : "bg-chart-2/10 text-chart-2"}`}>{t.pricing.off}</span>
+              <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full"
+                style={billing === "year" ? { background: "#0065fc", color: "#ffffff" } : { background: "rgba(22,163,74,0.14)", color: "#16a34a" }}>
+                {t.pricing.off}
+              </span>
             </button>
           </div>
         </motion.div>
 
-        <div className={`mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 ${colClass} lg:items-stretch xl:gap-6`}>
-          {plans.map((plan, index) => {
-            const featured = plan.code === featuredCode
-            const free = plan.isTrial || plan.price === 0
-            const shown = billing === "year" ? Math.round(plan.price * (1 - YEAR_DISCOUNT)) : plan.price
+        {/* Cards */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${colClass} gap-6 items-stretch`}>
+          {plans.map((p, i) => {
+            const dark = p.code === popularCode
+            const free = p.isTrial || p.price === 0
+            const shown = billing === "year" ? Math.round(p.price * (1 - YEAR_DISCOUNT)) : p.price
             const annualTotal = shown * 12
-            const displayName = planName(plan)
-            const cta = free ? t.pricing.startFree : featured ? t.pricing.chooseStandard : t.pricing.choosePlan(displayName)
-
             return (
-              <motion.article key={plan.code} {...fadeUp(0.14 + index * 0.05)} className={`relative flex min-h-[610px] flex-col overflow-hidden rounded-2xl border p-6 sm:p-7 ${featured ? "border-primary bg-primary text-primary-foreground shadow-2xl shadow-foreground/15 lg:-translate-y-3" : "border-border bg-card text-card-foreground"}`}>
-                {featured && <div className="absolute inset-x-0 top-0 h-1 bg-brand" />}
+              <motion.div key={p.code} {...fadeUp(0.16 + i * 0.06)}
+                className="relative rounded-[24px] p-8 flex flex-col overflow-hidden"
+                style={dark
+                  ? { background: "#0e1117", border: "1px solid #0e1117", boxShadow: "0 30px 70px -30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)" }
+                  : { background: "#ffffff", border: "1px solid rgba(0,0,0,0.09)" }}>
 
-                <div className="flex min-h-8 items-center justify-between gap-3">
-                  <p className={`text-sm font-medium ${featured ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{free ? t.pricing.trialLabel : t.pricing.planLabel}</p>
-                  {featured && (
-                    <span className="inline-flex items-center gap-1.5 rounded-md bg-brand px-2.5 py-1 text-[11px] font-semibold text-white"><Sparkles className="size-3.5" />{t.pricing.bestChoice}</span>
-                  )}
-                </div>
+                {/* Угловая лента "Популярно" */}
+                {dark && (
+                  <div className="absolute top-0 right-0 w-[130px] h-[130px] overflow-hidden pointer-events-none">
+                    <div className="absolute rotate-45 flex items-center justify-center text-[11px] font-bold text-white tracking-wide"
+                      style={{ background: "#0065fc", top: 26, right: -38, width: 160, height: 26 }}>
+                      {t.pricing.popular}
+                    </div>
+                  </div>
+                )}
 
-                <h3 className={`mt-4 text-2xl font-semibold tracking-normal ${featured ? "text-primary-foreground" : "text-foreground"}`}>{displayName}</h3>
-                <p className={`mt-2 min-h-10 text-sm leading-5 ${featured ? "text-primary-foreground/65" : "text-muted-foreground"}`}>{featured ? t.pricing.standardPitch : plan.subtitle || t.pricing.included}</p>
+                {/* Name */}
+                <div className="text-[22px] font-semibold" style={{ color: dark ? "#ffffff" : "#0a0a0a" }}>{p.name}</div>
 
-                <div className="mt-7 min-h-[88px]">
+                {/* Price */}
+                <div className="flex items-baseline gap-1.5 mt-5 whitespace-nowrap">
                   {free ? (
-                    <><p className="text-[38px] font-semibold leading-none tracking-normal">{t.pricing.free}</p><p className={`mt-3 text-sm ${featured ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{t.pricing.trialDays(plan.trialDays)}</p></>
+                    <span className="text-[38px] font-semibold leading-none tracking-[-1.2px]" style={{ color: dark ? "#ffffff" : "#0a0a0a" }}>{t.pricing.free}</span>
                   ) : (
                     <>
-                      <div className="flex flex-wrap items-end gap-x-2 gap-y-1"><span className="text-[38px] font-semibold leading-none tracking-normal tabular-nums">{ru(shown)}</span><span className={`pb-0.5 text-sm ${featured ? "text-primary-foreground/55" : "text-muted-foreground"}`}>{t.pricing.perMonth}</span></div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                        {billing === "year" ? <><span className={featured ? "text-primary-foreground/60" : "text-muted-foreground"}>{t.pricing.perYear(ru(annualTotal))}</span><span className={`rounded px-1.5 py-0.5 font-semibold ${featured ? "bg-brand/25 text-primary-foreground" : "bg-chart-2/10 text-chart-2"}`}>{t.pricing.save}</span></> : <span className={featured ? "text-primary-foreground/55" : "text-muted-foreground"}>{t.pricing.noVat}</span>}
-                      </div>
+                      <span className="text-[38px] font-semibold leading-none tracking-[-1.2px]" style={{ color: dark ? "#ffffff" : "#0a0a0a" }}>{ru(shown)}</span>
+                      <span className="text-[14px]" style={{ color: dark ? "#a1a1aa" : "#9ca3af" }}>{t.pricing.perMonth}</span>
                     </>
                   )}
                 </div>
 
-                {featured && (
-                  <div className="mt-5 flex items-start gap-3 rounded-lg border border-primary-foreground/15 bg-primary-foreground/[0.06] p-3.5">
-                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" />
-                    <p className="text-xs leading-5 text-primary-foreground/75">{t.pricing.standardProof}</p>
-                  </div>
-                )}
-
-                <div className={`mt-6 border-t pt-6 ${featured ? "border-primary-foreground/15" : "border-border"}`}>
-                  <p className="text-sm font-semibold">{t.pricing.included}</p>
-                  <ul className="mt-4 space-y-3">{plan.benefits.map((benefit) => <PlanCheck key={benefit} featured={featured}>{benefit}</PlanCheck>)}</ul>
+                {/* Sub-price */}
+                <div className="h-5 flex items-center gap-2 mt-2">
+                  {free ? (
+                    <span className="text-[13px]" style={{ color: dark ? "#71717a" : "#9ca3af" }}>{t.pricing.trialDays(p.trialDays)}</span>
+                  ) : billing === "year" ? (
+                    <>
+                      <span className="text-[13px]" style={{ color: dark ? "#a1a1aa" : "#52525b" }}>{t.pricing.perYear(ru(annualTotal))}</span>
+                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded" style={{ background: dark ? "rgba(0,101,252,0.25)" : "rgba(22,163,74,0.12)", color: dark ? "#7cb2ff" : "#16a34a" }}>{t.pricing.save}</span>
+                    </>
+                  ) : (
+                    <span className="text-[13px]" style={{ color: dark ? "#71717a" : "#9ca3af" }}>{t.pricing.noVat}</span>
+                  )}
                 </div>
 
+                {/* Category label */}
+                <div className="text-[15px] font-semibold mt-6 mb-4 pt-6" style={{ color: dark ? "#ffffff" : "#0a0a0a", borderTop: `1px solid ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)"}` }}>
+                  {p.subtitle || t.pricing.included}
+                </div>
+
+                {/* Benefits */}
+                <ul className="flex flex-col gap-2.5">
+                  {p.benefits.map((b) => <CheckItem key={b} dark={dark}>{b}</CheckItem>)}
+                </ul>
+
+                {/* CTA — полноширинная кнопка */}
                 <div className="mt-auto pt-7">
-                  <Link href="/register" className={`group flex h-12 w-full items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${featured ? "border-brand bg-brand text-white hover:bg-brand/90" : "border-border bg-background text-foreground hover:border-foreground/30 hover:bg-muted"}`}>
-                    {cta}<ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  <Link href="/register"
+                    className="flex items-center justify-center w-full h-12 rounded-[12px] text-[15px] font-semibold transition-all"
+                    style={dark
+                      ? { background: "#ffffff", color: "#0a0a0a" }
+                      : { background: "#ffffff", color: "#0a0a0a", border: "1px solid rgba(0,0,0,0.16)" }}
+                    onMouseEnter={(e) => { if (!dark) { e.currentTarget.style.background = "#0a0a0a"; e.currentTarget.style.color = "#ffffff" } else e.currentTarget.style.opacity = "0.9" }}
+                    onMouseLeave={(e) => { if (!dark) { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.color = "#0a0a0a" } else e.currentTarget.style.opacity = "1" }}>
+                    {p.cta}
                   </Link>
-                  <p className={`mt-3 text-center text-xs ${featured ? "text-primary-foreground/45" : "text-muted-foreground"}`}>{free ? t.pricing.noCard : t.pricing.cancelAnytime}</p>
                 </div>
-              </motion.article>
+              </motion.div>
             )
           })}
         </div>
