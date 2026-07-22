@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
+- `970660e` · 2026-07-22 · docs: record data exchange and settings audit [skip ci]
 - `6083b4c` · 2026-07-21 · fix: restore memberships export
 - `6c34951` · 2026-07-21 · feat: harden CRM data exchange and settings
 - `99fef54` · 2026-07-21 · docs: record resilient import release
 - `35a0164` · 2026-07-21 · feat: make client imports lossless and resilient
 - `745d121` · 2026-07-21 · docs: record client inbox production verification
 - `9709769` · 2026-07-21 · fix: schedule inbox retries via Supabase
-- `a7be5a8` · 2026-07-21 · feat: add Telegram client support inbox
-- `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-21 Asia/Tashkent
+2026-07-22 Asia/Tashkent
 <!-- AUTO:END updated-at -->

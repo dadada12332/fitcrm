@@ -18,6 +18,7 @@ updated: 2026-07-18
 - [[Daily/2026-07-19]]
 - [[Daily/2026-07-20]]
 - [[Daily/2026-07-21]]
+- [[Daily/2026-07-22]]
 
 ## Database
 
@@ -92,6 +93,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0030-klientskie-obrascheniya-iz-telegram-mini-app-v-crm]]
 - [[Tasks/Completed/TASK-0031-universal-nyi-import-klientov-iz-vneshnih-crm]]
 - [[Tasks/Completed/TASK-0032-audit-importa-eksporta-i-nastroek-crm]]
+- [[Tasks/Completed/TASK-0033-redizain-shablonov-soobschenii-telegram]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]
