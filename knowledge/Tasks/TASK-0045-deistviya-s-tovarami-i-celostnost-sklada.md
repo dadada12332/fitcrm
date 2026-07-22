@@ -1,7 +1,7 @@
 ---
 id: TASK-0045
 type: feature
-status: in-progress
+status: completed
 priority: P1
 module: warehouse
 created: 2026-07-22
@@ -33,7 +33,7 @@ tags: [fitcrm, task]
 - [x] Поставка `5 → 7` и списание `7 → 6` записаны в БД одной транзакцией.
 - [x] Удалённый товар не виден в складе/POS, движения сохранены.
 - [x] Desktop/mobile browser QA прошёл без overflow и console errors.
-- [ ] Production deployment и smoke подтверждены.
+- [x] Production deployment и smoke подтверждены.
 
 ## Files and data
 
@@ -52,9 +52,11 @@ Tenant isolation, auth, production data и существующие пользо
 
 Локально: TypeScript, ESLint, 142 tests и production build прошли. Browser QA проверил полный цикл и mobile overflow 0; RPC probe подтвердил `in`/`writeoff` и итоговый остаток. Миграции 0080–0081 применены к production.
 
+Production deployment `dpl_Bf8BcGRMmRG1VQwkpbMGcY1VLa71` (`9106080`) READY и привязан к `fitcrm-three.vercel.app`. На домене повторно пройден цикл `5 → 7 → 6 → удалён`; soft delete и движения подтверждены прямым чтением БД, desktop/mobile overflow равен 0, тестовые товары удалены.
+
 ## Remaining
 
-Production deploy и повторный smoke.
+Нет.
 
 ## Blockers
 

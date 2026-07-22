@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 4e72358 · 2026-07-22T17:14:20+05:00 · docs: require screenshots for UI change reports [skip ci].
+- Последний commit: 9106080 · 2026-07-22T18:42:12+05:00 · feat: add warehouse product actions.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 82; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

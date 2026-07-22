@@ -67,6 +67,7 @@ tags: [fitcrm, releases]
 ### Fixed
 
 - Поставка и списание теперь атомарно меняют остаток и журнал движений; исправлено неверное enum-значение прихода, а удалённые товары больше не занимают тарифный лимит.
+- Склад получил меню действий в строке товара: поставка и списание открываются с выбранным товаром, удаление работает мягко и сохраняет историю движений. Production deployment `dpl_Bf8BcGRMmRG1VQwkpbMGcY1VLa71` прошёл desktop/mobile smoke.
 
 - Экспорты из дашборда, платежей и отчётов теперь учитываются в общем месячном лимите; пакетный импорт расходует одну операцию независимо от количества порций.
 - Системные роли больше не занимают лимит пользовательских ролей, новые филиалы наследуют тариф родительского клуба, а тестовая Telegram-отправка учитывается в лимите сообщений.
@@ -134,6 +135,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `9106080` · 2026-07-22 · feat: add warehouse product actions
 - `4e72358` · 2026-07-22 · docs: require screenshots for UI change reports [skip ci]
 - `db482fa` · 2026-07-22 · docs: record upgrade CTA refinement [skip ci]
 - `fe68f58` · 2026-07-22 · fix: preserve upgrade button height
@@ -163,5 +165,4 @@ tags: [fitcrm, releases]
 - `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
 - `481c70e` · 2026-07-22 · docs: record Telegram KPI redesign [skip ci]
 - `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
-- `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
 <!-- AUTO:END changelog-candidates -->

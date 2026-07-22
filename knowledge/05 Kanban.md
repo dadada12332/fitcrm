@@ -30,7 +30,6 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-in-progress -->
 - [ ] TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
-- [ ] TASK-0045 · Действия с товарами и целостность склада · feature · P1 · warehouse · 2026-07-22 · [[Tasks/TASK-0045-deistviya-s-tovarami-i-celostnost-sklada]]
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review
@@ -95,4 +94,5 @@ kanban-plugin: board
 - [x] TASK-0042 · Пересобрать доступы тарифов по фактическому функционалу · feature · P3 · pricing · 2026-07-22 · [[Tasks/Completed/TASK-0042-peresobrat-dostupy-tarifov-po-fakticheskomu-funkcionalu]]
 - [x] TASK-0043 · Включить реальные тарифные доступы и лимиты · feature · P1 · pricing · 2026-07-22 · [[Tasks/Completed/TASK-0043-vklyuchit-real-nye-tarifnye-dostupy-i-limity]]
 - [x] TASK-0044 · Проверить тарифные лимиты и добавить предложение апгрейда · feature · P1 · pricing · 2026-07-22 · [[Tasks/Completed/TASK-0044-proverit-tarifnye-limity-i-dobavit-predlozhenie-apgreida]]
+- [x] TASK-0045 · Действия с товарами и целостность склада · feature · P1 · warehouse · 2026-07-22 · [[Tasks/TASK-0045-deistviya-s-tovarami-i-celostnost-sklada]]
 <!-- AUTO:END kanban-done -->
