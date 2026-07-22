@@ -113,6 +113,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `89ef57f` · 2026-07-22 · feat: add Growth OS story to landing
 - `57f4b92` · 2026-07-22 · docs: record reports attention release [skip ci]
 - `50bb457` · 2026-07-22 · feat: redesign reports attention workspace
 - `62ee8aa` · 2026-07-22 · docs: record Telegram broadcast release [skip ci]
@@ -142,5 +143,4 @@ tags: [fitcrm, releases]
 - `99cf665` · 2026-07-20 · docs: record verified retention AI release [skip ci]
 - `63d1989` · 2026-07-20 · feat: add retention AI copilot
 - `bc10d6d` · 2026-07-20 · docs: retire resolved launch issues [skip ci]
-- `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
 <!-- AUTO:END changelog-candidates -->
