@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import Image from "next/image"
+import { useRef, useState, useTransition } from "react"
 import {
   CheckCircle, AlertCircle, Trash2, Eye, EyeOff,
-  Bot, Zap, MessageSquare, BarChart2, RefreshCw, Send,
+  Bot, Zap, MessageSquare, BarChart2, RefreshCw, Send, ImagePlus,
 } from "lucide-react"
 import {
-  connectTelegramAction, disconnectTelegramAction, saveTelegramSettingsAction,
+  connectTelegramAction, disconnectTelegramAction, removeTelegramBotAvatarAction,
+  saveTelegramSettingsAction, uploadTelegramBotAvatarAction,
 } from "@/app/(app)/integrations/actions"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { saveIntegrationAction } from "@/app/(app)/settings/club/actions"
@@ -58,10 +60,11 @@ export type TelegramStats = {
   failedMonth: number
 }
 
-function TelegramManage({ connected, botUsername, botFirstName, connectedAt, webhookReady, clientCount, subscribers, telegramStats, tgSettings, clubName, audienceOptions, recipients, history }: {
+function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, connectedAt, webhookReady, clientCount, subscribers, telegramStats, tgSettings, clubName, audienceOptions, recipients, history }: {
   connected: boolean
   botUsername: string
   botFirstName: string
+  botAvatarUrl: string
   connectedAt: string | null
   webhookReady: boolean
   clientCount: number
@@ -79,6 +82,10 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
   const [connectMsg, setConnectMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [disconnectPending, startDisconnect] = useTransition()
   const [connectPending, startConnect] = useTransition()
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const [avatarUrl, setAvatarUrl] = useState(botAvatarUrl)
+  const [avatarMsg, setAvatarMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [avatarPending, startAvatar] = useTransition()
 
   // Automation and templates share one state so saving either tab never restores stale values.
   const [settings, setSettings] = useState(tgSettings)
@@ -108,6 +115,47 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
     if (!confirm("Отключить Telegram бота? Все уведомления перестанут работать.")) return
     startDisconnect(async () => {
       await disconnectTelegramAction()
+    })
+  }
+
+  function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const image = event.target.files?.[0]
+    event.target.value = ""
+    if (!image) return
+    if (!["image/jpeg", "image/png", "image/webp"].includes(image.type)) {
+      setAvatarMsg({ text: "Поддерживаются JPG, PNG и WebP", ok: false })
+      return
+    }
+    if (image.size > 5 * 1024 * 1024) {
+      setAvatarMsg({ text: "Файл должен быть не больше 5 МБ", ok: false })
+      return
+    }
+
+    setAvatarMsg(null)
+    startAvatar(async () => {
+      const formData = new FormData()
+      formData.set("avatar", image)
+      const res = await uploadTelegramBotAvatarAction(formData)
+      if (res.error) {
+        setAvatarMsg({ text: res.error, ok: false })
+        return
+      }
+      if (res.url) setAvatarUrl(res.url)
+      setAvatarMsg({ text: res.warning ?? "Аватар бота обновлён", ok: true })
+    })
+  }
+
+  function handleAvatarRemove() {
+    if (!confirm("Удалить аватар Telegram-бота?")) return
+    setAvatarMsg(null)
+    startAvatar(async () => {
+      const res = await removeTelegramBotAvatarAction()
+      if (res.error) {
+        setAvatarMsg({ text: res.error, ok: false })
+        return
+      }
+      setAvatarUrl("")
+      setAvatarMsg({ text: res.warning ?? "Аватар бота удалён", ok: true })
     })
   }
 
@@ -177,8 +225,10 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
             <div className="space-y-4 rounded-lg border border-border bg-card p-5">
               {/* Bot info */}
               <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
-                <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-base font-bold text-white">
-                  {botFirstName?.[0] ?? "T"}
+                <div className="relative flex size-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand text-base font-bold text-white">
+                  {avatarUrl ? (
+                    <Image src={avatarUrl} alt={`Аватар ${botFirstName}`} fill sizes="40px" unoptimized className="object-cover" />
+                  ) : botFirstName?.[0] ?? "T"}
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-foreground">{botFirstName}</p>
@@ -193,6 +243,61 @@ function TelegramManage({ connected, botUsername, botFirstName, connectedAt, web
                   {webhookReady ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
                   {webhookReady ? "Webhook активен" : "Переподключите"}
                 </span>
+              </div>
+
+              {/* Bot avatar */}
+              <div className="rounded-lg border border-border p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <div className="relative flex size-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand text-xl font-bold text-white ring-4 ring-muted">
+                    {avatarUrl ? (
+                      <Image src={avatarUrl} alt={`Аватар ${botFirstName}`} fill sizes="64px" unoptimized className="object-cover" />
+                    ) : botFirstName?.[0] ?? "T"}
+                    {avatarPending && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-background/70 text-foreground">
+                        <RefreshCw size={18} className="animate-spin" />
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-foreground">Аватар бота</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      JPG, PNG или WebP до 5 МБ. CRM обрежет фото до квадрата и обновит его в Telegram.
+                    </p>
+                  </div>
+                  <div className="flex w-full gap-2 sm:w-auto">
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 sm:flex-none"
+                      disabled={avatarPending}
+                      onClick={() => avatarInputRef.current?.click()}
+                    >
+                      <ImagePlus size={15} />
+                      {avatarUrl ? "Заменить" : "Загрузить"}
+                    </Button>
+                    {avatarUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        title="Удалить аватар"
+                        aria-label="Удалить аватар"
+                        disabled={avatarPending}
+                        onClick={handleAvatarRemove}
+                      >
+                        <Trash2 size={15} />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                {avatarMsg && <div className="mt-3"><Feedback msg={avatarMsg} /></div>}
               </div>
 
               {/* Reconnect form */}
@@ -465,12 +570,12 @@ function SimpleManage({ slug, label, color, connected, currentValue, clientCount
 
 // ── Export ────────────────────────────────────────────────────────
 
-export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, connectedAt, webhookReady, telegramStats, clubName, audienceOptions, recipients, history }: {
+export function IntegrationManage({ slug, label, color, connected, currentValue, clientCount, subscribers, tgSettings, botUsername, botFirstName, botAvatarUrl, connectedAt, webhookReady, telegramStats, clubName, audienceOptions, recipients, history }: {
   slug: string; label: string; color: string
   connected: boolean; currentValue: string; clientCount: number
   subscribers?: number
   tgSettings?: TelegramSettings
-  botUsername?: string; botFirstName?: string; connectedAt?: string | null
+  botUsername?: string; botFirstName?: string; botAvatarUrl?: string; connectedAt?: string | null
   webhookReady?: boolean
   telegramStats?: TelegramStats
   clubName?: string
@@ -484,6 +589,7 @@ export function IntegrationManage({ slug, label, color, connected, currentValue,
         connected={connected}
         botUsername={botUsername ?? ""}
         botFirstName={botFirstName ?? "Бот"}
+        botAvatarUrl={botAvatarUrl ?? ""}
         connectedAt={connectedAt ?? null}
         webhookReady={webhookReady ?? false}
         clientCount={clientCount}

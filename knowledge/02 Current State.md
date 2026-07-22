@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 50a9690 · 2026-07-22T11:15:08+05:00 · feat: redesign Telegram message templates.
+- Последний commit: f677b06 · 2026-07-22T11:19:46+05:00 · docs: record Telegram templates redesign [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -20,7 +20,7 @@ tags: [fitcrm, operations]
 
 ## Готовность модулей
 
-**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram templates имеют сценарный редактор с live preview, контекстными переменными и двойной валидацией; automation toggles и тексты сохраняются из одного состояния. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
+**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram templates имеют сценарный редактор с live preview, контекстными переменными и двойной валидацией; automation toggles и тексты сохраняются из одного состояния. Брендинг Telegram-бота позволяет установить, заменить и удалить аватар из CRM с серверным приведением к требованиям Bot API. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
 
 **Частично:** занятия/бронирования, audit trail UI и тарифные ограничения. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
@@ -43,7 +43,7 @@ tags: [fitcrm, operations]
 
 - Warm Supabase health-check составляет 55–167 ms, но зафиксирован cold sample 1162 ms; требуется наблюдение за cold path.
 - RLS изолирует tenant, но права модулей зависят от корректности каждой Server Action.
-- `npm audit` не фиксирует high/critical advisories; остаются 4 moderate transitive advisories без безопасного автоматического fix.
+- `npm audit --omit=dev` фиксирует 5 high, 6 moderate и 2 low advisory в основном в транзитивных зависимостях Next/shadcn/ExcelJS; предлагаемый автоматический fix требует несовместимых major-изменений и не применён без отдельной проверки.
 - В коде остаётся lint-долг (`any`, unused vars, impure `Date.now()`).
 - Пороги retention scoring пока являются детерминированными продуктовыми гипотезами и требуют калибровки на обезличенной статистике после проверки владельцем.
 - Growth health score, recovery rates и expected impact являются прозрачными сценарными assumptions, а не ML-прогнозом или обещанием результата.

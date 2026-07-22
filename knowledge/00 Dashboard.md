@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
 - `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
 - `970660e` · 2026-07-22 · docs: record data exchange and settings audit [skip ci]
 - `6083b4c` · 2026-07-21 · fix: restore memberships export
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `99fef54` · 2026-07-21 · docs: record resilient import release
 - `35a0164` · 2026-07-21 · feat: make client imports lossless and resilient
 - `745d121` · 2026-07-21 · docs: record client inbox production verification
-- `9709769` · 2026-07-21 · fix: schedule inbox retries via Supabase
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

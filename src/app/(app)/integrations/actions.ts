@@ -68,6 +68,7 @@ export async function connectTelegramAction(
     settings: {
       ...cur,
       tg_bot: {
+        ...((cur.tg_bot as Record<string, unknown> | undefined) ?? {}),
         username: bot.username,
         firstName: bot.firstName,
         id: bot.id,
@@ -108,8 +109,144 @@ export async function disconnectTelegramAction(): Promise<{ error?: string; ok?:
 
   const { error: tokenError } = await service.from("telegram_integrations").delete().eq("club_id", cc.clubId)
   if (tokenError) return { error: tokenError.message }
+  await service.storage.from("avatars").remove([`${cc.clubId}/telegram-bot-avatar.jpg`])
   const { error } = await service.from("clubs").update({ settings: rest }).eq("id", cc.clubId)
   if (error) return { error: error.message }
+
+  revalidatePath("/integrations")
+  revalidatePath("/integrations/telegram")
+  return { ok: true }
+}
+
+const TELEGRAM_AVATAR_PATH = "telegram-bot-avatar.jpg"
+const TELEGRAM_AVATAR_MAX_BYTES = 5 * 1024 * 1024
+const TELEGRAM_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+
+type TelegramAvatarResult = { error?: string; ok?: boolean; url?: string; warning?: string }
+
+async function getTelegramAvatarContext(): Promise<{
+  error?: string
+  clubId?: string
+  token?: string
+  service?: ReturnType<typeof createServiceClient>
+}> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+
+  const cc = await getCurrentClub()
+  if (!cc) return { error: "Клуб не найден" }
+  if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
+
+  const service = createServiceClient()
+  const { data: integration } = await service.from("telegram_integrations")
+    .select("bot_token").eq("club_id", cc.clubId).maybeSingle()
+  if (!integration?.bot_token) return { error: "Сначала подключите Telegram-бота" }
+
+  return { clubId: cc.clubId, token: integration.bot_token, service }
+}
+
+async function updateTelegramAvatarSettings(
+  service: ReturnType<typeof createServiceClient>,
+  clubId: string,
+  avatarUrl: string | null,
+): Promise<string | null> {
+  const { data: club, error: readError } = await service.from("clubs")
+    .select("settings").eq("id", clubId).single()
+  if (readError) return readError.message
+
+  const settings = (club.settings as Record<string, unknown> | null) ?? {}
+  const tgBot = { ...((settings.tg_bot as Record<string, unknown> | undefined) ?? {}) }
+  if (avatarUrl) {
+    tgBot.avatar_url = avatarUrl
+    tgBot.avatar_updated_at = new Date().toISOString()
+  } else {
+    delete tgBot.avatar_url
+    delete tgBot.avatar_updated_at
+  }
+
+  const { error } = await service.from("clubs").update({
+    settings: { ...settings, tg_bot: tgBot },
+  }).eq("id", clubId)
+  return error?.message ?? null
+}
+
+export async function uploadTelegramBotAvatarAction(formData: FormData): Promise<TelegramAvatarResult> {
+  const image = formData.get("avatar")
+  if (!(image instanceof File) || image.size === 0) return { error: "Выберите изображение" }
+  if (!TELEGRAM_AVATAR_TYPES.has(image.type)) return { error: "Поддерживаются JPG, PNG и WebP" }
+  if (image.size > TELEGRAM_AVATAR_MAX_BYTES) return { error: "Файл должен быть не больше 5 МБ" }
+
+  const context = await getTelegramAvatarContext()
+  if (!context.clubId || !context.token || !context.service) return { error: context.error }
+
+  let jpeg: Buffer
+  try {
+    const sharp = (await import("sharp")).default
+    jpeg = await sharp(Buffer.from(await image.arrayBuffer()), { failOn: "error" })
+      .rotate()
+      .resize(512, 512, { fit: "cover", position: "centre" })
+      .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })
+      .toBuffer()
+  } catch {
+    return { error: "Не удалось обработать изображение. Попробуйте другой файл" }
+  }
+
+  try {
+    const body = new FormData()
+    body.append("photo", JSON.stringify({ type: "static", photo: "attach://avatar" }))
+    body.append("avatar", new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" }), "avatar.jpg")
+    const response = await fetch(`https://api.telegram.org/bot${context.token}/setMyProfilePhoto`, {
+      method: "POST",
+      body,
+      cache: "no-store",
+    })
+    const result = await response.json() as { ok?: boolean; description?: string }
+    if (!response.ok || !result.ok) {
+      return { error: result.description ?? "Telegram не принял изображение" }
+    }
+  } catch {
+    return { error: "Не удалось связаться с Telegram. Попробуйте снова" }
+  }
+
+  const path = `${context.clubId}/${TELEGRAM_AVATAR_PATH}`
+  const { error: uploadError } = await context.service.storage.from("avatars").upload(path, jpeg, {
+    contentType: "image/jpeg",
+    cacheControl: "3600",
+    upsert: true,
+  })
+  if (uploadError) {
+    return { ok: true, warning: "Аватар установлен в Telegram, но предпросмотр в CRM не обновился" }
+  }
+
+  const { data } = context.service.storage.from("avatars").getPublicUrl(path)
+  const avatarUrl = `${data.publicUrl}?v=${Date.now()}`
+  const settingsError = await updateTelegramAvatarSettings(context.service, context.clubId, avatarUrl)
+  if (settingsError) {
+    return { ok: true, warning: "Аватар установлен в Telegram, но предпросмотр в CRM не сохранился" }
+  }
+
+  revalidatePath("/integrations")
+  revalidatePath("/integrations/telegram")
+  return { ok: true, url: avatarUrl }
+}
+
+export async function removeTelegramBotAvatarAction(): Promise<TelegramAvatarResult> {
+  const context = await getTelegramAvatarContext()
+  if (!context.clubId || !context.token || !context.service) return { error: context.error }
+
+  try {
+    const result = await callTelegramApi(context.token, "removeMyProfilePhoto", {})
+    if (!result.ok) return { error: "Telegram не смог удалить аватар" }
+  } catch {
+    return { error: "Не удалось связаться с Telegram. Попробуйте снова" }
+  }
+
+  await context.service.storage.from("avatars").remove([`${context.clubId}/${TELEGRAM_AVATAR_PATH}`])
+  const settingsError = await updateTelegramAvatarSettings(context.service, context.clubId, null)
+  if (settingsError) {
+    return { ok: true, warning: "Аватар удалён в Telegram, но предпросмотр CRM не обновился" }
+  }
 
   revalidatePath("/integrations")
   revalidatePath("/integrations/telegram")

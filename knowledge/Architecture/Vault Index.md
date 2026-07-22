@@ -94,6 +94,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0031-universal-nyi-import-klientov-iz-vneshnih-crm]]
 - [[Tasks/Completed/TASK-0032-audit-importa-eksporta-i-nastroek-crm]]
 - [[Tasks/Completed/TASK-0033-redizain-shablonov-soobschenii-telegram]]
+- [[Tasks/Completed/TASK-0034-avatar-telegram-bota-iz-crm]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]

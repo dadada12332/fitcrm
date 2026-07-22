@@ -83,4 +83,5 @@ kanban-plugin: board
 - [x] TASK-0031 · Универсальный импорт клиентов из внешних CRM · feature · P1 · clients-import · 2026-07-21 · [[Tasks/Completed/TASK-0031-universal-nyi-import-klientov-iz-vneshnih-crm]]
 - [x] TASK-0032 · Аудит импорта экспорта и настроек CRM · feature · P1 · crm · 2026-07-21 · [[Tasks/Completed/TASK-0032-audit-importa-eksporta-i-nastroek-crm]]
 - [x] TASK-0033 · Редизайн шаблонов сообщений Telegram · feature · P2 · telegram · 2026-07-22 · [[Tasks/Completed/TASK-0033-redizain-shablonov-soobschenii-telegram]]
+- [x] TASK-0034 · Аватар Telegram-бота из CRM · feature · P2 · integrations · 2026-07-22 · [[Tasks/Completed/TASK-0034-avatar-telegram-bota-iz-crm]]
 <!-- AUTO:END kanban-done -->

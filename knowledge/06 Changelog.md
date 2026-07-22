@@ -12,6 +12,8 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- В Telegram-интеграции можно загрузить, заменить и удалить аватар бота прямо из CRM; фото автоматически обрезается до квадрата и синхронизируется с Telegram.
+
 - Импорт клиентов сохраняет все нераспознанные поля внешней CRM и показывает их отдельным блоком в карточке клиента вместе с источником импорта.
 - Telegram Mini App и CRM получили клиентские обращения: отдельный inbox, темы, история, ответственные, статусы, быстрые ответы и доставка сообщений через бота клуба с retry.
 - Раздел «Удержание» получил контекстного AI-копилота: анализ сегмента, приоритетная очередь, план на 7 дней и персональные разборы с черновиками сообщений.
@@ -97,6 +99,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
 - `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
 - `970660e` · 2026-07-22 · docs: record data exchange and settings audit [skip ci]
 - `6083b4c` · 2026-07-21 · fix: restore memberships export
@@ -126,5 +129,4 @@ tags: [fitcrm, releases]
 - `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 - `350dc23` · 2026-07-19 · Record Growth OS local verification [skip ci]
 - `5904123` · 2026-07-19 · Add Growth OS decision workspace
-- `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
 <!-- AUTO:END changelog-candidates -->

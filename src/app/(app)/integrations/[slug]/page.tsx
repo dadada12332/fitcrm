@@ -40,6 +40,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   let tgSettings: TelegramSettings = DEFAULT_TG_SETTINGS
   let botUsername = ""
   let botFirstName = ""
+  let botAvatarUrl = ""
   let connectedAt: string | null = null
   let webhookReady = false
   let telegramStats: TelegramStats = {
@@ -65,9 +66,10 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
       if (slug === "telegram" && telegramIntegration) {
         connected = true
         const settings = (data.settings as Record<string, unknown> | null) ?? {}
-        const tgBot = (settings.tg_bot as { username?: string; firstName?: string; connected_at?: string; webhook_registered?: boolean } | undefined) ?? {}
+        const tgBot = (settings.tg_bot as { username?: string; firstName?: string; avatar_url?: string; connected_at?: string; webhook_registered?: boolean } | undefined) ?? {}
         botUsername = tgBot.username ?? ""
         botFirstName = tgBot.firstName ?? "Telegram Bot"
+        botAvatarUrl = tgBot.avatar_url ?? ""
         connectedAt = tgBot.connected_at ?? null
         webhookReady = tgBot.webhook_registered === true
         tgSettings = { ...DEFAULT_TG_SETTINGS, ...((settings.tg_settings as Partial<TelegramSettings> | undefined) ?? {}) }
@@ -176,6 +178,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
         tgSettings={tgSettings}
         botUsername={botUsername}
         botFirstName={botFirstName}
+        botAvatarUrl={botAvatarUrl}
         connectedAt={connectedAt}
         webhookReady={webhookReady}
         telegramStats={telegramStats}
