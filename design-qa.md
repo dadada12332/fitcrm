@@ -24,6 +24,31 @@
 
 final result: passed
 
+# Design QA: Reports Attention
+
+## Target
+
+- Replace equal-weight floating alert cards with one quiet operational surface.
+- Preserve direct navigation while separating actionable problems from attendance context.
+
+## Captures Reviewed
+
+- Desktop: `/reports`, authorized QA club, 1280x720.
+- Mobile: `/reports`, authorized QA club, 390x844.
+- Interaction: at-risk client row to the clients report.
+
+## Findings
+
+- Priority rows use CRM tokens and consistent 8px surfaces without raw colors.
+- Resolved rows are visibly calm and disabled; active rows remain obvious and actionable.
+- Attendance is a separate segment and no longer competes with urgent tasks.
+- Labels and descriptions wrap correctly on mobile without horizontal overflow.
+- The alert badge matches the actual sum of expiring, at-risk and debt records.
+
+## Result
+
+final result: passed
+
 # Design QA: Telegram Broadcast
 
 ## Target

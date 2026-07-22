@@ -98,6 +98,7 @@ updated: 2026-07-18
 - [[Tasks/Completed/TASK-0035-ispravit-povrezhdenie-avatara-telegram-v-crm]]
 - [[Tasks/Completed/TASK-0036-unificirovat-telegram-kpi-s-dizain-sistemoi-crm]]
 - [[Tasks/Completed/TASK-0037-uluchshit-ekran-telegram-rassylki]]
+- [[Tasks/Completed/TASK-0038-privesti-blok-vnimanie-v-otchetah-k-dizain-sisteme]]
 - [[Tasks/TASK-0004-backup-restore-drill]]
 - [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
 - [[Tasks/TASK-0022-centr-uderzhaniya-klientov-i-predotvrascheniya-ottoka]]

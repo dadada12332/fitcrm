@@ -26,6 +26,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Вкладка «Внимание» в отчётах стала рабочей сводкой: задачи сгруппированы по приоритету, посещаемость отделена от проблем, а desktop/mobile-компоновка приведена к дизайн-системе CRM.
+
 - Экран Telegram-рассылки получил единый рабочий сценарий: получатели, планирование, редактор, тестовая отправка, живой предпросмотр и история теперь адаптивны и соответствуют дизайн-системе CRM.
 
 - KPI Telegram-интеграции и вкладки статистики приведены к общему сегментированному стилю CRM с нейтральными иконками и адаптивной сеткой 2×2/4×1.
@@ -47,6 +49,8 @@ tags: [fitcrm, releases]
 - Центр уведомлений стал информативнее и шире.
 
 ### Fixed
+
+- Счётчик «Внимание» теперь учитывает все истекающие абонементы, клиентов в зоне риска и задолженности, а не только часть событий.
 
 - Ссылка на подключённого Telegram-бота теперь использует его username; client/server validation не позволяет отправить неподдерживаемое изображение или текст сверх лимитов Telegram.
 
@@ -107,6 +111,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `62ee8aa` · 2026-07-22 · docs: record Telegram broadcast release [skip ci]
 - `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
 - `481c70e` · 2026-07-22 · docs: record Telegram KPI redesign [skip ci]
 - `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
@@ -136,5 +141,4 @@ tags: [fitcrm, releases]
 - `7716f9d` · 2026-07-20 · docs: record verified production hardening [skip ci]
 - `6e4e494` · 2026-07-20 · perf: harden CRM runtime and production checks
 - `ac1a6fe` · 2026-07-20 · Record verified launch readiness status
-- `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
 <!-- AUTO:END changelog-candidates -->

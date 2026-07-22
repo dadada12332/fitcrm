@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react"
 import {
   AlertTriangle, TrendingUp, TrendingDown, CreditCard,
   Activity, Users, UserCog, Wallet, Sparkles, RefreshCw,
-  ArrowRight, Download, BarChart2,
+  ArrowRight, Download, BarChart2, CalendarClock, CheckCircle2, UserRoundX,
 } from "lucide-react"
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -126,74 +126,148 @@ function AlertsSection({ agg, visitsDelta, onNavigate }: {
   const atRiskCount       = agg.atRiskCount
   const debtsCount        = agg.debtsCount
   const debtTotal         = agg.debtTotal
+  const attentionCount = expiringSoonCount + atRiskCount + debtsCount
 
-  // Единые карточки: метрика + смысл + действие в одной плашке (без дублирования).
-  const LVL = {
-    high:   { color: "#dc2626", label: "Срочно" },
-    medium: { color: "#d97706", label: "Внимание" },
-    low:    { color: "#16a34a", label: "В норме" },
-  } as const
-  type Card = { label: string; value: string; sub?: string; icon: typeof AlertTriangle; level: keyof typeof LVL; section?: Section }
-  const cards: Card[] = [
+  type AttentionItem = {
+    label: string
+    value: number
+    description: string
+    icon: typeof AlertTriangle
+    tone: "urgent" | "warning"
+    section: Section
+    action: string
+  }
+  const items: AttentionItem[] = [
     {
-      label: "Истекает в 3 дня", value: String(expiringSoonCount), icon: AlertTriangle,
-      level: expiringSoonCount > 0 ? "high" : "low",
-      sub: expiringSoonCount > 0 ? (agg.expiringSoonNames.slice(0, 2).join(", ") + (expiringSoonCount > 2 ? ` и ещё ${expiringSoonCount - 2}` : "")) : "Нет истекающих",
-      section: expiringSoonCount > 0 ? "renewals" : undefined,
+      label: "Скоро закончатся абонементы",
+      value: expiringSoonCount,
+      icon: CalendarClock,
+      tone: "urgent",
+      description: expiringSoonCount > 0
+        ? agg.expiringSoonNames.slice(0, 2).join(", ") + (expiringSoonCount > 2 ? ` и ещё ${expiringSoonCount - 2}` : "")
+        : "На ближайшие 3 дня продлений нет",
+      section: "renewals",
+      action: "Открыть продления",
     },
     {
-      label: "Не приходили 14+ дн", value: String(atRiskCount), icon: Users,
-      level: atRiskCount > 0 ? "medium" : "low",
-      sub: atRiskCount > 0 ? "Риск оттока — стоит связаться" : "Все активны",
-      section: atRiskCount > 0 ? "clients" : undefined,
+      label: "Клиенты в зоне риска",
+      value: atRiskCount,
+      icon: UserRoundX,
+      tone: "warning",
+      description: atRiskCount > 0 ? "Не посещали клуб 14 дней или дольше" : "Активные клиенты посещают клуб регулярно",
+      section: "clients",
+      action: "Открыть клиентов",
     },
     {
-      label: "Долги", value: String(debtsCount), icon: Wallet,
-      level: debtsCount > 0 ? "high" : "low",
-      sub: debtsCount > 0 ? `${fmt(debtTotal)} сум · требуют напоминания` : "Нет задолженностей",
-      section: debtsCount > 0 ? "debts" : undefined,
-    },
-    {
-      label: "Посещаемость", value: `${visitsDelta > 0 ? "+" : ""}${visitsDelta}%`, icon: Activity,
-      level: visitsDelta < -10 ? "medium" : "low",
-      sub: visitsDelta < -10 ? "Снижение к прошлому периоду" : visitsDelta > 15 ? "Отличная динамика!" : "Стабильно",
-      section: "visits",
+      label: "Задолженности по оплате",
+      value: debtsCount,
+      icon: Wallet,
+      tone: "urgent",
+      description: debtsCount > 0 ? `${fmt(debtTotal)} сум ожидают оплаты` : "Неоплаченных счетов нет",
+      section: "debts",
+      action: "Открыть долги",
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      {cards.map((c) => {
-        const lvl = LVL[c.level]
-        const Icon = c.icon
-        const interactive = !!c.section
-        return (
-          <button key={c.label} onClick={interactive ? () => onNavigate(c.section!) : undefined} disabled={!interactive}
-            className="group flex h-full flex-col gap-3 rounded-lg p-5 text-left transition-all enabled:hover:-translate-y-0.5 enabled:hover:shadow-md disabled:cursor-default"
-            style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <div className="flex items-start justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-md flex-shrink-0" style={{ background: `color-mix(in srgb, ${lvl.color} 12%, transparent)` }}>
-                <Icon className="h-[18px] w-[18px]" style={{ color: lvl.color }} />
-              </div>
-              {c.level !== "low" && (
-                <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: `color-mix(in srgb, ${lvl.color} 12%, transparent)`, color: lvl.color }}>{lvl.label}</span>
-              )}
+    <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-4 sm:items-center sm:px-5">
+        <div className="flex items-start gap-3">
+          <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${attentionCount > 0 ? "bg-destructive/10 text-destructive" : "bg-chart-2/10 text-chart-2"}`}>
+            {attentionCount > 0 ? <AlertTriangle className="size-[18px]" /> : <CheckCircle2 className="size-[18px]" />}
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">Требует внимания</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {attentionCount > 0
+                ? `${attentionCount} ${pluralTasks(attentionCount)} ${attentionCount % 10 === 1 && attentionCount % 100 !== 11 ? "требует" : "требуют"} решения`
+                : "Критичных задач сейчас нет"}
+            </p>
+          </div>
+        </div>
+        <span className={`inline-flex w-fit items-center rounded-md px-2.5 py-1 text-xs font-semibold tabular-nums ${attentionCount > 0 ? "bg-destructive/10 text-destructive" : "bg-chart-2/10 text-chart-2"}`}>
+          {attentionCount > 0 ? attentionCount : "Всё в порядке"}
+        </span>
+      </header>
+
+      <div className="grid xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="divide-y divide-border">
+          {items.map((item) => {
+            const Icon = item.icon
+            const active = item.value > 0
+            const tone = item.tone === "urgent"
+              ? "bg-destructive/10 text-destructive"
+              : "bg-chart-3/10 text-chart-3"
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={active ? () => onNavigate(item.section) : undefined}
+                disabled={!active}
+                className="group flex w-full items-center gap-3 px-4 py-4 text-left transition-colors enabled:hover:bg-muted/60 disabled:cursor-default sm:px-5"
+              >
+                <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${active ? tone : "bg-muted text-muted-foreground"}`}>
+                  <Icon className="size-[18px]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                    {active && (
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${tone}`}>
+                        {item.tone === "urgent" ? "Срочно" : "Внимание"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-foreground sm:line-clamp-1">{item.description}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className={`text-xl font-semibold tabular-nums ${active ? "text-foreground" : "text-muted-foreground"}`}>{item.value}</span>
+                  {active ? (
+                    <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" aria-label={item.action} />
+                  ) : (
+                    <CheckCircle2 className="size-4 text-chart-2" aria-label="В норме" />
+                  )}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onNavigate("visits")}
+          className="group flex min-h-40 flex-col justify-between border-t border-border bg-muted/30 p-5 text-left transition-colors hover:bg-muted/60 xl:min-h-0 xl:border-l xl:border-t-0"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className={`flex size-9 items-center justify-center rounded-md ${visitsDelta < -10 ? "bg-chart-3/10 text-chart-3" : "bg-muted text-muted-foreground"}`}>
+              <Activity className="size-[18px]" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{c.label}</p>
-              <p className="text-3xl font-semibold tracking-[-0.27px] mt-0.5" style={{ color: "var(--on-dark)" }}>{c.value}</p>
-              {c.sub && <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--on-dark-soft)" }}>{c.sub}</p>}
+            <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+          </div>
+          <div className="mt-6">
+            <p className="text-xs font-medium text-muted-foreground">Посещаемость</p>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-3xl font-semibold tabular-nums text-foreground">{visitsDelta > 0 ? "+" : ""}{visitsDelta}%</span>
+              {visitsDelta >= 0
+                ? <TrendingUp className="size-4 text-chart-2" />
+                : <TrendingDown className={`size-4 ${visitsDelta < -10 ? "text-chart-3" : "text-muted-foreground"}`} />}
             </div>
-            {interactive && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: lvl.color }}>
-                Открыть <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            )}
-          </button>
-        )
-      })}
-    </div>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {visitsDelta < -10 ? "Снизилась к прошлому периоду" : visitsDelta > 15 ? "Растёт быстрее прошлого периода" : "Без критичных изменений"}
+            </p>
+          </div>
+        </button>
+      </div>
+    </section>
   )
+}
+
+function pluralTasks(value: number) {
+  const mod10 = value % 10
+  const mod100 = value % 100
+  if (mod10 === 1 && mod100 !== 11) return "задача"
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return "задачи"
+  return "задач"
 }
 
 // Скелетон вкладки на время загрузки серверной агрегации.
@@ -1367,7 +1441,7 @@ export function ReportsClient({ canExport = false }: { canExport?: boolean }) {
   }, [])
 
   const alertsCount = alertsAgg
-    ? alertsAgg.expiringSoonCount + (alertsAgg.debtsCount > 0 ? 1 : 0)
+    ? alertsAgg.expiringSoonCount + alertsAgg.atRiskCount + alertsAgg.debtsCount
     : 0
 
   function navigate(s: Section) { setSection(s); window.scrollTo({ top: 0, behavior: "smooth" }) }
