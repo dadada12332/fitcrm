@@ -24,6 +24,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Все CSV/XLSX-выгрузки CRM унифицированы: кириллица, кавычки, переносы строк, формулы, заголовки, фильтры и ширины колонок обрабатываются предсказуемо.
+- Настройки клуба теперь показывают только рабочие сценарии: рабочие часы, способы оплаты, Telegram-напоминания, полноценные интеграции, смену пароля и управление сессиями.
 - Импорт CSV/XLSX получил устойчивый parser, автоматический поиск строки заголовков, серверную нормализацию телефона/email/дат/денег и безопасное частичное обновление существующих клиентов.
 - Growth OS «Эксперименты» теперь ведут сотрудника по этапам настройки, контакта и результата внутри drawer; запуски и выводы сохраняются на уровне клуба, а «Playbooks» переименованы в «Сценарии» с понятной инструкцией по применению текста.
 - Регистрация и login теперь корректно возобновляют незавершённый onboarding; шаги сохраняются, а приглашения команды отправляются реально.
@@ -39,6 +41,8 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Экспорт абонементов возвращён в актуальный карточный экран; отчёты теперь скачиваются одним читаемым XLSX, а экспорт оплат проверяет серверное право.
+- Удалены настройки-заглушки и кнопки-фильтры без действия; рабочие часы и Telegram-параметры теперь реально влияют на связанные сценарии.
 - Импорт больше не теряет неизвестные колонки, не затирает заполненные поля отсутствующими значениями, не создаёт скрытые дубли из-за форматирования телефона и не отменяет весь пакет из-за одной ошибочной строки.
 - Выход из аккаунта теперь требует подтверждения и защищён от случайного нажатия в sidebar.
 - Исправлена повторная поломка «Ролей и прав» после security hardening, theme hydration mismatch и частичное создание клиента при ошибке абонемента.
@@ -91,6 +95,10 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `6083b4c` · 2026-07-21 · fix: restore memberships export
+- `6c34951` · 2026-07-21 · feat: harden CRM data exchange and settings
+- `99fef54` · 2026-07-21 · docs: record resilient import release
+- `35a0164` · 2026-07-21 · feat: make client imports lossless and resilient
 - `745d121` · 2026-07-21 · docs: record client inbox production verification
 - `9709769` · 2026-07-21 · fix: schedule inbox retries via Supabase
 - `a7be5a8` · 2026-07-21 · feat: add Telegram client support inbox
@@ -117,8 +125,4 @@ tags: [fitcrm, releases]
 - `a6ac540` · 2026-07-19 · Record retention prototype verification [skip ci]
 - `1086f15` · 2026-07-19 · Add local retention center prototype
 - `511f372` · 2026-07-19 · Record authenticated QA production verification [skip ci]
-- `2e3e312` · 2026-07-19 · Add authenticated local QA gate
-- `abd37f0` · 2026-07-19 · Record verified dashboard production deploy [skip ci]
-- `09d44d7` · 2026-07-19 · Fix dashboard icon and Windows knowledge sync
-- `8c32036` · 2026-07-18 · Document landing overview refresh [skip ci]
 <!-- AUTO:END changelog-candidates -->

@@ -1,7 +1,7 @@
 ---
 type: current-state
 status: active
-updated: 2026-07-20
+updated: 2026-07-21
 tags: [fitcrm, operations]
 ---
 
@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 745d121 · 2026-07-21T21:07:34+05:00 · docs: record client inbox production verification.
+- Последний commit: 6083b4c · 2026-07-21T22:08:18+05:00 · fix: restore memberships export.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -20,7 +20,7 @@ tags: [fitcrm, operations]
 
 ## Готовность модулей
 
-**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
+**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
 
 **Частично:** занятия/бронирования, audit trail UI и тарифные ограничения. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
@@ -28,7 +28,7 @@ tags: [fitcrm, operations]
 
 ## База данных
 
-- В репозитории последовательные миграции `0001`–`0067`; launch hardening `0065`–`0067` применён к production.
+- В репозитории последовательные миграции `0001`–`0075` и отдельный timestamped index; launch hardening `0065`–`0067`, inbox `0074` и client import metadata `0075` применены к production.
 - Bot tokens вынесены из публично читаемой `clubs` в service-only `telegram_integrations`; открытых `clubs.tg_token` в production — `0`.
 - Supabase Cron обрабатывает scheduled broadcasts каждые 5 минут; Vercel daily cron отвечает за reminders/report.
 - Supabase Cron каждые 10 минут повторяет pending/failed ответы клиентского inbox; сообщения остаются сохранёнными даже при временной недоступности Telegram.
@@ -37,7 +37,7 @@ tags: [fitcrm, operations]
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_Ga6MomQ7R4fZwms3wxpARLXeFLin` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_FnB4MpBqFdjvMs3W1cYJHffehKRy` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Импорт/экспорт и все settings tabs проверены на production; основные data/settings страницы прошли desktop/mobile overflow gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
 
 ## Риски и долг
 
