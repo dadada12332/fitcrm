@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { applyPlanToPermissions, planLimitError, type PlanAccess } from "../../src/lib/plan-access"
 import { getDefaultPermissions } from "../../src/lib/permissions"
+import { formatPlanLimitError, LIMIT_KEYS, parsePlanLimitError } from "../../src/lib/plan-limits"
 
 function access(overrides: Partial<PlanAccess> = {}): PlanAccess {
   return {
@@ -37,6 +38,24 @@ describe("plan access", () => {
     expect(planLimitError(plan, "clients", 999)).toBeNull()
     expect(planLimitError(plan, "clients", 1000)).toContain("Достигнут лимит")
     expect(planLimitError(access({ limits: { clients: null } }), "clients", 100_000)).toBeNull()
+  })
+
+  it.each(LIMIT_KEYS)("enforces the %s boundary", (key) => {
+    const plan = access({ limits: { [key]: 3 } })
+    expect(planLimitError(plan, key, 2)).toBeNull()
+    expect(planLimitError(plan, key, 3)).toContain("Достигнут лимит")
+    expect(planLimitError(plan, key, 1, 2)).toBeNull()
+    expect(planLimitError(plan, key, 1, 3)).toContain("Достигнут лимит")
+  })
+
+  it("keeps enough structured detail for the upgrade dialog", () => {
+    const message = formatPlanLimitError("clients", 1_000, "Starter")
+    expect(parsePlanLimitError(message)).toEqual({
+      key: "clients",
+      label: "Клиенты",
+      limit: 1_000,
+      planName: "Starter",
+    })
   })
 
   it("fails open if plan metadata is temporarily unavailable", () => {

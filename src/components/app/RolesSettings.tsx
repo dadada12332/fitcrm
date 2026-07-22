@@ -9,6 +9,7 @@ import {
 } from "@/app/(app)/settings/roles/actions"
 import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions } from "@/lib/permissions"
+import { showActionError } from "@/lib/plan-limit-client"
 
 // ── Primitives ───────────────────────────────────────────────────
 
@@ -315,7 +316,7 @@ function CreateRoleModal({
         templateKey: baseKey,
         assignToStaffId: assignStaffId,
       })
-      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      if (res.error) { setMsg({ text: res.error, type: "err" }); showActionError(res.error); return }
 
       const newRole: RoleRow = {
         id: res.id!,

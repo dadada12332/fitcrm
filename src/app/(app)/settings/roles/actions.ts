@@ -95,7 +95,8 @@ export async function createRoleAction(data: {
   if (!club) return { error: "Клуб не найден" }
   if (!club.permissions.settings.roles) return { error: "Раздел недоступен на текущем тарифе" }
   if (club.role !== "owner") return { error: "Только владелец может создавать роли" }
-  const { count } = await supabase.from("club_roles").select("id", { count: "exact", head: true }).eq("club_id", club.clubId)
+  const { count } = await supabase.from("club_roles").select("id", { count: "exact", head: true })
+    .eq("club_id", club.clubId).eq("is_system", false)
   const limitError = requireRecordLimit(club, "roles", count ?? 0)
   if (limitError) return { error: limitError }
 

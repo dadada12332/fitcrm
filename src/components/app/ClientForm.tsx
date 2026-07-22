@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react"
 import { createClientAction, type ClientFormState } from "@/app/(app)/clients/actions"
 import { Input } from "@/components/ui/input"
+import { dispatchPlanLimitError } from "@/lib/plan-limit-client"
 
 export function ClientForm() {
   const [state, formAction, pending] = useActionState<ClientFormState, FormData>(
@@ -13,6 +14,7 @@ export function ClientForm() {
 
   useEffect(() => {
     if (state.ok) formRef.current?.reset()
+    if (state.error) dispatchPlanLimitError(state.error)
   }, [state])
 
   return (

@@ -22,6 +22,7 @@ import { RetentionAiDrawer } from "@/components/app/RetentionAiDrawer"
 import { analyzeRetentionAction } from "@/app/(app)/retention/actions"
 import type { RetentionCandidate, RetentionData, RetentionLevel, RetentionReason } from "@/lib/retention"
 import type { RetentionAiAnalysis, RetentionAiFilter, RetentionAiScope } from "@/lib/retention-ai"
+import { showActionError } from "@/lib/plan-limit-client"
 
 type Filter = RetentionAiFilter
 
@@ -116,6 +117,7 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
       if (requestId !== aiRequestId.current) return
       setAiAnalysis(result.analysis ?? null)
       setAiError(result.error ?? null)
+      if (result.error) showActionError(result.error)
     })
   }
 

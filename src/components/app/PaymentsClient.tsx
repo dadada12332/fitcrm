@@ -10,6 +10,7 @@ import { EmptyState } from "./EmptyState"
 import { exportPaymentsCsvAction } from "@/app/(app)/payments/actions"
 import { downloadBlob } from "@/lib/csv"
 import { toast } from "sonner"
+import { showActionError } from "@/lib/plan-limit-client"
 
 type Membership = { id: string; name: string; price: number }
 
@@ -147,7 +148,7 @@ export function PaymentsClient({
     try {
       const res = await exportPaymentsCsvAction({ search: urlQuery, provider: prov, status, from: periodFrom(period), sort })
       if (res.error || !res.csv) {
-        toast.error(res.error ?? "Не удалось подготовить экспорт")
+        showActionError(res.error ?? "Не удалось подготовить экспорт")
         return
       }
       downloadBlob(

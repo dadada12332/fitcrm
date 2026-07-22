@@ -12,15 +12,15 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 75221d4 · 2026-07-22T15:38:37+05:00 · docs: define recommended plan access matrix [skip ci].
+- Последний commit: 898f6b8 · 2026-07-22T16:24:53+05:00 · docs: record landing previous-price release [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 79; последняя `20260720154135_index_growth_experiment_creator.sql`.
+- Миграции в Git: 80; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
 ## Готовность модулей
 
-**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Тарифы из Platform Admin теперь реально управляют разделами, функциями и лимитами CRM; UI, Server Actions и Telegram cron используют одну матрицу Trial/Starter/Standard/Business. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram templates имеют сценарный редактор с live preview, контекстными переменными и двойной валидацией; automation toggles и тексты сохраняются из одного состояния. Брендинг Telegram-бота позволяет установить, заменить и удалить аватар из CRM с серверным приведением к требованиям Bot API. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
+**Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. Тарифы из Platform Admin реально управляют разделами, функциями и 10 рабочими лимитами CRM; UI, Server Actions и Telegram cron используют одну матрицу Trial/Starter/Standard/Business. При достижении лимита CRM сохраняет данные, блокирует только новую операцию и предлагает следующий подходящий тариф с актуальной ценой. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram templates имеют сценарный редактор с live preview, контекстными переменными и двойной валидацией; automation toggles и тексты сохраняются из одного состояния. Брендинг Telegram-бота позволяет установить, заменить и удалить аватар из CRM с серверным приведением к требованиям Bot API. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
 
 **Частично:** занятия/бронирования и audit trail UI. Telegram automation работает для expiry/class reminders, broadcasts, QR и self-service renewal; recurring auto-charge требует отдельного provider API. AI-аналитика работает как read-only operational workspace с детерминированными KPI и LLM для свободных запросов.
 
@@ -28,7 +28,7 @@ tags: [fitcrm, operations]
 
 ## База данных
 
-- В репозитории последовательные миграции `0001`–`0075` и отдельный timestamped index; launch hardening `0065`–`0067`, inbox `0074` и client import metadata `0075` применены к production.
+- В репозитории последовательные миграции `0001`–`0079` и отдельный timestamped index; `0079` добавляет идемпотентное резервирование месячного расхода и удаляет декоративные лимиты без enforcement.
 - Bot tokens вынесены из публично читаемой `clubs` в service-only `telegram_integrations`; открытых `clubs.tg_token` в production — `0`.
 - Supabase Cron обрабатывает scheduled broadcasts каждые 5 минут; Vercel daily cron отвечает за reminders/report.
 - Supabase Cron каждые 10 минут повторяет pending/failed ответы клиентского inbox; сообщения остаются сохранёнными даже при временной недоступности Telegram.

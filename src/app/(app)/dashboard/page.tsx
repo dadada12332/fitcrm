@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import { getCurrentClub } from "@/lib/club"
 import { DashboardBody, DashboardBodySkeleton } from "@/components/app/DashboardBody"
-import { Download } from "lucide-react"
+import { DashboardExportButton } from "@/components/app/DashboardExportButton"
 
 export default async function DashboardPage() {
   const club = await getCurrentClub()
@@ -15,10 +15,7 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Дашборд</h1>
         {club.permissions.reports.export && club.permissions.dashboard.view_finance && (
-          <a href="/dashboard/export" className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Скачать XLSX</span>
-          </a>
+          <DashboardExportButton />
         )}
       </div>
 

@@ -11,6 +11,7 @@ import {
   connectTelegramAction, disconnectTelegramAction, removeTelegramBotAvatarAction,
   saveTelegramSettingsAction, uploadTelegramBotAvatarAction,
 } from "@/app/(app)/integrations/actions"
+import { showActionError } from "@/lib/plan-limit-client"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { saveIntegrationAction } from "@/app/(app)/settings/club/actions"
 import { TelegramBroadcast, type BroadcastHistoryItem } from "./TelegramBroadcast"
@@ -136,7 +137,7 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
     setConnectMsg(null)
     startConnect(async () => {
       const res = await connectTelegramAction(token)
-      if (res.error) { setConnectMsg({ text: res.error, ok: false }); return }
+      if (res.error) { setConnectMsg({ text: res.error, ok: false }); showActionError(res.error); return }
       setConnectMsg({ text: `Бот @${res.bot?.username} успешно подключён!`, ok: true })
       setToken("")
     })

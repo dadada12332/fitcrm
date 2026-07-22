@@ -13,6 +13,15 @@ export async function loadReportsDataAction(): Promise<ReportsData | null> {
   return getReportsDataCached(club.clubId)
 }
 
+export async function loadReportsExportDataAction(): Promise<{ data?: ReportsData; error?: string }> {
+  const club = await getCurrentClub()
+  if (!club) return { error: "Клуб не найден" }
+  if (!club.permissions.reports.export || !club.permissions.reports.finance) return { error: "Недостаточно прав" }
+  const usageError = await consumeMonthlyLimit(club, "exports")
+  if (usageError) return { error: usageError }
+  return { data: await getReportsDataCached(club.clubId) }
+}
+
 /** Финансовая агрегация за период (Stage 1 серверной агрегации). */
 export async function loadFinanceAction(
   from: string, to: string, prevFrom: string, prevTo: string,

@@ -14,7 +14,7 @@ import {
   type ImportExtraFields,
 } from "@/lib/client-import"
 import { can } from "@/lib/permissions"
-import { consumeMonthlyLimit, requirePlanFeature, requireRecordLimit } from "@/lib/plan-enforcement"
+import { consumeMonthlyLimitOnce, requirePlanFeature, requireRecordLimit } from "@/lib/plan-enforcement"
 import { createClient } from "@/lib/supabase/server"
 import type { DuplicateStrategy } from "@/lib/import-wizard"
 
@@ -116,6 +116,7 @@ export async function checkPhonesAction(phones: string[]): Promise<string[]> {
 export async function batchImportClientsAction(
   inputRows: ImportClientRow[],
   strategy: DuplicateStrategy,
+  importSessionId: string,
 ): Promise<BatchImportResult> {
   const club = await getCurrentClub()
   const audit = emptyAudit()
@@ -128,7 +129,7 @@ export async function batchImportClientsAction(
     result.errors.push({ row: 0, reason: featureError, name: "" })
     return result
   }
-  const usageError = await consumeMonthlyLimit(club, "imports")
+  const usageError = await consumeMonthlyLimitOnce(club, "imports", importSessionId)
   if (usageError) {
     result.errors.push({ row: 0, reason: usageError, name: "" })
     return result

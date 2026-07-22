@@ -1,5 +1,6 @@
 import type { RolePermissions } from "@/lib/permissions"
-import type { FeatureKey, FullPlan, LimitKey, SectionKey } from "@/lib/plans"
+import type { FeatureKey, FullPlan, SectionKey } from "@/lib/plans"
+import { formatPlanLimitError, type LimitKey } from "./plan-limits"
 
 export type PlanAccess = Pick<FullPlan, "code" | "name" | "features" | "limits" | "sections">
 
@@ -19,7 +20,7 @@ export function planLimitValue(plan: PlanAccess | null, key: LimitKey): number |
 export function planLimitError(plan: PlanAccess | null, key: LimitKey, current: number, adding = 1): string | null {
   const limit = planLimitValue(plan, key)
   if (limit === null || current + adding <= limit) return null
-  return `Достигнут лимит тарифа «${plan?.name ?? "Текущий"}»: ${limit}. Выберите другой тариф в настройках подписки.`
+  return formatPlanLimitError(key, limit, plan?.name ?? "Текущий")
 }
 
 function disabled<T extends Record<string, boolean>>(value: T): T {

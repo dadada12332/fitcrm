@@ -7,6 +7,7 @@ import { searchClientsForCheckin, type ClientSearchResult } from "@/lib/visits"
 import { getPaymentsPage, type PaymentsQuery, type PaymentRow } from "@/lib/payments"
 import { can } from "@/lib/permissions"
 import { serializeCSV } from "@/lib/csv"
+import { consumeMonthlyLimit } from "@/lib/plan-enforcement"
 
 const PROVIDER_RU: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
 const STATUS_RU: Record<string, string> = { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }
@@ -27,6 +28,8 @@ export async function exportPaymentsCsvAction(q: PaymentsQuery): Promise<{ csv?:
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "payments", "export")) return { error: "Недостаточно прав" }
   if (!club.permissions.payments.view) return { error: "Нет прав" }
+  const usageError = await consumeMonthlyLimit(club, "exports")
+  if (usageError) return { error: usageError }
   const all: PaymentRow[] = []
   let page = 0
   while (page < 500) {

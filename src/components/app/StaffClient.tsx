@@ -7,6 +7,7 @@ import { type StaffRow, type StaffKPI, ROLE_LABELS } from "@/lib/staff"
 import { toast } from "@/lib/use-action"
 import { addStaffAction } from "@/app/(app)/staff/actions"
 import { MoneyInput } from "./MoneyInput"
+import { showActionError } from "@/lib/plan-limit-client"
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
         name: name.trim(), email: email.trim(), phone: phone.trim(), role,
         salaryType: salType, salaryFixed: Number(fixed) || 0, salaryPercent: Number(pct) || 0,
       })
-      if (res.error) { setError(res.error); toast.error(res.error); return }
+      if (res.error) { setError(res.error); showActionError(res.error); return }
       if (res.invited) {
         // New user — invite sent, they'll appear in the list after accepting
         toast.success(`Приглашение отправлено на ${email.trim()}`)

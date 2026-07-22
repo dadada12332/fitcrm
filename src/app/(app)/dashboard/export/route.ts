@@ -4,6 +4,7 @@ import { getCurrentClub } from "@/lib/club"
 import { getDashboardData } from "@/lib/dashboard"
 import { can } from "@/lib/permissions"
 import { styleWorkbook } from "@/lib/xlsx"
+import { consumeMonthlyLimit } from "@/lib/plan-enforcement"
 
 export const runtime = "nodejs"
 
@@ -17,6 +18,8 @@ export async function GET() {
   if (!club) return new Response("Club not found", { status: 403 })
   if (!can(club.permissions, "reports", "export")) return new Response("Forbidden", { status: 403 })
   if (!can(club.permissions, "dashboard", "view_finance")) return new Response("Forbidden", { status: 403 })
+  const usageError = await consumeMonthlyLimit(club, "exports")
+  if (usageError) return new Response(usageError, { status: 429 })
 
   const d = await getDashboardData(supabase, club.clubId)
 

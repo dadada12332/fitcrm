@@ -11,9 +11,10 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid,
 } from "recharts"
 import type { ReportsData, ReportPayment, ReportStaffRow, FinanceAgg, SalesAgg, VisitsAgg, ClientsAgg, RenewalsAgg, DebtsAgg, AlertsAgg } from "@/lib/reports"
-import { loadReportsDataAction, loadFinanceAction, loadSalesAction, loadVisitsAction, loadClientsAction, loadRenewalsAction, loadDebtsAction, loadStaffAction, loadAlertsAction, getReportsForecastAction, type ForecastInput } from "@/app/(app)/reports/actions"
+import { loadReportsExportDataAction, loadFinanceAction, loadSalesAction, loadVisitsAction, loadClientsAction, loadRenewalsAction, loadDebtsAction, loadStaffAction, loadAlertsAction, getReportsForecastAction, type ForecastInput } from "@/app/(app)/reports/actions"
 import { downloadBlob } from "@/lib/csv"
 import { toast } from "sonner"
+import { showActionError } from "@/lib/plan-limit-client"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -1096,7 +1097,8 @@ function ForecastBlock({ input }: { input: ForecastInput }) {
   async function generate() {
     setLoading(true)
     const res = await getReportsForecastAction(input)
-    if (!res.error) setData({ forecast: res.forecast, recommendations: res.recommendations })
+    if (res.error) showActionError(res.error)
+    else setData({ forecast: res.forecast, recommendations: res.recommendations })
     setLoading(false)
   }
 
@@ -1453,8 +1455,9 @@ export function ReportsClient({ canExport = false }: { canExport?: boolean }) {
     if (exporting) return
     setExporting("pdf")
     try {
-      const data = await loadReportsDataAction()
-      if (!data) { alert("Не удалось загрузить данные для экспорта"); return }
+      const result = await loadReportsExportDataAction()
+      if (result.error || !result.data) { showActionError(result.error ?? "Не удалось загрузить данные для экспорта"); return }
+      const data = result.data
       const paidPayments = data.payments.filter(p => p.status === "paid" && p.paidAt && p.paidAt >= bounds.from && p.paidAt <= bounds.to)
       const periodVisits = data.visits.filter(v => v.checkedInAt >= bounds.from && v.checkedInAt <= bounds.to)
       const debts = data.payments.filter(p => p.status === "pending")
@@ -1474,8 +1477,8 @@ export function ReportsClient({ canExport = false }: { canExport?: boolean }) {
       const today = new Date().toISOString().slice(0, 10)
       downloadBlob(`fitcrm-reports-${period}-${today}.xlsx`, blob)
       toast.success("Отчёт XLSX готов")
-    } catch {
-      toast.error("Не удалось скачать отчёт")
+    } catch (error) {
+      showActionError(error instanceof Error ? error.message : "Не удалось скачать отчёт")
     } finally {
       setExporting(null)
     }

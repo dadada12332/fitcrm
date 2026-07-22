@@ -24,6 +24,7 @@ import {
   WalletCards,
 } from "lucide-react"
 import { askAiAction, type AiCard, type AiClientItem, type AiMessage, type Briefing, type BriefingStat } from "@/app/(app)/ai/actions"
+import { showActionError } from "@/lib/plan-limit-client"
 import { AiComposer } from "./AiComposer"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -277,6 +278,7 @@ export function AiChat({ initialBriefing }: { initialBriefing: Briefing | null }
     setMessages(next)
     startTransition(async () => {
       const result = await askAiAction(next.map((message) => ({ role: message.role, content: message.content, image: message.image })))
+      if (result.error) { showActionError(result.error); return }
       setMessages((current) => [...current, { role: "assistant", content: result.error ?? result.reply, cards: result.cards }])
     })
   }

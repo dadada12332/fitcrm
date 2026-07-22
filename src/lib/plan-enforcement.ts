@@ -1,6 +1,7 @@
 import type { CurrentClub } from "@/lib/club"
 import { planFeatureEnabled, planLimitError, planLimitValue, planSectionEnabled } from "@/lib/plan-access"
-import type { FeatureKey, LimitKey, SectionKey } from "@/lib/plans"
+import type { FeatureKey, SectionKey } from "@/lib/plans"
+import type { LimitKey } from "@/lib/plan-limits"
 import { createServiceClient } from "@/lib/supabase/service"
 
 type Club = NonNullable<CurrentClub>
@@ -27,6 +28,24 @@ export async function consumeMonthlyLimit(club: Club, key: LimitKey, amount = 1)
     p_usage_key: key,
     p_amount: amount,
     p_limit: limit,
+  })
+  if (error) return "Не удалось проверить лимит тарифа"
+  return data === true ? null : planLimitError(club.planAccess, key, limit, 1)
+}
+
+export async function consumeMonthlyLimitOnce(club: Club, key: LimitKey, reservationKey: string, amount = 1): Promise<string | null> {
+  const limit = planLimitValue(club.planAccess, key)
+  if (limit === null) return null
+  if (limit <= 0) return planLimitError(club.planAccess, key, limit, 1)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reservationKey)) {
+    return "Некорректный идентификатор операции"
+  }
+  const { data, error } = await createServiceClient().rpc("consume_plan_usage_once", {
+    p_club_id: club.clubId,
+    p_usage_key: key,
+    p_amount: amount,
+    p_limit: limit,
+    p_reservation_key: reservationKey,
   })
   if (error) return "Не удалось проверить лимит тарифа"
   return data === true ? null : planLimitError(club.planAccess, key, limit, 1)

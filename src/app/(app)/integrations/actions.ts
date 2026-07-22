@@ -471,6 +471,11 @@ export async function testBroadcastAction(
     }
   }
 
+  const currentClub = await getCurrentClub()
+  if (!currentClub) return { error: "Клуб не найден" }
+  const usageError = await consumeMonthlyLimit(currentClub, "telegram_messages")
+  if (usageError) return { error: usageError }
+
   const { data: profile } = await supabase.from("users").select("full_name").eq("id", ctx.userId).maybeSingle()
   const imageUrl = hasImage ? await uploadBroadcastImage(ctx.clubId, image as File) : null
   if (hasImage && !imageUrl) return { error: "Не удалось загрузить изображение. Попробуйте ещё раз" }

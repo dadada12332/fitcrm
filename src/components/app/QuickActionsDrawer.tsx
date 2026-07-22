@@ -18,6 +18,7 @@ import { addStaffAction } from "@/app/(app)/staff/actions"
 import { createMembershipAction } from "@/app/(app)/memberships/actions"
 import type { ClientSearchResult } from "@/lib/visits"
 import { MoneyInput } from "./MoneyInput"
+import { showActionError } from "@/lib/plan-limit-client"
 
 // ── Shared primitives ────────────────────────────────────────────────
 
@@ -142,7 +143,7 @@ function NewClientView({ memberships, onDone }: { memberships: QuickMembership[]
     fd.set("notes", notes.trim())
     start(async () => {
       const res = await createClientAction({}, fd)
-      if (res.error) { setError(res.error); return }
+      if (res.error) { setError(res.error); showActionError(res.error); return }
       setOk(true)
       setTimeout(onDone, 1000)
     })
@@ -309,7 +310,7 @@ function NewPaymentView({ memberships, onDone }: { memberships: QuickMembership[
     setError(null)
     start(async () => {
       const res = await createPaymentAction({ clientId: client.id, membershipId, amount: Number(amount), provider, comment })
-      if (res.error) { setError(res.error); return }
+      if (res.error) { setError(res.error); showActionError(res.error); return }
       setOk(true)
       setTimeout(onDone, 1000)
     })

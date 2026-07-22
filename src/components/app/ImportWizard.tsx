@@ -17,6 +17,7 @@ import {
   checkPhonesAction, batchImportClientsAction,
   type ImportClientRow, type BatchImportResult, type ImportAudit,
 } from "@/app/(app)/clients/import-actions"
+import { dispatchPlanLimitError } from "@/lib/plan-limit-client"
 import { downloadBlob, downloadCSV } from "@/lib/csv"
 import { styleWorkbook } from "@/lib/xlsx"
 
@@ -1107,6 +1108,7 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
     setTotal(toProcess.length); setProgress(0)
     let imported = 0, updated = 0, skipped = 0
     const errors: WizardResult["errors"] = []
+    const importSessionId = crypto.randomUUID()
     const audit: ImportAudit = {
       clientsInserted: 0, clientsUpdated: 0, subscriptionsCreated: 0, subscriptionsUpdated: 0,
       membershipsMatched: 0, membershipsCreated: 0, visitsCreated: 0,
@@ -1115,9 +1117,10 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
     }
 
     for (let i = 0; i < toProcess.length; i += CHUNK) {
-      const res = await batchImportClientsAction(toProcess.slice(i, i + CHUNK), dupStrategy)
+      const res = await batchImportClientsAction(toProcess.slice(i, i + CHUNK), dupStrategy, importSessionId)
       imported += res.imported; updated += res.updated; skipped += res.skipped
       errors.push(...res.errors)
+      const planLimit = res.errors.find((item) => dispatchPlanLimitError(item.reason))
       // accumulate audit
       audit.subscriptionsCreated += res.audit.subscriptionsCreated
       audit.subscriptionsUpdated += res.audit.subscriptionsUpdated
@@ -1131,6 +1134,7 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
       audit.rowsMerged           += res.audit.rowsMerged
       if (!res.audit.financialColumns) audit.financialColumns = false
       setProgress(Math.min(i + CHUNK, toProcess.length))
+      if (planLimit) break
     }
 
     const validationErrors = validated

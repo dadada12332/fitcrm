@@ -28,6 +28,7 @@ import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrat
 import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
 import { fmtMoney } from "@/lib/money"
 import { runAction } from "@/lib/use-action"
+import { showActionError } from "@/lib/plan-limit-client"
 
 export type ClubData = {
   generatedAt: number
@@ -283,7 +284,7 @@ function BranchesSection({ club }: { club: ClubData }) {
     if (!bName.trim()) return
     start(async () => {
       const res = await createBranchAction({ name: bName.trim(), address: bAddr.trim() })
-      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      if (res.error) { setMsg({ text: res.error, type: "err" }); showActionError(res.error); return }
       setBName(""); setBAddr(""); setShowForm(false)
       setMsg({ text: "Филиал создан", type: "ok" })
       setTimeout(() => setMsg(null), 2500)
@@ -509,7 +510,7 @@ function StaffSection({ club }: { club: ClubData }) {
     e.preventDefault(); setMsg(null)
     start(async () => {
       const res = await inviteStaffAction({ email: invEmail.trim(), role: invRole })
-      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      if (res.error) { setMsg({ text: res.error, type: "err" }); showActionError(res.error); return }
       setMsg({ text: `Приглашение отправлено на ${invEmail.trim()}`, type: "ok" })
       setInvEmail(""); setShowForm(false)
       setTimeout(() => setMsg(null), 4000)
@@ -520,7 +521,7 @@ function StaffSection({ club }: { club: ClubData }) {
     setMsg(null)
     start(async () => {
       const res = await createInviteLinkAction({ role: invRole })
-      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
+      if (res.error) { setMsg({ text: res.error, type: "err" }); showActionError(res.error); return }
       await navigator.clipboard.writeText(res.url!)
       setCopied(true)
       setMsg({ text: "Ссылка скопирована! Отправьте её сотруднику в Telegram или WhatsApp", type: "ok" })

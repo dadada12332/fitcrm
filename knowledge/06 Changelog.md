@@ -12,6 +12,8 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- При достижении тарифного лимита CRM показывает адаптивное предложение следующего подходящего тарифа с актуальной ценой и объясняет, что данные клуба не будут удалены.
+
 - На публичном лендинге появился интерактивный блок Growth OS и удержания: он показывает путь от раннего сигнала риска до готового действия и измеримого результата.
 
 - В Telegram-интеграции можно загрузить, заменить и удалить аватар бота прямо из CRM; фото автоматически обрезается до квадрата и синхронизируется с Telegram.
@@ -61,6 +63,9 @@ tags: [fitcrm, releases]
 - По решению владельца блок «Тарифы и цены» возвращён к исходному виду до редизайна: прежние карточки, размеры, названия и лента «Популярно».
 
 ### Fixed
+
+- Экспорты из дашборда, платежей и отчётов теперь учитываются в общем месячном лимите; пакетный импорт расходует одну операцию независимо от количества порций.
+- Системные роли больше не занимают лимит пользовательских ролей, новые филиалы наследуют тариф родительского клуба, а тестовая Telegram-отправка учитывается в лимите сообщений.
 
 - Старая цена тарифа из Platform Admin теперь отображается зачёркнутой на лендинге рядом с актуальной ценой; месячный и годовой режимы сравнивают цены в одинаковом формате.
 
@@ -125,6 +130,10 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
+- `908eae6` · 2026-07-22 · fix: show previous plan price on landing
+- `a080c10` · 2026-07-22 · docs: record plan enforcement release [skip ci]
+- `0942064` · 2026-07-22 · feat: enforce plan access and usage limits
 - `75221d4` · 2026-07-22 · docs: define recommended plan access matrix [skip ci]
 - `8a04d0d` · 2026-07-22 · docs: record FAQ production release [skip ci]
 - `26331e9` · 2026-07-22 · fix: align landing FAQ with product
@@ -151,8 +160,4 @@ tags: [fitcrm, releases]
 - `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
 - `50a9690` · 2026-07-22 · feat: redesign Telegram message templates
 - `970660e` · 2026-07-22 · docs: record data exchange and settings audit [skip ci]
-- `6083b4c` · 2026-07-21 · fix: restore memberships export
-- `6c34951` · 2026-07-21 · feat: harden CRM data exchange and settings
-- `99fef54` · 2026-07-21 · docs: record resilient import release
-- `35a0164` · 2026-07-21 · feat: make client imports lossless and resilient
 <!-- AUTO:END changelog-candidates -->

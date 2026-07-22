@@ -6,6 +6,7 @@ import type { Product, StockMovement, InventoryStats } from "@/lib/inventory"
 import { addProductAction, addSupplyAction, writeoffAction } from "@/app/(app)/warehouse/actions"
 import { createClient } from "@/lib/supabase/client"
 import { MoneyInput } from "./MoneyInput"
+import { showActionError } from "@/lib/plan-limit-client"
 
 export function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 export function fmtQty(n: number, unit: string) { return `${n % 1 === 0 ? n : n.toFixed(2)} ${unit}` }
@@ -72,7 +73,7 @@ export function AddProductModal({ clubId, open, onClose }: { clubId: string; ope
     const fd = new FormData(e.currentTarget)
     start(async () => {
       const res = await addProductAction(fd)
-      if (res?.error) { setError(res.error); return }
+      if (res?.error) { setError(res.error); showActionError(res.error); return }
       setPhotoUrl(""); onClose()
     })
   }

@@ -1,4 +1,9 @@
 import { createServiceClient } from "@/lib/supabase/service"
+import { LIMIT_KEYS, LIMIT_LABELS } from "@/lib/plan-limits"
+import type { LimitKey } from "@/lib/plan-limits"
+
+export { LIMIT_KEYS, LIMIT_LABELS }
+export type { LimitKey }
 
 // ── Справочники ключей (единственное место, где перечислены доступные фичи/лимиты/разделы) ──
 export const FEATURE_KEYS = [
@@ -19,21 +24,6 @@ export const FEATURE_LABELS: Record<string, string> = {
   retention: "Удержание", growth: "Growth OS", inbox: "Поддержка клиентов",
   telegram_automation: "Автоматизация Telegram",
   payment_integrations: "Платёжные интеграции", advanced_reports: "Расширенные отчёты",
-}
-
-export const LIMIT_KEYS = [
-  "clients", "staff", "branches", "products", "users", "roles", "integrations",
-  "ai_requests", "telegram_messages", "sms", "files", "storage_mb",
-  "checkins", "imports", "exports",
-] as const
-export type LimitKey = typeof LIMIT_KEYS[number]
-
-export const LIMIT_LABELS: Record<string, string> = {
-  clients: "Клиентов", staff: "Сотрудников", branches: "Филиалов", products: "Товаров",
-  users: "Пользователей", roles: "Ролей", integrations: "Интеграций",
-  ai_requests: "AI-запросов", telegram_messages: "Telegram-сообщений", sms: "SMS",
-  files: "Файлов", storage_mb: "Хранилище (МБ)", checkins: "Чек-инов",
-  imports: "Импортов", exports: "Экспортов",
 }
 
 export const SECTION_KEYS = [

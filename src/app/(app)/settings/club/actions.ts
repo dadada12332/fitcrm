@@ -400,6 +400,30 @@ export async function createBranchAction(data: {
 
   if (error) return { error: error.message }
 
+  // Филиал входит в подписку текущего клуба и должен сразу получить тот же тариф,
+  // иначе create_club оставляет его на отдельном Trial и лимиты расходятся.
+  const service = createServiceClient()
+  const { data: parentPlan, error: parentPlanError } = await service.from("clubs")
+    .select("plan, plan_expires_at, plan_price_locked, plan_currency_locked, plan_period_locked")
+    .eq("id", currentClub.clubId).single()
+  if (parentPlanError || !parentPlan) {
+    await service.from("clubs").delete().eq("id", clubId as string)
+    return { error: "Не удалось получить тариф основного клуба" }
+  }
+  const { error: planError } = await service.from("clubs").update({
+    plan: parentPlan.plan,
+    trial_expires_at: currentClub.plan === "trial" ? currentClub.trialExpiresAt : null,
+    plan_expires_at: parentPlan.plan_expires_at,
+    plan_price_locked: parentPlan.plan_price_locked,
+    plan_currency_locked: parentPlan.plan_currency_locked,
+    plan_period_locked: parentPlan.plan_period_locked,
+    plan_assigned_at: new Date().toISOString(),
+  }).eq("id", clubId as string)
+  if (planError) {
+    await service.from("clubs").delete().eq("id", clubId as string)
+    return { error: "Не удалось применить тариф к филиалу" }
+  }
+
   revalidatePath("/settings/branches")
   revalidatePath("/")
   return { ok: true, clubId: clubId as string }

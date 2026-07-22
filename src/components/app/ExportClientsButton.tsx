@@ -6,6 +6,7 @@ import { Download, Loader2 } from "lucide-react"
 import { exportClientsCsvAction } from "@/app/(app)/clients/actions"
 import { downloadBlob } from "@/lib/csv"
 import { toast } from "sonner"
+import { showActionError } from "@/lib/plan-limit-client"
 
 export function ExportClientsButton() {
   const searchParams = useSearchParams()
@@ -23,7 +24,7 @@ export function ExportClientsButton() {
         sort: searchParams.get("sort") ?? undefined,
       })
       if (res.error || !res.csv) {
-        toast.error(res.error ?? "Не удалось подготовить экспорт")
+        showActionError(res.error ?? "Не удалось подготовить экспорт")
         return
       }
       downloadBlob(

@@ -1,6 +1,7 @@
 "use client"
 
 import { toast } from "sonner"
+import { dispatchPlanLimitError } from "@/lib/plan-limit-client"
 
 type ActionResult = { error?: string | null } | void | null | undefined
 
@@ -32,7 +33,8 @@ export async function runAction<T extends ActionResult>(
     const errMsg = res && typeof res === "object" && "error" in res ? res.error : null
     if (errMsg) {
       opts.rollback?.()
-      toast.error(errMsg, { id })
+      if (id) toast.dismiss(id)
+      if (!dispatchPlanLimitError(errMsg)) toast.error(errMsg)
       opts.onError?.(errMsg)
       return res
     }
@@ -47,7 +49,8 @@ export async function runAction<T extends ActionResult>(
   } catch (e) {
     opts.rollback?.()
     const msg = opts.error ?? (e instanceof Error ? e.message : "Что-то пошло не так")
-    toast.error(msg, { id })
+    if (id) toast.dismiss(id)
+    if (!dispatchPlanLimitError(msg)) toast.error(msg)
     opts.onError?.(msg)
     return null
   }

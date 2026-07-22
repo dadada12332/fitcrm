@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { disconnectInstagramAction, startInstagramOAuthAction, syncInstagramAction } from "@/app/(app)/integrations/instagram/actions"
+import { showActionError } from "@/lib/plan-limit-client"
 
 export type InstagramMediaItem = {
   id: string
@@ -64,7 +65,7 @@ export function InstagramIntegration({ data, oauth }: { data: InstagramPageData;
   const connect = () => startTransition(async () => {
     setMessage(null)
     const result = await startInstagramOAuthAction()
-    if (result.error) return setMessage(result.error)
+    if (result.error) { setMessage(result.error); showActionError(result.error); return }
     if (result.url) window.location.assign(result.url)
   })
   const sync = () => startTransition(async () => {

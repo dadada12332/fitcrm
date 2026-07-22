@@ -8,6 +8,7 @@ import { Sidebar } from "./Sidebar"
 import { TopBar } from "./TopBar"
 import { ClubProvider } from "./ClubContext"
 import { ProductOnboarding } from "./ProductOnboarding"
+import { PlanLimitUpgradeDialog } from "./PlanLimitUpgradeDialog"
 import { signOut } from "@/app/(auth)/actions"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
@@ -105,6 +106,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
 
   return (
     <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess }}>
+      <PlanLimitUpgradeDialog />
       {impersonating && (
         <div
           className="flex items-center gap-3 px-4 h-11 shrink-0"

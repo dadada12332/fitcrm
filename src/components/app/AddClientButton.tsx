@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { toast } from "@/lib/use-action"
 import { Plus, X, ChevronDown, Calendar } from "lucide-react"
 import { createClientAction, type ClientFormState } from "@/app/(app)/clients/actions"
+import { showActionError } from "@/lib/plan-limit-client"
 
 export type MembershipOption = { id: string; name: string; price: number }
 export type TrainerOption = { id: string; name: string }
@@ -150,7 +151,7 @@ export function AddClientButton({
       const res: ClientFormState = await createClientAction({}, fd)
       if (res.error) {
         setError(res.error)
-        toast.error(res.error)
+        showActionError(res.error)
       } else {
         close()
         toast.success("Клиент создан")

@@ -34,6 +34,7 @@ import {
 } from "@/lib/broadcast"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { showActionError } from "@/lib/plan-limit-client"
 
 export type BroadcastHistoryItem = {
   id: string
@@ -163,6 +164,7 @@ export function TelegramBroadcast({
       const response = await broadcastTelegramAction(buildForm())
       if (response.error && !response.sent) {
         setResult({ ok: false, text: response.error })
+        showActionError(response.error)
         return
       }
       setResult({
@@ -186,6 +188,7 @@ export function TelegramBroadcast({
       const response = await scheduleBroadcastAction(formData)
       if (response.error) {
         setResult({ ok: false, text: response.error })
+        showActionError(response.error)
         return
       }
       setResult({
@@ -207,6 +210,7 @@ export function TelegramBroadcast({
     setResult(null)
     startTest(async () => {
       const response = await testBroadcastAction(buildForm())
+      if (response.error) showActionError(response.error)
       setPairingUrl(response.pairingUrl ?? null)
       setResult(response.error
         ? { ok: false, text: response.error }
