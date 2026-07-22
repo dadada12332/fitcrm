@@ -5,6 +5,7 @@ import { useRef, useState, useTransition } from "react"
 import {
   CheckCircle, AlertCircle, Trash2, Eye, EyeOff,
   Bot, Zap, MessageSquare, BarChart2, RefreshCw, Send, ImagePlus,
+  Users, Activity, UserPlus, QrCode, type LucideIcon,
 } from "lucide-react"
 import {
   connectTelegramAction, disconnectTelegramAction, removeTelegramBotAvatarAction,
@@ -38,6 +39,30 @@ function Feedback({ msg }: { msg: { text: string; ok: boolean } | null }) {
     <div className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm ${msg.ok ? "bg-chart-2/10 text-chart-2" : "bg-destructive/10 text-destructive"}`}>
       {msg.ok ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
       {msg.text}
+    </div>
+  )
+}
+
+function TelegramMetricGrid({
+  metrics,
+  columns = "four",
+}: {
+  metrics: Array<{ label: string; value: number; icon: LucideIcon }>
+  columns?: "two" | "four"
+}) {
+  return (
+    <div className={`grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-border p-px ${columns === "four" ? "lg:grid-cols-4" : ""}`}>
+      {metrics.map(({ label, value, icon: Icon }) => (
+        <div key={label} className="flex min-w-0 flex-col gap-3 bg-card p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-sm leading-5 text-muted-foreground">{label}</span>
+            <Icon className="size-5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
+          </div>
+          <span className="text-3xl font-semibold tabular-nums text-foreground">
+            {value.toLocaleString("ru-RU")}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -186,19 +211,12 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
     <div className="space-y-4">
       {/* Stats row */}
       {connected && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { label: "Клиентов в базе", value: clientCount, className: "text-foreground" },
-            { label: "Подключено к боту", value: subscribers, className: "text-brand" },
-            { label: "Доставлено за месяц", value: telegramStats.messagesMonth, className: "text-chart-2" },
-            { label: "Активны за 7 дней", value: telegramStats.activeUsers7d, className: "text-chart-4" },
-          ].map((s) => (
-            <div key={s.label} className="rounded-lg border border-border bg-card p-4 text-center">
-              <p className={`text-2xl font-bold ${s.className}`}>{s.value.toLocaleString("ru-RU")}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
-        </div>
+        <TelegramMetricGrid metrics={[
+          { label: "Клиентов в базе", value: clientCount, icon: Users },
+          { label: "Подключено к боту", value: subscribers, icon: Bot },
+          { label: "Доставлено за месяц", value: telegramStats.messagesMonth, icon: Send },
+          { label: "Активны за 7 дней", value: telegramStats.activeUsers7d, icon: Activity },
+        ]} />
       )}
 
       {/* Tabs */}
@@ -459,27 +477,22 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
 
       {/* ── Stats tab ── */}
       {tab === "stats" && (
-        <div className="rounded-lg border border-border bg-card p-5">
+        <div>
           {connected ? (
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Доставлено за месяц", value: telegramStats.messagesMonth, className: "text-brand" },
-                { label: "Активных за 7 дней", value: telegramStats.activeUsers7d, className: "text-chart-2" },
-                { label: "Новых подключений", value: telegramStats.newUsersMonth, className: "text-chart-4" },
-                { label: "QR-чекинов сегодня", value: telegramStats.qrCheckinsToday, className: "text-chart-3" },
-              ].map((s) => (
-                <div key={s.label} className="rounded-lg bg-muted p-4">
-                  <p className={`text-2xl font-bold ${s.className}`}>{s.value.toLocaleString("ru-RU")}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
-                </div>
-              ))}
-              <div className="col-span-2 flex items-center justify-between rounded-lg border border-border px-4 py-3 text-sm">
+            <div className="space-y-3">
+              <TelegramMetricGrid columns="two" metrics={[
+                { label: "Доставлено за месяц", value: telegramStats.messagesMonth, icon: Send },
+                { label: "Активных за 7 дней", value: telegramStats.activeUsers7d, icon: Activity },
+                { label: "Новых подключений", value: telegramStats.newUsersMonth, icon: UserPlus },
+                { label: "QR-чекинов сегодня", value: telegramStats.qrCheckinsToday, icon: QrCode },
+              ]} />
+              <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm">
                 <span className="text-muted-foreground">Ошибок доставки за месяц</span>
                 <span className={telegramStats.failedMonth ? "font-semibold text-destructive" : "font-semibold text-foreground"}>{telegramStats.failedMonth}</span>
               </div>
             </div>
           ) : (
-            <div className="py-8 text-center">
+            <div className="rounded-lg border border-border bg-card py-8 text-center">
               <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>
                 Статистика будет доступна после подключения бота
               </p>

@@ -26,6 +26,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- KPI Telegram-интеграции и вкладки статистики приведены к общему сегментированному стилю CRM с нейтральными иконками и адаптивной сеткой 2×2/4×1.
+
 - Шаблоны Telegram переработаны в сценарный редактор с подсказками переменных, live preview, сбросом и явным состоянием несохранённых изменений.
 - Все CSV/XLSX-выгрузки CRM унифицированы: кириллица, кавычки, переносы строк, формулы, заголовки, фильтры и ширины колонок обрабатываются предсказуемо.
 - Настройки клуба теперь показывают только рабочие сценарии: рабочие часы, способы оплаты, Telegram-напоминания, полноценные интеграции, смену пароля и управление сессиями.
@@ -101,6 +103,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
 - `260df15` · 2026-07-22 · fix: preserve Telegram avatar preview bytes
 - `8d41ce0` · 2026-07-22 · docs: record Telegram bot avatar release [skip ci]
 - `e30e513` · 2026-07-22 · feat: manage Telegram bot avatar
@@ -130,5 +133,4 @@ tags: [fitcrm, releases]
 - `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
 - `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
-- `0514d3d` · 2026-07-19 · Release retention center and Growth OS
 <!-- AUTO:END changelog-candidates -->

@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 260df15 · 2026-07-22T11:48:35+05:00 · fix: preserve Telegram avatar preview bytes.
+- Последний commit: b8de7bd · 2026-07-22T11:51:38+05:00 · docs: record Telegram avatar repair [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 76; последняя `20260720154135_index_growth_experiment_creator.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
