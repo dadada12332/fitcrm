@@ -28,6 +28,8 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Блок тарифов на лендинге получил новую иерархию: «Стандарт» объясняет свою ценность, названия и CTA локализованы, а месяц/год и мобильная сетка стали понятнее.
+
 - Лендинг Growth OS теперь прямо показывает, что сотрудник получает готовый скрипт обзвона и текст SMS для работы с клиентом.
 
 - Вкладка «Внимание» в отчётах стала рабочей сводкой: задачи сгруппированы по приоритету, посещаемость отделена от проблем, а desktop/mobile-компоновка приведена к дизайн-системе CRM.
@@ -115,6 +117,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `94845ad` · 2026-07-22 · docs: record outreach copy release [skip ci]
 - `e12b856` · 2026-07-22 · feat: highlight ready outreach scripts on landing
 - `a721ffb` · 2026-07-22 · docs: record Growth OS landing release [skip ci]
 - `89ef57f` · 2026-07-22 · feat: add Growth OS story to landing
@@ -144,5 +147,4 @@ tags: [fitcrm, releases]
 - `de36532` · 2026-07-20 · feat: add first-run product onboarding
 - `def494f` · 2026-07-20 · docs: record retention outreach release [skip ci]
 - `b60cc07` · 2026-07-20 · feat: complete retention outreach workflow
-- `99cf665` · 2026-07-20 · docs: record verified retention AI release [skip ci]
 <!-- AUTO:END changelog-candidates -->

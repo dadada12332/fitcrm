@@ -24,6 +24,32 @@
 
 final result: passed
 
+# Design QA: Landing Pricing
+
+## Target
+
+- Make pricing easier to scan while keeping plan data controlled by Platform Admin.
+- Turn Standard into the clear recommended choice through value, proof and action hierarchy.
+- Preserve the restrained light landing style and responsive behavior.
+
+## Captures Reviewed
+
+- Before: production `/#pricing`, 1440x1000.
+- After: local `/#pricing`, 1440x1000 and 390x844.
+- Interaction: monthly/yearly billing, four registration CTAs, Russian and Uzbek.
+
+## Findings
+
+- The corner ribbon was replaced with a compact recommendation badge and a clear value proposition.
+- Standard now has a focused blue CTA, proof block and stable visual emphasis without changing database pricing.
+- Plan names and conversion copy are localized instead of mixing English names into Russian and Uzbek pages.
+- All cards remain readable in a 4-column desktop grid and a single-column mobile flow.
+- No horizontal overflow was found at 390px; billing controls and long Uzbek copy fit correctly.
+
+## Result
+
+final result: passed
+
 # Design QA: Reports Attention
 
 ## Target

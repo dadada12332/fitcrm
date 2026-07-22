@@ -30,6 +30,7 @@ kanban-plugin: board
 
 <!-- AUTO:START kanban-in-progress -->
 - [ ] TASK-0012 · Instagram integration: content, leads and attribution · feature · P2 · integrations · 2026-07-18 · [[Tasks/TASK-0012-instagram-integration-product-and-attribution]]
+- [ ] TASK-0040 · Переработать тарифы лендинга и усилить Стандарт · feature · P2 · marketing · 2026-07-22 · [[Tasks/TASK-0040-pererabotat-tarify-lendinga-i-usilit-standart]]
 <!-- AUTO:END kanban-in-progress -->
 
 ## Review
