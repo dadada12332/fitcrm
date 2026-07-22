@@ -103,6 +103,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
 - `b8de7bd` · 2026-07-22 · docs: record Telegram avatar repair [skip ci]
 - `260df15` · 2026-07-22 · fix: preserve Telegram avatar preview bytes
 - `8d41ce0` · 2026-07-22 · docs: record Telegram bot avatar release [skip ci]
@@ -132,5 +133,4 @@ tags: [fitcrm, releases]
 - `7a01d28` · 2026-07-20 · Harden launch-critical flows and infrastructure
 - `f81cc0b` · 2026-07-19 · Record verified active tab deployment [skip ci]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
-- `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
 <!-- AUTO:END changelog-candidates -->

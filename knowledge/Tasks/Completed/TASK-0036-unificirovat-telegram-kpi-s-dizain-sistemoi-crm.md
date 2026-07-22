@@ -58,10 +58,11 @@ Tenant isolation, auth, production data и существующие пользо
 - Browser QA connected state: desktop 1280x720, mobile 390x844, statistics tab; overflow/clipping не обнаружены.
 - `design-qa.md` — final result: passed.
 - Временная Telegram-интеграция синтетического QA-клуба удалена, исходные settings восстановлены.
+- Production deployment `dpl_31DbH9Cpkm5RSj68CmvBjEAUzSZR` — READY; alias `fitcrm-three.vercel.app` подтверждён.
 
 ## Remaining
 
-Production deploy и alias verification.
+Нет.
 
 ## Blockers
 
