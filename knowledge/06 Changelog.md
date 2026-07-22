@@ -119,6 +119,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `6880dab` · 2026-07-22 · revert: restore original landing pricing
 - `1ed8b1c` · 2026-07-22 · docs: record pricing width release [skip ci]
 - `e6a8ef6` · 2026-07-22 · style: widen landing pricing cards
 - `e80f8b5` · 2026-07-22 · docs: record pricing redesign release [skip ci]
@@ -148,5 +149,4 @@ tags: [fitcrm, releases]
 - `9709769` · 2026-07-21 · fix: schedule inbox retries via Supabase
 - `a7be5a8` · 2026-07-21 · feat: add Telegram client support inbox
 - `cd25340` · 2026-07-20 · docs: record verified growth workflow release [skip ci]
-- `47c01be` · 2026-07-20 · feat: add guided growth experiments and safe sign out
 <!-- AUTO:END changelog-candidates -->

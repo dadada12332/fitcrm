@@ -64,6 +64,7 @@ Tenant isolation, auth, production data и существующие пользо
 - Production deployment `dpl_Ahif6zPnihctmqejFhg94kPVkxEs` — Ready; alias `fitcrm-three.vercel.app` назначен, production browser QA and health check passed.
 - Width refinement deployment `dpl_GmLd9qKgh6rJNKvxt3y5Gm9uNcWX` — Ready; alias подтверждён, production показывает сетку 2×2 на 1234px.
 - Rollback verification: восстановленные файлы побайтно совпадают с `94845ad`; TypeScript, lint, tests (126 passed, 1 skipped) и build (59 routes) — passed.
+- Rollback deployment `dpl_H2ugDTQAPWWkruF4938mB8wRfb8k` — Ready; production browser QA подтвердил старые карточки и отсутствие новой CTA, health check passed.
 
 ## Remaining
 
