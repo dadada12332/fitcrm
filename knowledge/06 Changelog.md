@@ -101,6 +101,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `260df15` · 2026-07-22 · fix: preserve Telegram avatar preview bytes
 - `8d41ce0` · 2026-07-22 · docs: record Telegram bot avatar release [skip ci]
 - `e30e513` · 2026-07-22 · feat: manage Telegram bot avatar
 - `f677b06` · 2026-07-22 · docs: record Telegram templates redesign [skip ci]
@@ -130,5 +131,4 @@ tags: [fitcrm, releases]
 - `ca1bc08` · 2026-07-19 · Fix Growth OS active tab styling
 - `3fdf562` · 2026-07-19 · Record verified Growth OS production release [skip ci]
 - `0514d3d` · 2026-07-19 · Release retention center and Growth OS
-- `0724a97` · 2026-07-19 · Keep Growth OS plan navigation internal
 <!-- AUTO:END changelog-candidates -->

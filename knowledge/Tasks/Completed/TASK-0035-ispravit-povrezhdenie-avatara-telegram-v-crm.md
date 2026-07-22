@@ -57,10 +57,11 @@ Tenant isolation, auth, production data и существующие пользо
 - `npm run build` — passed, 59 routes.
 - Supabase regression probe — Blob upload/download, signature `FF D8 FF`, Sharp decode; временный объект удалён.
 - Production repair — current bot photo downloaded through Telegram API, normalized to JPEG 512x512, uploaded and visually decoded.
+- Production deployment `dpl_GD5dNYMrN1ewQvVVJezo3yFKCpt5` — READY; alias `fitcrm-three.vercel.app` подтверждён.
 
 ## Remaining
 
-Production deploy и alias verification.
+Нет.
 
 ## Blockers
 
