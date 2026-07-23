@@ -19,6 +19,27 @@ describe("database security migrations", () => {
     },
   )
 
+  it.each([
+    "access_control_integrations",
+    "access_control_credentials",
+    "access_control_events",
+    "access_control_reservations",
+  ])(
+    "keeps access-control table %s behind RLS and service-role access",
+    (table) => {
+      expect(sql).toMatch(new RegExp(`alter\\s+table\\s+public\\.${table}\\s+enable\\s+row\\s+level\\s+security`))
+      expect(sql).toContain("to service_role")
+    },
+  )
+
+  it("keeps the atomic access-control check-in RPC service-only", () => {
+    expect(sql).toContain("reserve_access_control_entry")
+    expect(sql).toContain("process_access_control_entry")
+    expect(sql).toContain("from public, anon, authenticated")
+    expect(sql).toContain("grant execute on function public.reserve_access_control_entry")
+    expect(sql).toContain("grant execute on function public.process_access_control_entry")
+  })
+
   it("contains the staff privilege-escalation trigger", () => {
     expect(sql).toContain("enforce_staff_no_escalation")
     expect(sql).toContain("create trigger staff_no_escalation")

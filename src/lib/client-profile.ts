@@ -6,7 +6,7 @@ import type { ClientImportData } from "@/lib/client-import"
 
 export type PaymentProvider = "click" | "payme" | "uzum" | "cash"
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded"
-export type VisitMethod = "manual" | "qr" | "telegram"
+export type VisitMethod = "manual" | "qr" | "telegram" | "turnstile"
 
 export type ProfilePayment = {
   id: string
@@ -131,6 +131,7 @@ export const visitMethodMeta: Record<VisitMethod, { label: string; bg: string; c
   manual: { label: "Вручную", bg: "#f1f5f9", color: "#475569" },
   qr: { label: "QR-код", bg: "#dbeafe", color: "#2563eb" },
   telegram: { label: "Telegram", bg: "#e0f2fe", color: "#0284c7" },
+  turnstile: { label: "Турникет", bg: "var(--muted)", color: "var(--foreground)" },
 }
 
 export async function getClientProfile(

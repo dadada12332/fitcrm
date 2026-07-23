@@ -17,12 +17,16 @@ export default async function IntegrationsPage() {
 
   {
     const service = createServiceClient()
-    const [{ data }, { data: telegramIntegration }, { data: instagramIntegration }] = await Promise.all([supabase
+    const [{ data }, { data: telegramIntegration }, { data: instagramIntegration }, { data: accessControlIntegrations }] = await Promise.all([supabase
       .from("clubs")
       .select("settings")
       .eq("id", club.clubId)
       .single(), service.from("telegram_integrations").select("club_id").eq("club_id", club.clubId).maybeSingle(),
-      service.from("integration_connections").select("username,last_synced_at").eq("club_id", club.clubId).eq("provider", "instagram").maybeSingle()])
+      service.from("integration_connections").select("username,last_synced_at").eq("club_id", club.clubId).eq("provider", "instagram").maybeSingle(),
+      service.from("access_control_integrations")
+        .select("provider,status,last_event_at,last_seen_at")
+        .eq("club_id", club.clubId),
+    ])
 
     if (data) {
       if (telegramIntegration) {
@@ -60,6 +64,19 @@ export default async function IntegrationsPage() {
         if (r?.status === "active") statuses.push({ key: pv, connected: true, handle: "Активно" })
         else if (r?.status === "new") statuses.push({ key: pv, connected: false, handle: "Заявка на рассмотрении" })
       }
+
+      for (const integration of accessControlIntegrations ?? []) {
+        statuses.push({
+          key: integration.provider,
+          connected: integration.status === "connected",
+          handle: integration.status === "disabled"
+            ? "Отключено"
+            : integration.status === "connected"
+              ? "Получаем события"
+              : "Настроено · ожидает мост",
+          lastSync: integration.last_event_at ?? integration.last_seen_at ?? undefined,
+        })
+      }
     }
   }
 
@@ -80,6 +97,9 @@ export default async function IntegrationsPage() {
           ...(planFeatureEnabled(club.planAccess, "telegram") ? ["telegram"] : []),
           ...(planFeatureEnabled(club.planAccess, "payment_integrations") ? ["click", "payme"] : []),
           ...(planFeatureEnabled(club.planAccess, "instagram") ? ["instagram"] : []),
+          "sigur",
+          "zkteco",
+          "hikvision",
         ]}
       />
     </div>

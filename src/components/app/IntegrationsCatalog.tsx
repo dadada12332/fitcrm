@@ -1,7 +1,23 @@
 "use client"
 
 import Link from "next/link"
-import { CheckCircle2, Circle, ArrowRight, Clock } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import {
+  ArrowRight,
+  Banknote,
+  Camera,
+  CalendarDays,
+  CheckCircle2,
+  Circle,
+  Clock,
+  MessageCircle,
+  Send,
+  ShieldCheck,
+} from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 export type IntegrationStatus = {
   key: string
@@ -11,16 +27,31 @@ export type IntegrationStatus = {
   lastSync?: string
 }
 
-const CATALOG = [
+type CatalogItem = {
+  key: string
+  label: string
+  description: string
+  features: string[]
+  category: string
+  available: boolean
+  beta?: boolean
+  alwaysVisible?: boolean
+  icon: LucideIcon
+  iconClass: string
+  dotClass: string
+  featureClass: string
+}
+
+const CATALOG: CatalogItem[] = [
   {
     key: "telegram",
     label: "Telegram",
     description: "Личный кабинет клиентов",
-    color: "#2AABEE",
-    bg: "rgba(42,171,238,0.12)",
+    icon: Send,
+    iconClass: "bg-chart-1 text-primary-foreground",
+    dotClass: "text-chart-1",
     features: ["QR-чекин", "Уведомления", "Продление", "Рассылка"],
-    featureColor: "rgba(42,171,238,0.15)",
-    featureText: "#0e7bb5",
+    featureClass: "bg-chart-1/10 text-chart-1",
     category: "Мессенджеры",
     available: true,
   },
@@ -28,11 +59,11 @@ const CATALOG = [
     key: "click",
     label: "Click",
     description: "Приём онлайн-платежей",
-    color: "#16a34a",
-    bg: "rgba(22,163,74,0.12)",
+    icon: Banknote,
+    iconClass: "bg-chart-2 text-primary-foreground",
+    dotClass: "text-chart-2",
     features: ["Онлайн-оплата", "Webhooks", "Автооплата", "История"],
-    featureColor: "rgba(22,163,74,0.12)",
-    featureText: "#166534",
+    featureClass: "bg-chart-2/10 text-chart-2",
     category: "Платежи",
     available: true,
   },
@@ -40,11 +71,11 @@ const CATALOG = [
     key: "payme",
     label: "Payme",
     description: "Приём онлайн-платежей",
-    color: "#7c3aed",
-    bg: "rgba(124,58,237,0.12)",
+    icon: Banknote,
+    iconClass: "bg-chart-4 text-primary-foreground",
+    dotClass: "text-chart-4",
     features: ["Онлайн-оплата", "Webhooks", "Автооплата", "История"],
-    featureColor: "rgba(124,58,237,0.12)",
-    featureText: "#5b21b6",
+    featureClass: "bg-chart-4/10 text-chart-4",
     category: "Платежи",
     available: true,
   },
@@ -52,23 +83,65 @@ const CATALOG = [
     key: "instagram",
     label: "Instagram",
     description: "Контент, Insights и CRM-атрибуция",
-    color: "#E1306C",
-    bg: "rgba(225,48,108,0.10)",
+    icon: Camera,
+    iconClass: "bg-chart-5 text-primary-foreground",
+    dotClass: "text-chart-5",
     features: ["Публикации", "Insights", "Лиды", "Атрибуция"],
-    featureColor: "rgba(225,48,108,0.10)",
-    featureText: "#9d174d",
+    featureClass: "bg-chart-5/10 text-chart-5",
     category: "Соцсети",
     available: true,
+  },
+  {
+    key: "sigur",
+    label: "Sigur",
+    description: "Карты, браслеты и контроль проходов",
+    icon: ShieldCheck,
+    iconClass: "bg-primary text-primary-foreground",
+    dotClass: "text-primary",
+    features: ["Турникеты", "Web-делегирование", "Карты", "События"],
+    featureClass: "bg-primary/10 text-primary",
+    category: "Контроль доступа",
+    available: true,
+    beta: true,
+    alwaysVisible: true,
+  },
+  {
+    key: "zkteco",
+    label: "ZKTeco",
+    description: "Подключение ZKBio и терминалов доступа",
+    icon: ShieldCheck,
+    iconClass: "bg-chart-2 text-primary-foreground",
+    dotClass: "text-chart-2",
+    features: ["ZKBio", "RFID", "Браслеты", "Журнал проходов"],
+    featureClass: "bg-chart-2/10 text-chart-2",
+    category: "Контроль доступа",
+    available: true,
+    beta: true,
+    alwaysVisible: true,
+  },
+  {
+    key: "hikvision",
+    label: "Hikvision",
+    description: "Терминалы и контроллеры через ISAPI",
+    icon: ShieldCheck,
+    iconClass: "bg-chart-5 text-primary-foreground",
+    dotClass: "text-chart-5",
+    features: ["ISAPI", "RFID", "Терминалы", "События"],
+    featureClass: "bg-chart-5/10 text-chart-5",
+    category: "Контроль доступа",
+    available: true,
+    beta: true,
+    alwaysVisible: true,
   },
   {
     key: "whatsapp",
     label: "WhatsApp",
     description: "Уведомления и чат с клиентами",
-    color: "#25D366",
-    bg: "rgba(37,211,102,0.10)",
+    icon: MessageCircle,
+    iconClass: "bg-chart-2 text-primary-foreground",
+    dotClass: "text-chart-2",
     features: ["Рассылка", "Чат", "Уведомления", "Боты"],
-    featureColor: "rgba(37,211,102,0.10)",
-    featureText: "#15803d",
+    featureClass: "bg-chart-2/10 text-chart-2",
     category: "Мессенджеры",
     available: false,
   },
@@ -76,11 +149,11 @@ const CATALOG = [
     key: "google-calendar",
     label: "Google Calendar",
     description: "Синхронизация расписания",
-    color: "#4285F4",
-    bg: "rgba(66,133,244,0.10)",
+    icon: CalendarDays,
+    iconClass: "bg-chart-1 text-primary-foreground",
+    dotClass: "text-chart-1",
     features: ["Расписание", "События", "Тренеры", "Залы"],
-    featureColor: "rgba(66,133,244,0.10)",
-    featureText: "#1d4ed8",
+    featureClass: "bg-chart-1/10 text-chart-1",
     category: "Продуктивность",
     available: false,
   },
@@ -96,153 +169,197 @@ function timeAgo(iso: string) {
   return `${Math.floor(h / 24)} дн назад`
 }
 
-function IntegrationCard({ integration, status }: {
-  integration: typeof CATALOG[0]
+function IntegrationCard({
+  integration,
+  status,
+}: {
+  integration: CatalogItem
   status: IntegrationStatus | undefined
 }) {
   const connected = status?.connected ?? false
+  const Icon = integration.icon
 
   return (
-    <div
-      className="rounded-lg flex flex-col transition-shadow hover:shadow-md"
-      style={{ background: "var(--card)", border: "1px solid var(--border)", overflow: "hidden" }}
-    >
-      {/* Top */}
-      <div className="p-5 flex-1">
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
-            style={{ background: integration.color }}>
-            {integration.label[0]}
+    <Card className="gap-0 py-0 transition-shadow hover:shadow-md">
+      <CardContent className="flex flex-1 flex-col p-5">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className={cn("flex size-12 shrink-0 items-center justify-center rounded-lg", integration.iconClass)}>
+            <Icon className="size-6" aria-hidden />
           </div>
-          {integration.available ? (
-            <span className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-              style={connected
-                ? { background: "rgba(22,163,74,0.12)", color: "#16a34a" }
-                : { background: "var(--card-2)", color: "var(--on-dark-soft)" }}>
-              {connected
-                ? <><CheckCircle2 size={12} />Подключено</>
-                : <><Circle size={12} />Не подключено</>}
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full"
-              style={{ background: "rgba(245,158,11,0.1)", color: "#b45309" }}>
-              <Clock size={11} />Скоро
-            </span>
-          )}
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {integration.beta && (
+              <Badge variant="secondary">Beta · не проверено на железе</Badge>
+            )}
+            {integration.available ? (
+              <Badge
+                variant={connected ? "default" : "outline"}
+                className={cn(connected && "bg-chart-2 text-primary-foreground")}
+              >
+                {connected ? <CheckCircle2 aria-hidden /> : <Circle aria-hidden />}
+                {connected ? "Подключено" : "Не подключено"}
+              </Badge>
+            ) : (
+              <Badge variant="secondary">
+                <Clock aria-hidden />
+                Скоро
+              </Badge>
+            )}
+          </div>
         </div>
 
-        <h3 className="font-semibold text-base mb-0.5" style={{ color: "var(--on-dark)" }}>
-          {integration.label}
-        </h3>
-        <p className="text-sm mb-4" style={{ color: "var(--on-dark-soft)" }}>
-          {integration.description}
-        </p>
+        <div className="mb-4">
+          <div className="mb-0.5 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-foreground">{integration.label}</h3>
+            {integration.category === "Контроль доступа" && (
+              <span className="text-xs text-muted-foreground">Контроль доступа</span>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">{integration.description}</p>
+        </div>
 
-        {/* Features */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {integration.features.map((f) => (
-            <span key={f} className="text-xs px-2 py-0.5 rounded-md font-medium"
-              style={{ background: integration.featureColor, color: integration.featureText }}>
-              {f}
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {integration.features.map((feature) => (
+            <span
+              key={feature}
+              className={cn("rounded-md px-2 py-0.5 text-xs font-medium", integration.featureClass)}
+            >
+              {feature}
             </span>
           ))}
         </div>
 
-        {/* Connected stats */}
-        {connected && status && (
-          <div className="rounded-lg p-3 space-y-1.5" style={{ background: "var(--card-2)" }}>
+        {connected && status ? (
+          <div className="space-y-1.5 rounded-lg bg-muted p-3">
             {status.handle && (
-              <div className="flex items-center justify-between text-xs">
-                <span style={{ color: "var(--on-dark-soft)" }}>Аккаунт</span>
-                <span className="font-medium" style={{ color: "var(--on-dark)" }}>{status.handle}</span>
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="text-muted-foreground">Подключение</span>
+                <span className="truncate font-medium text-foreground">{status.handle}</span>
               </div>
             )}
             {status.clientCount !== undefined && (
               <div className="flex items-center justify-between text-xs">
-                <span style={{ color: "var(--on-dark-soft)" }}>Клиентов</span>
-                <span className="font-semibold" style={{ color: integration.color }}>{status.clientCount}</span>
+                <span className="text-muted-foreground">Клиентов</span>
+                <span className="font-semibold text-foreground">{status.clientCount}</span>
               </div>
             )}
             {status.lastSync && (
               <div className="flex items-center justify-between text-xs">
-                <span style={{ color: "var(--on-dark-soft)" }}>Обновлено</span>
-                <span style={{ color: "var(--on-dark-soft)" }}>{timeAgo(status.lastSync)}</span>
+                <span className="text-muted-foreground">Обновлено</span>
+                <span className="text-muted-foreground">{timeAgo(status.lastSync)}</span>
               </div>
             )}
           </div>
-        )}
-
-        {/* Not connected benefits */}
-        {!connected && integration.available && (
+        ) : integration.available ? (
           <div className="space-y-1">
-            {getBenefits(integration.key).map((b) => (
-              <div key={b} className="flex items-start gap-2 text-xs" style={{ color: "var(--on-dark-soft)" }}>
-                <span className="mt-0.5 text-[10px]" style={{ color: integration.color }}>●</span>
-                {b}
+            {getBenefits(integration.key).map((benefit) => (
+              <div key={benefit} className="flex items-start gap-2 text-xs text-muted-foreground">
+                <span className={cn("mt-0.5 text-[10px]", integration.dotClass)}>●</span>
+                {benefit}
               </div>
             ))}
           </div>
-        )}
-      </div>
+        ) : null}
+      </CardContent>
 
-      {/* Footer button */}
-      <div className="px-5 pb-5">
+      <CardFooter className="border-0 bg-transparent px-5 pb-5 pt-0">
         {integration.available ? (
           <Link
-            href={integration.key === "click" || integration.key === "payme"
-              ? "/settings/finance"                       // платёжки — через рабочий блок «Приём онлайн-оплат»
-              : `/integrations/${integration.key}`}
-            className="w-full h-9 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-all hover:opacity-90"
-            style={connected
-              ? { background: "var(--card-2)", color: "var(--on-dark)", border: "1px solid var(--border)" }
-              : { background: integration.color, color: "white" }}>
+            href={
+              integration.key === "click" || integration.key === "payme"
+                ? "/settings/finance"
+                : `/integrations/${integration.key}`
+            }
+            className={cn(
+              "flex h-9 w-full items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-colors",
+              connected
+                ? "border-border bg-background text-foreground hover:bg-muted"
+                : "border-primary bg-primary text-primary-foreground hover:bg-primary/80",
+            )}
+          >
             {connected ? "Управление" : "Подключить"}
-            <ArrowRight size={14} />
+            <ArrowRight className="size-4" aria-hidden />
           </Link>
         ) : (
-          <div className="w-full h-9 rounded-md flex items-center justify-center text-sm font-medium cursor-not-allowed"
-            style={{ background: "var(--card-2)", color: "var(--on-dark-soft)" }}>
+          <div className="flex h-9 w-full cursor-not-allowed items-center justify-center rounded-lg bg-muted text-sm font-medium text-muted-foreground">
             Скоро будет доступно
           </div>
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   )
 }
 
 function getBenefits(key: string): string[] {
   const map: Record<string, string[]> = {
-    telegram: ["Клиенты управляют абонементом через бот", "Автоматические напоминания об истечении", "QR-код для входа в зал"],
-    click: ["Принимайте оплату онлайн через Click", "Автоматические webhooks о платежах", "История транзакций в CRM"],
-    payme: ["Принимайте оплату онлайн через Payme", "Автоматические webhooks о платежах", "История транзакций в CRM"],
-    instagram: ["Смотрите posts и reels в FitCRM", "Отделяйте охват от реальных лидов", "Связывайте клиентов и выручку с Instagram"],
+    telegram: [
+      "Клиенты управляют абонементом через бот",
+      "Автоматические напоминания об истечении",
+      "QR-код для входа в зал",
+    ],
+    click: [
+      "Принимайте оплату онлайн через Click",
+      "Автоматические webhooks о платежах",
+      "История транзакций в CRM",
+    ],
+    payme: [
+      "Принимайте оплату онлайн через Payme",
+      "Автоматические webhooks о платежах",
+      "История транзакций в CRM",
+    ],
+    instagram: [
+      "Смотрите posts и reels в FitCRM",
+      "Отделяйте охват от реальных лидов",
+      "Связывайте клиентов и выручку с Instagram",
+    ],
+    sigur: [
+      "Проверка абонемента перед проходом",
+      "Карты и браслеты привязываются к клиентам",
+      "Подтверждённый проход создаёт посещение",
+    ],
+    zkteco: [
+      "События из ZKBio попадают в FitCRM",
+      "Единый журнал разрешённых и отклонённых проходов",
+      "Защита от повторной обработки событий",
+    ],
+    hikvision: [
+      "Подключение терминалов по ISAPI",
+      "Проверка карточки по активному абонементу",
+      "Автоматическая регистрация посещений",
+    ],
   }
   return map[key] ?? []
 }
 
-export function IntegrationsCatalog({ statuses, allowedKeys }: { statuses: IntegrationStatus[]; allowedKeys?: string[] }) {
-  const statusMap = new Map(statuses.map((s) => [s.key, s]))
-
-  const available = CATALOG.filter((c) => c.available && (!allowedKeys || allowedKeys.includes(c.key)))
-  const comingSoon = CATALOG.filter((c) => !c.available)
+export function IntegrationsCatalog({
+  statuses,
+  allowedKeys,
+}: {
+  statuses: IntegrationStatus[]
+  allowedKeys?: string[]
+}) {
+  const statusMap = new Map(statuses.map((status) => [status.key, status]))
+  const available = CATALOG.filter(
+    (item) => item.available && (item.alwaysVisible || !allowedKeys || allowedKeys.includes(item.key)),
+  )
+  const comingSoon = CATALOG.filter((item) => !item.available)
 
   return (
     <div className="space-y-8">
-      <div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {available.map((intg) => (
-            <IntegrationCard key={intg.key} integration={intg} status={statusMap.get(intg.key)} />
-          ))}
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {available.map((integration) => (
+          <IntegrationCard
+            key={integration.key}
+            integration={integration}
+            status={statusMap.get(integration.key)}
+          />
+        ))}
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--on-dark-soft)" }}>
-          СКОРО
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {comingSoon.map((intg) => (
-            <IntegrationCard key={intg.key} integration={intg} status={undefined} />
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">СКОРО</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {comingSoon.map((integration) => (
+            <IntegrationCard key={integration.key} integration={integration} status={undefined} />
           ))}
         </div>
       </div>

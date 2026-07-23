@@ -10,6 +10,15 @@ import { resolveAudienceOptions, getRecipientsDataset, type AudienceOption, type
 import type { BroadcastHistoryItem } from "@/components/app/TelegramBroadcast"
 import type { TelegramStats } from "@/components/app/IntegrationManage"
 import { planFeatureEnabled } from "@/lib/plan-access"
+import { AccessControlIntegration } from "@/components/app/AccessControlIntegration"
+import {
+  ACCESS_CONTROL_PROVIDER_META,
+  type AccessControlProvider,
+} from "@/lib/access-control/types"
+import {
+  getAccessControlIntegrationDTO,
+  isAccessControlProvider,
+} from "@/lib/access-control/service"
 
 export const dynamic = "force-dynamic"
 
@@ -17,6 +26,21 @@ const META: Record<string, { label: string; description: string; color: string }
   telegram: { label: "Telegram Bot", description: "Личный кабинет клиентов, QR-чекин и уведомления", color: "var(--brand)" },
   click:    { label: "Click",        description: "Приём онлайн-платежей через Click",               color: "var(--chart-2)" },
   payme:    { label: "Payme",        description: "Приём онлайн-платежей через Payme",               color: "var(--chart-4)" },
+  sigur: {
+    label: ACCESS_CONTROL_PROVIDER_META.sigur.label,
+    description: ACCESS_CONTROL_PROVIDER_META.sigur.description,
+    color: "var(--chart-1)",
+  },
+  zkteco: {
+    label: ACCESS_CONTROL_PROVIDER_META.zkteco.label,
+    description: ACCESS_CONTROL_PROVIDER_META.zkteco.description,
+    color: "var(--chart-2)",
+  },
+  hikvision: {
+    label: ACCESS_CONTROL_PROVIDER_META.hikvision.label,
+    description: ACCESS_CONTROL_PROVIDER_META.hikvision.description,
+    color: "var(--chart-5)",
+  },
 }
 
 export default async function IntegrationPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -32,7 +56,31 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   const club = await getCurrentClub()
   if (!club) redirect("/login")
   if (!club.permissions.settings.integrations) redirect("/dashboard")
+  if (isAccessControlProvider(slug) && !club.permissions.clients.view) redirect("/integrations")
   if (slug === "telegram" && !planFeatureEnabled(club.planAccess, "telegram")) redirect("/integrations")
+
+  if (isAccessControlProvider(slug)) {
+    const clients: Array<{ id: string; full_name: string }> = []
+    for (let from = 0; ; from += 1000) {
+      const { data: page, error } = await supabase
+        .from("clients")
+        .select("id,full_name")
+        .eq("club_id", club.clubId)
+        .order("full_name")
+        .range(from, from + 999)
+      if (error || !page) break
+      clients.push(...page)
+      if (page.length < 1000) break
+    }
+    const integration = await getAccessControlIntegrationDTO(club.clubId, slug)
+    return (
+      <AccessControlIntegration
+        provider={slug as AccessControlProvider}
+        integration={integration}
+        clients={(clients ?? []).map((client) => ({ id: client.id, name: client.full_name }))}
+      />
+    )
+  }
 
   let connected = false
   const currentValue = ""
