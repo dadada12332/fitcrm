@@ -13,7 +13,7 @@ function GoogleButton({ next }: { next?: string }) {
   return (
     <Button type="button" variant="outline" size="lg" disabled={pending}
       onClick={() => { const fd = new FormData(); if (next) fd.append("next", next); start(() => signInWithGoogle(fd)) }}
-      className="h-10 w-full gap-2.5">
+      className="h-10 w-full gap-2.5 border-border/70 bg-background/55 text-foreground shadow-sm backdrop-blur-sm hover:bg-background/80">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
         <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
         <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
@@ -32,18 +32,18 @@ export function LoginForm({ next }: { next?: string }) {
   return (
     <div className="flex flex-col flex-1">
       <div className="flex justify-end px-9 pt-9">
-        <Link href="/register" className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+        <Link href="/register" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background/45">
           Нет аккаунта? <span className="font-semibold">Зарегистрироваться</span>
         </Link>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-16 pb-6">
-        <div className="w-full max-w-[384px]">
-          <div className="text-center mb-6">
-            <h1 className="mb-1.5 text-2xl font-semibold text-foreground">
+      <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-10 lg:px-12">
+        <div className="w-full max-w-[520px]">
+          <div className="mb-7 text-left">
+            <h1 className="mb-2 text-3xl font-semibold text-foreground">
               С возвращением!
             </h1>
-            <p className="text-sm text-muted-foreground">Войдите в свой аккаунт fitCRM</p>
+            <p className="text-base text-foreground/80">Войдите в свой аккаунт fitCRM</p>
           </div>
 
           <form action={action} className="flex flex-col gap-5">
@@ -55,7 +55,7 @@ export function LoginForm({ next }: { next?: string }) {
                 <label className="text-sm font-medium text-foreground" htmlFor="email">
                   Email
                 </label>
-                <Input id="email" name="email" type="email" placeholder="you@example.com" autoFocus required />
+                <Input id="email" name="email" type="email" placeholder="you@example.com" autoFocus required className="border-foreground/15 bg-background/30 shadow-none backdrop-blur-sm placeholder:text-foreground/50 focus-visible:bg-background/50 focus-visible:ring-ring/30" />
               </div>
 
               {/* Password */}
@@ -64,7 +64,7 @@ export function LoginForm({ next }: { next?: string }) {
                   Пароль
                 </label>
                 <div className="relative">
-                  <Input id="password" name="password" type={showPw ? "text" : "password"} placeholder="••••••••" required className="pr-10" />
+                  <Input id="password" name="password" type={showPw ? "text" : "password"} placeholder="••••••••" required className="border-foreground/15 bg-background/30 pr-10 shadow-none backdrop-blur-sm placeholder:text-foreground/50 focus-visible:bg-background/50 focus-visible:ring-ring/30" />
                   <Button
                     type="button"
                     variant="ghost"
@@ -83,9 +83,9 @@ export function LoginForm({ next }: { next?: string }) {
             <div className="flex items-center justify-between gap-4">
               <label className="flex cursor-pointer items-center gap-2 select-none">
                 <Checkbox name="rememberMe" aria-label="Запомнить меня" />
-                <span className="text-sm text-muted-foreground">Запомнить меня</span>
+                <span className="text-sm text-foreground/80">Запомнить меня</span>
               </label>
-              <Link href="/forgot-password" className="shrink-0 text-xs text-muted-foreground hover:text-foreground hover:underline">
+              <Link href="/forgot-password" className="shrink-0 text-sm text-foreground/80 hover:text-foreground hover:underline">
                 Забыли пароль?
               </Link>
             </div>
@@ -101,7 +101,7 @@ export function LoginForm({ next }: { next?: string }) {
 
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">или</span>
+                <span className="text-xs font-medium text-foreground/70">или</span>
                 <div className="h-px flex-1 bg-border" />
               </div>
 

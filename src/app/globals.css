@@ -79,7 +79,17 @@
   100% { transform: scale(1.16) translate3d(0, 0, 0); }
 }
 .clouds-anim { animation: cloudsDrift 42s ease-in-out infinite; will-change: transform; transform-origin: center; }
-@media (prefers-reduced-motion: reduce) { .clouds-anim { animation: none; transform: scale(1.05); } }
+
+@keyframes authBadgeFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+.auth-badge-float { animation: authBadgeFloat 8s ease-in-out infinite; will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  .clouds-anim { animation: none; transform: scale(1.05); }
+  .auth-badge-float { animation: none; }
+}
 
 /* ─── POS-плитка товара: цветной фон, адаптируется под тему (--tile-h = hue) ─── */
 .pos-tile { background: hsl(var(--tile-h) 55% 92%); }

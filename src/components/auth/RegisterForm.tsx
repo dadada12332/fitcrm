@@ -10,8 +10,7 @@ function GoogleButton({ label = "Продолжить через Google" }: { la
   return (
     <button type="button" disabled={pending}
       onClick={() => start(() => signInWithGoogle())}
-      className="h-10 w-full rounded-md text-sm font-medium flex items-center justify-center gap-2.5 transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50"
-      style={{ border: "1px solid #e2e8f0", color: "#020617", background: "white" }}>
+      className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-border/70 bg-background/55 text-sm font-medium text-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-background/80 active:scale-[0.98] disabled:opacity-50">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
         <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
         <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
@@ -31,7 +30,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium" style={{ color: "#020617", letterSpacing: "-0.084px" }}>
+      <label className="text-sm font-medium text-foreground">
         {label}
       </label>
       <div className="relative">
@@ -39,10 +38,8 @@ function Field({
           name={name} type={type} placeholder={placeholder}
           autoFocus={autoFocus} required={required}
           autoComplete="off"
-          className="h-10 w-full rounded-md px-3 text-sm outline-none transition-all"
-          style={{ border: "1px solid #e2e8f0", color: "#020617", background: "white", paddingRight: rightSlot ? "40px" : undefined }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(15,23,42,0.07)" }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none" }}
+          className="h-10 w-full rounded-lg border border-foreground/15 bg-background/30 px-3 text-sm text-foreground outline-none backdrop-blur-sm transition-[color,box-shadow,background-color] placeholder:text-foreground/50 focus-visible:border-ring focus-visible:bg-background/50 focus-visible:ring-3 focus-visible:ring-ring/30"
+          style={{ paddingRight: rightSlot ? "40px" : undefined }}
         />
         {rightSlot && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">{rightSlot}</div>
@@ -56,21 +53,18 @@ function PasswordField({ label, name, placeholder }: { label: string; name: stri
   const [show, setShow] = useState(false)
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium" style={{ color: "#020617", letterSpacing: "-0.084px" }}>
+      <label className="text-sm font-medium text-foreground">
         {label}
       </label>
       <div className="relative">
         <input
           name={name} type={show ? "text" : "password"} placeholder={placeholder ?? "••••••••"} required
           autoComplete="new-password"
-          className="h-10 w-full rounded-md px-3 pr-10 text-sm outline-none transition-all"
-          style={{ border: "1px solid #e2e8f0", color: "#020617", background: "white" }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(15,23,42,0.07)" }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none" }}
+          className="h-10 w-full rounded-lg border border-foreground/15 bg-background/30 px-3 pr-10 text-sm text-foreground outline-none backdrop-blur-sm transition-[color,box-shadow,background-color] placeholder:text-foreground/50 focus-visible:border-ring focus-visible:bg-background/50 focus-visible:ring-3 focus-visible:ring-ring/30"
         />
         <button type="button" onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60 transition-opacity">
-          {show ? <EyeOff size={15} color="#94a3b8" /> : <Eye size={15} color="#94a3b8" />}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground">
+          {show ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
       </div>
     </div>
@@ -83,8 +77,8 @@ export function RegisterForm() {
 
   if (state.message === "confirm_email") {
     return (
-      <div className="flex flex-col flex-1 items-center justify-center px-16 pb-6">
-        <div className="w-full max-w-[384px]">
+      <div className="flex flex-col flex-1 items-center justify-center px-6 pb-6 sm:px-10 lg:px-12">
+        <div className="w-full max-w-[520px]">
           {/* Card */}
           <div className="rounded-2xl p-8 text-center" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: "rgba(22,163,74,0.14)" }}>
@@ -117,19 +111,18 @@ export function RegisterForm() {
   return (
     <div className="flex flex-col flex-1">
       <div className="flex justify-end px-9 pt-9">
-        <Link href="/login" className="text-xs font-medium px-3 py-1.5 rounded-md hover:bg-slate-50 transition-colors"
-          style={{ color: "#020617" }}>
+        <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background/45">
           Уже есть аккаунт? <span className="font-semibold">Войти</span>
         </Link>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-16 pb-6">
-        <div className="w-full max-w-[384px]">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold mb-1.5" style={{ color: "#020617", letterSpacing: "-0.144px" }}>
+      <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-10 lg:px-12">
+        <div className="w-full max-w-[520px]">
+          <div className="mb-7 text-left">
+            <h1 className="mb-2 text-3xl font-semibold text-foreground">
               Создайте аккаунт
             </h1>
-            <p className="text-sm" style={{ color: "#64748b" }}>Начните бесплатно — без карты</p>
+            <p className="text-base text-foreground/80">Начните бесплатно — без карты</p>
           </div>
 
           <form action={action} autoComplete="off" className="flex flex-col gap-5" onKeyDown={(e) => { if (e.key === "Enter" && !agreed) e.preventDefault() }}>
@@ -145,13 +138,13 @@ export function RegisterForm() {
               <input type="checkbox" name="acceptedTerms" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
                 className="mt-0.5 rounded"
                 style={{ accentColor: "#0f172a", width: 15, height: 15, flexShrink: 0 }} />
-              <span className="text-sm leading-snug" style={{ color: "#64748b" }}>
+              <span className="text-sm leading-snug text-foreground/80">
                 Я принимаю{" "}
-                <a href="/terms" className="underline hover:opacity-70" style={{ color: "#020617" }}>
+                <a href="/terms" className="font-medium text-foreground underline hover:opacity-70">
                   условия использования
                 </a>{" "}
                 и{" "}
-                <a href="/privacy" className="underline hover:opacity-70" style={{ color: "#020617" }}>
+                <a href="/privacy" className="font-medium text-foreground underline hover:opacity-70">
                   политику конфиденциальности
                 </a>
               </span>
@@ -169,9 +162,9 @@ export function RegisterForm() {
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px" style={{ background: "#e2e8f0" }} />
-                <span className="text-xs" style={{ color: "#94a3b8" }}>или</span>
-                <div className="flex-1 h-px" style={{ background: "#e2e8f0" }} />
+                <div className="h-px flex-1 bg-border/80" />
+                <span className="text-xs font-medium text-foreground/70">или</span>
+                <div className="h-px flex-1 bg-border/80" />
               </div>
 
               <GoogleButton />
