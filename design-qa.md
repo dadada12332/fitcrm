@@ -1,3 +1,32 @@
+# Design QA: Onboarding Registration Shell
+
+## Evidence
+
+- Source screen before change: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_dhc7ky/Снимок экрана 2026-07-23 в 14.43.41.png`
+- Desktop implementation: `/Users/amiran/fitcrm/artifacts/onboarding-cloud-glass/onboarding-registration-shell-desktop.png`
+- Mobile implementation: `/Users/amiran/fitcrm/artifacts/onboarding-cloud-glass/onboarding-registration-shell-mobile.png`
+- Side-by-side comparison: `/Users/amiran/fitcrm/artifacts/onboarding-cloud-glass/design-qa-before-after.png`
+- Desktop QA viewport: `1280 × 720` CSS px.
+- Mobile QA viewport: `390 × 844` CSS px.
+
+## Comparison
+
+- Onboarding now uses the same full-viewport cloud image, drift animation and `50 / 50` split as registration.
+- The left carousel reuses registration's translucent `bg-foreground/45` layer instead of a separate solid black shell.
+- The right side uses the exact registration glass material: identical margin, radius, translucent fill, ring, shadow, blur, brightness and saturation.
+- Onboarding inputs were changed from opaque surfaces to the same translucent field treatment used by registration.
+- The primary navigation button now spans the same width as the inputs, while the step circles, icons, status copy, heading, labels and fields are larger and easier to scan.
+- The four-step onboarding logic, forms and Server Actions remain unchanged.
+
+## Runtime Checks
+
+- Authenticated step 1 rendered at desktop and mobile viewports.
+- Desktop preserves the full left story while all right-side controls remain visible without page scrolling.
+- Mobile hides the branding carousel and keeps the enlarged stepper, form fields and full-width navigation button usable inside the fixed cloud shell.
+- No onboarding step was submitted during visual QA, so the test account remains at step 1.
+
+final result: passed
+
 # Design QA: Auth Feature Grid Under Copy
 
 ## Evidence

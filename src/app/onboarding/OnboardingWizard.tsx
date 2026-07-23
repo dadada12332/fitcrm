@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useActionState, useTransition, startTransition } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Building2, Clock, CreditCard, Users, ArrowLeft, ArrowRight, Check, Plus } from "lucide-react"
 import { BrandingCarousel } from "@/app/(auth)/BrandingCarousel"
@@ -27,23 +28,34 @@ const DAYS = [
   { key: "sun", label: "Воскресенье" },
 ]
 
+const ONBOARDING_INPUT_CLASS =
+  "border-foreground/15 bg-background/30 shadow-none backdrop-blur-sm focus-visible:bg-background/50"
+
 function Field({ label, name, placeholder, type = "text", defaultValue, autoFocus, money }: {
   label: string; name: string; placeholder?: string
   type?: string; defaultValue?: string; autoFocus?: boolean; money?: boolean
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-foreground" htmlFor={name}>{label}</label>
+      <label className="text-[15px] font-medium text-foreground" htmlFor={name}>{label}</label>
       {money ? (
         <MoneyInput
           id={name}
           name={name}
           defaultValue={defaultValue}
           placeholder={placeholder}
-          className="h-10 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:text-sm"
+          className={`h-11 w-full rounded-lg px-3 text-base text-foreground outline-none transition-[color,box-shadow,background-color] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${ONBOARDING_INPUT_CLASS}`}
         />
       ) : (
-        <Input id={name} name={name} type={type} placeholder={placeholder} defaultValue={defaultValue} autoFocus={autoFocus} />
+        <Input
+          id={name}
+          name={name}
+          type={type}
+          placeholder={placeholder}
+          defaultValue={defaultValue}
+          autoFocus={autoFocus}
+          className={`h-11 text-base ${ONBOARDING_INPUT_CLASS}`}
+        />
       )}
     </div>
   )
@@ -55,26 +67,26 @@ function Stepper({ step }: { step: number }) {
   const current = STEPS[step - 1]
 
   return (
-    <div className="mb-6 space-y-3">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+    <div className="mb-7 space-y-4">
+      <div className="flex items-center justify-between text-sm text-foreground/75">
         <span>Шаг {step} из {STEPS.length}</span>
         <span className="font-medium text-foreground">{current.short}</span>
       </div>
-      <ol className="flex items-center gap-2" aria-label="Этапы настройки клуба">
+      <ol className="flex items-center gap-2.5" aria-label="Этапы настройки клуба">
       {STEPS.map((s, i) => {
         const done   = step > s.id
         const active = step === s.id
         const Icon   = s.Icon
         return (
-          <li key={s.id} className="flex min-w-0 flex-1 items-center gap-2 last:flex-none" aria-current={active ? "step" : undefined}>
+          <li key={s.id} className="flex min-w-0 flex-1 items-center gap-2.5 last:flex-none" aria-current={active ? "step" : undefined}>
             <div
-              className={`flex size-7 shrink-0 items-center justify-center rounded-full border transition-colors ${done || active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}
+              className={`flex size-9 shrink-0 items-center justify-center rounded-full border transition-colors ${done || active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}
               aria-label={s.label}
             >
-              {done ? <Check className="size-3.5" /> : <Icon className="size-3.5" />}
+              {done ? <Check className="size-[18px]" /> : <Icon className="size-[18px]" />}
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`h-px min-w-2 flex-1 ${done ? "bg-primary" : "bg-border"}`} />
+              <div className={`h-0.5 min-w-2 flex-1 rounded-full ${done ? "bg-primary" : "bg-border"}`} />
             )}
           </li>
         )
@@ -90,14 +102,14 @@ function NavButtons({ onBack, pending, nextLabel = "Далее", noBack }: {
   onBack?: () => void; pending?: boolean; nextLabel?: string; noBack?: boolean
 }) {
   return (
-    <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mt-7 flex flex-col-reverse gap-2.5">
       {!noBack ? (
-        <Button type="button" variant="outline" onClick={onBack} className="h-10 w-full sm:w-auto">
+        <Button type="button" variant="outline" onClick={onBack} className="h-11 w-full text-base">
           <ArrowLeft className="size-4" /> Назад
         </Button>
-      ) : <span className="hidden sm:block" />}
-      <Button type="submit" size="lg" disabled={pending} className="h-10 w-full sm:w-auto">
-        {pending ? "Сохранение…" : nextLabel} {!pending && <ArrowRight className="size-3.5" />}
+      ) : null}
+      <Button type="submit" size="lg" disabled={pending} className="h-11 w-full text-base">
+        {pending ? "Сохранение…" : nextLabel} {!pending && <ArrowRight className="size-4" />}
       </Button>
     </div>
   )
@@ -150,9 +162,9 @@ function Step2({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
             <p className="mt-2 text-xs text-muted-foreground">Клуб закрыт</p>
           ) : (
             <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-              <Input name={`${key}_open`} type="time" defaultValue="09:00" className="h-10 min-w-0 px-2" aria-label={`${label}: время открытия`} />
+              <Input name={`${key}_open`} type="time" defaultValue="09:00" className={`h-10 min-w-0 px-2 ${ONBOARDING_INPUT_CLASS}`} aria-label={`${label}: время открытия`} />
               <span className="text-xs text-muted-foreground">до</span>
-              <Input name={`${key}_close`} type="time" defaultValue="21:00" className="h-10 min-w-0 px-2" aria-label={`${label}: время закрытия`} />
+              <Input name={`${key}_close`} type="time" defaultValue="21:00" className={`h-10 min-w-0 px-2 ${ONBOARDING_INPUT_CLASS}`} aria-label={`${label}: время закрытия`} />
             </div>
           )}
         </div>
@@ -217,6 +229,7 @@ function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void 
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input id="staff-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
             placeholder="trainer@example.com"
+            className={ONBOARDING_INPUT_CLASS}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInvite())} />
           <Button type="button" onClick={addInvite} disabled={pending || !email.trim()} className="h-10 w-full sm:w-auto">
             <Plus className="size-4" /> Отправить приглашение
@@ -273,52 +286,67 @@ export function OnboardingWizard({ clubName, initialStep }: { clubName: string; 
   }
 
   return (
-    <div className="min-h-svh bg-background lg:flex">
-
-      {/* Left dark branding panel */}
-      <div className="hidden min-h-svh max-w-[52%] flex-1 flex-col overflow-hidden bg-foreground lg:flex">
-        <BrandingCarousel />
+    <div className="fixed inset-0 flex overflow-hidden">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 clouds-anim">
+          <Image
+            src="/screens/clouds.jpg"
+            alt=""
+            fill
+            className="object-cover object-top"
+            priority
+            sizes="100vw"
+          />
+        </div>
       </div>
 
-      {/* Right white panel */}
-      <main className="flex min-h-svh flex-1 flex-col bg-background">
-
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-4 pt-4 sm:px-8 sm:pt-8 lg:px-9 lg:pt-9">
-          <div className="flex items-center gap-2">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Plus className="size-4" strokeWidth={2} />
-            </div>
-            <span className="text-sm font-semibold text-foreground">fitCRM</span>
-          </div>
-          {step > 1 && (
-            <Button type="button" variant="ghost" size="sm" onClick={finish} className="h-8">
-              Пропустить настройку
-            </Button>
-          )}
+      {/* Left branding panel */}
+      <div className="relative z-10 hidden h-full min-h-0 w-1/2 flex-none flex-col overflow-hidden bg-foreground/45 lg:flex">
+        <div className="relative z-10 h-full min-h-0 w-full">
+          <BrandingCarousel />
         </div>
+      </div>
 
-        {/* Form area — centered vertically */}
-        <div className="flex flex-1 items-start justify-center px-4 py-4 pb-6 sm:px-8 sm:py-8 lg:items-center lg:px-16">
-          <section className="w-full max-w-[480px] rounded-lg border border-border bg-card p-4 shadow-xs sm:p-6 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
-
-            {/* Stepper */}
-            <Stepper step={step} />
-
-            {/* Step heading */}
-            <div className="mb-6">
-              <h1 className="text-xl font-semibold text-foreground sm:text-2xl">
-                {current.label}
-              </h1>
-              <p className="mt-1.5 text-sm text-muted-foreground">{current.sub}</p>
+      {/* Right cloud panel */}
+      <main className="relative z-10 flex h-full min-h-0 w-full flex-none flex-col bg-foreground/45 lg:w-1/2">
+        <div className="dark relative z-10 m-3 flex min-h-0 flex-1 flex-col overflow-auto rounded-3xl bg-background/25 shadow-2xl shadow-foreground/20 ring-1 ring-background/35 backdrop-blur-md backdrop-brightness-90 backdrop-saturate-75 lg:m-5">
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-4 pt-4 sm:px-8 sm:pt-8 lg:px-9 lg:pt-9">
+            <div className="flex items-center gap-2">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Plus className="size-4" strokeWidth={2} />
+              </div>
+              <span className="text-sm font-semibold text-foreground">fitCRM</span>
             </div>
+            {step > 1 && (
+              <Button type="button" variant="ghost" size="sm" onClick={finish} className="h-8">
+                Пропустить настройку
+              </Button>
+            )}
+          </div>
 
-            {/* Forms */}
-            {step === 1 && <Step1 clubName={clubName} onNext={() => setStep(2)} />}
-            {step === 2 && <Step2 onNext={() => setStep(3)} onBack={() => setStep(1)} />}
-            {step === 3 && <Step3 onNext={() => setStep(4)} onBack={() => setStep(2)} />}
-            {step === 4 && <Step4 onFinish={finish} onBack={() => setStep(3)} />}
-          </section>
+          {/* Form area — centered vertically */}
+          <div className="flex flex-1 items-start justify-center px-4 py-4 pb-6 sm:px-8 sm:py-8 lg:items-center lg:px-12 xl:px-16">
+            <section className="w-full max-w-[480px] rounded-2xl border border-background/15 bg-background/15 p-4 shadow-xl shadow-foreground/10 backdrop-blur-sm sm:p-6 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
+
+              {/* Stepper */}
+              <Stepper step={step} />
+
+              {/* Step heading */}
+              <div className="mb-7">
+                <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
+                  {current.label}
+                </h1>
+                <p className="mt-2 text-base text-muted-foreground">{current.sub}</p>
+              </div>
+
+              {/* Forms */}
+              {step === 1 && <Step1 clubName={clubName} onNext={() => setStep(2)} />}
+              {step === 2 && <Step2 onNext={() => setStep(3)} onBack={() => setStep(1)} />}
+              {step === 3 && <Step3 onNext={() => setStep(4)} onBack={() => setStep(2)} />}
+              {step === 4 && <Step4 onFinish={finish} onBack={() => setStep(3)} />}
+            </section>
+          </div>
         </div>
 
       </main>
