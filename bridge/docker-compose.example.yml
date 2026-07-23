@@ -1,0 +1,13 @@
+services:
+  fitcrm-bridge:
+    build: .
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      FITCRM_INTEGRATION_ID: "${FITCRM_INTEGRATION_ID}"
+      FITCRM_ACCESS_KEY: "${FITCRM_ACCESS_KEY}"
+      VENDOR_USERNAME: "${VENDOR_USERNAME}"
+      VENDOR_PASSWORD: "${VENDOR_PASSWORD}"
+    volumes:
+      - "./config.docker.json:/etc/fitcrm-bridge/config.json:ro"
+      - "./data:/var/lib/fitcrm-bridge"

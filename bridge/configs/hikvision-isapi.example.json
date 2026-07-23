@@ -1,0 +1,26 @@
+{
+  "bridge": {
+    "id": "hikvision-main",
+    "listenHost": "127.0.0.1",
+    "listenPort": 8787,
+    "stateDir": "./data"
+  },
+  "fitcrm": {
+    "baseUrl": "https://fitcrm-three.vercel.app",
+    "integrationId": "${FITCRM_INTEGRATION_ID}",
+    "accessKey": "${FITCRM_ACCESS_KEY}"
+  },
+  "provider": {
+    "type": "hikvision",
+    "mode": "isapi",
+    "baseUrl": "http://192.168.1.30",
+    "username": "${VENDOR_USERNAME}",
+    "password": "${VENDOR_PASSWORD}",
+    "deviceId": "front-door"
+  },
+  "mapping": {
+    "entryReaders": ["1"],
+    "exitReaders": ["2"],
+    "timezone": "Asia/Tashkent"
+  }
+}

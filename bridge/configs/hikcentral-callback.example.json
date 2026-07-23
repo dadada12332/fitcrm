@@ -1,0 +1,26 @@
+{
+  "bridge": {
+    "id": "hikcentral-main",
+    "listenHost": "127.0.0.1",
+    "listenPort": 8787,
+    "stateDir": "./data"
+  },
+  "fitcrm": {
+    "baseUrl": "https://fitcrm-three.vercel.app",
+    "integrationId": "${FITCRM_INTEGRATION_ID}",
+    "accessKey": "${FITCRM_ACCESS_KEY}"
+  },
+  "provider": {
+    "type": "hikvision",
+    "mode": "hikcentral",
+    "baseUrl": "https://192.168.1.40",
+    "appKey": "${HIKCENTRAL_APP_KEY}",
+    "appSecret": "${HIKCENTRAL_APP_SECRET}",
+    "ingressKey": "${VENDOR_INGRESS_KEY}"
+  },
+  "mapping": {
+    "entryReaders": [],
+    "exitReaders": [],
+    "timezone": "Asia/Tashkent"
+  }
+}

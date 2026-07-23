@@ -1,0 +1,16 @@
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "data": [
+      {
+        "id": "acc-7001",
+        "pin": "FIT-0099",
+        "event_time": "2026-07-23T09:00:00+05:00",
+        "in_out_state": 0,
+        "event_type": 0,
+        "sn": "CVS-DOOR-01"
+      }
+    ]
+  }
+}

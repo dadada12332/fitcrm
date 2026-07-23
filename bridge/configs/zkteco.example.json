@@ -1,0 +1,40 @@
+{
+  "bridge": {
+    "id": "zkteco-main",
+    "listenHost": "127.0.0.1",
+    "listenPort": 8787,
+    "stateDir": "./data"
+  },
+  "fitcrm": {
+    "baseUrl": "https://fitcrm-three.vercel.app",
+    "integrationId": "${FITCRM_INTEGRATION_ID}",
+    "accessKey": "${FITCRM_ACCESS_KEY}"
+  },
+  "provider": {
+    "type": "zkteco",
+    "baseUrl": "https://192.168.1.20",
+    "allowInsecureHttp": false,
+    "auth": {
+      "mode": "token",
+      "path": "/REPLACE_FROM_INSTALLED_VERSION_API_MANUAL",
+      "body": {
+        "username": "${VENDOR_USERNAME}",
+        "password": "${VENDOR_PASSWORD}"
+      },
+      "tokenPath": ["token"]
+    },
+    "events": {
+      "path": "/REPLACE_FROM_INSTALLED_VERSION_API_MANUAL",
+      "query": {},
+      "sinceParam": "REPLACE_FROM_INSTALLED_VERSION_API_MANUAL"
+    },
+    "mapping": {
+      "profile": "zkbio-cvsecurity-access"
+    }
+  },
+  "mapping": {
+    "entryReaders": [],
+    "exitReaders": [],
+    "timezone": "Asia/Tashkent"
+  }
+}

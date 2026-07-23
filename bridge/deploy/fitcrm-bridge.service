@@ -1,0 +1,24 @@
+[Unit]
+Description=FitCRM Access Control Bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fitcrm-bridge
+Group=fitcrm-bridge
+WorkingDirectory=/opt/fitcrm-bridge
+EnvironmentFile=-/etc/fitcrm-bridge/bridge.env
+Environment=FITCRM_BRIDGE_CONFIG=/etc/fitcrm-bridge/config.json
+Environment=FITCRM_BRIDGE_STATE_DIR=/var/lib/fitcrm-bridge
+ExecStart=/usr/bin/node /opt/fitcrm-bridge/bin/fitcrm-bridge.mjs start
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/fitcrm-bridge
+
+[Install]
+WantedBy=multi-user.target

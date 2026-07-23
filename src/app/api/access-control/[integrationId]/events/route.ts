@@ -23,12 +23,17 @@ export async function POST(
       headers: { "Retry-After": "60" },
     })
   }
-  const integration = await authenticateAccessControlIntegration(integrationId, accessControlRequestKey(request))
-  if (!integration) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
-
   try {
+    const integration = await authenticateAccessControlIntegration(integrationId, accessControlRequestKey(request))
+    if (!integration) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
     const event = await parseNormalizedAccessEvent(request)
     const decision = await processNormalizedAccessEvent(integration, event)
+    if (decision.reasonCode === "storage_error" || decision.reasonCode === "processing_error") {
+      return Response.json({
+        ok: false,
+        error: decision.reasonCode,
+      }, { status: 503 })
+    }
     return Response.json({
       ok: true,
       allowed: decision.allowed,

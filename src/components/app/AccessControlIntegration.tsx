@@ -6,9 +6,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clipboard,
+  Download,
   KeyRound,
   Link2,
   LoaderCircle,
+  PackageCheck,
   Play,
   Plus,
   RefreshCw,
@@ -98,6 +100,7 @@ const CREDENTIAL_LABELS: Record<AccessControlCredentialType, string> = {
   bracelet: "Браслет",
   qr: "QR-код",
   face: "Лицо",
+  external_id: "ID в СКУД",
 }
 
 const DIRECTION_LABELS: Record<AccessControlDirection, string> = {
@@ -173,6 +176,20 @@ function StatusBadge({ integration }: { integration: AccessControlIntegrationDTO
   return <Badge variant="secondary">{STATUS_LABELS[integration.status]}</Badge>
 }
 
+function downloadJson(filename: string, value: unknown) {
+  const blob = new Blob([`${JSON.stringify(value, null, 2)}\n`], {
+    type: "application/json;charset=utf-8",
+  })
+  const href = URL.createObjectURL(blob)
+  const anchor = document.createElement("a")
+  anchor.href = href
+  anchor.download = filename
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(href)
+}
+
 export function AccessControlIntegration({
   provider,
   integration,
@@ -229,6 +246,13 @@ export function AccessControlIntegration({
   }
 
   function rotateWebhookKey() {
+    if (
+      integration?.webhookKeyMask
+      && !newWebhookKey
+      && !window.confirm("Ротация ключа сразу отключит работающий Bridge. Продолжить?")
+    ) {
+      return
+    }
     startTransition(async () => {
       const result = await runAction(() => rotateAccessControlWebhookKeyAction(provider), {
         loading: "Обновляем ключ…",
@@ -252,6 +276,92 @@ export function AccessControlIntegration({
         onSuccess: refresh,
       })
     })
+  }
+
+  function downloadBridgeConfig() {
+    if (!integration || !newWebhookKey) {
+      toast.error("Сначала создайте новый Bridge-ключ")
+      return
+    }
+
+    const providerConfig = provider === "sigur"
+      ? {
+          type: "sigur",
+          mode: "rest_poll",
+          baseUrl: "https://192.168.1.20",
+          username: "${VENDOR_USERNAME}",
+          password: "${VENDOR_PASSWORD}",
+          pollIntervalMs: 1000,
+          eventMap: {
+            externalEventId: "id",
+            occurredAt: "timestamp",
+            credentialUid: "accessObjectId",
+            deviceId: "accessPointId",
+            eventType: "type",
+          },
+          eventTypes: {
+            REPLACE_WITH_PASSAGE_TYPE_FROM_GET_EVENTS_TYPES: "passage",
+          },
+        }
+      : provider === "zkteco"
+        ? {
+            type: "zkteco",
+            baseUrl: "https://192.168.1.20",
+            allowInsecureHttp: false,
+            auth: {
+              mode: "token",
+              path: "/REPLACE_FROM_INSTALLED_VERSION_API_MANUAL",
+              body: {
+                username: "${VENDOR_USERNAME}",
+                password: "${VENDOR_PASSWORD}",
+              },
+              tokenPath: ["token"],
+            },
+            events: {
+              path: "/REPLACE_FROM_INSTALLED_VERSION_API_MANUAL",
+              query: {},
+              sinceParam: "REPLACE_FROM_INSTALLED_VERSION_API_MANUAL",
+            },
+            mapping: {
+              profile: "zkbiotime-attendance",
+            },
+            pollIntervalMs: 1000,
+          }
+        : {
+            type: "hikvision",
+            mode: "isapi",
+            baseUrl: "https://192.168.1.20",
+            username: "${VENDOR_USERNAME}",
+            password: "${VENDOR_PASSWORD}",
+            pollIntervalMs: 1000,
+          }
+
+    downloadJson(`fitcrm-bridge-${provider}.json`, {
+      bridge: {
+        id: `${provider}-${integration.id.slice(0, 8)}`,
+        listenHost: "127.0.0.1",
+        listenPort: 8787,
+        stateDir: "./data",
+        heartbeatIntervalMs: 60000,
+        deliveryIntervalMs: 1000,
+        maxQueueEntries: 100000,
+        maxQueueBytes: 536870912,
+        maxFailureFiles: 10000,
+      },
+      fitcrm: {
+        baseUrl: new URL(integration.eventUrl).origin,
+        integrationId: integration.id,
+        accessKey: newWebhookKey,
+        timeoutMs: 5000,
+      },
+      provider: providerConfig,
+      mapping: {
+        entryReaders: ["ENTRY_READER_ID"],
+        exitReaders: ["EXIT_READER_ID"],
+        timezone: "Asia/Tashkent",
+      },
+    })
+    toast.success("Персональный config.json скачан")
   }
 
   function addCredential(formData: FormData) {
@@ -514,6 +624,77 @@ export function AccessControlIntegration({
                 )}
               </div>
             </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b">
+              <div className="flex items-start gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <PackageCheck className="size-5" aria-hidden />
+                </div>
+                <div>
+                  <CardTitle>Установка FitCRM Bridge</CardTitle>
+                  <CardDescription className="mt-1">
+                    Готовая локальная сборка для Windows, Linux и Docker. Она работает внутри сети клуба
+                    и передаёт проходы в FitCRM.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-4 pt-4 lg:grid-cols-3">
+              <div className="rounded-lg border border-border bg-muted/40 p-4">
+                <p className="text-sm font-semibold text-foreground">1. Скачать сборку</p>
+                <p className="mt-1 min-h-10 text-xs text-muted-foreground">
+                  В архиве агент, установщики, Docker и документация по {meta.label}.
+                </p>
+                <Button
+                  nativeButton={false}
+                  render={<a href="/downloads/fitcrm-access-bridge.zip" download />}
+                  variant="outline"
+                  className="mt-4 w-full"
+                >
+                    <Download aria-hidden />
+                    Скачать ZIP
+                </Button>
+              </div>
+
+              <div className="rounded-lg border border-border bg-muted/40 p-4">
+                <p className="text-sm font-semibold text-foreground">2. Получить ключ</p>
+                <p className="mt-1 min-h-10 text-xs text-muted-foreground">
+                  Ключ показывается один раз и уже привязан к этому клубу и интеграции.
+                </p>
+                <Button type="button" variant="outline" className="mt-4 w-full" onClick={rotateWebhookKey} disabled={pending}>
+                  <KeyRound aria-hidden />
+                  {newWebhookKey
+                    ? "Обновить ключ"
+                    : integration.webhookKeyMask
+                      ? "Ротировать Bridge-ключ"
+                      : "Создать Bridge-ключ"}
+                </Button>
+              </div>
+
+              <div className="rounded-lg border border-border bg-muted/40 p-4">
+                <p className="text-sm font-semibold text-foreground">3. Скачать конфигурацию</p>
+                <p className="mt-1 min-h-10 text-xs text-muted-foreground">
+                  Заполните адрес СКУД, логин, пароль и ID входного и выходного считывателя.
+                </p>
+                <Button
+                  type="button"
+                  className="mt-4 w-full"
+                  onClick={downloadBridgeConfig}
+                  disabled={pending || !newWebhookKey}
+                >
+                  <Download aria-hidden />
+                  Скачать config.json
+                </Button>
+              </div>
+            </CardContent>
+            <CardFooter className="flex-col items-stretch gap-2 border-t text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                Integration ID: <span className="font-mono text-foreground">{integration.id}</span>
+              </span>
+              <span>Перед запуском: <span className="font-mono text-foreground">npm run doctor</span></span>
+            </CardFooter>
           </Card>
 
           <Card>

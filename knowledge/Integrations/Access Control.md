@@ -9,8 +9,9 @@ tags: [fitcrm, integrations, access-control, sigur, zkteco, hikvision]
 
 ## Статус
 
-Cloud-контур FitCRM реализован: подключения клубов, зашифрованные секреты, привязки карт и
-браслетов, проверка абонемента, дедупликация событий, атомарное создание посещения и симулятор.
+Cloud-контур и устанавливаемый FitCRM Bridge реализованы: подключения клубов, зашифрованные
+секреты, привязки карт/браслетов/vendor ID, проверка абонемента, дедупликация событий,
+атомарное создание посещения, durable retry и симулятор.
 
 Аппаратная совместимость **не сертифицирована**. До contract-теста на лицензированном сервере и
 реальном контроллере интерфейс обязан показывать статус Beta.
@@ -72,11 +73,23 @@ X-FitCRM-Access-Key: <per-club secret>
 Подтверждённый проход принимается не старше 15 минут и не более чем на 2 минуты из будущего.
 Повторный вход той же картой в течение 30 секунд блокируется как anti-passback.
 
+## Поставка Bridge
+
+- ZIP: `/downloads/fitcrm-access-bridge.zip`;
+- Windows: подписанный machine-wide Node.js 20+ и Scheduled Task под SYSTEM;
+- Linux: systemd unit с отдельным пользователем и конфигурацией `0640`;
+- Docker: read-only config mount и отдельный persistent volume;
+- state: атомарные queue/checkpoint файлы, backoff, dead-letter и квоты;
+- callback: только loopback Bridge за HTTPS reverse proxy с exact-route allowlist.
+
+Перед вводом выполнить `bridge/docs/commissioning.md`. Персональный `config.json` скачивается
+в CRM только после получения одноразово показанного Bridge-ключа.
+
 ## Провайдеры
 
 ### Sigur
 
-- Основной режим: Web Delegation + отдельная регистрация событий.
+- Реализованный режим: Public REST `/events` с JWT, cursor и durable checkpoint.
 - REST API работает на локальном сервере, по умолчанию порт 9500; наружу его не открывать.
 - REST: JWT access token + refresh token; используется Bridge для сверки и восстановления.
 - Публичная документация не содержит точную схему Web Delegation, таймауты и гарантии повторов.
@@ -90,7 +103,8 @@ X-FitCRM-Access-Key: <per-club secret>
 
 ### ZKTeco
 
-- Для контроля доступа приоритетен ZKBio CVSecurity.
+- Для контроля доступа приоритетен ZKBio CVSecurity; result codes настраиваются по документации
+  конкретной версии и до этого остаются fail-closed.
 - ZKBio Time/BioTime — преимущественно учёт времени; события безопаснее читать через Bridge.
 - API зависит от версии, разрешения пользователя и лицензии.
 - Сервер должен быть обновлён: старые сборки имеют опубликованные критические уязвимости.
@@ -108,6 +122,7 @@ X-FitCRM-Access-Key: <per-club secret>
 - Для нескольких устройств предпочтителен HikCentral Professional OpenAPI.
 - ISAPI зависит от модели и firmware; используется Bridge в локальной сети.
 - ISAPI использует HTTP Digest, HikCentral — API Key/API Secret и подписанные запросы.
+- Реализованы multipart ISAPI alertStream и HikCentral Artemis callback/polling.
 - Устройство или HikCentral нельзя публиковать напрямую в интернете.
 
 Источники:

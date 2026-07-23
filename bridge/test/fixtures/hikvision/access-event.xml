@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EventNotificationAlert version="2.0" xmlns="http://www.isapi.org/ver20/XMLSchema">
+  <ipAddress>192.0.2.20</ipAddress>
+  <dateTime>2026-07-23T10:20:30+05:00</dateTime>
+  <activePostCount>1</activePostCount>
+  <eventType>AccessControllerEvent</eventType>
+  <eventState>active</eventState>
+  <eventDescription>Access Controller Event</eventDescription>
+  <channelID>1</channelID>
+  <AccessControllerEvent>
+    <employeeNoString>member-42</employeeNoString>
+    <cardNo>998877</cardNo>
+    <currentVerifyMode>cardOrFace</currentVerifyMode>
+  </AccessControllerEvent>
+</EventNotificationAlert>

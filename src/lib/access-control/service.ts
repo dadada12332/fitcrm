@@ -59,13 +59,14 @@ function readSecret(blob: string): SecretPayload {
 
 export async function authenticateAccessControlIntegration(integrationId: string, key: string) {
   const service = createServiceClient()
-  const { data } = await service
+  const { data, error } = await service
     .from("access_control_integrations")
     .select("*")
     .eq("id", integrationId)
     .neq("status", "disabled")
     .maybeSingle()
 
+  if (error) throw new Error("backend_unavailable")
   if (!data || !key || !safeEqualHex(hashWebhookKey(key), data.webhook_key_hash as string)) {
     return null
   }
@@ -160,7 +161,7 @@ async function evaluateCredential(
 ): Promise<AccessDecision> {
   const service = createServiceClient()
   const uid = normalizeCredentialUid(credentialUid)
-  const { data: mapping } = await service
+  const { data: mapping, error: mappingError } = await service
     .from("access_control_credentials")
     .select("client_id,clients(full_name)")
     .eq("club_id", integration.club_id)
@@ -169,6 +170,7 @@ async function evaluateCredential(
     .eq("active", true)
     .maybeSingle()
 
+  if (mappingError) throw new Error("backend_unavailable")
   if (!mapping) {
     return { allowed: false, reasonCode: "credential_not_mapped", reasonMessage: "Карта или браслет не привязаны" }
   }
@@ -180,7 +182,7 @@ async function evaluateCredential(
     day: "2-digit",
   }).format(new Date())
 
-  const { data: subscription } = await service
+  const { data: subscription, error: subscriptionError } = await service
     .from("subscriptions")
     .select("id,visits_total,visits_used")
     .eq("club_id", integration.club_id)
@@ -192,6 +194,7 @@ async function evaluateCredential(
     .limit(1)
     .maybeSingle()
 
+  if (subscriptionError) throw new Error("backend_unavailable")
   const clients = mapping.clients as { full_name?: string } | Array<{ full_name?: string }> | null
   const client = Array.isArray(clients) ? clients[0] : clients
   if (!requireActiveSubscription) {

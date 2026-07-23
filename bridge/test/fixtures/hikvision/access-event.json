@@ -1,0 +1,19 @@
+{
+  "EventNotificationAlert": {
+    "ipAddress": "192.0.2.21",
+    "dateTime": "2026-07-23T11:20:30+05:00",
+    "activePostCount": 1,
+    "eventType": "AccessControllerEvent",
+    "eventState": "active",
+    "eventDescription": "Access Controller Event",
+    "channelID": 2,
+    "AccessControllerEvent": {
+      "employeeNoString": "member-43",
+      "cardNo": "112233",
+      "currentVerifyMode": "face"
+    },
+    "employeeNoString": "member-43",
+    "cardNo": "112233",
+    "currentVerifyMode": "face"
+  }
+}

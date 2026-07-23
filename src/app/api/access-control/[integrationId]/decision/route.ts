@@ -22,12 +22,18 @@ export async function POST(
       headers: { "Retry-After": "60" },
     })
   }
-  const integration = await authenticateAccessControlIntegration(integrationId, accessControlRequestKey(request))
-  if (!integration) return Response.json({ allowed: false, reasonCode: "unauthorized" }, { status: 401 })
-
   try {
+    const integration = await authenticateAccessControlIntegration(integrationId, accessControlRequestKey(request))
+    if (!integration) return Response.json({ allowed: false, reasonCode: "unauthorized" }, { status: 401 })
     const event = await parseNormalizedAccessEvent(request, "access_request")
     const decision = await processNormalizedAccessEvent(integration, event)
+    if (decision.reasonCode === "storage_error" || decision.reasonCode === "processing_error") {
+      return Response.json({
+        allowed: false,
+        reasonCode: decision.reasonCode,
+        reasonMessage: decision.reasonMessage,
+      }, { status: 503 })
+    }
     return Response.json({
       allowed: decision.allowed,
       reasonCode: decision.reasonCode,
@@ -36,7 +42,11 @@ export async function POST(
   } catch (error) {
     const reasonCode = error instanceof Error ? error.message : "invalid_request"
     return Response.json({ allowed: false, reasonCode }, {
-      status: reasonCode === "payload_too_large" ? 413 : 400,
+      status: reasonCode === "payload_too_large"
+        ? 413
+        : reasonCode === "backend_unavailable"
+          ? 503
+          : 400,
     })
   }
 }

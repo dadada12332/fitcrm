@@ -1,0 +1,38 @@
+{
+  "bridge": {
+    "id": "main-entrance",
+    "listenHost": "127.0.0.1",
+    "listenPort": 8787,
+    "stateDir": "./data",
+    "heartbeatIntervalMs": 60000,
+    "deliveryIntervalMs": 1000,
+    "maxQueueEntries": 100000,
+    "maxQueueBytes": 536870912,
+    "maxFailureFiles": 10000
+  },
+  "fitcrm": {
+    "baseUrl": "https://fitcrm-three.vercel.app",
+    "integrationId": "${FITCRM_INTEGRATION_ID}",
+    "accessKey": "${FITCRM_ACCESS_KEY}",
+    "timeoutMs": 5000
+  },
+  "provider": {
+    "type": "sigur",
+    "baseUrl": "http://127.0.0.1:9500",
+    "username": "${VENDOR_USERNAME}",
+    "password": "${VENDOR_PASSWORD}",
+    "pollIntervalMs": 1000,
+    "requestTimeoutMs": 5000,
+    "eventMap": {
+      "credentialUid": "accessObjectId"
+    },
+    "eventTypes": {
+      "PASSAGE_TYPE_FROM_EVENTS_TYPES": "passage"
+    }
+  },
+  "mapping": {
+    "entryReaders": ["reader-in"],
+    "exitReaders": ["reader-out"],
+    "timezone": "Asia/Tashkent"
+  }
+}

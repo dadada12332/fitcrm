@@ -1,0 +1,31 @@
+{
+  "bridge": {
+    "id": "sigur-main",
+    "listenHost": "127.0.0.1",
+    "listenPort": 8787,
+    "stateDir": "./data"
+  },
+  "fitcrm": {
+    "baseUrl": "https://fitcrm-three.vercel.app",
+    "integrationId": "${FITCRM_INTEGRATION_ID}",
+    "accessKey": "${FITCRM_ACCESS_KEY}"
+  },
+  "provider": {
+    "type": "sigur",
+    "baseUrl": "http://192.168.1.10:9500",
+    "username": "${VENDOR_USERNAME}",
+    "password": "${VENDOR_PASSWORD}",
+    "eventMap": {
+      "credentialUid": "accessObjectId"
+    },
+    "eventTypes": {
+      "REPLACE_WITH_PASSAGE_TYPE_FROM_GET_EVENTS_TYPES": "passage"
+    },
+    "replayExisting": false
+  },
+  "mapping": {
+    "entryReaders": [],
+    "exitReaders": [],
+    "timezone": "Asia/Tashkent"
+  }
+}

@@ -240,7 +240,7 @@ export async function disconnectAccessControlIntegrationAction(providerValue: st
   return { ok: true }
 }
 
-const CREDENTIAL_TYPES = new Set<AccessControlCredentialType>(["card", "bracelet", "qr", "face"])
+const CREDENTIAL_TYPES = new Set<AccessControlCredentialType>(["card", "bracelet", "qr", "face", "external_id"])
 
 export async function addAccessCredentialAction(input: {
   provider: string

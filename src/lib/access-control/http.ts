@@ -92,6 +92,10 @@ export async function parseNormalizedAccessEvent(
 
 export function accessControlErrorResponse(error: unknown) {
   const code = error instanceof Error ? error.message : "invalid_request"
-  const status = code === "payload_too_large" ? 413 : 400
+  const status = code === "payload_too_large"
+    ? 413
+    : code === "backend_unavailable"
+      ? 503
+      : 400
   return Response.json({ ok: false, error: code }, { status })
 }

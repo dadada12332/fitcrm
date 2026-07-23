@@ -3,7 +3,7 @@ export const ACCESS_CONTROL_PROVIDERS = ["sigur", "zkteco", "hikvision"] as cons
 export type AccessControlProvider = (typeof ACCESS_CONTROL_PROVIDERS)[number]
 export type AccessControlDirection = "entry" | "exit" | "unknown"
 export type AccessControlResult = "allowed" | "denied" | "unknown"
-export type AccessControlCredentialType = "card" | "bracelet" | "qr" | "face"
+export type AccessControlCredentialType = "card" | "bracelet" | "qr" | "face" | "external_id"
 
 export const ACCESS_CONTROL_MODES: Record<AccessControlProvider, readonly string[]> = {
   sigur: ["web_delegation", "rest_poll", "bridge"],

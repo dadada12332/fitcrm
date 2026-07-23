@@ -1,0 +1,23 @@
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "data": [
+    {
+      "id": 4101,
+      "emp_code": "FIT-0042",
+      "punch_time": "2026-07-23T08:14:22+05:00",
+      "punch_state": "0",
+      "verify_type": 15,
+      "terminal_sn": "ZK-TASH-01"
+    },
+    {
+      "id": 4102,
+      "emp_code": "FIT-0043",
+      "punch_time": "2026-07-23T08:15:08+05:00",
+      "punch_state": "1",
+      "verify_type": 1,
+      "terminal_sn": "ZK-TASH-02"
+    }
+  ]
+}
