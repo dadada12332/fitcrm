@@ -40,3 +40,11 @@ test("health endpoint reports the database status without authentication", async
   expect(response.status()).toBe(200)
   expect(await response.json()).toEqual(expect.objectContaining({ status: "ok", database: "reachable" }))
 })
+
+test("access bridge release downloads without an authenticated session", async ({ request }) => {
+  const response = await request.get("/downloads/fitcrm-access-bridge.zip", { maxRedirects: 0 })
+
+  expect(response.status()).toBe(200)
+  expect(response.headers()["content-type"]).toContain("application/zip")
+  expect((await response.body()).byteLength).toBeGreaterThan(0)
+})
