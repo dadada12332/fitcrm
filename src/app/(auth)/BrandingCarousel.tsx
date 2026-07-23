@@ -3,7 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
-import { Quote, Star } from "lucide-react"
+import {
+  CalendarDays,
+  ChartNoAxesCombined,
+  MessagesSquare,
+  Quote,
+  Star,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react"
 
 type Review = {
   quote: string
@@ -13,6 +21,40 @@ type Review = {
   tone: string
   className: string
 }
+
+type Feature = {
+  title: string
+  desc: string
+  icon: LucideIcon
+  tone: string
+}
+
+const features = [
+  {
+    title: "Аналитика в реальном времени",
+    desc: "Выручка, посещения и KPI клуба на одном экране",
+    icon: ChartNoAxesCombined,
+    tone: "bg-brand/15 text-brand",
+  },
+  {
+    title: "Клиенты и абонементы",
+    desc: "Клиентская база, абонементы и сроки продления",
+    icon: UsersRound,
+    tone: "bg-chart-2/15 text-chart-2",
+  },
+  {
+    title: "Расписание и тренеры",
+    desc: "Занятия, смены и управление тренерами",
+    icon: CalendarDays,
+    tone: "bg-chart-3/15 text-chart-3",
+  },
+  {
+    title: "Интеграции",
+    desc: "Telegram, Instagram, SMS и другие каналы",
+    icon: MessagesSquare,
+    tone: "bg-chart-4/15 text-chart-4",
+  },
+] satisfies Feature[]
 
 const slides = [
   {
@@ -88,59 +130,56 @@ const slides = [
 
 function ReviewCard({
   review,
-  index,
   direction,
 }: {
   review: Review
-  index: number
   direction: 1 | -1
 }) {
   return (
     <motion.article
-      className={`relative rounded-2xl bg-card/95 p-4 text-card-foreground shadow-2xl shadow-foreground/10 ring-1 ring-foreground/5 backdrop-blur-sm xl:p-5 ${review.className}`}
+      className="relative rounded-2xl bg-card/90 p-3.5 text-card-foreground shadow-2xl shadow-foreground/10 ring-1 ring-background/20 backdrop-blur-md"
       initial={{
         opacity: 0,
-        x: (index % 2 === 0 ? -70 : 70) * direction,
-        y: 28,
-        rotate: (index % 2 === 0 ? -4 : 4) * direction,
-        scale: 0.94,
+        x: 48 * direction,
+        y: 18,
+        scale: 0.96,
         filter: "blur(7px)",
       }}
       animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, filter: "blur(0px)" }}
       exit={{
         opacity: 0,
-        x: (index % 2 === 0 ? 55 : -55) * direction,
-        y: -16,
+        x: -36 * direction,
+        y: -10,
         scale: 0.95,
         filter: "blur(5px)",
       }}
       transition={{
-        duration: 0.56,
-        delay: 0.16 + index * 0.11,
+        duration: 0.5,
+        delay: 0.42,
         ease: [0.22, 1, 0.36, 1],
       }}
     >
-      <Quote className="absolute right-4 top-4 size-7 text-muted/90" fill="currentColor" strokeWidth={1.5} />
-
-      <div className="mb-3 flex items-center gap-1 text-chart-4">
-        {Array.from({ length: 5 }).map((_, starIndex) => (
-          <Star key={starIndex} className="size-3.5" fill="currentColor" strokeWidth={1.5} />
-        ))}
-      </div>
-
-      <blockquote className="max-w-[92%] text-sm font-medium leading-5 xl:text-[15px] xl:leading-6">
-        «{review.quote}»
-      </blockquote>
-
-      <div className="mt-4 flex items-center gap-2.5 border-t border-border/70 pt-3">
-        <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-primary-foreground ${review.tone}`}>
+      <div className="flex items-start gap-3">
+        <span className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-primary-foreground ${review.tone}`}>
           {review.initials}
         </span>
-        <div className="min-w-0">
-          <p className="truncate text-[11px] font-semibold xl:text-xs">{review.role}</p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">{review.location}</p>
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex items-center gap-0.5 text-chart-4">
+            {Array.from({ length: 5 }).map((_, starIndex) => (
+              <Star key={starIndex} className="size-3" fill="currentColor" strokeWidth={1.5} />
+            ))}
+          </div>
+          <blockquote className="pr-7 text-xs font-medium leading-[1.45] xl:text-[13px]">
+            «{review.quote}»
+          </blockquote>
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            <span className="font-semibold text-card-foreground">{review.role}</span>
+            {" · "}
+            {review.location}
+          </p>
         </div>
       </div>
+      <Quote className="absolute right-3.5 top-3.5 size-6 text-muted/80" fill="currentColor" strokeWidth={1.5} />
     </motion.article>
   )
 }
@@ -180,7 +219,7 @@ export function BrandingCarousel() {
         <AnimatePresence initial={false} mode="wait">
           <motion.div
             key={slide.badge}
-            className="absolute inset-0 flex min-h-0 flex-col pt-8"
+            className="absolute inset-0 flex min-h-0 flex-col pt-6 xl:pt-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -196,23 +235,50 @@ export function BrandingCarousel() {
                 <span className="size-1.5 rounded-full bg-background/60" />
                 {slide.badge}
               </div>
-              <h2 className="mb-3 whitespace-pre-line text-4xl font-bold leading-[1.08] text-background">
+              <h2 className="mb-2.5 whitespace-pre-line text-3xl font-bold leading-[1.08] text-background xl:text-4xl">
                 {slide.title}
               </h2>
-              <p className="max-w-[92%] text-base leading-6 text-background/70">
+              <p className="max-w-[94%] text-sm leading-5 text-background/70 xl:text-base xl:leading-6">
                 {slide.desc}
               </p>
             </motion.div>
 
-            <div className="mt-7 flex min-h-0 flex-1 flex-col justify-center gap-3">
-              {slide.reviews.map((review, reviewIndex) => (
-                <ReviewCard
-                  key={`${slide.badge}-${review.role}`}
-                  review={review}
-                  index={reviewIndex}
-                  direction={direction}
-                />
-              ))}
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              {features.map((feature, featureIndex) => {
+                const Icon = feature.icon
+                return (
+                  <motion.article
+                    key={feature.title}
+                    className="min-h-32 rounded-2xl bg-primary/45 p-4 text-background shadow-lg shadow-foreground/10 ring-1 ring-background/10 backdrop-blur-md"
+                    initial={{ opacity: 0, y: 16, scale: 0.97, filter: "blur(5px)" }}
+                    animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -10, scale: 0.98, filter: "blur(4px)" }}
+                    transition={{
+                      duration: 0.42,
+                      delay: 0.1 + featureIndex * 0.06,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                  >
+                    <span className={`mb-3 flex size-10 items-center justify-center rounded-xl ${feature.tone}`}>
+                      <Icon className="size-5" strokeWidth={1.9} />
+                    </span>
+                    <h3 className="text-[13px] font-semibold leading-[1.3] text-background xl:text-sm">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-1.5 text-[11px] leading-4 text-background/65 xl:text-xs">
+                      {feature.desc}
+                    </p>
+                  </motion.article>
+                )
+              })}
+            </div>
+
+            <div className="mt-3.5">
+              <ReviewCard
+                key={`${slide.badge}-${slide.reviews[0].role}`}
+                review={slide.reviews[0]}
+                direction={direction}
+              />
             </div>
           </motion.div>
         </AnimatePresence>

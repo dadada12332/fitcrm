@@ -1,3 +1,29 @@
+# Design QA: Auth Feature Grid Under Copy
+
+## Evidence
+
+- Visual reference: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_l2Ofii/Снимок экрана 2026-07-23 в 14.12.57.png`
+- Registration implementation: `/Users/amiran/fitcrm/artifacts/auth-cloud-background/auth-feature-grid-reviews.png`
+- Side-by-side comparison: `/Users/amiran/fitcrm/artifacts/auth-cloud-background/design-qa-feature-grid-reference.png`
+- Desktop viewport: `1280 × 720` CSS px.
+
+## Comparison
+
+- Four feature blocks now sit immediately below the active carousel description.
+- The desktop half-screen uses a compact `2 × 2` grid instead of the reference's full-width row, preserving readable card width without introducing horizontal clipping.
+- Cards retain the reference's dark translucent surface, soft border, colorful icon tile, title and supporting copy.
+- Card height, internal padding, icons and both text levels were increased after the first pass to match the visual weight of the reference more closely.
+- Existing testimonials remain below the feature grid as one compact review per scene, so the previous social-proof direction is preserved without overflowing the viewport.
+- Copy, feature cards and testimonial enter in a staggered sequence when the carousel changes.
+
+## Runtime Checks
+
+- Registration rendered at `1280 × 720`.
+- Heading, all four feature cards, testimonial, carousel controls and registration form remain visible without page scrolling or clipping.
+- Browser console only reported the known extension-injected `aria-autocomplete` hydration attribute; no application error was introduced.
+
+final result: passed
+
 # Design QA: Auth Copy-First Review Carousel
 
 ## Evidence
