@@ -31,6 +31,12 @@ const DAYS = [
 const ONBOARDING_INPUT_CLASS =
   "border-foreground/15 bg-background/30 shadow-none backdrop-blur-sm focus-visible:bg-background/50"
 
+const ONBOARDING_SECONDARY_BUTTON_CLASS =
+  "border-background/35 bg-background/20 text-foreground shadow-sm backdrop-blur-sm hover:bg-background/30 hover:text-foreground"
+
+const ONBOARDING_SKIP_BUTTON_CLASS =
+  "border border-background/25 bg-background/15 text-foreground shadow-sm backdrop-blur-sm hover:bg-background/25 hover:text-foreground"
+
 function Field({ label, name, placeholder, type = "text", defaultValue, autoFocus, money }: {
   label: string; name: string; placeholder?: string
   type?: string; defaultValue?: string; autoFocus?: boolean; money?: boolean
@@ -104,7 +110,12 @@ function NavButtons({ onBack, pending, nextLabel = "Далее", noBack }: {
   return (
     <div className="mt-7 flex flex-col-reverse gap-2.5">
       {!noBack ? (
-        <Button type="button" variant="outline" onClick={onBack} className="h-11 w-full text-base">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          className={`h-11 w-full text-base ${ONBOARDING_SECONDARY_BUTTON_CLASS}`}
+        >
           <ArrowLeft className="size-4" /> Назад
         </Button>
       ) : null}
@@ -255,14 +266,24 @@ function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void 
       </p>
 
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Button type="button" variant="outline" onClick={onBack} className="h-10 w-full sm:w-auto">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          className={`h-11 w-full text-base sm:w-auto ${ONBOARDING_SECONDARY_BUTTON_CLASS}`}
+        >
           <ArrowLeft className="size-4" /> Назад
         </Button>
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
-          <Button type="button" variant="ghost" onClick={onFinish} className="h-10 w-full sm:w-auto">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onFinish}
+            className={`h-11 w-full px-4 text-base sm:w-auto ${ONBOARDING_SKIP_BUTTON_CLASS}`}
+          >
             Пропустить
           </Button>
-          <Button type="submit" size="lg" className="h-10 w-full sm:w-auto">
+          <Button type="submit" size="lg" className="h-11 w-full text-base sm:w-auto">
             Перейти в CRM <ArrowRight className="size-4" />
           </Button>
         </div>
@@ -319,7 +340,13 @@ export function OnboardingWizard({ clubName, initialStep }: { clubName: string; 
               <span className="text-sm font-semibold text-foreground">fitCRM</span>
             </div>
             {step > 1 && (
-              <Button type="button" variant="ghost" size="sm" onClick={finish} className="h-8">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={finish}
+                className={`h-9 px-3 text-sm font-semibold ${ONBOARDING_SKIP_BUTTON_CLASS}`}
+              >
                 Пропустить настройку
               </Button>
             )}

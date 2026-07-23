@@ -1,3 +1,32 @@
+# Design QA: Onboarding Secondary Button Contrast
+
+## Evidence
+
+- Source visual truth:
+  - `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_mflOfu/Снимок экрана 2026-07-23 в 15.04.46.png` (`714 × 242` px).
+  - `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_AFy96l/Снимок экрана 2026-07-23 в 15.05.04.png` (`354 × 226` px).
+- Desktop implementation: `/Users/amiran/fitcrm/artifacts/onboarding-button-contrast/desktop-back-button-fixed.png` (`1280 × 720` px, CSS viewport `1280 × 720`, DPR 1).
+- Mobile implementation: `/Users/amiran/fitcrm/artifacts/onboarding-button-contrast/mobile-skip-button-fixed.png` (`390 × 844` px, CSS viewport `390 × 844`, DPR 1).
+- Full comparison evidence:
+  - `/Users/amiran/fitcrm/artifacts/onboarding-button-contrast/comparison-back-before-after.png`
+  - `/Users/amiran/fitcrm/artifacts/onboarding-button-contrast/comparison-skip-before-after.png`
+- State: authenticated onboarding, step 2, dark glass panel over the cloud background.
+
+## Findings and Comparison History
+
+- Initial P1: `Назад`, `Пропустить` and `Пропустить настройку` inherited insufficient foreground contrast on the smoky glass panel.
+- Fix: added explicit semantic `text-foreground`, translucent glass fills, visible token-based borders, shadows and hover states to all secondary onboarding actions.
+- Post-fix evidence: desktop and mobile captures show readable white labels and clearly bounded controls against both cloud and dark-panel regions.
+- Fonts and typography: button size and weight remain consistent with the enlarged onboarding form.
+- Spacing and layout rhythm: existing placement and responsive wrapping are preserved.
+- Colors and visual tokens: only existing semantic Tailwind/shadcn tokens are used; no raw color values were introduced.
+- Image quality and asset fidelity: the existing cloud asset remains unchanged.
+- Copy and content: action labels remain unchanged.
+- Focused comparisons were required because the issue affected compact button regions rather than the overall shell.
+- No P0/P1/P2 findings remain.
+
+final result: passed
+
 # Design QA: Onboarding Registration Shell
 
 ## Evidence
