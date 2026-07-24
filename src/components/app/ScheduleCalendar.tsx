@@ -41,7 +41,7 @@ export function ScheduleCalendar({ data, clients }: { data: ScheduleData; client
     return Array.from({ length: to - from + 1 }, (_, i) => from + i)
   }, [data.classes])
 
-  const noRooms = data.rooms.length === 0
+  const noRooms = data.rooms.length === 0 && data.classes.length === 0
 
   return (
     <div className="rounded-lg overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
@@ -67,8 +67,11 @@ export function ScheduleCalendar({ data, clients }: { data: ScheduleData; client
 
 /* ── День: Время × Залы ── */
 function DayGrid({ data, hours, onPick }: { data: ScheduleData; hours: number[]; onPick: (id: string) => void }) {
-  const rooms = data.rooms
   const dayClasses = data.classes.filter((c) => c.date === data.date)
+  const hasUnassigned = dayClasses.some((item) => !item.roomId)
+  const rooms = hasUnassigned
+    ? [...data.rooms, { id: "__unassigned__", name: "Без зала" }]
+    : data.rooms
   const cols = `72px repeat(${rooms.length}, minmax(0,1fr))`
 
   return (
@@ -90,7 +93,10 @@ function DayRow({ hour, rooms, classes, onPick }: { hour: number; rooms: Schedul
     <>
       <div className="min-h-[60px] flex items-start justify-end px-2 py-1.5 text-xs" style={{ color: "var(--gray-muted)", borderBottom: "1px solid var(--border-subtle)" }}>{pad(hour)}:00</div>
       {rooms.map((r) => {
-        const items = classes.filter((c) => c.roomId === r.id && c.startHour === hour)
+        const items = classes.filter((c) =>
+          (r.id === "__unassigned__" ? !c.roomId : c.roomId === r.id)
+          && c.startHour === hour,
+        )
         return (
           <div key={r.id} className="min-h-[60px] p-1 flex flex-col gap-1" style={{ borderBottom: "1px solid var(--border-subtle)", borderLeft: "1px solid var(--border-subtle)" }}>
             {items.map((c) => <ClassCard key={c.id} cls={c} onClick={() => onPick(c.id)} />)}

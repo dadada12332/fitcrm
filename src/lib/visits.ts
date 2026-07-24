@@ -64,10 +64,16 @@ function daysUntil(expiresAt: string | null): number | null {
 }
 
 function todayStart() {
-  return new Date().toISOString().slice(0, 10) + "T00:00:00"
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tashkent", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date())
+  return `${date}T00:00:00+05:00`
 }
 function todayEnd() {
-  return new Date().toISOString().slice(0, 10) + "T23:59:59"
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tashkent", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date())
+  return `${date}T23:59:59.999+05:00`
 }
 
 export async function getVisitsKPI(supabase: SupabaseClient, clubId: string): Promise<VisitsKPI> {

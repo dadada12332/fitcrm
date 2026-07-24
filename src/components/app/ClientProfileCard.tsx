@@ -126,13 +126,29 @@ function ConfirmDialog({
   )
 }
 
-export function ClientProfileCard({ client, memberships }: { client: ClientProfile; memberships: Membership[] }) {
+export function ClientProfileCard({
+  client,
+  memberships,
+  canCreatePayment = false,
+  canExtend = false,
+  canFreeze: mayFreeze = false,
+  canDelete = false,
+  showFinancials = false,
+}: {
+  client: ClientProfile
+  memberships: Membership[]
+  canCreatePayment?: boolean
+  canExtend?: boolean
+  canFreeze?: boolean
+  canDelete?: boolean
+  showFinancials?: boolean
+}) {
   const [status, setStatus] = useState<ClientStatus>(client.status)
   const sm = statusMeta[status]
   const comment = client.notes && client.notes !== "[demo]" ? client.notes : ""
   const importedFields = Object.entries(client.importData?.extraFields ?? {})
   const isFrozen = status === "frozen"
-  const canFreeze = status === "active" || status === "frozen"
+  const canFreeze = mayFreeze && (status === "active" || status === "frozen")
 
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -191,7 +207,7 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
               ID: {client.id.slice(0, 8)}
             </p>
           </div>
-          <DropdownMenu>
+          {(canFreeze || canDelete) && <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Дополнительные действия"
               className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -205,24 +221,24 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
                   {isFrozen ? "Разморозить" : "Заморозить"}
                 </DropdownMenuItem>
               )}
-              {canFreeze && <DropdownMenuSeparator />}
-              <DropdownMenuItem variant="destructive" onClick={() => setDialog("delete")}>
+              {canFreeze && canDelete && <DropdownMenuSeparator />}
+              {canDelete && <DropdownMenuItem variant="destructive" onClick={() => setDialog("delete")}>
                 <Trash2 />
                 Удалить клиента
-              </DropdownMenuItem>
+              </DropdownMenuItem>}
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu>}
         </div>
 
-        <div className="relative mb-4 grid grid-cols-2 gap-2">
-          <Button onClick={() => setPaymentOpen(true)} className="w-full">
+        {(canCreatePayment || canExtend) && <div className={`relative mb-4 grid gap-2 ${canCreatePayment && canExtend ? "grid-cols-2" : "grid-cols-1"}`}>
+          {canCreatePayment && <Button onClick={() => setPaymentOpen(true)} className="w-full">
             <Banknote />
             Добавить оплату
-          </Button>
-          <RenewSubscriptionButton clientId={client.id} clientName={client.name} subscription={client.subscription} memberships={memberships} />
-        </div>
+          </Button>}
+          {canExtend && <RenewSubscriptionButton clientId={client.id} clientName={client.name} subscription={client.subscription} memberships={memberships} />}
+        </div>}
 
-        <div className="relative mb-4 grid grid-cols-2 gap-2">
+        {showFinancials && <div className="relative mb-4 grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-muted/50 px-3 py-2.5">
             <p className="mb-0.5 text-xs text-muted-foreground">Баланс</p>
             <p className={`break-words text-sm font-semibold leading-tight tabular-nums ${client.balance > 0 ? "text-chart-2" : "text-foreground"}`}>
@@ -235,7 +251,7 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
               {fmtMoney(client.debt)}
             </p>
           </div>
-        </div>
+        </div>}
 
         <div className="relative grid grid-cols-2 gap-2">
           <Field label="Телефон" value={client.phone} link={client.phone ? `tel:${client.phone}` : undefined} />

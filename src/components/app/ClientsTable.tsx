@@ -32,12 +32,14 @@ export function ClientsTable({
   page,
   pageSize,
   membershipNames,
+  showFinancials = true,
 }: {
   rows: ClientRow[]
   total: number
   page: number
   pageSize: number
   membershipNames: string[]
+  showFinancials?: boolean
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -64,6 +66,14 @@ export function ClientsTable({
   // ── Поиск (debounce) ──
   const [search, setSearch] = useState(urlQuery)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const commitSearch = useCallback((value: string) => {
+    if (debounce.current) clearTimeout(debounce.current)
+    pushParams((p) => {
+      const next = value.trim()
+      if (next) p.set("q", next)
+      else p.delete("q")
+    })
+  }, [pushParams])
   useEffect(() => {
     // The URL is external navigation state (for example browser back/forward).
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -73,11 +83,11 @@ export function ClientsTable({
     if (debounce.current) clearTimeout(debounce.current)
     debounce.current = setTimeout(() => {
       if (search === urlQuery) return
-      pushParams((p) => { if (search.trim()) p.set("q", search.trim()); else p.delete("q") })
+      commitSearch(search)
     }, 350)
     return () => { if (debounce.current) clearTimeout(debounce.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search])
+  }, [search, commitSearch, urlQuery])
 
   // ── Фильтры (мультивыбор через повторяющиеся параметры) ──
   function toggle(section: FilterSection, value: string) {
@@ -110,7 +120,9 @@ export function ClientsTable({
   const from = total === 0 ? 0 : current * pageSize + 1
   const to = Math.min(total, current * pageSize + rows.length)
 
-  const cols = "minmax(140px,1.2fr) minmax(130px,1fr) minmax(130px,1fr) minmax(110px,0.9fr) minmax(140px,1fr) minmax(120px,0.9fr) minmax(110px,0.9fr) minmax(90px,0.7fr)"
+  const cols = showFinancials
+    ? "minmax(140px,1.2fr) minmax(130px,1fr) minmax(130px,1fr) minmax(110px,0.9fr) minmax(140px,1fr) minmax(120px,0.9fr) minmax(110px,0.9fr) minmax(90px,0.7fr)"
+    : "minmax(140px,1.2fr) minmax(130px,1fr) minmax(130px,1fr) minmax(110px,0.9fr) minmax(140px,1fr) minmax(120px,0.9fr) minmax(110px,0.9fr)"
 
   return (
     <div className="rounded-lg" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
@@ -123,6 +135,13 @@ export function ClientsTable({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") commitSearch(search)
+                if (event.key === "Escape") {
+                  setSearch("")
+                  commitSearch("")
+                }
+              }}
               placeholder="Поиск"
               className="h-9 w-full sm:w-[200px] pl-9 pr-3 rounded-md text-sm outline-none"
               style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }}
@@ -159,9 +178,9 @@ export function ClientsTable({
           <span>Последнее посещение</span>
           <span>Осталось посещений</span>
           <span>Источник</span>
-          <button onClick={() => toggleSort("debt_asc", "debt_desc")} className="text-right flex items-center justify-end hover:text-[var(--on-dark)] transition-colors">
+          {showFinancials && <button onClick={() => toggleSort("debt_asc", "debt_desc")} className="text-right flex items-center justify-end hover:text-[var(--on-dark)] transition-colors">
             Долг <SortIndicator sort={sort} asc="debt_asc" desc="debt_desc" />
-          </button>
+          </button>}
         </div>
 
         {/* Data rows */}
@@ -193,9 +212,9 @@ export function ClientsTable({
                   {r.visitsLeft !== null ? r.visitsLeft : "—"}
                 </span>
                 <span style={{ color: "var(--on-dark-soft)" }}>{r.source ?? "—"}</span>
-                <span className="text-right font-medium" style={{ color: r.debt > 0 ? "#dc2626" : "var(--on-dark-soft)" }}>
+                {showFinancials && <span className="text-right font-medium" style={{ color: r.debt > 0 ? "#dc2626" : "var(--on-dark-soft)" }}>
                   {r.debt > 0 ? `${r.debt.toLocaleString("ru-RU")} сум` : "—"}
-                </span>
+                </span>}
               </Link>
             )
           })
@@ -238,7 +257,10 @@ export function ClientsTable({
         days={daysSet}
         typeOptions={membershipNames}
         onToggle={toggle}
-        onClear={clearFilters}
+        onClear={() => {
+          clearFilters()
+          setFilterOpen(false)
+        }}
       />
     </div>
   )

@@ -132,7 +132,7 @@ export async function updateProductDetailsAction(
 ): Promise<{ ok?: boolean; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
-  if (!club.permissions.warehouse.view) return { error: "Нет прав" }
+  if (!club.permissions.warehouse.supply) return { error: "Нет прав на изменение товара" }
   const upd: Record<string, unknown> = {}
   if (patch.photoUrl !== undefined) upd.photo_url = patch.photoUrl
   if (patch.barcode !== undefined) upd.barcode = patch.barcode || null

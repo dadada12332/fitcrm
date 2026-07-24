@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { createServiceClient } from "@/lib/supabase/service"
 
 export type ClientStatus = "active" | "expired" | "frozen" | "none"
 
@@ -230,16 +231,17 @@ export async function getClientsPage(
     p_limit: pageSize,
     p_offset: page * pageSize,
   }
+  const service = createServiceClient()
 
   const [pageRes, statsRes, membershipNames] = await Promise.all([
-    supabase.rpc("clients_page", rpcArgs),
-    supabase.rpc("clients_stats", { p_club_id: clubId }),
+    service.rpc("clients_page", rpcArgs),
+    service.rpc("clients_stats", { p_club_id: clubId }),
     getMembershipNames(supabase, clubId),
   ])
 
   // RPC отсутствует / ошибка → fallback в память.
   if (pageRes.error) {
-    return inMemoryClientsPage(supabase, clubId, q, pageSize, page, membershipNames)
+    return inMemoryClientsPage(service, clubId, q, pageSize, page, membershipNames)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -248,7 +250,7 @@ export async function getClientsPage(
 
   // Страница за пределами набора (например, вручную введён ?page=999): вернём первую.
   if (data.length === 0 && page > 0) {
-    const retry = await supabase.rpc("clients_page", { ...rpcArgs, p_offset: 0 })
+    const retry = await service.rpc("clients_page", { ...rpcArgs, p_offset: 0 })
     if (!retry.error) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data = (retry.data ?? []) as any[]
@@ -281,6 +283,7 @@ export async function getClientsForExport(
   clubId: string,
   q: ClientsQuery,
 ): Promise<ClientRow[]> {
+  const service = createServiceClient()
   const SIZE = 1000
   const baseArgs = {
     p_club_id: clubId,
@@ -292,10 +295,10 @@ export async function getClientsForExport(
     p_limit: SIZE,
   }
 
-  const first = await supabase.rpc("clients_page", { ...baseArgs, p_offset: 0 })
+  const first = await service.rpc("clients_page", { ...baseArgs, p_offset: 0 })
   if (first.error) {
     // Fallback: RPC ещё не создан — берём всё в память и фильтруем.
-    const res = await inMemoryClientsPage(supabase, clubId, q, 1_000_000, 0, [])
+    const res = await inMemoryClientsPage(service, clubId, q, 1_000_000, 0, [])
     return res.rows
   }
 
@@ -306,7 +309,7 @@ export async function getClientsForExport(
 
   let offset = SIZE
   while (all.length < total && data.length === SIZE && offset < 500_000) {
-    const next = await supabase.rpc("clients_page", { ...baseArgs, p_offset: offset })
+    const next = await service.rpc("clients_page", { ...baseArgs, p_offset: offset })
     if (next.error) break
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data = (next.data ?? []) as any[]

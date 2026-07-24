@@ -29,7 +29,7 @@ export async function globalSearchAction(query: string): Promise<GlobalSearchRes
 
   const supabase = await createClient()
   const club = await getCurrentClub()
-  if (!club) return []
+  if (!club || !club.permissions.clients.view) return []
 
   const { data } = await supabase
     .from("clients")
@@ -61,8 +61,9 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
   const in7  = new Date(now); in7.setDate(now.getDate() + 7)
   const ago7 = new Date(now); ago7.setDate(now.getDate() - 7)
 
+  const subscriptionQuery = club.permissions.clients.view || club.permissions.memberships.view
   const [expiringRes, expiredRes, pendingRes] = await Promise.all([
-    supabase
+    subscriptionQuery ? supabase
       .from("subscriptions")
       .select("id, expires_at, clients(id, full_name), memberships(name)")
       .eq("club_id", clubId)
@@ -70,8 +71,8 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
       .gte("expires_at", now.toISOString().slice(0, 10))
       .lte("expires_at", in7.toISOString().slice(0, 10))
       .order("expires_at", { ascending: true })
-      .limit(10),
-    supabase
+      .limit(10) : Promise.resolve({ data: [] }),
+    subscriptionQuery ? supabase
       .from("subscriptions")
       .select("id, expires_at, clients(id, full_name), memberships(name)")
       .eq("club_id", clubId)
@@ -79,14 +80,14 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
       .gte("expires_at", ago7.toISOString().slice(0, 10))
       .lte("expires_at", now.toISOString().slice(0, 10))
       .order("expires_at", { ascending: false })
-      .limit(10),
-    supabase
+      .limit(10) : Promise.resolve({ data: [] }),
+    club.permissions.payments.view ? supabase
       .from("payments")
       .select("id, amount, created_at, clients(id, full_name)")
       .eq("club_id", clubId)
       .eq("status", "pending")
       .order("created_at", { ascending: false })
-      .limit(10),
+      .limit(10) : Promise.resolve({ data: [] }),
   ])
 
   const result: AppNotification[] = []
@@ -169,12 +170,12 @@ export async function getRequestsAction(): Promise<AppRequest[]> {
   const supabase = await createClient()
 
   const [pcr, pbr] = await Promise.all([
-    supabase.from("payment_connection_requests")
+    club.permissions.settings.integrations ? supabase.from("payment_connection_requests")
       .select("id, provider, status, created_at").eq("club_id", club.clubId)
-      .order("created_at", { ascending: false }).limit(20),
-    supabase.from("platform_billing_requests")
+      .order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
+    club.permissions.settings.subscription ? supabase.from("platform_billing_requests")
       .select("id, plan, months, amount, status, created_at").eq("club_id", club.clubId)
-      .order("created_at", { ascending: false }).limit(20),
+      .order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
   ])
 
   const out: AppRequest[] = []

@@ -21,6 +21,18 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
 
+  const allowedTabs = {
+    club:          club.permissions.settings.general,
+    branches:      club.role === "owner" && planFeatureEnabled(club.planAccess, "multi_branch"),
+    staff:         club.permissions.staff.view,
+    finance:       club.permissions.settings.general && planFeatureEnabled(club.planAccess, "finance"),
+    notifications: club.permissions.telegram.manage && planFeatureEnabled(club.planAccess, "telegram_automation"),
+    integrations:  club.permissions.settings.integrations,
+    roles:         club.permissions.settings.roles,
+    security:      true,
+    subscription:  club.permissions.settings.subscription,
+  }
+
   const service = createServiceClient()
   const [clubResult, user, pendingResult, connectionsResult, dbPlans, rolesResult, clientsResult] = await Promise.all([
     supabase
@@ -28,24 +40,26 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
       .select("id, name, plan, trial_expires_at, plan_expires_at, plan_price_locked, settings, staff!inner(id, role, user_id, is_active, users(id, email, full_name))")
       .eq("id", club.clubId)
       .single(),
-    getAuthUser(),
-    service
+    allowedTabs.staff ? getAuthUser() : Promise.resolve(null),
+    allowedTabs.subscription ? service
       .from("platform_billing_requests")
       .select("plan, months, amount, created_at")
       .eq("club_id", club.clubId)
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle(),
-    service
+      .maybeSingle() : Promise.resolve({ data: null }),
+    allowedTabs.integrations ? service
       .from("payment_connection_requests")
       .select("provider, status, created_at")
       .eq("club_id", club.clubId)
       .in("status", ["new", "active"])
-      .order("created_at", { ascending: false }),
-    getPlans({ includeArchived: true }).catch(() => []),
-    tab === "roles" ? getRolesAction() : Promise.resolve({ roles: [] as RoleRow[], error: undefined }),
-    supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", club.clubId),
+      .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    allowedTabs.subscription ? getPlans({ includeArchived: true }).catch(() => []) : Promise.resolve([]),
+    tab === "roles" && allowedTabs.roles ? getRolesAction() : Promise.resolve({ roles: [] as RoleRow[], error: undefined }),
+    allowedTabs.subscription
+      ? supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", club.clubId)
+      : Promise.resolve({ count: 0 }),
   ])
   const clubRow = clubResult.data
 
@@ -54,7 +68,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
   const userId = user?.id
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const staffList = ((clubRow as any).staff ?? [])
+  const staffList = (allowedTabs.staff ? ((clubRow as any).staff ?? []) : [])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((s: any) => s.is_active)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,18 +130,6 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     planPriceLocked: (clubRow as any).plan_price_locked ?? null,
     clientCount: clientsResult.count ?? 0,
-  }
-
-  const allowedTabs = {
-    club:          club.permissions.settings.general,
-    branches:      club.role === "owner" && planFeatureEnabled(club.planAccess, "multi_branch"),
-    staff:         club.permissions.staff.view,
-    finance:       club.permissions.settings.general && planFeatureEnabled(club.planAccess, "finance"),
-    notifications: club.permissions.telegram.manage && planFeatureEnabled(club.planAccess, "telegram_automation"),
-    integrations:  club.permissions.settings.integrations,
-    roles:         club.permissions.settings.roles,
-    security:      true,
-    subscription:  club.permissions.settings.subscription,
   }
 
   const initialRoles = tab === "roles" ? rolesResult.roles : undefined

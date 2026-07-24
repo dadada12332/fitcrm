@@ -136,31 +136,13 @@ export async function markAttendanceAction(bookingId: string): Promise<ActionRes
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!can(club.permissions, "schedule", "edit")) return { error: "Недостаточно прав" }
+  if (!can(club.permissions, "visits", "manual")) return { error: "Нет прав на отметку посещения" }
   const supabase = await createClient()
-
-  const { data: booking, error: e1 } = await supabase
-    .from("class_bookings")
-    .select("client_id, status")
-    .eq("id", bookingId)
-    .eq("club_id", club.clubId)
-    .maybeSingle()
-  if (e1) return { error: e1.message }
-  if (!booking) return { error: "Запись не найдена" }
-  if (booking.status === "attended") return { ok: true }
-
-  const { error: e2 } = await supabase
-    .from("class_bookings")
-    .update({ status: "attended" })
-    .eq("id", bookingId)
-    .eq("club_id", club.clubId)
-  if (e2) return { error: e2.message }
-
-  const { error: e3 } = await supabase.from("visits").insert({
-    club_id: club.clubId,
-    client_id: booking.client_id,
-    method: "manual",
+  const { error } = await supabase.rpc("mark_class_attendance", {
+    p_club_id: club.clubId,
+    p_booking_id: bookingId,
   })
-  if (e3) return { error: e3.message }
+  if (error) return { error: "Не удалось отметить посещение занятия" }
 
   revalidatePath("/schedule")
   return { ok: true }

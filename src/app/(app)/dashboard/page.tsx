@@ -21,7 +21,10 @@ export default async function DashboardPage() {
 
       {/* Данные стримятся, не блокируя первый рендер */}
       <Suspense fallback={<DashboardBodySkeleton />}>
-        <DashboardBody clubId={club.clubId} />
+        <DashboardBody
+          clubId={club.clubId}
+          canViewFinance={club.permissions.dashboard.view_finance}
+        />
       </Suspense>
     </div>
   )

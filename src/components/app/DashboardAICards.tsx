@@ -23,12 +23,13 @@ function buildInsights(
   churnCount: number,
   todayRevenue: number,
   prevRevenue: number,
+  canViewFinance: boolean,
 ): InsightCard[] {
   const cards: InsightCard[] = []
 
   // Revenue
   const revDelta = prevRevenue ? ((todayRevenue - prevRevenue) / prevRevenue) * 100 : 0
-  if (Math.abs(revDelta) >= 5 || (todayRevenue === 0 && prevRevenue > 0)) {
+  if (canViewFinance && (Math.abs(revDelta) >= 5 || (todayRevenue === 0 && prevRevenue > 0))) {
     cards.push({
       severity: revDelta >= 0 ? "ok" : "alert",
       title: revDelta >= 0
@@ -97,10 +98,11 @@ type Props = {
   churnCount: number
   todayRevenue: number
   prevRevenue: number
+  canViewFinance?: boolean
 }
 
-export function DashboardAICards({ attendanceChangePct, expiringCount, churnCount, todayRevenue, prevRevenue }: Props) {
-  const insights = buildInsights(attendanceChangePct, expiringCount, churnCount, todayRevenue, prevRevenue)
+export function DashboardAICards({ attendanceChangePct, expiringCount, churnCount, todayRevenue, prevRevenue, canViewFinance = true }: Props) {
+  const insights = buildInsights(attendanceChangePct, expiringCount, churnCount, todayRevenue, prevRevenue, canViewFinance)
 
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>

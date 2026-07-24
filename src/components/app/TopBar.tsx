@@ -23,17 +23,22 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false)
   const router   = useRouter()
   const debRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const requestRef = useRef(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
   useEffect(() => {
     if (debRef.current) clearTimeout(debRef.current)
-    if (query.trim().length < 1) return
+    if (query.trim().length < 1) {
+      requestRef.current += 1
+      return
+    }
     let cancelled = false
+    const requestId = ++requestRef.current
     debRef.current = setTimeout(async () => {
       const res = await globalSearchAction(query)
-      if (!cancelled) {
+      if (!cancelled && requestId === requestRef.current) {
         setResults(res)
         setLoading(false)
       }
@@ -71,6 +76,12 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
         <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
           <Search className="w-5 h-5 flex-shrink-0 text-zinc-400 dark:text-zinc-500" style={{ color: loading ? "#3b82f6" : undefined }} />
           <input ref={inputRef} value={query} onChange={(e) => updateQuery(e.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && results[0]) {
+                router.push(`/clients/${results[0].id}`)
+                onClose()
+              }
+            }}
             placeholder="Поиск клиентов по имени или телефону..."
             className="flex-1 text-base outline-none bg-transparent text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-600" />
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">

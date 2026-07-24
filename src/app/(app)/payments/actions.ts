@@ -8,6 +8,7 @@ import { getPaymentsPage, type PaymentsQuery, type PaymentRow } from "@/lib/paym
 import { can } from "@/lib/permissions"
 import { serializeCSV } from "@/lib/csv"
 import { consumeMonthlyLimit } from "@/lib/plan-enforcement"
+import { createServiceClient } from "@/lib/supabase/service"
 
 const PROVIDER_RU: Record<string, string> = { cash: "Наличные", click: "Click", payme: "Payme", uzum: "Uzum" }
 const STATUS_RU: Record<string, string> = { paid: "Оплачено", pending: "Ожидает", failed: "Отменён", refunded: "Возврат" }
@@ -52,6 +53,8 @@ export type CreatePaymentInput = {
 export type CreatePaymentResult = { ok?: boolean; error?: string }
 
 export async function createPaymentAction(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+  if (!Number.isFinite(input.amount) || input.amount <= 0) return { error: "Введите корректную сумму" }
+  if (!["cash", "click", "payme", "uzum"].includes(input.provider)) return { error: "Выберите способ оплаты" }
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
@@ -65,48 +68,34 @@ export async function createPaymentAction(input: CreatePaymentInput): Promise<Cr
     .eq("club_id", clubId)
     .maybeSingle()
   if (!client) return { error: "Клиент не найден" }
+  if (input.membershipId && !can(club.permissions, "memberships", "sell")) {
+    if (!can(club.permissions, "clients", "extend")) return { error: "Нет прав на продажу абонемента" }
+    const { data: previous } = await supabase.from("subscriptions").select("id")
+      .eq("club_id", clubId).eq("client_id", input.clientId)
+      .eq("membership_id", input.membershipId).limit(1).maybeSingle()
+    if (!previous) return { error: "Можно только продлить существующий абонемент" }
+  }
 
-  let subscriptionId: string | null = null
-
-  // If membership selected — create subscription
   if (input.membershipId) {
     const { data: m } = await supabase
       .from("memberships")
-      .select("duration_days, visits_limit")
+      .select("id")
       .eq("id", input.membershipId)
       .eq("club_id", clubId)
+      .eq("is_active", true)
       .maybeSingle()
-
     if (!m) return { error: "Абонемент не найден" }
-    const startsAt = new Date().toISOString().slice(0, 10)
-    const expiresAt = new Date(Date.now() + m.duration_days * 86_400_000).toISOString().slice(0, 10)
-
-    const { data: sub, error: subErr } = await supabase.from("subscriptions").insert({
-      club_id:      clubId,
-      client_id:    input.clientId,
-      membership_id: input.membershipId,
-      starts_at:    startsAt,
-      expires_at:   expiresAt,
-      visits_total: m.visits_limit ?? null,
-      visits_used:  0,
-      status:       "active",
-    }).select("id").single()
-
-    if (subErr) return { error: subErr.message }
-    subscriptionId = sub?.id ?? null
   }
 
-  const { error } = await supabase.from("payments").insert({
-    club_id:         clubId,
-    client_id:       input.clientId,
-    subscription_id: subscriptionId,
-    amount:          input.amount,
-    provider:        input.provider,
-    status:          "paid",
-    paid_at:         new Date().toISOString(),
+  const { error } = await supabase.rpc("create_manual_payment", {
+    p_club_id: clubId,
+    p_client_id: input.clientId,
+    p_membership_id: input.membershipId,
+    p_amount: input.amount,
+    p_provider: input.provider,
+    p_comment: input.comment?.trim() || null,
   })
-
-  if (error) return { error: error.message }
+  if (error) return { error: "Не удалось сохранить оплату. Обновите страницу и повторите." }
 
   revalidatePath("/payments")
   revalidatePath("/dashboard")
@@ -129,11 +118,21 @@ export async function createOnlinePaymentAction(input: OnlinePaymentInput): Prom
   const [{ data: client }, membershipResult] = await Promise.all([
     supabase.from("clients").select("id").eq("id", input.clientId).eq("club_id", club.clubId).maybeSingle(),
     input.membershipId
-      ? supabase.from("memberships").select("id").eq("id", input.membershipId).eq("club_id", club.clubId).maybeSingle()
+      ? supabase.from("memberships").select("id, price").eq("id", input.membershipId).eq("club_id", club.clubId).eq("is_active", true).maybeSingle()
       : Promise.resolve({ data: null }),
   ])
   if (!client) return { error: "Клиент не найден" }
   if (input.membershipId && !membershipResult.data) return { error: "Абонемент не найден" }
+  if (input.membershipId && !can(club.permissions, "memberships", "sell")) {
+    if (!can(club.permissions, "clients", "extend")) return { error: "Нет прав на продажу абонемента" }
+    const { data: previous } = await supabase.from("subscriptions").select("id")
+      .eq("club_id", club.clubId).eq("client_id", input.clientId)
+      .eq("membership_id", input.membershipId).limit(1).maybeSingle()
+    if (!previous) return { error: "Можно только продлить существующий абонемент" }
+  }
+  if (input.membershipId && Number(membershipResult.data?.price) !== input.amount) {
+    return { error: "Стоимость абонемента изменилась. Обновите форму." }
+  }
 
   const { createServiceClient } = await import("@/lib/supabase/service")
   const svc = createServiceClient()
@@ -145,7 +144,7 @@ export async function createOnlinePaymentAction(input: OnlinePaymentInput): Prom
 
   // Абонемент НЕ активируем заранее — только после подтверждения оплаты (в эндпоинте приёма).
   // Платёж «запоминает» выбранный абонемент.
-  const { data: payment, error } = await supabase.from("payments").insert({
+  const { data: payment, error } = await svc.from("payments").insert({
     club_id: club.clubId, client_id: input.clientId, subscription_id: null,
     pending_membership_id: input.membershipId, amount: input.amount, provider: input.provider, status: "pending",
   }).select("id").single()
@@ -189,18 +188,26 @@ export async function getPaymentStatusAction(paymentId: string): Promise<{ statu
 }
 
 /** Отправить ссылку оплаты клиенту в Telegram-бот клуба. */
-export async function sendPaymentLinkTelegramAction(clientId: string, url: string): Promise<{ ok?: boolean; error?: string }> {
+export async function sendPaymentLinkTelegramAction(clientId: string, paymentId: string): Promise<{ ok?: boolean; error?: string }> {
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "payments", "create")) return { error: "Недостаточно прав" }
   const { createServiceClient } = await import("@/lib/supabase/service")
   const svc = createServiceClient()
-  const [{ data: cl }, { data: clubRow }] = await Promise.all([
+  const [{ data: cl }, { data: clubRow }, { data: payment }] = await Promise.all([
     svc.from("clients").select("telegram_id, full_name").eq("id", clientId).eq("club_id", club.clubId).maybeSingle(),
     svc.from("telegram_integrations").select("bot_token").eq("club_id", club.clubId).maybeSingle(),
+    svc.from("payments").select("id, client_id, amount, provider, status")
+      .eq("id", paymentId).eq("club_id", club.clubId).eq("client_id", clientId).eq("status", "pending").maybeSingle(),
   ])
   if (!cl?.telegram_id) return { error: "У клиента не привязан Telegram" }
   if (!clubRow?.bot_token) return { error: "Бот клуба не подключён" }
+  if (!payment || !["click", "payme"].includes(payment.provider)) return { error: "Платёж не найден" }
+  const { buildClickPayUrl, buildPaymePayUrl } = await import("@/lib/payment-links")
+  const url = payment.provider === "click"
+    ? await buildClickPayUrl(club.clubId, payment.id, Number(payment.amount))
+    : await buildPaymePayUrl(club.clubId, payment.id, Number(payment.amount))
+  if (!url) return { error: "Не удалось сформировать ссылку" }
   const text = `💳 Ссылка для оплаты:\n${url}\n\nОплатите картой — абонемент активируется автоматически.`
   const res = await fetch(`https://api.telegram.org/bot${clubRow.bot_token}/sendMessage`, {
     method: "POST", headers: { "content-type": "application/json" },

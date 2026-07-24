@@ -15,9 +15,15 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
   if (!club.permissions.clients.view) redirect("/dashboard")
+  const canViewPayments = club.permissions.payments.view
+  const canSellMembership = club.permissions.memberships.sell || club.permissions.clients.extend
   const [client, memberships] = await Promise.all([
-    getClientProfile(supabase, id, club.clubId),
-    getActiveMemberships(supabase, club.clubId),
+    getClientProfile(supabase, id, club.clubId, {
+      includePayments: canViewPayments,
+      includeVisits: club.permissions.visits.view,
+      includeFinancials: canViewPayments || club.permissions.dashboard.view_finance,
+    }),
+    canSellMembership ? getActiveMemberships(supabase, club.clubId) : Promise.resolve([]),
   ])
 
   if (!client) notFound()
@@ -52,15 +58,29 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
             )}
           </p>
         </div>
-        <div className="w-full sm:w-auto [&>button]:w-full sm:[&>button]:w-auto">
-          <EditClientButton client={client} />
-        </div>
+        {club.permissions.clients.edit && (
+          <div className="w-full sm:w-auto [&>button]:w-full sm:[&>button]:w-auto">
+            <EditClientButton client={client} />
+          </div>
+        )}
       </div>
 
       <ClientProfileTabs
         client={client}
         canExport={club.permissions.payments.export}
-        sidePanel={<ClientProfileCard client={client} memberships={memberships} />}
+        canViewVisits={club.permissions.visits.view}
+        canViewPayments={canViewPayments}
+        sidePanel={
+          <ClientProfileCard
+            client={client}
+            memberships={memberships}
+            canCreatePayment={club.permissions.payments.create}
+            canExtend={canSellMembership}
+            canFreeze={club.permissions.clients.freeze}
+            canDelete={club.permissions.clients.delete}
+            showFinancials={canViewPayments || club.permissions.dashboard.view_finance}
+          />
+        }
       />
     </div>
   )

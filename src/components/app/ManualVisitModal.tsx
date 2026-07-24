@@ -17,10 +17,16 @@ import {
 
 // ── helpers ──────────────────────────────────────────────────────
 
-function today() { return new Date().toISOString().slice(0, 10) }
+function today() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tashkent", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date())
+}
 function nowTime() {
   const d = new Date()
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+  return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: "Asia/Tashkent", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(d)
 }
 function fmtDate(iso: string | null) {
   if (!iso) return "—"
@@ -387,7 +393,7 @@ export function ManualVisitModal({ role }: Props) {
       if (res.warning) { setWarning(res.warning); toast.warning(res.warning) }
       else toast.success("Посещение отмечено")
       setSuccess(true)
-      setTimeout(closeModal, 1600)
+      setTimeout(closeModal, 450)
     })
   }
 

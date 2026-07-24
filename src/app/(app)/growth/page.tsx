@@ -18,7 +18,7 @@ export default async function GrowthPage() {
   const [clients, membershipsResult, dashboard, experimentRunsResult] = await Promise.all([
     getClientsForExport(supabase, club.clubId, {}),
     supabase.from("memberships").select("name, price").eq("club_id", club.clubId),
-    getDashboardData(supabase, club.clubId),
+    getDashboardData(supabase, club.clubId, club.permissions.reports.finance || club.permissions.dashboard.view_finance),
     supabase.from("growth_experiment_runs").select("*").eq("club_id", club.clubId).order("started_at", { ascending: false }).limit(30),
   ])
   const membershipPrices = Object.fromEntries((membershipsResult.data ?? []).map((membership) => [membership.name, Number(membership.price ?? 0)]))

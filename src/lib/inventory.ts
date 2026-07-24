@@ -1,5 +1,6 @@
 import { cache } from "react"
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { createServiceClient } from "@/lib/supabase/service"
 
 export type Product = {
   id: string
@@ -42,15 +43,34 @@ export type InventoryStats = {
   totalSalesMonth: number
 }
 
-export const getInventory = cache(async (supabase: SupabaseClient, clubId: string): Promise<Product[]> => {
+type InventoryProductRecord = {
+  id: string
+  name: string
+  category: string | null
+  unit: string | null
+  sell_price: number | string
+  buy_price?: number | string
+  sku: string | null
+  barcode: string | null
+  description: string | null
+  photo_url: string | null
+  is_active: boolean
+  inventory: { quantity: number | string; min_quantity: number | string; updated_at: string } | Array<{ quantity: number | string; min_quantity: number | string; updated_at: string }> | null
+}
+
+export const getInventory = cache(async (supabase: SupabaseClient, clubId: string, includeCost = false): Promise<Product[]> => {
+  const columns = includeCost
+    ? "id, name, category, unit, sell_price, buy_price, sku, barcode, description, photo_url, is_active, inventory(quantity, min_quantity, updated_at)"
+    : "id, name, category, unit, sell_price, sku, barcode, description, photo_url, is_active, inventory(quantity, min_quantity, updated_at)"
   const { data } = await supabase
     .from("products")
-    .select("id, name, category, unit, sell_price, buy_price, sku, barcode, description, photo_url, is_active, inventory(quantity, min_quantity, updated_at)")
+    .select(columns)
     .eq("club_id", clubId)
     .eq("is_active", true)
     .order("name")
 
-  return (data ?? []).map((p) => {
+  const rows = (data ?? []) as unknown as InventoryProductRecord[]
+  return rows.map((p) => {
     const inv = Array.isArray(p.inventory) ? p.inventory[0] : p.inventory
     return {
       id: p.id,
@@ -58,7 +78,7 @@ export const getInventory = cache(async (supabase: SupabaseClient, clubId: strin
       category: p.category ?? null,
       unit: p.unit ?? "шт",
       sellPrice: Number(p.sell_price),
-      buyPrice: Number(p.buy_price),
+      buyPrice: includeCost ? Number(p.buy_price) : 0,
       sku: p.sku ?? null,
       barcode: p.barcode ?? null,
       description: p.description ?? null,
@@ -72,8 +92,8 @@ export const getInventory = cache(async (supabase: SupabaseClient, clubId: strin
 })
 
 /** Товары для витрины (POS): базовый список + агрегаты продаж за 90 дней. */
-export async function getPosProducts(supabase: SupabaseClient, clubId: string): Promise<PosProduct[]> {
-  const products = await getInventory(supabase, clubId)
+export async function getPosProducts(supabase: SupabaseClient, clubId: string, includeCost = false): Promise<PosProduct[]> {
+  const products = await getInventory(supabase, clubId, includeCost)
   const since = new Date(Date.now() - 90 * 86_400_000).toISOString()
   const { data: stats } = await supabase.rpc("product_sales_counts", { p_club_id: clubId, p_since: since })
   const map = new Map<string, { cnt: number; last: string | null }>()
@@ -84,11 +104,11 @@ export async function getPosProducts(supabase: SupabaseClient, clubId: string): 
   })
 }
 
-export async function getInventoryStats(supabase: SupabaseClient, clubId: string): Promise<InventoryStats> {
-  const products = await getInventory(supabase, clubId)
+export async function getInventoryStats(supabase: SupabaseClient, clubId: string, includeCost = false): Promise<InventoryStats> {
+  const products = await getInventory(supabase, clubId, includeCost)
   const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1)
 
-  const { data: sales } = await supabase
+  const { data: sales } = await createServiceClient()
     .from("stock_movements")
     .select("qty, unit_price")
     .eq("club_id", clubId)
@@ -103,8 +123,8 @@ export async function getInventoryStats(supabase: SupabaseClient, clubId: string
   }
 }
 
-export async function getRecentMovements(supabase: SupabaseClient, clubId: string, limit = 30): Promise<StockMovement[]> {
-  const { data } = await supabase
+export async function getRecentMovements(_supabase: SupabaseClient, clubId: string, limit = 30, includeCost = false): Promise<StockMovement[]> {
+  const { data } = await createServiceClient()
     .from("stock_movements")
     .select("id, product_id, type, qty, unit_price, created_at, note, products(name)")
     .eq("club_id", clubId)
@@ -117,7 +137,7 @@ export async function getRecentMovements(supabase: SupabaseClient, clubId: strin
     productName: m.products?.[0]?.name ?? "—",
     type: m.type,
     qty: Number(m.qty),
-    unitPrice: Number(m.unit_price),
+    unitPrice: includeCost || m.type === "sale" ? Number(m.unit_price) : 0,
     createdAt: m.created_at,
     note: m.note ?? null,
   }))

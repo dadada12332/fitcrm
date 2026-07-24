@@ -33,27 +33,18 @@ export async function afterPaymentPaid(clubId: string, paymentId: string): Promi
       await s.from("payments").update({ pending_items: null }).eq("id", paymentId).eq("club_id", clubId)
     }
 
-    // 1) Активировать абонемент только сейчас (после оплаты).
-    if (!pay.subscription_id && pay.pending_membership_id) {
-      const { data: m } = await s.from("memberships")
-        .select("duration_days, visits_limit, name").eq("id", pay.pending_membership_id).eq("club_id", clubId).maybeSingle()
-      if (m) {
-        membershipName = m.name
-        const startsAt = new Date().toISOString().slice(0, 10)
-        expiresAt = new Date(Date.now() + m.duration_days * 86_400_000).toISOString().slice(0, 10)
-        const { data: sub } = await s.from("subscriptions").insert({
-          club_id: clubId, client_id: pay.client_id, membership_id: pay.pending_membership_id,
-          starts_at: startsAt, expires_at: expiresAt, visits_total: m.visits_limit ?? null, visits_used: 0, status: "active",
-        }).select("id").single()
-        if (sub?.id) await s.from("payments").update({ subscription_id: sub.id }).eq("id", paymentId).eq("club_id", clubId)
-      }
-    } else if (pay.subscription_id) {
-      const { data: sub } = await s.from("subscriptions")
-        .select("expires_at, memberships(name)").eq("id", pay.subscription_id).eq("club_id", clubId).maybeSingle()
-      expiresAt = sub?.expires_at ?? null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      membershipName = (sub?.memberships as any)?.name ?? null
-    }
+    // 1) Активировать абонемент атомарно и идемпотентно только после оплаты.
+    const { data: confirmation, error: confirmationError } = await s.rpc("confirm_paid_membership", {
+      p_club_id: clubId,
+      p_payment_id: paymentId,
+    })
+    if (confirmationError) throw confirmationError
+    const confirmed = confirmation as {
+      membership_name?: string | null
+      expires_at?: string | null
+    } | null
+    membershipName = confirmed?.membership_name ?? null
+    expiresAt = confirmed?.expires_at ?? null
 
     // 2) Чек в Telegram.
     if (pay.client_id) await sendReceipt(clubId, pay.client_id, Number(pay.amount), membershipName, expiresAt)

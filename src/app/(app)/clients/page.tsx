@@ -9,6 +9,7 @@ import { AddClientButton } from "@/components/app/AddClientButton"
 import { ImportClientsButton } from "@/components/app/ImportClientsButton"
 import { ExportClientsButton } from "@/components/app/ExportClientsButton"
 import { redirect } from "next/navigation"
+import { sanitizeSearchTerm } from "@/lib/search"
 
 export default async function ClientsPage({
   searchParams,
@@ -27,7 +28,7 @@ export default async function ClientsPage({
     Array.isArray(v) ? v[0] : v
 
   const query = {
-    search: one(sp.q) ?? "",
+    search: sanitizeSearchTerm(one(sp.q) ?? ""),
     status: arr(sp.status),
     membership: arr(sp.membership),
     days: arr(sp.days),
@@ -38,9 +39,15 @@ export default async function ClientsPage({
 
   const [result, memberships, trainers] = await Promise.all([
     getClientsPage(supabase, club.clubId, query),
-    getActiveMemberships(supabase, club.clubId),
-    getTrainers(supabase, club.clubId),
+    club.permissions.memberships.view ? getActiveMemberships(supabase, club.clubId) : Promise.resolve([]),
+    club.permissions.staff.view ? getTrainers(supabase, club.clubId) : Promise.resolve([]),
   ])
+  const showFinancials = club.permissions.payments.view || club.permissions.dashboard.view_finance
+  const visibleResult = showFinancials ? result : {
+    ...result,
+    rows: result.rows.map((row) => ({ ...row, debt: 0 })),
+    stats: { ...result.stats, debt: 0 },
+  }
 
   return (
     <div className="space-y-4">
@@ -53,26 +60,29 @@ export default async function ClientsPage({
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <ExportClientsButton />
-          <ImportClientsButton />
-          <AddClientButton
-            memberships={memberships}
-            trainers={trainers}
-            initialOpen={one(sp.create) === "1"}
-          />
+          {club.permissions.clients.export && <ExportClientsButton />}
+          {club.permissions.clients.create && <ImportClientsButton />}
+          {club.permissions.clients.create && (
+            <AddClientButton
+              memberships={memberships}
+              trainers={trainers}
+              initialOpen={one(sp.create) === "1"}
+            />
+          )}
         </div>
       </div>
 
       {/* Stat tiles */}
-      <ClientsStats stats={result.stats} />
+      <ClientsStats stats={visibleResult.stats} showFinancials={showFinancials} />
 
       {/* Clients table (серверная пагинация) */}
       <ClientsTable
-        rows={result.rows}
-        total={result.total}
-        page={result.page}
-        pageSize={result.pageSize}
-        membershipNames={result.membershipNames}
+        rows={visibleResult.rows}
+        total={visibleResult.total}
+        page={visibleResult.page}
+        pageSize={visibleResult.pageSize}
+        membershipNames={visibleResult.membershipNames}
+        showFinancials={showFinancials}
       />
     </div>
   )

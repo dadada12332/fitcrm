@@ -138,16 +138,24 @@ export async function getClientProfile(
   supabase: SupabaseClient,
   id: string,
   clubId: string,
+  options: {
+    includePayments?: boolean
+    includeVisits?: boolean
+    includeFinancials?: boolean
+    includeTelegram?: boolean
+  } = {},
 ): Promise<ClientProfile | null> {
-  // Try full select (incl. balance/debt/trainer); fall back if columns not migrated
-  const full = await supabase
+  const clientReader = options.includeFinancials ? createServiceClient() : supabase
+  const clientColumns = options.includeFinancials
+    ? "id, full_name, phone, telegram_id, photo_url, tags, notes, import_data, created_at, email, birth_date, gender, source, balance, debt, trainer_name"
+    : "id, full_name, phone, telegram_id, photo_url, tags, notes, import_data, created_at, email, birth_date, gender, source, trainer_name"
+  const full = await clientReader
     .from("clients")
-    .select("id, full_name, phone, telegram_id, photo_url, tags, notes, import_data, created_at, email, birth_date, gender, source, balance, debt, trainer_name")
+    .select(clientColumns)
     .eq("id", id)
     .eq("club_id", clubId)
     .maybeSingle()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let client: any = full.data
   if (!client) {
     const fb = await supabase
@@ -166,17 +174,17 @@ export async function getClientProfile(
       .from("subscriptions")
       .select("status, starts_at, expires_at, visits_total, visits_used, freeze_days_used, memberships(name, visits_limit, freeze_days_allowed)")
       .eq("client_id", id),
-    supabase
+    options.includePayments ? supabase
       .from("payments")
       .select("id, paid_at, amount, provider, status, created_at")
       .eq("client_id", id)
-      .order("created_at", { ascending: false }),
-    supabase
+      .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    options.includeVisits ? supabase
       .from("visits")
       .select("id, checked_in_at, method")
       .eq("client_id", id)
-      .order("checked_in_at", { ascending: false }),
-    getTelegramIdentity(clubId, id),
+      .order("checked_in_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    options.includeTelegram === false ? Promise.resolve(null) : getTelegramIdentity(clubId, id),
   ])
 
   const subs = (subsRes.data ?? []) as SubRow[]
@@ -241,8 +249,8 @@ export async function getClientProfile(
     gender: (c.gender as string | null) ?? null,
     source: (c.source as string | null) ?? null,
     trainer: (c.trainer_name as string | null) ?? null,
-    balance: c.balance != null ? Number(c.balance) : 0,
-    debt: c.debt != null ? Number(c.debt) : 0,
+    balance: options.includeFinancials && c.balance != null ? Number(c.balance) : 0,
+    debt: options.includeFinancials && c.debt != null ? Number(c.debt) : 0,
     notes: (c.notes as string | null) ?? null,
     importData: c.import_data && typeof c.import_data === "object"
       ? {

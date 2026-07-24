@@ -38,8 +38,8 @@ export default async function VisitsPage({
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Быстрый check-in и журнал посещений</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <QrCheckinScanner />
-          <ManualVisitModal role={club.role} />
+          {club.permissions.visits.checkin && <QrCheckinScanner />}
+          {club.permissions.visits.manual && <ManualVisitModal role={club.role} />}
         </div>
       </div>
 
@@ -64,12 +64,12 @@ export default async function VisitsPage({
       </div>
 
       {/* Quick check-in */}
-      <div className="rounded-lg p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      {club.permissions.visits.checkin && <div className="rounded-lg p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <p className="text-xs font-medium mb-3" style={{ color: "var(--gray-muted)" }}>
           БЫСТРЫЙ CHECK-IN — введите имя или телефон, нажмите на клиента
         </p>
         <VisitsQuickCheckin />
-      </div>
+      </div>}
 
       {/* Visits table (серверная пагинация) */}
       <VisitsTable

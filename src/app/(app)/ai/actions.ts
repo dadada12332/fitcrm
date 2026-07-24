@@ -24,6 +24,14 @@ export type AiCard =
 
 export type AiRole = "user" | "assistant"
 export type AiMessage = { role: AiRole; content: string; image?: string | null; cards?: AiCard[] }
+type AiToolAccess = {
+  finance: boolean
+  clients: boolean
+  visits: boolean
+  payments: boolean
+  staff: boolean
+  warehouse: boolean
+}
 
 // ── Периоды ──────────────────────────────────────────────────────
 function periodRange(period?: string): { from: Date; to: Date; label: string } {
@@ -70,15 +78,21 @@ export async function getBriefingAction(): Promise<Briefing | null> {
   const hour = now.getHours()
   const greeting = hour < 6 ? "Доброй ночи" : hour < 12 ? "Доброе утро" : hour < 18 ? "Добрый день" : "Добрый вечер"
 
+  const stats: BriefingStat[] = [
+    { key: "visits", label: "Посещения сегодня", value: String(visitsToday.count ?? 0), query: "кто сегодня приходил" },
+    { key: "payments", label: "Оплаты сегодня", value: String(payToday.data?.length ?? 0), query: "последние оплаты" },
+    { key: "expiring", label: "Истекают за 3 дня", value: String(expiring.count ?? 0), query: "у кого заканчивается абонемент" },
+    { key: "revenue", label: "Выручка сегодня", value: `${fmt(rToday)}${delta ? (delta > 0 ? ` +${delta}%` : ` -${Math.abs(delta)}%`) : ""}`, query: "какая выручка сегодня" },
+  ]
   return {
     greeting,
     date: now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" }),
-    stats: [
-      { key: "visits", label: "Посещения сегодня", value: String(visitsToday.count ?? 0), query: "кто сегодня приходил" },
-      { key: "payments", label: "Оплаты сегодня", value: String(payToday.data?.length ?? 0), query: "последние оплаты" },
-      { key: "expiring", label: "Истекают за 3 дня", value: String(expiring.count ?? 0), query: "у кого заканчивается абонемент" },
-      { key: "revenue", label: "Выручка сегодня", value: `${fmt(rToday)}${delta ? (delta > 0 ? ` +${delta}%` : ` -${Math.abs(delta)}%`) : ""}`, query: "какая выручка сегодня" },
-    ],
+    stats: stats.filter((stat) => {
+      if (stat.key === "revenue") return club.permissions.dashboard.view_finance
+      if (stat.key === "payments") return club.permissions.payments.view
+      if (stat.key === "visits") return club.permissions.visits.view
+      return club.permissions.clients.view
+    }),
   }
 }
 
@@ -112,7 +126,22 @@ async function findClients(s: SB, clubId: string, query: string) {
 
 // ── Исполнители: возвращают {summary (для LLM), card? (для UI)} ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function execTool(clubId: string, name: string, args: any): Promise<{ summary: string; card?: AiCard }> {
+async function execTool(clubId: string, name: string, args: any, access: AiToolAccess): Promise<{ summary: string; card?: AiCard }> {
+  const requiresFinance = new Set(["get_metrics", "get_debtors"])
+  const requiresClients = new Set(["find_clients", "get_debtors", "get_expiring_subscriptions", "get_inactive_clients"])
+  const requiresVisits = new Set(["get_in_gym_now"])
+  const requiresPayments = new Set(["get_recent_payments"])
+  const requiresWarehouse = new Set(["list_products", "get_top_products", "get_low_stock"])
+  if (
+    (requiresFinance.has(name) && !access.finance)
+    || (requiresClients.has(name) && !access.clients)
+    || (requiresVisits.has(name) && !access.visits)
+    || (requiresPayments.has(name) && !access.payments)
+    || (requiresWarehouse.has(name) && !access.warehouse)
+    || (name === "get_staff" && !access.staff)
+  ) {
+    return { summary: "Для этих данных у вашей роли нет доступа." }
+  }
   const s = createServiceClient()
   const A = args ?? {}
   switch (name) {
@@ -276,11 +305,19 @@ export async function askAiAction(messages: AiMessage[]): Promise<{ reply: strin
   if (!can(club.permissions, "ai", "use")) return { reply: "", cards: [], error: "Недостаточно прав" }
   const usageError = await consumeMonthlyLimit(club, "ai_requests")
   if (usageError) return { reply: "", cards: [], error: usageError }
+  const access: AiToolAccess = {
+    finance: club.permissions.dashboard.view_finance || club.permissions.reports.finance,
+    clients: club.permissions.clients.view,
+    visits: club.permissions.visits.view,
+    payments: club.permissions.payments.view,
+    staff: club.permissions.staff.view,
+    warehouse: club.permissions.warehouse.view,
+  }
 
   const latest = [...messages].reverse().find((message) => message.role === "user")
   const directIntent = latest && !latest.image ? resolveDirectIntent(latest.content) : null
   if (directIntent) {
-    const { summary, card } = await execTool(club.clubId, directIntent.name, directIntent.args)
+    const { summary, card } = await execTool(club.clubId, directIntent.name, directIntent.args, access)
     return { reply: summary, cards: card ? [card] : [] }
   }
 
@@ -327,7 +364,7 @@ export async function askAiAction(messages: AiMessage[]): Promise<{ reply: strin
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const responseParts: any[] = []
       for (const fc of calls) {
-        const { summary, card } = await execTool(club.clubId, fc.name, fc.args)
+        const { summary, card } = await execTool(club.clubId, fc.name, fc.args, access)
         if (card) cards.push(card)
         responseParts.push({ functionResponse: { name: fc.name, response: { result: summary } } })
       }

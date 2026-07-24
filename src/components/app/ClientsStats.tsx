@@ -1,22 +1,22 @@
-import { Users, BadgeCheck, CalendarClock, Wallet, TrendingUp, TrendingDown } from "lucide-react"
+import { Users, BadgeCheck, CalendarClock, Wallet } from "lucide-react"
 import type { ClientsStats as Stats } from "@/lib/clients"
 
 function fmt(n: number) {
   return n.toLocaleString("ru-RU")
 }
 
-export function ClientsStats({ stats }: { stats: Stats }) {
+export function ClientsStats({ stats, showFinancials = true }: { stats: Stats; showFinancials?: boolean }) {
   const cards = [
-    { label: "Всего клиентов", value: fmt(stats.total), icon: Users, delta: "10.2", pct: "+1.01% за неделю", up: true },
-    { label: "Активные", value: fmt(stats.active), icon: BadgeCheck, delta: "3.1", pct: "+0.49% за неделю", up: true },
-    { label: "Заканчиваются", value: fmt(stats.expiring), icon: CalendarClock, delta: "2.56", pct: "-0.91% за неделю", up: false },
-    { label: "С долгом", value: fmt(stats.debt), icon: Wallet, delta: "7.2", pct: "+1.51% за неделю", up: true },
-  ]
+    { label: "Всего клиентов", value: fmt(stats.total), icon: Users },
+    { label: "Активные", value: fmt(stats.active), icon: BadgeCheck },
+    { label: "Заканчиваются", value: fmt(stats.expiring), icon: CalendarClock },
+    { label: "С долгом", value: fmt(stats.debt), icon: Wallet },
+  ].filter((card) => showFinancials || card.label !== "С долгом")
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
+    <div className={`grid grid-cols-1 gap-0 overflow-hidden rounded-lg sm:grid-cols-2 ${cards.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
       style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-      {cards.map(({ label, value, icon: Icon, delta, pct, up }, i) => (
+      {cards.map(({ label, value, icon: Icon }, i) => (
         <div
           key={label}
           className="p-5 flex flex-col gap-3"
@@ -27,13 +27,6 @@ export function ClientsStats({ stats }: { stats: Stats }) {
             <Icon className="w-5 h-5" style={{ color: "var(--gray-muted)" }} />
           </div>
           <span className="text-3xl font-semibold tracking-[-0.27px]" style={{ color: "var(--on-dark)" }}>{value}</span>
-          <div className="flex items-center gap-1.5">
-            {up
-              ? <TrendingUp className="w-4 h-4" style={{ color: "#16a34a" }} />
-              : <TrendingDown className="w-4 h-4" style={{ color: "#dc2626" }} />}
-            <span className="text-xs font-medium" style={{ color: up ? "#16a34a" : "#dc2626" }}>{delta}</span>
-            <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{pct}</span>
-          </div>
         </div>
       ))}
     </div>

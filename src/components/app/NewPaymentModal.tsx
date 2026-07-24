@@ -124,9 +124,9 @@ export function NewPaymentModal({ memberships, connectedProviders = [], fixedCli
     setCopied(true); setTimeout(() => setCopied(false), 1500)
   }
   function sendTelegram() {
-    if (!client || !link?.url) return
+    if (!client || !link?.paymentId) return
     start(async () => {
-      const r = await sendPaymentLinkTelegramAction(client.id, link.url!)
+      const r = await sendPaymentLinkTelegramAction(client.id, link.paymentId!)
       setTgSent(r.error ? `Ошибка: ${r.error}` : "Отправлено в Telegram ✓")
     })
   }

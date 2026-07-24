@@ -3,6 +3,7 @@
 import { can } from "@/lib/permissions"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentClub } from "@/lib/club"
 import { getClientsForExport, type ClientsQuery, type ClientRow } from "@/lib/clients"
 import { serializeCSV } from "@/lib/csv"
@@ -53,6 +54,18 @@ export async function createClientAction(
   const notes      = String(formData.get("notes") ?? "").trim()
 
   if (!firstName) return { error: "Введите имя клиента" }
+  if (phone && !/^\+998\d{9}$/.test(phone)) return { error: "Введите корректный номер телефона" }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Введите корректный email" }
+  if (birthDate) {
+    const parsedBirthDate = new Date(`${birthDate}T00:00:00Z`)
+    if (
+      Number.isNaN(parsedBirthDate.getTime())
+      || parsedBirthDate.toISOString().slice(0, 10) !== birthDate
+      || parsedBirthDate > new Date()
+    ) {
+      return { error: "Введите корректную дату рождения" }
+    }
+  }
 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
@@ -60,6 +73,7 @@ export async function createClientAction(
   const clubId = club.clubId
 
   const supabase = await createClient()
+  const service = createServiceClient()
   const { count } = await supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", clubId)
   const limitError = requireRecordLimit(club, "clients", count ?? 0)
   if (limitError) return { error: limitError }
@@ -82,12 +96,15 @@ export async function createClientAction(
     .select("id")
     .single()
 
-  if (clientErr) return { error: clientErr.message }
+  if (clientErr) {
+    if (clientErr.code === "23505") return { error: "Клиент с такими данными уже существует" }
+    return { error: "Не удалось создать клиента. Проверьте введённые данные." }
+  }
 
   const clientId = newClient.id as string
 
   async function rollbackClient(message: string): Promise<ClientFormState> {
-    await supabase.from("clients").delete().eq("id", clientId).eq("club_id", clubId)
+    await service.from("clients").delete().eq("id", clientId).eq("club_id", clubId)
     return { error: message }
   }
 
@@ -97,7 +114,7 @@ export async function createClientAction(
 
     if (membershipId === "single") {
       const tomorrow = new Date(today.getTime() + 86_400_000)
-      const { error: subscriptionError } = await supabase.from("subscriptions").insert({
+      const { error: subscriptionError } = await service.from("subscriptions").insert({
         club_id: clubId,
         client_id: clientId,
         membership_id: null,
@@ -119,7 +136,7 @@ export async function createClientAction(
       if (membershipError || !mem) return rollbackClient("Выбранный абонемент не найден")
 
       const expires = new Date(today.getTime() + (mem.duration_days as number) * 86_400_000)
-      const { error: subscriptionError } = await supabase.from("subscriptions").insert({
+      const { error: subscriptionError } = await service.from("subscriptions").insert({
         club_id: clubId,
         client_id: clientId,
         membership_id: membershipId,
@@ -147,11 +164,13 @@ export async function deleteClientAction(clientId: string): Promise<{ error?: st
   // ON DELETE CASCADE, поэтому без этого FK блокирует удаление (клиент оставался
   // в базе, а UI ошибочно рапортовал успех). Финансовую историю сохраняем — просто
   // снимаем привязку к удаляемому клиенту и его абонементам.
-  await supabase
+  const service = createServiceClient()
+  const { error: detachError } = await service
     .from("payments")
     .update({ client_id: null, subscription_id: null })
     .eq("client_id", clientId)
     .eq("club_id", club.clubId)
+  if (detachError) return { error: "Не удалось подготовить данные клиента к удалению" }
 
   // subscriptions и visits удалятся каскадом (ON DELETE CASCADE по client_id).
   const { error } = await supabase.from("clients").delete().eq("id", clientId).eq("club_id", club.clubId)
@@ -191,8 +210,9 @@ export async function updateClientAction(
   }
 
   // Apply financial/trainer columns only if they exist in schema
-  if (fields.balance != null) payload.balance = fields.balance
-  if (fields.debt != null) payload.debt = fields.debt
+  const canEditFinancials = club.permissions.dashboard.view_finance || club.permissions.reports.finance
+  if (canEditFinancials && fields.balance != null) payload.balance = Math.max(0, fields.balance)
+  if (canEditFinancials && fields.debt != null) payload.debt = Math.max(0, fields.debt)
   if (fields.trainer_name !== undefined) payload.trainer_name = fields.trainer_name || null
 
   const { error } = await supabase
@@ -213,28 +233,19 @@ export async function toggleFreezeAction(clientId: string, currentStatus: string
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "clients", "freeze")) return { error: "Недостаточно прав" }
+  if (!["active", "frozen"].includes(currentStatus)) return { error: "Некорректный статус абонемента" }
 
-  const targetStatus = currentStatus === "frozen" ? "active" : "frozen"
-  const fromStatus = currentStatus === "frozen" ? "frozen" : "active"
-
-  const { data: subs, error: subErr } = await supabase
-    .from("subscriptions")
-    .select("id")
-    .eq("client_id", clientId)
-    .eq("club_id", club.clubId)
-    .eq("status", fromStatus)
-    .order("created_at", { ascending: false })
-    .limit(1)
-
-  if (subErr) return { error: subErr.message }
-  if (!subs?.length) return { error: "Активный абонемент не найден" }
-
-  const { error } = await supabase
-    .from("subscriptions")
-    .update({ status: targetStatus })
-    .eq("id", subs[0].id)
-
-  if (error) return { error: error.message }
+  const { error } = await supabase.rpc("toggle_subscription_freeze", {
+    p_club_id: club.clubId,
+    p_client_id: clientId,
+    p_expected_status: currentStatus,
+  })
+  if (error) {
+    if (error.message.includes("allowance")) return { error: "Лимит дней заморозки исчерпан" }
+    if (error.message.includes("status changed")) return { error: "Статус абонемента изменился. Обновите страницу." }
+    if (error.message.includes("not found")) return { error: "Активный абонемент не найден" }
+    return { error: "Не удалось изменить заморозку" }
+  }
 
   revalidatePath("/clients")
   revalidatePath(`/clients/${clientId}`)
@@ -255,6 +266,7 @@ export async function renewSubscriptionAction(
   if (!can(club.permissions, "clients", "extend")) return { error: "Недостаточно прав" }
   if (!membershipId) return { error: "Выберите абонемент" }
   const supabase = await createClient()
+  const service = createServiceClient()
 
   const today = new Date()
   const todayStr = today.toISOString().slice(0, 10)
@@ -286,17 +298,17 @@ export async function renewSubscriptionAction(
     const newTotal = existing.visits_total !== null && visitsLimit !== null
       ? Number(existing.visits_total) + visitsLimit
       : (visitsLimit ?? existing.visits_total)
-    const { error } = await supabase.from("subscriptions")
+    const { error } = await service.from("subscriptions")
       .update({ expires_at: newExpires, visits_total: newTotal, status: "active" }).eq("id", existing.id)
     if (error) return { error: error.message }
     revalidatePath(`/clients/${clientId}`); revalidatePath("/clients")
     return { ok: true, mode: "extend" }
   }
 
-  await supabase.from("subscriptions").update({ status: "expired" })
+  await service.from("subscriptions").update({ status: "expired" })
     .eq("client_id", clientId).eq("club_id", club.clubId).eq("status", "active")
   const expires = new Date(today.getTime() + durationDays * 86_400_000).toISOString().slice(0, 10)
-  const { error } = await supabase.from("subscriptions").insert({
+  const { error } = await service.from("subscriptions").insert({
     club_id: club.clubId, client_id: clientId, membership_id: isSingle ? null : membershipId,
     visits_total: visitsLimit, visits_used: 0, starts_at: todayStr, expires_at: expires, status: "active",
   })

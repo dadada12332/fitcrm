@@ -30,7 +30,9 @@ function fmtDate(iso: string | null) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
+  return new Date(iso).toLocaleTimeString("ru-RU", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tashkent",
+  })
 }
 
 const UNKNOWN_META = { label: "—", bg: "var(--card-2)", color: "var(--on-dark-soft)" }
@@ -64,30 +66,39 @@ function MobileDetail({ label, children }: { label: string; children: React.Reac
 export function ClientProfileTabs({
   client,
   canExport = false,
+  canViewVisits = false,
+  canViewPayments = false,
   sidePanel,
 }: {
   client: ClientProfile
   canExport?: boolean
+  canViewVisits?: boolean
+  canViewPayments?: boolean
   sidePanel?: React.ReactNode
 }) {
+  const visibleTabs = useMemo(() => TABS.filter((item) => {
+    if (item.key === "visits") return canViewVisits
+    if (item.key === "payments") return canViewPayments
+    return true
+  }), [canViewPayments, canViewVisits])
   const searchParams = useSearchParams()
   const initialTab = (searchParams.get("tab") as TabKey | null) ?? "profile"
   const [tab, setTab] = useState<TabKey>(
-    TABS.some((t) => t.key === initialTab) ? initialTab : "profile"
+    visibleTabs.some((t) => t.key === initialTab) ? initialTab : "profile"
   )
 
   useEffect(() => {
     const t = searchParams.get("tab") as TabKey | null
     // Browser navigation can change the active deep-linked tab.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (t && TABS.some((x) => x.key === t)) setTab(t)
-  }, [searchParams])
+    if (t && visibleTabs.some((x) => x.key === t)) setTab(t)
+  }, [searchParams, visibleTabs])
 
   return (
     <div className="flex flex-col gap-5">
       {/* Tab bar */}
-      <div className="grid w-full grid-cols-4 gap-0.5 rounded-lg p-1 sm:flex sm:overflow-x-auto" style={{ background: "var(--card-2)" }}>
-        {TABS.map((t) => {
+      <div className="grid w-full auto-cols-fr grid-flow-col gap-0.5 rounded-lg p-1 sm:flex sm:overflow-x-auto" style={{ background: "var(--card-2)" }}>
+        {visibleTabs.map((t) => {
           const active = t.key === tab
           const Icon = t.icon
           return (
@@ -108,7 +119,7 @@ export function ClientProfileTabs({
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="order-2 flex min-w-0 flex-col gap-5 lg:order-1">
-          {tab === "profile" && <ProfileTab client={client} canExport={canExport} />}
+          {tab === "profile" && <ProfileTab client={client} canExport={canExport} showPayments={canViewPayments} />}
           {tab === "visits" && <VisitsTab visits={client.visits} />}
           {tab === "payments" && <PaymentsTab payments={client.payments} />}
           {tab === "history" && <HistoryTab client={client} />}
@@ -125,7 +136,7 @@ export function ClientProfileTabs({
 
 /* ───────────────────────── Профиль ───────────────────────── */
 
-function ProfileTab({ client, canExport }: { client: ClientProfile; canExport: boolean }) {
+function ProfileTab({ client, canExport, showPayments }: { client: ClientProfile; canExport: boolean; showPayments: boolean }) {
   const sub = client.subscription
   return (
     <>
@@ -146,7 +157,7 @@ function ProfileTab({ client, canExport }: { client: ClientProfile; canExport: b
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
               <Mini label="Осталось дней" value={sub.daysLeft !== null ? String(sub.daysLeft) : "—"} />
               <Mini label="Посещений" value={`${sub.visitsUsed} из ${sub.visitsTotal ?? "∞"}`} />
-              <Mini label="Заморозка" value={`${sub.freezeDaysAllowed - sub.freezeDaysUsed} дней`} />
+              <Mini label="Заморозка" value={`${Math.max(0, sub.freezeDaysAllowed - sub.freezeDaysUsed)} дней`} />
             </div>
 
             <div className="mt-5">
@@ -165,9 +176,11 @@ function ProfileTab({ client, canExport }: { client: ClientProfile; canExport: b
       </Card>
 
       {/* История транзакций */}
-      <Card>
-        <TransactionsTable payments={client.payments} canExport={canExport} />
-      </Card>
+      {showPayments && (
+        <Card>
+          <TransactionsTable payments={client.payments} canExport={canExport} />
+        </Card>
+      )}
     </>
   )
 }

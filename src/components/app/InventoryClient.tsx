@@ -419,10 +419,11 @@ type Props = {
   stats: InventoryStats
   canSupply: boolean
   canWriteoff: boolean
+  canViewCost: boolean
   versionControl?: React.ReactNode
 }
 
-export function InventoryClient({ clubId, products, movements, stats, canSupply, canWriteoff, versionControl }: Props) {
+export function InventoryClient({ clubId, products, movements, stats, canSupply, canWriteoff, canViewCost, versionControl }: Props) {
   const [query, setQuery] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [supplyOpen, setSupplyOpen] = useState(false)
@@ -511,7 +512,7 @@ export function InventoryClient({ clubId, products, movements, stats, canSupply,
         {[
           { label: "Товаров",          value: String(stats.totalProducts),        icon: Package },
           { label: "Мало на складе",   value: String(stats.lowStockCount),        icon: AlertTriangle },
-          { label: "Стоимость склада", value: fmtSum(stats.totalValue) + " сум",  icon: DollarSign },
+          { label: "Стоимость склада", value: canViewCost ? fmtSum(stats.totalValue) + " сум" : "—", icon: DollarSign },
           { label: "Продаж за месяц",  value: fmtSum(stats.totalSalesMonth) + " сум", icon: TrendingUp },
         ].map(({ label, value, icon: Icon }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
@@ -638,7 +639,7 @@ export function InventoryClient({ clubId, products, movements, stats, canSupply,
                       {fmtSum(p.sellPrice)} сум
                     </div>
                     <div className="hidden text-right text-sm font-medium text-foreground lg:col-span-2 lg:block">
-                      {fmtSum(p.quantity * p.buyPrice)} сум
+                      {canViewCost ? `${fmtSum(p.quantity * p.buyPrice)} сум` : "—"}
                     </div>
                     <div className="col-span-2 flex justify-end lg:col-span-1">
                       <ProductActionsMenu

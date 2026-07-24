@@ -34,7 +34,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
           <h1 className="text-2xl font-semibold tracking-[-0.144px]" style={{ color: "var(--on-dark)" }}>Расписание</h1>
           <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>Управление загрузкой клуба: занятия, залы, тренеры</p>
         </div>
-        <AddClassButton rooms={data.rooms} defaultDate={data.date} trainers={trainers} />
+        {club.permissions.schedule.create && <AddClassButton rooms={data.rooms} defaultDate={data.date} trainers={trainers} />}
       </div>
 
       <ScheduleToolbar

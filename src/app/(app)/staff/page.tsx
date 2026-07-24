@@ -10,7 +10,9 @@ export default async function StaffPage() {
   if (!club) redirect("/onboarding")
   if (!club.permissions.staff.view) redirect("/dashboard")
 
-  const { kpi, rows: list } = await getStaffPageData(supabase, club.clubId)
+  const { kpi, rows: list } = await getStaffPageData(supabase, club.clubId, {
+    includeSalary: club.permissions.staff.salaries,
+  })
 
   return (
     <div className="space-y-5">

@@ -12,6 +12,22 @@ import { requireIntegrationSlot, requirePlanFeature, requirePlanSection, require
 export type SaveResult = { ok?: boolean; error?: string }
 type WorkingDay = { open: string; close: string; closed: boolean }
 
+function permissionsAreSubset(target: unknown, actor: unknown): boolean {
+  if (typeof target === "boolean") return target === false || actor === true
+  if (!target || typeof target !== "object" || !actor || typeof actor !== "object") return false
+  return Object.entries(target as Record<string, unknown>).every(
+    ([key, value]) => permissionsAreSubset(value, (actor as Record<string, unknown>)[key]),
+  )
+}
+
+async function canInviteRole(clubId: string, actorRole: string, actorPermissions: unknown, role: string): Promise<boolean> {
+  if (actorRole === "owner") return true
+  if (role === "owner") return false
+  const { data } = await createServiceClient().from("club_roles")
+    .select("permissions").eq("club_id", clubId).eq("key", role).maybeSingle()
+  return Boolean(data?.permissions && permissionsAreSubset(data.permissions, actorPermissions))
+}
+
 /** Заявка клуба на оформление/продление тарифа. Подтверждает админ платформы. */
 export async function requestPlanAction(plan: string, months = 1): Promise<SaveResult> {
   // Цена берётся из БД (раздел «Тарифы» в Platform Admin) — без хардкода.
@@ -212,38 +228,41 @@ export async function inviteStaffAction(data: { email: string; role: string }): 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
-  if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав для приглашения" }
+  if (!can(club.permissions, "staff", "create")) return { error: "Нет прав для приглашения" }
   if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
+  if (!(await canInviteRole(club.clubId, club.role, club.permissions, data.role))) {
+    return { error: "Нельзя пригласить сотрудника с более широкими правами" }
+  }
 
   const email = data.email.toLowerCase().trim()
   const supabase = await createClient()
+  const service = createServiceClient()
+  const { data: { user } } = await supabase.auth.getUser()
   const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
     supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
-    supabase.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
   ])
   const staffLimitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
   if (staffLimitError) return { error: staffLimitError }
   const origin = (await headers()).get("origin") ?? ""
 
   // Delete stale unaccepted email invites for this email+club before creating a new one
-  await supabase.from("staff_invitations")
+  await service.from("staff_invitations")
     .delete()
     .eq("club_id", club.clubId)
     .eq("email", email)
     .is("accepted_at", null)
 
   // Store invite in DB (regular client — RLS allows owner/admin insert)
-  const { data: invite, error: dbErr } = await supabase
+  const { data: invite, error: dbErr } = await service
     .from("staff_invitations")
-    .insert({ club_id: club.clubId, email, role: data.role })
+    .insert({ club_id: club.clubId, email, role: data.role, invited_by: user?.id ?? null })
     .select("id, token")
     .single()
 
   if (dbErr) return { error: dbErr.message }
 
   const redirectTo = `${origin}/auth/callback?next=/accept-invite/${invite.token}`
-  const service = createServiceClient()
-
   // Try invite first (creates account for new users)
   const { error: inviteErr } = await service.auth.admin.inviteUserByEmail(email, {
     redirectTo,
@@ -256,12 +275,12 @@ export async function inviteStaffAction(data: { email: string; role: string }): 
       // Existing user — send a magic link so they can log in and reach the accept page
       const { error: otpErr } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } })
       if (otpErr) {
-        await supabase.from("staff_invitations").delete().eq("id", invite.id)
+        await service.from("staff_invitations").delete().eq("id", invite.id)
         return { error: otpErr.message }
       }
       return { ok: true }
     }
-    await supabase.from("staff_invitations").delete().eq("id", invite.id)
+    await service.from("staff_invitations").delete().eq("id", invite.id)
     return { error: inviteErr.message }
   }
 
@@ -297,28 +316,33 @@ export async function createInviteLinkAction(data: { role: string }): Promise<{ 
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
-  if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав для приглашения" }
+  if (!can(club.permissions, "staff", "create")) return { error: "Нет прав для приглашения" }
   if (data.role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
+  if (!(await canInviteRole(club.clubId, club.role, club.permissions, data.role))) {
+    return { error: "Нельзя пригласить сотрудника с более широкими правами" }
+  }
 
   const supabase = await createClient()
+  const service = createServiceClient()
+  const { data: { user } } = await supabase.auth.getUser()
   const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
     supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
-    supabase.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
   ])
   const staffLimitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
   if (staffLimitError) return { error: staffLimitError }
   const origin = (await headers()).get("origin") ?? ""
 
   // Delete all stale unaccepted link invites for this club before creating a fresh one
-  await supabase.from("staff_invitations")
+  await service.from("staff_invitations")
     .delete()
     .eq("club_id", club.clubId)
     .is("email", null)
     .is("accepted_at", null)
 
-  const { data: invite, error } = await supabase
+  const { data: invite, error } = await service
     .from("staff_invitations")
-    .insert({ club_id: club.clubId, email: null, role: data.role })
+    .insert({ club_id: club.clubId, email: null, role: data.role, invited_by: user?.id ?? null })
     .select("token")
     .single()
 
@@ -330,7 +354,7 @@ export async function updateStaffRoleAction(staffId: string, role: string): Prom
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
-  if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав" }
+  if (club.role !== "owner") return { error: "Только владелец может менять роли" }
 
   if (role === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
 
@@ -350,7 +374,7 @@ export async function removeStaffAction(staffId: string): Promise<SaveResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
-  if (!["owner", "admin"].includes(club.role)) return { error: "Нет прав" }
+  if (!(club.role === "owner" || can(club.permissions, "staff", "delete"))) return { error: "Нет прав" }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -364,9 +388,9 @@ export async function removeStaffAction(staffId: string): Promise<SaveResult> {
 
   // Nullify FK references before deleting
   await Promise.all([
-    service.from("visits").update({ staff_id: null }).eq("staff_id", staffId),
-    service.from("schedules").update({ staff_id: null }).eq("staff_id", staffId),
-    service.from("classes").update({ staff_id: null }).eq("staff_id", staffId),
+    service.from("visits").update({ staff_id: null }).eq("staff_id", staffId).eq("club_id", club.clubId),
+    service.from("schedules").update({ staff_id: null }).eq("staff_id", staffId).eq("club_id", club.clubId),
+    service.from("classes").update({ staff_id: null }).eq("staff_id", staffId).eq("club_id", club.clubId),
   ])
 
   const { error } = await service.from("staff").delete().eq("id", staffId).eq("club_id", club.clubId)

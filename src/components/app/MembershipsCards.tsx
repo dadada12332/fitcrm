@@ -39,7 +39,7 @@ function exportMemberships(rows: MembershipRow[]) {
   )
 }
 
-export function MembershipsCards({ rows, canExport }: { rows: MembershipRow[]; canExport: boolean }) {
+export function MembershipsCards({ rows, canExport, canManage = false }: { rows: MembershipRow[]; canExport: boolean; canManage?: boolean }) {
   const [query, setQuery] = useState("")
   const [tab, setTab] = useState<Tab>("active")
 
@@ -154,9 +154,9 @@ export function MembershipsCards({ rows, canExport }: { rows: MembershipRow[]; c
                   style={{ border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
                 >
                   {/* Menu floats at card level so dropdown isn't clipped by header overflow-hidden */}
-                  <div className="absolute top-3 right-3 z-20 flex">
+                  {canManage && <div className="absolute top-3 right-3 z-20 flex">
                     <MembershipRowMenu row={row} onDark />
-                  </div>
+                  </div>}
 
                   {/* Colored header */}
                   <div

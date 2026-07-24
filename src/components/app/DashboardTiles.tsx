@@ -56,9 +56,10 @@ type Props = {
   todayVisits: number
   prevVisits: number
   expiringCount: number
+  canViewFinance?: boolean
 }
 
-export function DashboardTiles({ activeClients, prevClients, todayRevenue, prevRevenue, todayVisits, prevVisits, expiringCount }: Props) {
+export function DashboardTiles({ activeClients, prevClients, todayRevenue, prevRevenue, todayVisits, prevVisits, expiringCount, canViewFinance = true }: Props) {
   function pct(curr: number, prev: number) {
     if (!prev) return curr > 0 ? 100 : 0
     return ((curr - prev) / prev) * 100
@@ -97,22 +98,15 @@ export function DashboardTiles({ activeClients, prevClients, todayRevenue, prevR
       trendLabel: expiringCount > 0 ? "требуют продления" : "всё в порядке",
       icon: <Clock className="w-6 h-6" style={{ color: "var(--gray-muted)" }} />,
     },
-  ]
-
-  const borders = [
-    "border-b border-r border-border xl:border-b-0",
-    "border-b border-border xl:border-r xl:border-b-0",
-    "border-r border-border xl:border-r",
-    "",
-  ]
+  ].filter((tile) => canViewFinance || tile.label !== "Выручка сегодня")
 
   return (
     <div
-      className="grid w-full grid-cols-2 overflow-hidden rounded-lg border border-border xl:grid-cols-4"
+      className={`grid w-full grid-cols-1 overflow-hidden rounded-lg border border-border sm:grid-cols-2 ${tiles.length === 4 ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}
       style={{ background: "var(--card)" }}
     >
       {tiles.map((tile, i) => (
-        <div key={tile.label} className={borders[i]}>
+        <div key={tile.label} className={i < tiles.length - 1 ? "border-b border-border sm:border-r xl:border-b-0" : ""}>
           <TileComp tile={tile} />
         </div>
       ))}

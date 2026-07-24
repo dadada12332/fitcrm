@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { createServiceClient } from "@/lib/supabase/service"
 
 export type StaffStatus = "active" | "vacation" | "fired"
 export type SalaryType  = "none" | "fixed" | "percent" | "mixed"
@@ -174,39 +175,71 @@ type StaffPageRpc = {
 }
 
 export async function getStaffPageData(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   clubId: string,
+  options: { includeSalary?: boolean } = {},
 ): Promise<{ kpi: StaffKPI; rows: StaffRow[] }> {
-  const { data, error } = await supabase.rpc("get_staff_page_data", { p_club_id: clubId })
+  const service = createServiceClient()
+  const { data, error } = await service.rpc("get_staff_page_data", { p_club_id: clubId })
   if (!error && data) {
     const result = data as StaffPageRpc
+    const rows = (result.rows ?? []).map((row) => {
+      const settings = row.settings ?? {}
+      const safeSettings = options.includeSalary ? settings : {
+        ...settings,
+        salary_type: undefined,
+        salary_fixed: undefined,
+        salary_percent: undefined,
+        salary_history: undefined,
+      }
+      return {
+        ...row,
+        salary: options.includeSalary ? Number(row.salary) || 0 : 0,
+        clientCount: Number(row.clientCount) || 0,
+        revenue: 0,
+        settings: safeSettings,
+      }
+    })
     return {
       kpi: {
         total: Number(result.kpi?.total ?? 0),
         trainers: Number(result.kpi?.trainers ?? 0),
         admins: Number(result.kpi?.admins ?? 0),
-        monthlySalary: Number(result.kpi?.monthlySalary ?? 0),
+        monthlySalary: options.includeSalary ? Number(result.kpi?.monthlySalary ?? 0) : 0,
       },
-      rows: (result.rows ?? []).map((row) => ({
-        ...row,
-        salary: Number(row.salary) || 0,
-        clientCount: Number(row.clientCount) || 0,
-        revenue: 0,
-        settings: row.settings ?? {},
-      })),
+      rows,
     }
   }
 
   const [kpi, rows] = await Promise.all([
-    getStaffKPI(supabase, clubId),
-    getStaffList(supabase, clubId),
+    getStaffKPI(service, clubId),
+    getStaffList(service, clubId),
   ])
-  return { kpi, rows }
+  return {
+    kpi: { ...kpi, monthlySalary: options.includeSalary ? kpi.monthlySalary : 0 },
+    rows: rows.map((row) => ({
+      ...row,
+      salary: options.includeSalary ? row.salary : 0,
+      settings: options.includeSalary ? row.settings : {
+        ...row.settings,
+        salary_type: undefined,
+        salary_fixed: undefined,
+        salary_percent: undefined,
+        salary_history: undefined,
+      },
+    })),
+  }
 }
 
-export async function getStaffMember(supabase: SupabaseClient, id: string, clubId: string): Promise<StaffDetail | null> {
+export async function getStaffMember(
+  supabase: SupabaseClient,
+  id: string,
+  clubId: string,
+  options: { includeSalary?: boolean } = {},
+): Promise<StaffDetail | null> {
+  const service = createServiceClient()
   const [staffRes, visitsRes, schedRes] = await Promise.all([
-    supabase.from("staff").select("id, user_id, role, salary, is_active, settings").eq("id", id).eq("club_id", clubId).single(),
+    service.from("staff").select("id, user_id, role, salary, is_active, settings").eq("id", id).eq("club_id", clubId).single(),
     supabase.from("visits").select("client_id, created_at, subscription_id, subscriptions(membership_id, memberships(name), status)")
       .eq("club_id", clubId).eq("staff_id", id),
     supabase.from("schedules").select("id, title, day_of_week, start_time, end_time").eq("club_id", clubId).eq("staff_id", id).eq("is_active", true),
@@ -217,7 +250,14 @@ export async function getStaffMember(supabase: SupabaseClient, id: string, clubI
 
   const { data: userData } = await supabase.from("users").select("id, email, full_name").eq("id", s.user_id).single()
   const u        = userData
-  const settings = (s.settings as StaffSettings) ?? {}
+  const rawSettings = (s.settings as StaffSettings) ?? {}
+  const settings = options.includeSalary ? rawSettings : {
+    ...rawSettings,
+    salary_type: undefined,
+    salary_fixed: undefined,
+    salary_percent: undefined,
+    salary_history: undefined,
+  }
   const visits = (visitsRes.data ?? []) as StaffDetailVisitRecord[]
 
   const clientMap = new Map<string, { name: string; membershipName: string | null; status: string }>()
@@ -261,7 +301,7 @@ export async function getStaffMember(supabase: SupabaseClient, id: string, clubI
     name:        u?.full_name ?? u?.email?.split("@")[0] ?? "—",
     email:       u?.email ?? "",
     isActive:    s.is_active,
-    salary:      Number(s.salary) || 0,
+    salary:      options.includeSalary ? Number(s.salary) || 0 : 0,
     clientCount: clients.length,
     revenue:     0,
     status:      (settings.status ?? (s.is_active ? "active" : "fired")) as StaffStatus,

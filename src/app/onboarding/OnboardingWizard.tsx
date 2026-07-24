@@ -281,7 +281,7 @@ function Step4({ onFinish, onBack }: { onFinish: () => void; onBack: () => void 
             onClick={onFinish}
             className={`h-11 w-full px-4 text-base sm:w-auto ${ONBOARDING_SKIP_BUTTON_CLASS}`}
           >
-            Пропустить
+            Без приглашений
           </Button>
           <Button type="submit" size="lg" className="h-11 w-full text-base sm:w-auto">
             Перейти в CRM <ArrowRight className="size-4" />
@@ -347,7 +347,7 @@ export function OnboardingWizard({ clubName, initialStep }: { clubName: string; 
                 onClick={finish}
                 className={`h-9 px-3 text-sm font-semibold ${ONBOARDING_SKIP_BUTTON_CLASS}`}
               >
-                Пропустить настройку
+                Завершить позже
               </Button>
             )}
           </div>

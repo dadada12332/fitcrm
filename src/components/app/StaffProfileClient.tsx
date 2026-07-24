@@ -632,20 +632,31 @@ export function StaffProfileClient({
   member,
   roles = [],
   canManageRoles = false,
+  canEdit = false,
+  canViewSalary = false,
+  canManagePermissions = false,
 }: {
   member: StaffDetail
   roles?: SimpleRole[]
   canManageRoles?: boolean
+  canEdit?: boolean
+  canViewSalary?: boolean
+  canManagePermissions?: boolean
 }) {
   const [tab, setTab] = useState<Tab>("basic")
 
-  const visibleTabs = TABS.filter((t) => !t.roles || t.roles.includes(member.role))
+  const visibleTabs = TABS.filter((t) => {
+    if (t.roles && !t.roles.includes(member.role)) return false
+    if (t.key === "salary" && !canViewSalary) return false
+    if (t.key === "permissions" && !canManagePermissions) return false
+    return true
+  })
 
   const sm = STATUS_META[member.status] ?? STATUS_META.active
 
   const renderTab = () => {
     switch (tab) {
-      case "basic":       return <BasicSection member={member} roles={roles} canManageRoles={canManageRoles} />
+      case "basic":       return <BasicSection member={member} roles={roles} canManageRoles={canManageRoles && canEdit} />
       case "clients":     return <ClientsSection member={member} />
       case "schedule":    return <ScheduleSection member={member} />
       case "salary":      return <SalarySection member={member} />
@@ -693,11 +704,11 @@ export function StaffProfileClient({
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className={`grid gap-3 ${canViewSalary ? "grid-cols-3" : "grid-cols-2"}`}>
         {[
           { label: "Клиентов",     value: String(member.clientCount) },
           { label: "Занятий",      value: String(member.personalCount) },
-          { label: "Зарплата",     value: `${fmt(member.salary)} сум` },
+          ...(canViewSalary ? [{ label: "Зарплата", value: `${fmt(member.salary)} сум` }] : []),
         ].map(({ label, value }) => (
           <div key={label} className="p-4 rounded-xl text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <p className="text-xl font-bold" style={{ color: "var(--on-dark)" }}>{value}</p>

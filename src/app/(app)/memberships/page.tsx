@@ -23,14 +23,18 @@ export default async function MembershipsPage() {
             Тарифные планы и абонементы, которые можно назначать клиентам
           </p>
         </div>
-        <AddMembershipButton />
+        {club.permissions.memberships.create && <AddMembershipButton />}
       </div>
 
       {/* Stat tiles */}
       <MembershipsStats stats={stats} />
 
       {/* Cards */}
-      <MembershipsCards rows={rows} canExport={club.permissions.memberships.view} />
+      <MembershipsCards
+        rows={rows}
+        canExport={club.permissions.memberships.view}
+        canManage={club.permissions.memberships.edit || club.permissions.memberships.delete}
+      />
     </div>
   )
 }

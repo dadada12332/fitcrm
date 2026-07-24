@@ -10,7 +10,7 @@ type Result = { ok?: true; error?: string }
 async function updateOwnStaff(values: Record<string, string>): Promise<Result> {
   const [club, user] = await Promise.all([getCurrentClub(), getAuthUser()])
   if (!club || !user) return { error: "Не авторизован" }
-  if (club.role !== "owner" || !can(club.permissions, "dashboard", "view")) {
+  if (!can(club.permissions, "dashboard", "view")) {
     return { error: "Недостаточно прав" }
   }
 

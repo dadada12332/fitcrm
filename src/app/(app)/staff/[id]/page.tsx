@@ -9,14 +9,17 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) redirect("/onboarding")
+  if (!club.permissions.staff.view) redirect("/dashboard")
 
   const [member, rolesRes] = await Promise.all([
-    getStaffMember(supabase, id, club.clubId),
-    supabase
+    getStaffMember(supabase, id, club.clubId, {
+      includeSalary: club.permissions.staff.salaries,
+    }),
+    club.permissions.settings.roles ? supabase
       .from("club_roles")
       .select("id, key, name, is_system")
       .eq("club_id", club.clubId)
-      .order("created_at"),
+      .order("created_at") : Promise.resolve({ data: [] }),
   ])
   if (!member) notFound()
 
@@ -32,7 +35,10 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
       <StaffProfileClient
         member={member}
         roles={roles}
-        canManageRoles={["owner", "admin"].includes(club.role)}
+        canManageRoles={club.permissions.settings.roles}
+        canEdit={club.permissions.staff.edit}
+        canViewSalary={club.permissions.staff.salaries}
+        canManagePermissions={club.permissions.settings.roles}
       />
     </div>
   )

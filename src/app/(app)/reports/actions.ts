@@ -27,14 +27,14 @@ export async function loadFinanceAction(
   from: string, to: string, prevFrom: string, prevTo: string,
 ): Promise<FinanceAgg | null> {
   const club = await getCurrentClub()
-  if (!club || !club.permissions.reports.view) return null
+  if (!club || !club.permissions.reports.view || !club.permissions.reports.finance) return null
   return getReportsFinance(club.clubId, from, to, prevFrom, prevTo)
 }
 
 /** Агрегация продаж за период (Stage 2 серверной агрегации). */
 export async function loadSalesAction(from: string, to: string): Promise<SalesAgg | null> {
   const club = await getCurrentClub()
-  if (!club || !club.permissions.reports.view) return null
+  if (!club || !club.permissions.reports.view || !club.permissions.reports.finance) return null
   return getReportsSales(club.clubId, from, to)
 }
 
@@ -66,21 +66,21 @@ export async function loadRenewalsAction(): Promise<RenewalsAgg | null> {
 /** Агрегация долгов (Stage 6 серверной агрегации). Не зависит от периода. */
 export async function loadDebtsAction(): Promise<DebtsAgg | null> {
   const club = await getCurrentClub()
-  if (!club || !club.permissions.reports.view) return null
+  if (!club || !club.permissions.reports.view || !club.permissions.reports.finance) return null
   return getReportsDebts(club.clubId)
 }
 
 /** Агрегация персонала (Stage 7 серверной агрегации). Не зависит от периода. */
 export async function loadStaffAction(): Promise<ReportStaffRow[] | null> {
   const club = await getCurrentClub()
-  if (!club || !club.permissions.reports.view) return null
+  if (!club || !club.permissions.reports.view || !club.permissions.staff.salaries) return null
   return getReportsStaff(club.clubId)
 }
 
 /** Агрегация «Внимание» (Stage 8). Период-независимая — для вкладки и бейджа. */
 export async function loadAlertsAction(): Promise<AlertsAgg | null> {
   const club = await getCurrentClub()
-  if (!club || !club.permissions.reports.view) return null
+  if (!club || !club.permissions.reports.view || !club.permissions.reports.finance) return null
   return getReportsAlerts(club.clubId)
 }
 

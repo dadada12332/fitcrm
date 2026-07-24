@@ -35,6 +35,7 @@ type ManualClientRecord = {
 export async function qrCheckInAction(qrToken: string): Promise<QrVisitResult> {
   const token = qrToken.trim()
   const supabase = await createClient()
+  const service = createServiceClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "visits", "checkin")) return { error: "Недостаточно прав" }
@@ -51,7 +52,7 @@ export async function qrCheckInAction(qrToken: string): Promise<QrVisitResult> {
     .maybeSingle()
   if (!client) return { error: "Клиент с этим QR-кодом не найден в вашем клубе" }
 
-  const { error: redemptionError } = await createServiceClient().from("qr_pass_redemptions").insert({
+  const { error: redemptionError } = await service.from("qr_pass_redemptions").insert({
     jti: pass.jti,
     club_id: club.clubId,
     client_id: client.id,
@@ -85,25 +86,22 @@ export async function qrCheckInAction(qrToken: string): Promise<QrVisitResult> {
     return { error: "Лимит посещений исчерпан", clientName: client.full_name }
   }
 
-  const { error } = await supabase.from("visits").insert({
-    club_id: club.clubId,
-    client_id: client.id,
-    subscription_id: subscription.id,
-    method: "qr",
+  const { data: recorded, error } = await supabase.rpc("record_visit", {
+    p_club_id: club.clubId,
+    p_client_id: client.id,
+    p_subscription_id: subscription.id,
+    p_method: "qr",
+    p_checked_in_at: null,
+    p_comment: null,
+    p_force: false,
   })
-  if (error) return { error: error.message, clientName: client.full_name }
-
-  if (subscription.visits_total !== null) {
-    await supabase.from("subscriptions")
-      .update({ visits_used: subscription.visits_used + 1 })
-      .eq("id", subscription.id)
-      .eq("club_id", club.clubId)
+  if (error || recorded?.duplicate) {
+    await service.from("qr_pass_redemptions").delete().eq("jti", pass.jti).eq("club_id", club.clubId)
+    return { error: recorded?.duplicate ? "Посещение этого клиента сегодня уже отмечено" : "Не удалось отметить посещение", clientName: client.full_name }
   }
 
   revalidatePath("/visits")
-  const visitsLeft = subscription.visits_total === null
-    ? null
-    : subscription.visits_total - subscription.visits_used - 1
+  const visitsLeft = recorded?.visits_left == null ? null : Number(recorded.visits_left)
   return {
     ok: true,
     clientName: client.full_name,
@@ -120,42 +118,21 @@ export async function markVisitAction(
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "visits", "checkin")) return { error: "Недостаточно прав" }
 
-  let warning: string | undefined
-
-  if (subscriptionId) {
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("status, expires_at, visits_total, visits_used")
-      .eq("id", subscriptionId)
-      .single()
-
-    if (sub?.status === "expired") {
-      return { error: "Абонемент истёк — сначала продлите" }
-    }
-    if (sub?.visits_total !== null && sub !== null && sub.visits_used >= sub.visits_total) {
-      return { error: "Исчерпан лимит посещений" }
-    }
-    if (sub?.visits_total !== null && sub !== null && sub.visits_total - sub.visits_used <= 3) {
-      warning = `Осталось ${sub.visits_total - sub.visits_used} посещений`
-    }
-
-    await supabase
-      .from("subscriptions")
-      .update({ visits_used: (sub?.visits_used ?? 0) + 1 })
-      .eq("id", subscriptionId)
-  }
-
-  const { error } = await supabase.from("visits").insert({
-    club_id: club.clubId,
-    client_id: clientId,
-    subscription_id: subscriptionId ?? null,
-    method: "manual",
+  const { data, error } = await supabase.rpc("record_visit", {
+    p_club_id: club.clubId,
+    p_client_id: clientId,
+    p_subscription_id: subscriptionId,
+    p_method: "manual",
+    p_checked_in_at: null,
+    p_comment: null,
+    p_force: false,
   })
-
   if (error) return { error: error.message }
+  if (data?.duplicate) return { error: "Посещение этого клиента сегодня уже отмечено" }
 
   revalidatePath("/visits")
-  return { ok: true, warning }
+  const visitsLeft = data?.visits_left == null ? null : Number(data.visits_left)
+  return { ok: true, warning: visitsLeft !== null && visitsLeft <= 3 ? `Осталось ${visitsLeft} посещений` : undefined }
 }
 
 export async function searchClientsAction(query: string): Promise<ClientSearchResult[]> {
@@ -324,71 +301,24 @@ export async function manualVisitAction(input: ManualVisitInput): Promise<Manual
     .single()
   if (!clientRow) return { error: "Клиент не найден в этом клубе" }
 
-  let warning: string | undefined
+  const localTimestamp = /(?:Z|[+-]\d{2}:\d{2})$/.test(input.checkedInAt)
+    ? input.checkedInAt
+    : `${input.checkedInAt}+05:00`
+  const checkedInAt = new Date(localTimestamp)
+  if (Number.isNaN(checkedInAt.getTime())) return { error: "Некорректная дата посещения" }
 
-  // Subscription checks
-  if (input.subscriptionId) {
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("status, expires_at, visits_total, visits_used, client_id")
-      .eq("id", input.subscriptionId)
-      .single()
-
-    if (!sub || sub.client_id !== input.clientId) return { error: "Абонемент не принадлежит клиенту" }
-    if (sub.status === "expired")  return { error: "Абонемент истёк — сначала продлите" }
-    if (sub.status === "frozen")   return { error: "Абонемент заморожен — регистрация невозможна" }
-    if (sub.visits_total !== null && sub.visits_used >= sub.visits_total) {
-      return { error: "Лимит посещений исчерпан" }
-    }
-    if (sub.visits_total !== null && sub.visits_total - sub.visits_used <= 3) {
-      warning = `Осталось ${sub.visits_total - sub.visits_used} посещений`
-    }
-  }
-
-  // Duplicate check (same day)
-  if (!input.force) {
-    const datePrefix = input.checkedInAt.slice(0, 10)
-    const { data: existing } = await supabase
-      .from("visits")
-      .select("checked_in_at")
-      .eq("club_id", club.clubId)
-      .eq("client_id", input.clientId)
-      .gte("checked_in_at", datePrefix + "T00:00:00")
-      .lte("checked_in_at", datePrefix + "T23:59:59")
-      .limit(1)
-      .single()
-
-    if (existing) {
-      return { error: "duplicate", duplicateAt: existing.checked_in_at }
-    }
-  }
-
-  // Decrement visits_used
-  if (input.subscriptionId) {
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("visits_used")
-      .eq("id", input.subscriptionId)
-      .single()
-    if (sub) {
-      await supabase
-        .from("subscriptions")
-        .update({ visits_used: sub.visits_used + 1 })
-        .eq("id", input.subscriptionId)
-    }
-  }
-
-  // Insert visit
-  const { error: insertErr } = await supabase.from("visits").insert({
-    club_id:         club.clubId,
-    client_id:       input.clientId,
-    subscription_id: input.subscriptionId ?? null,
-    checked_in_at:   input.checkedInAt,
-    method:          "manual",
-    comment:         input.comment || null,
+  const { data: recorded, error: insertErr } = await supabase.rpc("record_visit", {
+    p_club_id: club.clubId,
+    p_client_id: input.clientId,
+    p_subscription_id: input.subscriptionId,
+    p_method: "manual",
+    p_checked_in_at: checkedInAt.toISOString(),
+    p_comment: input.comment || null,
+    p_force: input.force,
   })
 
   if (insertErr) return { error: insertErr.message }
+  if (recorded?.duplicate) return { error: "duplicate", duplicateAt: recorded.duplicate_at }
 
   // Audit log
   if (user && staffRow) {
@@ -401,7 +331,7 @@ export async function manualVisitAction(input: ManualVisitInput): Promise<Manual
         record_id:  input.clientId,
         new_data: {
           client_name:   clientRow.full_name,
-          checked_in_at: input.checkedInAt,
+          checked_in_at: checkedInAt.toISOString(),
           visit_type:    input.visitType,
           method:        "manual",
         },
@@ -411,5 +341,6 @@ export async function manualVisitAction(input: ManualVisitInput): Promise<Manual
 
   revalidatePath("/visits")
   revalidatePath("/dashboard")
-  return { ok: true, warning }
+  const visitsLeft = recorded?.visits_left == null ? null : Number(recorded.visits_left)
+  return { ok: true, warning: visitsLeft !== null && visitsLeft <= 3 ? `Осталось ${visitsLeft} посещений` : undefined }
 }

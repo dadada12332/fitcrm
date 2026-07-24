@@ -61,7 +61,9 @@ function RowMenu({ row }: { row: VisitRow }) {
 type Filter = "all" | "active" | "expired" | "ending"
 
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
+  return new Date(iso).toLocaleTimeString("ru-RU", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tashkent",
+  })
 }
 
 function StatusBadge({ row }: { row: VisitRow }) {

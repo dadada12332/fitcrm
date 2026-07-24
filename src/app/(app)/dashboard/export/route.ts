@@ -21,7 +21,7 @@ export async function GET() {
   const usageError = await consumeMonthlyLimit(club, "exports")
   if (usageError) return new Response(usageError, { status: 429 })
 
-  const d = await getDashboardData(supabase, club.clubId)
+  const d = await getDashboardData(supabase, club.clubId, true)
 
   const wb = new ExcelJS.Workbook()
   wb.creator = "FitCRM"

@@ -418,7 +418,7 @@ function CheckoutSheet({ lines, connectedProviders, onClose, onDone }: {
               </a>
             </div>
             {link.hasTelegram && client && (
-              <button onClick={() => start(async () => { await sendPaymentLinkTelegramAction(client.id, link.url) })} disabled={pending}
+              <button onClick={() => start(async () => { await sendPaymentLinkTelegramAction(client.id, link.paymentId) })} disabled={pending}
                 className="w-full h-11 rounded-lg text-sm font-medium flex items-center justify-center gap-2" style={{ background: "rgba(37,99,235,0.1)", color: "#2563eb" }}>
                 <Send className="w-4 h-4" /> Отправить в Telegram
               </button>

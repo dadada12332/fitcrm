@@ -16,6 +16,7 @@ import {
 import { can } from "@/lib/permissions"
 import { consumeMonthlyLimitOnce, requirePlanFeature, requireRecordLimit } from "@/lib/plan-enforcement"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import type { DuplicateStrategy } from "@/lib/import-wizard"
 
 // Supabase's generated database types are not present in this repository yet.
@@ -138,8 +139,19 @@ export async function batchImportClientsAction(
     result.errors.push({ row: 0, reason: "За один запрос можно импортировать не более 1000 строк", name: "" })
     return result
   }
+  const hasSubscriptionRows = inputRows.some(hasSubscriptionData)
+  if (hasSubscriptionRows && !can(club.permissions, "memberships", "sell")) {
+    result.errors.push({ row: 0, reason: "Нет прав на создание или обновление абонементов", name: "" })
+    return result
+  }
+  if (inputRows.some((row) => Boolean(row.last_visit))
+      && !can(club.permissions, "visits", "manual")) {
+    result.errors.push({ row: 0, reason: "Нет прав на импорт посещений", name: "" })
+    return result
+  }
 
   const supabase = await createClient()
+  const service = createServiceClient()
   const clubId = club.clubId
   const validRows: ImportClientRow[] = []
   for (const raw of inputRows) {
@@ -182,9 +194,9 @@ export async function batchImportClientsAction(
   const insertedPairs = await insertClients(supabase, clubId, toInsert, trainerMap, audit, result)
   const updatedPairs = await updateClients(supabase, clubId, toUpdate, trainerMap, audit, result)
 
-  await createSubscriptions(supabase, clubId, insertedPairs, membershipMap, audit, result)
-  await repairSubscriptions(supabase, clubId, updatedPairs, membershipMap, audit, result)
-  await importVisits(supabase, clubId, [...insertedPairs, ...updatedPairs], audit, result)
+  await createSubscriptions(service, clubId, insertedPairs, membershipMap, audit, result)
+  await repairSubscriptions(service, clubId, updatedPairs, membershipMap, audit, result)
+  await importVisits(service, clubId, [...insertedPairs, ...updatedPairs], audit, result)
 
   result.imported = audit.clientsInserted
   result.updated = audit.clientsUpdated

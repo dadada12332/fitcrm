@@ -42,7 +42,7 @@ export default async function PaymentsPage({
   const [kpi, result, memberships] = await Promise.all([
     getPaymentsKPI(supabase, club.clubId),
     getPaymentsPage(supabase, club.clubId, query),
-    getActiveMemberships(supabase, club.clubId),
+    club.permissions.payments.create ? getActiveMemberships(supabase, club.clubId) : Promise.resolve([]),
   ])
 
   // Какие онлайн-платёжки подключены (для опции «онлайн-оплата»).
@@ -125,6 +125,8 @@ export default async function PaymentsPage({
         pageSize={result.pageSize}
         memberships={memberships}
         connectedProviders={connectedProviders}
+        canCreate={club.permissions.payments.create}
+        canExport={club.permissions.payments.export}
       />
     </div>
   )

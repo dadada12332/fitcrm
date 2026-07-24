@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { createServiceClient } from "@/lib/supabase/service"
 
 export type NewClient = {
   id: string
@@ -37,6 +38,25 @@ export type DashboardData = {
   chartData: { label: string; value: number }[]
   periods: Record<PeriodKey, PeriodStat>
   newClients: NewClient[]
+}
+
+function withoutDashboardFinance(result: DashboardData): DashboardData {
+  const hiddenPeriods = Object.fromEntries(
+    Object.entries(result.periods).map(([key, value]) => [
+      key,
+      { ...value, revenue: 0, prevRevenue: 0, chart: value.chart.map((point) => ({ ...point, value: 0, prev: 0 })) },
+    ]),
+  ) as Record<PeriodKey, PeriodStat>
+  return {
+    ...result,
+    todayRevenue: 0,
+    prevRevenue: 0,
+    debtCount: 0,
+    debtTotal: 0,
+    todayPaymentsCount: 0,
+    chartData: result.chartData.map((point) => ({ ...point, value: 0 })),
+    periods: hiddenPeriods,
+  }
 }
 
 async function getDashboardFallback(supabase: SupabaseClient, clubId: string): Promise<DashboardData> {
@@ -141,7 +161,8 @@ async function getDashboardFallback(supabase: SupabaseClient, clubId: string): P
   }
 }
 
-export async function getDashboardData(supabase: SupabaseClient, clubId: string): Promise<DashboardData> {
+export async function getDashboardData(_supabase: SupabaseClient, clubId: string, includeFinance = false): Promise<DashboardData> {
+  const supabase = createServiceClient()
   const now   = Date.now()
   const DAY   = 86_400_000
   const HOUR  = 3_600_000
@@ -150,7 +171,10 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
 
   const { data, error } = statsRes
 
-  if (error) return getDashboardFallback(supabase, clubId)
+  if (error) {
+    const fallback = await getDashboardFallback(supabase, clubId)
+    return includeFinance ? fallback : withoutDashboardFinance(fallback)
+  }
 
   const d = data as Record<string, unknown>
 
@@ -215,7 +239,7 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
     ...c, source: c.source ?? null,
   }))
 
-  return {
+  const result: DashboardData = {
     todayRevenue:      periods["Сегодня"].revenue,
     prevRevenue:       periods["Сегодня"].prevRevenue,
     activeClients:     Number(d.activeClients  ?? 0),
@@ -234,4 +258,6 @@ export async function getDashboardData(supabase: SupabaseClient, clubId: string)
     chartData: periods["30Д"].chart,
     periods, newClients,
   }
+  if (includeFinance) return result
+  return withoutDashboardFinance(result)
 }

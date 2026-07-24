@@ -144,7 +144,7 @@ export async function getReportsData(supabase: SupabaseClient, clubId: string): 
       .order("created_at", { ascending: false })
       .range(f, t)).then((data) => ({ data })),
 
-    supabase
+    createServiceClient()
       .from("staff")
       .select("id, user_id, role, salary, is_active, settings, users(id, email, full_name)")
       .eq("club_id", clubId),

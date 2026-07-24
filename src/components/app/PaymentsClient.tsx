@@ -69,7 +69,7 @@ function TabGroup({ items, value, onChange }: { items: { key: string; label: str
 }
 
 export function PaymentsClient({
-  rows, total, totalAmount, page, pageSize, memberships, connectedProviders = [],
+  rows, total, totalAmount, page, pageSize, memberships, connectedProviders = [], canCreate = false, canExport = false,
 }: {
   rows: PaymentRow[]
   total: number
@@ -78,6 +78,8 @@ export function PaymentsClient({
   pageSize: number
   memberships: Membership[]
   connectedProviders?: string[]
+  canCreate?: boolean
+  canExport?: boolean
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -190,7 +192,7 @@ export function PaymentsClient({
                 Сверка
               </Link>
             )}
-            <button
+            {canExport && <button
               onClick={handleExport}
               disabled={exporting}
               className="flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60"
@@ -198,15 +200,15 @@ export function PaymentsClient({
             >
               {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               Экспорт в CSV
-            </button>
-            <button
+            </button>}
+            {canCreate && <button
               onClick={() => setModalOpen(true)}
               className="h-9 px-4 rounded-md text-sm font-medium text-white flex items-center gap-1.5 transition-opacity hover:opacity-90"
               style={{ background: "#2563eb" }}
             >
               <Plus className="w-4 h-4" />
               Новая оплата
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -243,11 +245,11 @@ export function PaymentsClient({
               icon={<CreditCard className="w-6 h-6" style={{ color: "#2563eb" }} />}
               title="Пока нет оплат"
               subtitle="Здесь будут все платежи клуба. Создайте первую оплату, чтобы начать вести финансы."
-              action={
+              action={canCreate ? (
                 <button onClick={() => setModalOpen(true)} className="inline-flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium text-white" style={{ background: "#2563eb" }}>
                   <Plus className="w-4 h-4" /> Новая оплата
                 </button>
-              }
+              ) : undefined}
             />
           )
         ) : (
@@ -322,7 +324,7 @@ export function PaymentsClient({
         </div>
       </div>
 
-      {modalOpen && <NewPaymentModal memberships={memberships} connectedProviders={connectedProviders} onClose={() => setModalOpen(false)} />}
+      {canCreate && modalOpen && <NewPaymentModal memberships={memberships} connectedProviders={connectedProviders} onClose={() => setModalOpen(false)} />}
     </>
   )
 }
