@@ -12,6 +12,7 @@ tags: [fitcrm, releases]
 
 ### Added
 
+- Google Calendar стал рабочей интеграцией: безопасный OAuth, зашифрованные токены, синхронизация занятий на 180 дней без дублей, обновление изменений и удаление отменённых событий.
 - В существующем разделе «Интеграции» появились Beta-коннекторы Sigur, ZKTeco и Hikvision: готовый FitCRM Bridge для Windows/Linux/Docker, персональный `config.json`, привязка карт/браслетов/vendor ID, проверка допуска, журнал событий и симулятор без физического турникета.
 - FitCRM Bridge получил vendor-адаптеры, durable queue с retry/backoff и checkpoint, health/doctor, безопасные установщики, дисковые лимиты и 41 contract/unit тест.
 
@@ -144,6 +145,7 @@ tags: [fitcrm, releases]
 
 ### Removed
 
+- Из каталога интеграций удалена нерабочая карточка WhatsApp.
 - Удалён уязвимый пакет `xlsx`; импорт `.xlsx` работает через ExcelJS, legacy `.xls` больше не принимается.
 
 ## Автоматические кандидаты

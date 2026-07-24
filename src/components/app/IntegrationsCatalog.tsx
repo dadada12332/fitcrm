@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   Circle,
   Clock,
-  MessageCircle,
   Send,
   ShieldCheck,
 } from "lucide-react"
@@ -134,18 +133,6 @@ const CATALOG: CatalogItem[] = [
     alwaysVisible: true,
   },
   {
-    key: "whatsapp",
-    label: "WhatsApp",
-    description: "Уведомления и чат с клиентами",
-    icon: MessageCircle,
-    iconClass: "bg-chart-2 text-primary-foreground",
-    dotClass: "text-chart-2",
-    features: ["Рассылка", "Чат", "Уведомления", "Боты"],
-    featureClass: "bg-chart-2/10 text-chart-2",
-    category: "Мессенджеры",
-    available: false,
-  },
-  {
     key: "google-calendar",
     label: "Google Calendar",
     description: "Синхронизация расписания",
@@ -155,7 +142,7 @@ const CATALOG: CatalogItem[] = [
     features: ["Расписание", "События", "Тренеры", "Залы"],
     featureClass: "bg-chart-1/10 text-chart-1",
     category: "Продуктивность",
-    available: false,
+    available: true,
   },
 ]
 
@@ -311,6 +298,11 @@ function getBenefits(key: string): string[] {
       "Отделяйте охват от реальных лидов",
       "Связывайте клиентов и выручку с Instagram",
     ],
+    "google-calendar": [
+      "Занятия FitCRM появляются в основном календаре",
+      "Изменения обновляются без дублей",
+      "Отменённые занятия удаляются при синхронизации",
+    ],
     sigur: [
       "Проверка абонемента перед проходом",
       "Карты и браслеты привязываются к клиентам",
@@ -384,14 +376,16 @@ export function IntegrationsCatalog({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <SectionDivider>Скоро</SectionDivider>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {comingSoon.map((integration) => (
-            <IntegrationCard key={integration.key} integration={integration} status={undefined} />
-          ))}
+      {comingSoon.length > 0 && (
+        <div className="space-y-3">
+          <SectionDivider>Скоро</SectionDivider>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {comingSoon.map((integration) => (
+              <IntegrationCard key={integration.key} integration={integration} status={undefined} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

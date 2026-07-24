@@ -17,12 +17,13 @@ export default async function IntegrationsPage() {
 
   {
     const service = createServiceClient()
-    const [{ data }, { data: telegramIntegration }, { data: instagramIntegration }, { data: accessControlIntegrations }] = await Promise.all([supabase
+    const [{ data }, { data: telegramIntegration }, { data: instagramIntegration }, { data: googleCalendarIntegration }, { data: accessControlIntegrations }] = await Promise.all([supabase
       .from("clubs")
       .select("settings")
       .eq("id", club.clubId)
       .single(), service.from("telegram_integrations").select("club_id").eq("club_id", club.clubId).maybeSingle(),
       service.from("integration_connections").select("username,last_synced_at").eq("club_id", club.clubId).eq("provider", "instagram").maybeSingle(),
+      service.from("integration_connections").select("username,last_synced_at,status").eq("club_id", club.clubId).eq("provider", "google_calendar").maybeSingle(),
       service.from("access_control_integrations")
         .select("provider,status,last_event_at,last_seen_at")
         .eq("club_id", club.clubId),
@@ -50,6 +51,15 @@ export default async function IntegrationsPage() {
           connected: true,
           handle: instagramIntegration.username ? `@${instagramIntegration.username}` : "Instagram",
           lastSync: instagramIntegration.last_synced_at ?? undefined,
+        })
+      }
+
+      if (googleCalendarIntegration) {
+        statuses.push({
+          key: "google-calendar",
+          connected: googleCalendarIntegration.status === "connected",
+          handle: googleCalendarIntegration.username || "Основной календарь",
+          lastSync: googleCalendarIntegration.last_synced_at ?? undefined,
         })
       }
 
@@ -97,6 +107,7 @@ export default async function IntegrationsPage() {
           ...(planFeatureEnabled(club.planAccess, "telegram") ? ["telegram"] : []),
           ...(planFeatureEnabled(club.planAccess, "payment_integrations") ? ["click", "payme"] : []),
           ...(planFeatureEnabled(club.planAccess, "instagram") ? ["instagram"] : []),
+          "google-calendar",
           "sigur",
           "zkteco",
           "hikvision",
