@@ -40,6 +40,8 @@ tags: [fitcrm, releases]
   сообщает, что рекламные и сторонние аналитические трекеры сейчас не используются.
 - Регистрация фиксирует дату и версию принятия оферты, privacy и согласия на обработку данных;
   Google-регистрация переносит подтверждённое согласие через короткую HttpOnly cookie.
+- Юридический комплект опубликован в production deployment
+  `dpl_64VnPxv4cRztyHa9s7oqzeZd2MqK`; все публичные юридические маршруты прошли HTTP smoke.
 
 - Google Calendar стал управляемым workspace внутри CRM: сотрудник видит события и заметки Google, создаёт новые события и выборочно переносит нужные посещения. После подключения автоматической синхронизации нет.
 - В существующем разделе «Интеграции» появились Beta-коннекторы Sigur, ZKTeco и Hikvision: готовый FitCRM Bridge для Windows/Linux/Docker, персональный `config.json`, привязка карт/браслетов/vendor ID, проверка допуска, журнал событий и симулятор без физического турникета.
@@ -199,6 +201,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 - `a7d8cb9` · 2026-07-24 · Align client profile layout
 - `31bb9b2` · 2026-07-24 · Redesign client profile actions
@@ -228,5 +231,4 @@ tags: [fitcrm, releases]
 - `0942064` · 2026-07-22 · feat: enforce plan access and usage limits
 - `75221d4` · 2026-07-22 · docs: define recommended plan access matrix [skip ci]
 - `8a04d0d` · 2026-07-22 · docs: record FAQ production release [skip ci]
-- `26331e9` · 2026-07-22 · fix: align landing FAQ with product
 <!-- AUTO:END changelog-candidates -->

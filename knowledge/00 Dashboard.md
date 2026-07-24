@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 - `a7d8cb9` · 2026-07-24 · Align client profile layout
 - `31bb9b2` · 2026-07-24 · Redesign client profile actions
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
 - `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
 - `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
-- `df0517f` · 2026-07-24 · feat: group integration catalog sections
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
