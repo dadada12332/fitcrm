@@ -61,7 +61,15 @@ function MobileDetail({ label, children }: { label: string; children: React.Reac
   )
 }
 
-export function ClientProfileTabs({ client, canExport = false }: { client: ClientProfile; canExport?: boolean }) {
+export function ClientProfileTabs({
+  client,
+  canExport = false,
+  sidePanel,
+}: {
+  client: ClientProfile
+  canExport?: boolean
+  sidePanel?: React.ReactNode
+}) {
   const searchParams = useSearchParams()
   const initialTab = (searchParams.get("tab") as TabKey | null) ?? "profile"
   const [tab, setTab] = useState<TabKey>(
@@ -98,10 +106,19 @@ export function ClientProfileTabs({ client, canExport = false }: { client: Clien
         })}
       </div>
 
-      {tab === "profile" && <ProfileTab client={client} canExport={canExport} />}
-      {tab === "visits" && <VisitsTab visits={client.visits} />}
-      {tab === "payments" && <PaymentsTab payments={client.payments} />}
-      {tab === "history" && <HistoryTab client={client} />}
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="order-2 flex min-w-0 flex-col gap-5 lg:order-1">
+          {tab === "profile" && <ProfileTab client={client} canExport={canExport} />}
+          {tab === "visits" && <VisitsTab visits={client.visits} />}
+          {tab === "payments" && <PaymentsTab payments={client.payments} />}
+          {tab === "history" && <HistoryTab client={client} />}
+        </div>
+        {sidePanel && (
+          <div className="order-1 min-w-0 lg:order-2">
+            {sidePanel}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

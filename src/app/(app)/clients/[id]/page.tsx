@@ -57,14 +57,11 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="order-2 lg:order-1">
-          <ClientProfileTabs client={client} canExport={club.permissions.payments.export} />
-        </div>
-        <div className="order-1 lg:order-2">
-          <ClientProfileCard client={client} memberships={memberships} />
-        </div>
-      </div>
+      <ClientProfileTabs
+        client={client}
+        canExport={club.permissions.payments.export}
+        sidePanel={<ClientProfileCard client={client} memberships={memberships} />}
+      />
     </div>
   )
 }
