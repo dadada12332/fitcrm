@@ -6,7 +6,6 @@ import { createServiceClient } from "@/lib/supabase/service"
 const PROVIDER = "google_calendar"
 const CALENDAR_API = "https://www.googleapis.com/calendar/v3"
 const TOKEN_URL = "https://oauth2.googleapis.com/token"
-const SYNC_DAYS = 180
 const DEFAULT_TIME_ZONE = "Asia/Tashkent"
 
 type GoogleTokens = {
@@ -32,8 +31,40 @@ export type GoogleCalendarConnection = {
 type GoogleEvent = {
   id?: string
   summary?: string
-  start?: { dateTime?: string }
+  description?: string
+  location?: string
+  htmlLink?: string
+  status?: string
+  start?: { dateTime?: string; date?: string }
+  end?: { dateTime?: string; date?: string }
   extendedProperties?: { private?: Record<string, string> }
+}
+
+export type GoogleCalendarEventItem = {
+  id: string
+  title: string
+  description: string | null
+  location: string | null
+  start: string
+  end: string
+  allDay: boolean
+  htmlLink: string | null
+  source: "google" | "fitcrm_visit" | "fitcrm_manual"
+}
+
+export type CreateGoogleCalendarEventInput = {
+  title: string
+  description?: string
+  date: string
+  startTime: string
+  endTime: string
+}
+
+export type GoogleCalendarVisitInput = {
+  id: string
+  clientName: string
+  checkedInAt: string
+  comment?: string | null
 }
 
 type GoogleApiError = Error & { status?: number }
@@ -135,8 +166,8 @@ async function googleApi<T>(
   return parseGoogleResponse<T>(response)
 }
 
-function eventId(classId: string) {
-  return `fitcrm${crypto.createHash("sha256").update(classId).digest("hex").slice(0, 40)}`
+function eventId(source: string, sourceId: string) {
+  return `fitcrm${crypto.createHash("sha256").update(`${source}:${sourceId}`).digest("hex").slice(0, 40)}`
 }
 
 function dateTime(date: string, time: string) {
@@ -144,15 +175,17 @@ function dateTime(date: string, time: string) {
   return `${date}T${clean.length === 5 ? `${clean}:00` : clean}`
 }
 
-function addHour(value: string) {
-  const [hours, minutes] = value.slice(0, 5).split(":").map(Number)
-  return `${String((hours + 1) % 24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`
+function calendarPath(connection: GoogleCalendarConnection) {
+  const calendarId = String(connection.metadata.calendar_id || "primary")
+  return `/calendars/${encodeURIComponent(calendarId)}/events`
 }
 
-async function listManagedEvents(connection: GoogleCalendarConnection) {
-  const calendarId = String(connection.metadata.calendar_id || "primary")
-  const timeMin = new Date().toISOString()
-  const timeMax = new Date(Date.now() + SYNC_DAYS * 86_400_000).toISOString()
+async function listEvents(
+  connection: GoogleCalendarConnection,
+  timeMin: string,
+  timeMax: string,
+  privateExtendedProperty?: string,
+) {
   const result: GoogleEvent[] = []
   let pageToken = ""
   do {
@@ -161,12 +194,13 @@ async function listManagedEvents(connection: GoogleCalendarConnection) {
       timeMax,
       singleEvents: "true",
       maxResults: "2500",
-      privateExtendedProperty: `fitcrmClubId=${connection.club_id}`,
+      orderBy: "startTime",
     })
+    if (privateExtendedProperty) params.set("privateExtendedProperty", privateExtendedProperty)
     if (pageToken) params.set("pageToken", pageToken)
     const page = await googleApi<{ items?: GoogleEvent[]; nextPageToken?: string }>(
       connection,
-      `/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+      `${calendarPath(connection)}?${params}`,
     )
     result.push(...(page.items ?? []))
     pageToken = page.nextPageToken ?? ""
@@ -174,135 +208,107 @@ async function listManagedEvents(connection: GoogleCalendarConnection) {
   return result
 }
 
-export async function syncGoogleCalendarConnection(connection: GoogleCalendarConnection) {
-  const service = createServiceClient()
-  const { data: run, error: runError } = await service.from("integration_sync_runs").insert({
-    club_id: connection.club_id,
-    provider: PROVIDER,
-    status: "running",
-  }).select("id").single()
-  if (runError || !run) throw runError ?? new Error("Не удалось начать синхронизацию")
-
-  try {
-    const startDate = new Date().toISOString().slice(0, 10)
-    const endDate = new Date(Date.now() + SYNC_DAYS * 86_400_000).toISOString().slice(0, 10)
-    const { data: classes, error: classesError } = await service
-      .from("classes")
-      .select("id,date,start_time,end_time,title,trainer_name,status,seats_total,room_id,rooms(name)")
-      .eq("club_id", connection.club_id)
-      .gte("date", startDate)
-      .lte("date", endDate)
-      .order("date")
-      .order("start_time")
-    if (classesError) throw classesError
-
-    const existing = await listManagedEvents(connection)
-    const existingByClass = new Map(
-      existing
-        .map((event) => [event.extendedProperties?.private?.fitcrmClassId, event.id] as const)
-        .filter((entry): entry is readonly [string, string] => Boolean(entry[0] && entry[1])),
-    )
-    const calendarId = String(connection.metadata.calendar_id || "primary")
-    const timeZone = String(connection.metadata.time_zone || DEFAULT_TIME_ZONE)
-    const keptEventIds = new Set<string>()
-    let synced = 0
-
-    for (const item of classes ?? []) {
-      if (item.status === "cancelled") continue
-      const room = item.rooms as unknown as { name?: string } | null
-      const id = existingByClass.get(item.id) || eventId(item.id)
-      const body = {
-        id,
-        summary: item.title || "Занятие FitCRM",
-        description: [
-          item.trainer_name ? `Тренер: ${item.trainer_name}` : null,
-          Number(item.seats_total) > 0 ? `Мест: ${item.seats_total}` : null,
-          "Синхронизировано из FitCRM",
-        ].filter(Boolean).join("\n"),
-        location: room?.name || undefined,
-        start: { dateTime: dateTime(item.date, item.start_time), timeZone },
-        end: { dateTime: dateTime(item.date, item.end_time || addHour(item.start_time)), timeZone },
-        extendedProperties: {
-          private: {
-            fitcrmClubId: connection.club_id,
-            fitcrmClassId: item.id,
-          },
-        },
+export async function listGoogleCalendarEvents(
+  connection: GoogleCalendarConnection,
+  timeMin: string,
+  timeMax: string,
+): Promise<GoogleCalendarEventItem[]> {
+  const events = await listEvents(connection, timeMin, timeMax)
+  return events
+    .filter((event): event is GoogleEvent & { id: string } => Boolean(event.id && event.status !== "cancelled"))
+    .map((event) => {
+      const privateData = event.extendedProperties?.private ?? {}
+      return {
+        id: event.id,
+        title: event.summary || "Без названия",
+        description: event.description || null,
+        location: event.location || null,
+        start: event.start?.dateTime || event.start?.date || "",
+        end: event.end?.dateTime || event.end?.date || "",
+        allDay: Boolean(event.start?.date && !event.start?.dateTime),
+        htmlLink: event.htmlLink || null,
+        source: privateData.fitcrmVisitId
+          ? "fitcrm_visit"
+          : privateData.fitcrmManual === "true"
+            ? "fitcrm_manual"
+            : "google",
       }
-      const path = `/calendars/${encodeURIComponent(calendarId)}/events`
-      if (existingByClass.has(item.id)) {
-        await googleApi(connection, `${path}/${encodeURIComponent(id)}`, {
-          method: "PUT",
-          body: JSON.stringify(body),
-        })
-      } else {
-        try {
-          await googleApi(connection, path, { method: "POST", body: JSON.stringify(body) })
-        } catch (cause) {
-          const error = cause as GoogleApiError
-          if (error.status !== 409) throw error
-          await googleApi(connection, `${path}/${encodeURIComponent(id)}`, {
-            method: "PUT",
-            body: JSON.stringify(body),
-          })
-        }
-      }
-      keptEventIds.add(id)
-      synced += 1
-    }
-
-    for (const event of existing) {
-      if (event.id && !keptEventIds.has(event.id)) {
-        await googleApi(connection, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(event.id)}`, {
-          method: "DELETE",
-        })
-      }
-    }
-
-    const now = new Date().toISOString()
-    await Promise.all([
-      service.from("integration_connections").update({
-        status: "connected",
-        last_synced_at: now,
-        last_error: null,
-        updated_at: now,
-      }).eq("id", connection.id).eq("club_id", connection.club_id).eq("provider", PROVIDER),
-      service.from("integration_sync_runs").update({
-        status: "completed",
-        items_synced: synced,
-        finished_at: now,
-      }).eq("id", run.id).eq("club_id", connection.club_id),
-    ])
-    return { items: synced }
-  } catch (cause) {
-    const error = cause as GoogleApiError
-    const message = error.message.slice(0, 500)
-    const expired = error.status === 401
-    const now = new Date().toISOString()
-    await Promise.all([
-      service.from("integration_connections").update({
-        status: expired ? "expired" : "error",
-        last_error: message,
-        updated_at: now,
-      }).eq("id", connection.id).eq("club_id", connection.club_id).eq("provider", PROVIDER),
-      service.from("integration_sync_runs").update({
-        status: "failed",
-        error_message: message,
-        finished_at: now,
-      }).eq("id", run.id).eq("club_id", connection.club_id),
-    ])
-    throw error
-  }
+    })
 }
 
-export async function removeManagedGoogleCalendarEvents(connection: GoogleCalendarConnection) {
-  const calendarId = String(connection.metadata.calendar_id || "primary")
-  const events = await listManagedEvents(connection)
-  for (const event of events) {
-    if (!event.id) continue
-    await googleApi(connection, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(event.id)}`, {
-      method: "DELETE",
+export async function createGoogleCalendarEvent(
+  connection: GoogleCalendarConnection,
+  input: CreateGoogleCalendarEventInput,
+) {
+  const timeZone = String(connection.metadata.time_zone || DEFAULT_TIME_ZONE)
+  return googleApi<GoogleEvent>(connection, calendarPath(connection), {
+    method: "POST",
+    body: JSON.stringify({
+      summary: input.title,
+      description: input.description || undefined,
+      start: { dateTime: dateTime(input.date, input.startTime), timeZone },
+      end: { dateTime: dateTime(input.date, input.endTime), timeZone },
+      extendedProperties: {
+        private: {
+          fitcrmClubId: connection.club_id,
+          fitcrmManual: "true",
+        },
+      },
+    }),
+  })
+}
+
+export async function transferVisitToGoogleCalendar(
+  connection: GoogleCalendarConnection,
+  visit: GoogleCalendarVisitInput,
+) {
+  const id = eventId("visit", visit.id)
+  const start = new Date(visit.checkedInAt)
+  const end = new Date(start.getTime() + 60 * 60_000)
+  const body = {
+    id,
+    summary: `Посещение · ${visit.clientName}`,
+    description: [
+      visit.comment || null,
+      "Перенесено вручную из журнала посещений FitCRM",
+    ].filter(Boolean).join("\n"),
+    start: { dateTime: start.toISOString() },
+    end: { dateTime: end.toISOString() },
+    extendedProperties: {
+      private: {
+        fitcrmClubId: connection.club_id,
+        fitcrmVisitId: visit.id,
+      },
+    },
+  }
+  try {
+    return await googleApi<GoogleEvent>(connection, calendarPath(connection), {
+      method: "POST",
+      body: JSON.stringify(body),
+    })
+  } catch (cause) {
+    const error = cause as GoogleApiError
+    if (error.status !== 409) throw error
+    return googleApi<GoogleEvent>(connection, `${calendarPath(connection)}/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
     })
   }
 }
 
+export async function removeManagedGoogleCalendarEvents(connection: GoogleCalendarConnection) {
+  const timeMin = new Date(Date.now() - 365 * 86_400_000).toISOString()
+  const timeMax = new Date(Date.now() + 365 * 86_400_000).toISOString()
+  const events = await listEvents(
+    connection,
+    timeMin,
+    timeMax,
+    `fitcrmClubId=${connection.club_id}`,
+  )
+  for (const event of events) {
+    if (!event.id) continue
+    await googleApi(connection, `${calendarPath(connection)}/${encodeURIComponent(event.id)}`, {
+      method: "DELETE",
+    })
+  }
+}

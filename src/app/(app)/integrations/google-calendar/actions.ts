@@ -6,15 +6,16 @@ import { revalidatePath } from "next/cache"
 import { getAuthUser } from "@/lib/auth"
 import { getCurrentClub } from "@/lib/club"
 import {
+  createGoogleCalendarEvent,
   decodeGoogleCalendarTokens,
   getGoogleCalendarConfig,
   googleCalendarStateHash,
-  removeManagedGoogleCalendarEvents,
-  syncGoogleCalendarConnection,
+  transferVisitToGoogleCalendar,
   type GoogleCalendarConnection,
 } from "@/lib/google-calendar"
 import { can } from "@/lib/permissions"
 import { requireIntegrationSlot } from "@/lib/plan-enforcement"
+import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 
 const PROVIDER = "google_calendar"
@@ -34,7 +35,7 @@ export async function startGoogleCalendarOAuthAction(): Promise<{ url?: string; 
   if (!ctx.ok) return { error: ctx.error }
   const config = getGoogleCalendarConfig()
   if (!config.configured) {
-    return { error: "Сначала добавьте Google Calendar Client ID и Client Secret в Vercel" }
+    return { error: "Подключение Google Calendar временно недоступно" }
   }
 
   const service = createServiceClient()
@@ -72,22 +73,104 @@ export async function startGoogleCalendarOAuthAction(): Promise<{ url?: string; 
   return { url: url.toString() }
 }
 
-export async function syncGoogleCalendarAction(): Promise<{ ok?: boolean; items?: number; error?: string }> {
-  const ctx = await context()
-  if (!ctx.ok) return { error: ctx.error }
+async function getConnection(clubId: string) {
   const service = createServiceClient()
   const { data } = await service.from("integration_connections").select("*")
-    .eq("club_id", ctx.club.clubId).eq("provider", PROVIDER).maybeSingle()
-  if (!data) return { error: "Google Calendar ещё не подключён" }
+    .eq("club_id", clubId).eq("provider", PROVIDER).maybeSingle()
+  return data as GoogleCalendarConnection | null
+}
+
+function validDate(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
+}
+
+function validTime(value: string) {
+  return /^\d{2}:\d{2}$/.test(value)
+}
+
+export async function createGoogleCalendarEventAction(input: {
+  title: string
+  description?: string
+  date: string
+  startTime: string
+  endTime: string
+}): Promise<{ ok?: boolean; error?: string }> {
+  const ctx = await context()
+  if (!ctx.ok) return { error: ctx.error }
+  const title = input.title?.trim()
+  const description = input.description?.trim().slice(0, 2000)
+  if (!title || title.length > 120) return { error: "Введите название до 120 символов" }
+  if (!validDate(input.date) || !validTime(input.startTime) || !validTime(input.endTime)) {
+    return { error: "Проверьте дату и время события" }
+  }
+  if (input.endTime <= input.startTime) return { error: "Время окончания должно быть позже начала" }
+  const connection = await getConnection(ctx.club.clubId)
+  if (!connection) return { error: "Google Calendar ещё не подключён" }
 
   try {
-    const result = await syncGoogleCalendarConnection(data as GoogleCalendarConnection)
-    revalidatePath("/integrations")
+    await createGoogleCalendarEvent(connection, {
+      title,
+      description,
+      date: input.date,
+      startTime: input.startTime,
+      endTime: input.endTime,
+    })
+    await createServiceClient().from("integration_connections").update({
+      last_synced_at: new Date().toISOString(),
+      last_error: null,
+      status: "connected",
+      updated_at: new Date().toISOString(),
+    }).eq("id", connection.id).eq("club_id", ctx.club.clubId).eq("provider", PROVIDER)
     revalidatePath("/integrations/google-calendar")
-    return { ok: true, items: result.items }
+    return { ok: true }
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Не удалось синхронизировать Google Calendar",
+      error: error instanceof Error ? error.message : "Не удалось создать событие",
+    }
+  }
+}
+
+export async function transferVisitsToGoogleCalendarAction(
+  visitIds: string[],
+): Promise<{ ok?: boolean; items?: number; error?: string }> {
+  const ctx = await context()
+  if (!ctx.ok) return { error: ctx.error }
+  if (!can(ctx.club.permissions, "visits", "view")) return { error: "Нет доступа к посещениям" }
+  const ids = [...new Set(visitIds)].filter((id) => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 20)
+  if (!ids.length) return { error: "Выберите хотя бы одно посещение" }
+  const connection = await getConnection(ctx.club.clubId)
+  if (!connection) return { error: "Google Calendar ещё не подключён" }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.from("visits")
+    .select("id,checked_in_at,comment,clients(full_name)")
+    .eq("club_id", ctx.club.clubId)
+    .in("id", ids)
+  if (error) return { error: "Не удалось загрузить выбранные посещения" }
+  if ((data ?? []).length !== ids.length) return { error: "Часть посещений не найдена в текущем клубе" }
+
+  try {
+    for (const visit of data ?? []) {
+      const client = visit.clients as unknown as { full_name?: string } | null
+      await transferVisitToGoogleCalendar(connection, {
+        id: visit.id,
+        clientName: client?.full_name || "Клиент",
+        checkedInAt: visit.checked_in_at,
+        comment: visit.comment,
+      })
+    }
+    const now = new Date().toISOString()
+    await createServiceClient().from("integration_connections").update({
+      last_synced_at: now,
+      last_error: null,
+      status: "connected",
+      updated_at: now,
+    }).eq("id", connection.id).eq("club_id", ctx.club.clubId).eq("provider", PROVIDER)
+    revalidatePath("/integrations/google-calendar")
+    return { ok: true, items: data?.length ?? 0 }
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Не удалось перенести посещения",
     }
   }
 }
@@ -101,11 +184,6 @@ export async function disconnectGoogleCalendarAction(): Promise<{ ok?: boolean; 
   if (!data) return { ok: true }
 
   const connection = data as GoogleCalendarConnection
-  try {
-    await removeManagedGoogleCalendarEvents(connection)
-  } catch {
-    // Local disconnect must remain possible if Google is temporarily unavailable.
-  }
   try {
     const tokens = decodeGoogleCalendarTokens(connection.secret_enc)
     await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(tokens.refreshToken)}`, {
@@ -127,4 +205,3 @@ export async function disconnectGoogleCalendarAction(): Promise<{ ok?: boolean; 
   revalidatePath("/integrations/google-calendar")
   return { ok: true }
 }
-

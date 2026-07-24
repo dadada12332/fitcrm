@@ -5,8 +5,6 @@ import {
   encodeGoogleCalendarTokens,
   getGoogleCalendarConfig,
   googleCalendarStateHash,
-  syncGoogleCalendarConnection,
-  type GoogleCalendarConnection,
 } from "@/lib/google-calendar"
 import { createServiceClient } from "@/lib/supabase/service"
 
@@ -107,21 +105,18 @@ export async function GET(request: Request) {
         calendar_id: "primary",
         time_zone: "Asia/Tashkent",
         picture: profile.picture,
-        sync_window_days: 180,
       },
       connected_by: oauthState.created_by,
       last_error: null,
       updated_at: now,
     }
-    const { data, error } = await service.from("integration_connections").upsert(connection, {
+    const { error } = await service.from("integration_connections").upsert(connection, {
       onConflict: "club_id,provider",
-    }).select("*").single()
-    if (error || !data) throw error ?? new Error("Connection save failed")
+    })
+    if (error) throw error
 
-    await syncGoogleCalendarConnection(data as GoogleCalendarConnection).catch(() => null)
     return back(request, "connected")
   } catch {
     return back(request, "failed")
   }
 }
-

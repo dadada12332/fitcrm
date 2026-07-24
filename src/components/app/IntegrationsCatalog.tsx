@@ -135,11 +135,11 @@ const CATALOG: CatalogItem[] = [
   {
     key: "google-calendar",
     label: "Google Calendar",
-    description: "Синхронизация расписания",
+    description: "Календарь, заметки и выборочный перенос",
     icon: CalendarDays,
     iconClass: "bg-chart-1 text-primary-foreground",
     dotClass: "text-chart-1",
-    features: ["Расписание", "События", "Тренеры", "Залы"],
+    features: ["Календарь", "Заметки", "Ручной перенос", "События"],
     featureClass: "bg-chart-1/10 text-chart-1",
     category: "Продуктивность",
     available: true,
@@ -299,9 +299,9 @@ function getBenefits(key: string): string[] {
       "Связывайте клиентов и выручку с Instagram",
     ],
     "google-calendar": [
-      "Занятия FitCRM появляются в основном календаре",
-      "Изменения обновляются без дублей",
-      "Отменённые занятия удаляются при синхронизации",
+      "Смотрите календарь и заметки Google внутри CRM",
+      "Создавайте новые события прямо из FitCRM",
+      "Переносите только выбранные посещения — без автосинхронизации",
     ],
     sigur: [
       "Проверка абонемента перед проходом",
