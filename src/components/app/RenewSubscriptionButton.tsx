@@ -5,6 +5,7 @@ import { X, RefreshCw, Check, ChevronDown, CalendarClock } from "lucide-react"
 import { renewSubscriptionAction } from "@/app/(app)/clients/actions"
 import type { CurrentSubscription } from "@/lib/client-profile"
 import { toast } from "@/lib/use-action"
+import { Button } from "@/components/ui/button"
 
 type Membership = { id: string; name: string; price: number }
 
@@ -42,11 +43,18 @@ export function RenewSubscriptionButton({ clientId, clientName, subscription, me
 
   return (
     <>
-      <button onClick={() => { setMembershipId(currentId); setError(null); setOpen(true) }}
-        className="w-full h-11 rounded-md text-sm font-medium text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-        style={{ background: "#16a34a" }}>
-        <RefreshCw className="w-4 h-4" /> Продлить абонемент
-      </button>
+      <Button
+        variant="outline"
+        onClick={() => {
+          setMembershipId(currentId)
+          setError(null)
+          setOpen(true)
+        }}
+        className="w-full"
+      >
+        <RefreshCw />
+        {subscription ? "Продлить" : "Оформить"}
+      </Button>
 
       {open && (
         <div className="fixed inset-0 z-[200] flex justify-end" onClick={() => setOpen(false)} style={{ background: "rgba(2,6,23,0.4)" }}>

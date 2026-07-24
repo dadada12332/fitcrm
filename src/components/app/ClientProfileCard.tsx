@@ -3,20 +3,29 @@
 import { useState, useTransition } from "react"
 import { toast } from "@/lib/use-action"
 import { useRouter } from "next/navigation"
-import { FileSpreadsheet, Snowflake, Trash2, X } from "lucide-react"
+import { Banknote, ChevronDown, FileSpreadsheet, MoreHorizontal, Snowflake, Trash2, X } from "lucide-react"
 import type { ClientProfile } from "@/lib/client-profile"
 import type { ClientStatus } from "@/lib/clients"
 import { deleteClientAction, toggleFreezeAction } from "@/app/(app)/clients/actions"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { NewPaymentModal } from "./NewPaymentModal"
 import { RenewSubscriptionButton } from "./RenewSubscriptionButton"
 
 type Membership = { id: string; name: string; price: number }
 
-const statusMeta: Record<ClientStatus, { label: string; bg: string; color: string }> = {
-  active:  { label: "Активный",       bg: "rgba(22,163,74,0.14)", color: "#16a34a" },
-  expired: { label: "Истёк",          bg: "rgba(220,38,38,0.14)", color: "#dc2626" },
-  frozen:  { label: "Заморожен",      bg: "rgba(37,99,235,0.14)", color: "#2563eb" },
-  none:    { label: "Без абонемента", bg: "var(--card-2)", color: "var(--on-dark-soft)" },
+const statusMeta: Record<ClientStatus, { label: string; className: string }> = {
+  active: { label: "Активный", className: "bg-chart-2/10 text-chart-2" },
+  expired: { label: "Истёк", className: "bg-destructive/10 text-destructive" },
+  frozen: { label: "Заморожен", className: "bg-brand/10 text-brand" },
+  none: { label: "Без абонемента", className: "bg-muted text-muted-foreground" },
 }
 
 const genderLabel: Record<string, string> = { male: "Мужской", female: "Женский" }
@@ -36,12 +45,12 @@ function fmtMoney(v: number) {
 
 function Field({ label, value, link }: { label: string; value: string | null; link?: string }) {
   return (
-    <div className="py-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-      <p className="text-xs mb-1" style={{ color: "var(--gray-muted)" }}>{label}</p>
+    <div className="min-w-0 rounded-lg bg-muted/50 p-3">
+      <p className="mb-1 text-xs text-muted-foreground">{label}</p>
       {link && value ? (
-        <a href={link} className="break-words text-sm font-medium hover:underline" style={{ color: "#2563eb" }}>{value}</a>
+        <a href={link} className="block truncate text-sm font-medium text-brand hover:underline">{value}</a>
       ) : (
-        <p className="break-words text-sm font-medium" style={{ color: "var(--on-dark-soft)" }}>{value ?? "—"}</p>
+        <p className="truncate text-sm font-medium text-foreground">{value ?? "—"}</p>
       )}
     </div>
   )
@@ -159,113 +168,120 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
 
   return (
     <>
-      <div
-        className="relative flex flex-col overflow-hidden rounded-lg p-4 transition-all duration-300 sm:p-6"
-        style={{
-          background: "var(--card)",
-          border: isFrozen ? "1.5px solid #93c5fd" : "1px solid var(--border)",
-        }}
-      >
-        {isFrozen && (
+      <div className={`relative flex flex-col rounded-xl bg-card p-4 ring-1 transition-all duration-300 ${isFrozen ? "ring-brand/40" : "ring-foreground/10"}`}>
+        <div className="relative mb-4 flex items-center gap-3">
           <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: "linear-gradient(135deg, rgba(219,234,254,0.35) 0%, rgba(191,219,254,0.15) 100%)",
-            }}
-          />
-        )}
-
-        {/* Аватар + имя */}
-        <div className="relative mb-4 flex items-center gap-3 sm:gap-4">
-          <div
-            className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-semibold text-white flex-shrink-0 relative"
-            style={{ background: isFrozen ? "#93c5fd" : "#60a5fa" }}
+            className={`relative flex size-12 shrink-0 items-center justify-center rounded-full text-base font-semibold text-primary-foreground ${isFrozen ? "bg-brand/60" : "bg-brand"}`}
           >
             {initials(client.name)}
             {isFrozen && (
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ background: "#2563eb" }}>
-                <Snowflake className="w-3 h-3 text-white" />
+              <div className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-brand">
+                <Snowflake className="size-3 text-primary-foreground" />
               </div>
             )}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-semibold tracking-[-0.12px] truncate" style={{ color: "var(--on-dark)" }}>
+              <h2 className="truncate text-base font-semibold tracking-[-0.12px] text-foreground">
                 {client.name}
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
-                style={{ background: sm.bg, color: sm.color }}>
-                {sm.label}
-              </span>
+              <Badge variant="secondary" className={sm.className}>{sm.label}</Badge>
             </div>
-            <p className="text-sm mt-0.5" style={{ color: "var(--on-dark-soft)" }}>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               ID: {client.id.slice(0, 8)}
             </p>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label="Дополнительные действия"
+              className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <MoreHorizontal className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {canFreeze && (
+                <DropdownMenuItem onClick={() => setDialog("freeze")}>
+                  <Snowflake />
+                  {isFrozen ? "Разморозить" : "Заморозить"}
+                </DropdownMenuItem>
+              )}
+              {canFreeze && <DropdownMenuSeparator />}
+              <DropdownMenuItem variant="destructive" onClick={() => setDialog("delete")}>
+                <Trash2 />
+                Удалить клиента
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Финансы */}
-        <div className="grid grid-cols-2 gap-2 relative mb-1">
-          <div className="rounded-lg px-3 py-2.5" style={{ background: "var(--card-2)", border: "1px solid var(--border)" }}>
-            <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Баланс</p>
-            <p className="break-words text-sm font-semibold leading-tight tabular-nums sm:text-base" style={{ color: client.balance > 0 ? "#16a34a" : "var(--on-dark)" }}>
+        <div className="relative mb-4 grid grid-cols-2 gap-2">
+          <Button onClick={() => setPaymentOpen(true)} className="w-full">
+            <Banknote />
+            Добавить оплату
+          </Button>
+          <RenewSubscriptionButton clientId={client.id} clientName={client.name} subscription={client.subscription} memberships={memberships} />
+        </div>
+
+        <div className="relative mb-4 grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-muted/50 px-3 py-2.5">
+            <p className="mb-0.5 text-xs text-muted-foreground">Баланс</p>
+            <p className={`break-words text-sm font-semibold leading-tight tabular-nums ${client.balance > 0 ? "text-chart-2" : "text-foreground"}`}>
               {fmtMoney(client.balance)}
             </p>
           </div>
-          <div className="rounded-lg px-3 py-2.5" style={{ background: client.debt > 0 ? "rgba(220,38,38,0.06)" : "var(--card-2)", border: `1px solid ${client.debt > 0 ? "rgba(220,38,38,0.25)" : "var(--border)"}` }}>
-            <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Долг</p>
-            <p className="break-words text-sm font-semibold leading-tight tabular-nums sm:text-base" style={{ color: client.debt > 0 ? "#dc2626" : "var(--on-dark)" }}>
+          <div className={`rounded-lg px-3 py-2.5 ${client.debt > 0 ? "bg-destructive/10" : "bg-muted/50"}`}>
+            <p className="mb-0.5 text-xs text-muted-foreground">Долг</p>
+            <p className={`break-words text-sm font-semibold leading-tight tabular-nums ${client.debt > 0 ? "text-destructive" : "text-foreground"}`}>
               {fmtMoney(client.debt)}
             </p>
           </div>
         </div>
 
-        {/* Поля */}
-        <div className="flex flex-col relative">
+        <div className="relative grid grid-cols-2 gap-2">
           <Field label="Телефон" value={client.phone} link={client.phone ? `tel:${client.phone}` : undefined} />
-          <Field
-            label="Telegram-профиль"
-            value={telegramLabel}
-            link={client.telegram?.username ? `https://t.me/${client.telegram.username}` : undefined}
-          />
-          <Field label="Telegram ID" value={client.telegram?.id ?? null} />
           <Field label="Email" value={client.email} link={client.email ? `mailto:${client.email}` : undefined} />
-          <Field label="Дата рождения" value={fmtDate(client.birthDate)} />
-          <Field label="Пол" value={client.gender ? (genderLabel[client.gender] ?? client.gender) : null} />
           <Field label="Тренер" value={client.trainer} />
           <Field label="Источник" value={client.source} />
-          <Field label="Дата регистрации" value={fmtDate(client.createdAt)} />
         </div>
 
-        {/* Комментарий */}
-        <div className="py-3 relative" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-          <p className="text-xs mb-2" style={{ color: "var(--gray-muted)" }}>Комментарий</p>
-          <textarea
-            readOnly
-            defaultValue={comment}
-            placeholder="Нет комментария"
-            rows={3}
-            className="w-full rounded-md px-3 py-2 text-sm resize-none outline-none"
-            style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}
-          />
-        </div>
+        <details className="group relative mt-3 rounded-lg border border-border">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2.5 text-sm font-medium text-foreground">
+            Дополнительная информация
+            <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="grid grid-cols-2 gap-2 border-t border-border p-3">
+            <Field
+              label="Telegram-профиль"
+              value={telegramLabel}
+              link={client.telegram?.username ? `https://t.me/${client.telegram.username}` : undefined}
+            />
+            <Field label="Telegram ID" value={client.telegram?.id ?? null} />
+            <Field label="Дата рождения" value={fmtDate(client.birthDate)} />
+            <Field label="Пол" value={client.gender ? (genderLabel[client.gender] ?? client.gender) : null} />
+            <Field label="Дата регистрации" value={fmtDate(client.createdAt)} />
+            <div className="col-span-2 rounded-lg bg-muted/50 p-3">
+              <p className="mb-1 text-xs text-muted-foreground">Комментарий</p>
+              <p className="whitespace-pre-wrap text-sm text-foreground">{comment || "Нет комментария"}</p>
+            </div>
+          </div>
+        </details>
 
         {importedFields.length > 0 && (
-          <section className="relative border-t border-border py-3" aria-labelledby="imported-client-data">
-            <div className="mb-3 flex items-start gap-2">
+          <details className="group relative mt-2 rounded-lg border border-border">
+            <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                 <FileSpreadsheet className="size-4" />
               </div>
-              <div className="min-w-0">
-                <p id="imported-client-data" className="text-sm font-semibold text-foreground">Данные из прежней CRM</p>
-                <p className="truncate text-xs text-muted-foreground">
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-foreground">Данные из прежней CRM</span>
+                <span className="block truncate text-xs text-muted-foreground">
                   {client.importData?.sourceFile ?? "Импортированный файл"}
                   {client.importData?.importedAt ? ` · ${fmtDate(client.importData.importedAt)}` : ""}
-                </p>
-              </div>
-            </div>
-            <dl className="divide-y divide-border overflow-hidden rounded-md border border-border bg-muted/30">
+                </span>
+              </span>
+              <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+            </summary>
+            <dl className="divide-y divide-border border-t border-border">
               {importedFields.map(([label, value]) => (
                 <div key={label} className="grid gap-1 px-3 py-2.5 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:gap-3">
                   <dt className="break-words text-xs text-muted-foreground">{label}</dt>
@@ -273,45 +289,8 @@ export function ClientProfileCard({ client, memberships }: { client: ClientProfi
                 </div>
               ))}
             </dl>
-          </section>
+          </details>
         )}
-
-        {/* Действия */}
-        <div className="flex flex-col gap-2 mt-2 relative">
-          <button
-            onClick={() => setPaymentOpen(true)}
-            className="h-11 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90"
-            style={{ background: "var(--on-dark)" }}
-          >
-            Добавить оплату
-          </button>
-
-          <RenewSubscriptionButton clientId={client.id} clientName={client.name} subscription={client.subscription} memberships={memberships} />
-
-          {canFreeze && (
-            <button
-              onClick={() => setDialog("freeze")}
-              className="h-11 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors"
-              style={{
-                background: isFrozen ? "rgba(37,99,235,0.1)" : "var(--card)",
-                border: isFrozen ? "1px solid #93c5fd" : "1px solid var(--border)",
-                color: isFrozen ? "#2563eb" : "var(--on-dark)",
-              }}
-            >
-              <Snowflake className="w-4 h-4" />
-              {isFrozen ? "Разморозить" : "Заморозить"}
-            </button>
-          )}
-
-          <button
-            onClick={() => setDialog("delete")}
-            className="h-11 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:bg-red-50"
-            style={{ background: "var(--card)", border: "1px solid rgba(220,38,38,0.3)", color: "#dc2626" }}
-          >
-            <Trash2 className="w-4 h-4" />
-            Удалить клиента
-          </button>
-        </div>
       </div>
 
       {paymentOpen && (
