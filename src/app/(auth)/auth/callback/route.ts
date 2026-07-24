@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 
@@ -12,6 +13,24 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error && data.session) {
       const user = data.session.user
+      const cookieStore = await cookies()
+      const pendingLegal = cookieStore.get("fitcrm_pending_legal")?.value
+
+      if (pendingLegal) {
+        const [legalVersion, acceptedAt] = pendingLegal.split("|")
+        if (legalVersion && acceptedAt) {
+          await supabase.auth.updateUser({
+            data: {
+              terms_accepted_at: acceptedAt,
+              privacy_accepted_at: acceptedAt,
+              personal_data_consent_at: acceptedAt,
+              cross_border_consent_at: acceptedAt,
+              legal_version: legalVersion,
+            },
+          })
+        }
+        cookieStore.delete("fitcrm_pending_legal")
+      }
 
       // Sync Google profile name to users table
       const fullName = user.user_metadata?.full_name as string | undefined

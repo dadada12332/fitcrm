@@ -4,7 +4,7 @@ const SITE_URL = "https://fitcrm-three.vercel.app"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
-  const routes = ["", "/about", "/contacts", "/docs", "/blog", "/terms", "/privacy"]
+  const routes = ["", "/about", "/contacts", "/docs", "/blog", "/terms", "/privacy", "/cookies", "/consent", "/data-processing"]
   return routes.map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: now,

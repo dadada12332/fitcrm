@@ -31,6 +31,8 @@ export function Footer() {
       { label: l.contacts, href: "/contacts" },
       { label: l.terms,    href: "/terms" },
       { label: l.privacy,  href: "/privacy" },
+      { label: l.cookies,  href: "/cookies" },
+      { label: l.dpa,      href: "/data-processing" },
     ] },
   ]
 

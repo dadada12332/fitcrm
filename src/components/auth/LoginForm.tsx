@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react"
 import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Headphones, ShieldCheck, UserRound } from "lucide-react"
 import { signInWithEmail, signInWithGoogle, type AuthState } from "@/app/(auth)/actions"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -37,17 +37,32 @@ export function LoginForm({ next }: { next?: string }) {
         </Link>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-10 lg:px-12">
-        <div className="w-full max-w-[520px]">
-          <div className="mb-7 text-left">
-            <h1 className="mb-2 text-3xl font-semibold text-foreground">
-              С возвращением!
-            </h1>
-            <p className="text-base text-foreground/80">Войдите в свой аккаунт fitCRM</p>
-          </div>
+      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6 sm:px-10 lg:px-12">
+        <div className="flex flex-1 items-center justify-center py-5">
+          <div className="w-full max-w-[520px]">
+            <div className="hidden text-center xl:block">
+              <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-background/10 text-foreground/75 ring-1 ring-background/15">
+                <UserRound className="size-6" strokeWidth={1.8} />
+              </span>
+              <p className="mt-4 text-xl font-semibold text-foreground">
+                Войдите в рабочее пространство fitCRM
+              </p>
+              <p className="mt-2 text-sm leading-6 text-foreground/60">
+                Управляйте клубом, командой и клиентами из одного окна
+              </p>
+            </div>
 
-          <form action={action} className="flex flex-col gap-5">
-            {next && <input type="hidden" name="next" value={next} />}
+            <div className="my-8 hidden h-px bg-foreground/30 shadow-sm xl:block" />
+
+            <div className="mb-7 text-left">
+              <h1 className="mb-2 text-3xl font-semibold text-foreground">
+                С возвращением!
+              </h1>
+              <p className="text-base text-foreground/80">Войдите в свой аккаунт fitCRM</p>
+            </div>
+
+            <form action={action} className="flex flex-col gap-5">
+              {next && <input type="hidden" name="next" value={next} />}
 
             <div className="flex flex-col gap-2">
               {/* Email */}
@@ -107,7 +122,32 @@ export function LoginForm({ next }: { next?: string }) {
 
               <GoogleButton next={next} />
             </div>
-          </form>
+            </form>
+          </div>
+        </div>
+
+        <div className="mx-auto hidden w-full max-w-[680px] grid-cols-2 gap-4 xl:grid">
+          <div className="flex min-h-20 items-center gap-4 rounded-2xl bg-background/12 px-5 py-4 ring-1 ring-background/15">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-background/12 text-foreground/80 ring-1 ring-background/10">
+              <ShieldCheck className="size-5.5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Безопасное рабочее пространство</p>
+              <p className="mt-1 text-xs text-foreground/60">Данные клуба защищены</p>
+            </div>
+          </div>
+          <Link
+            href="/support"
+            className="flex min-h-20 items-center gap-4 rounded-2xl bg-background/12 px-5 py-4 ring-1 ring-background/15 transition-colors hover:bg-background/20"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-background/12 text-foreground/80 ring-1 ring-background/10">
+              <Headphones className="size-5.5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Нужна помощь?</p>
+              <p className="mt-1 text-xs text-foreground/60">Поддержка FitCRM рядом</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

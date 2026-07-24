@@ -239,6 +239,18 @@
   * {
     box-sizing: border-box;
   }
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for],
+  select {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
   body {
     font-family: var(--font-sans), Inter, system-ui, sans-serif;
     color: var(--foreground);

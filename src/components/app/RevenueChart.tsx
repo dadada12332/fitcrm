@@ -28,25 +28,23 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
     >
       {/* Header */}
       <div
-        className="flex flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col items-start gap-3 px-4 py-4"
         style={{ borderBottom: "1px solid var(--border)" }}
       >
-        <div className="shrink-0">
-          <p
-            className="text-[20px] font-medium tracking-[-0.12px]"
-            style={{ color: "var(--on-dark)", lineHeight: "28px" }}
-          >
-            Выручка · {periodLabel}
-          </p>
-        </div>
+        <p
+          className="text-[20px] font-medium tracking-[-0.12px]"
+          style={{ color: "var(--on-dark)", lineHeight: "28px" }}
+        >
+          Выручка · {periodLabel}
+        </p>
 
-        <div className="w-full sm:w-auto">
-          <div className="grid w-full grid-cols-5 gap-0.5 rounded-md p-0.5 sm:flex sm:w-auto" style={{ background: "var(--card-2)" }}>
+        <div className="w-full overflow-x-auto">
+          <div className="grid w-full grid-cols-5 gap-0.5 rounded-md bg-muted p-0.5 sm:inline-flex sm:w-auto">
             {PERIODS.map((p) => (
               <button
                 key={p.key}
                 onClick={() => setPeriod(p.key)}
-                className="h-9 min-w-0 rounded px-1 text-xs font-medium transition-all sm:h-7 sm:flex-none sm:px-3"
+                className="h-9 min-w-0 rounded px-1 text-xs font-medium transition-all sm:h-8 sm:flex-none sm:px-3"
                 style={{
                   background: period === p.key ? "var(--pill-active)" : "transparent",
                   color: period === p.key ? "var(--on-dark)" : "var(--on-dark-soft)",

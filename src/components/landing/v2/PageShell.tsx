@@ -47,19 +47,100 @@ export function PageHero({ eyebrow, title, subtitle }: { eyebrow?: string; title
   )
 }
 
-// Легальные страницы (условия, конфиденциальность)
-export function LegalArticle({ updated, blocks }: { updated: string; blocks: { h: string; body: string[] }[] }) {
+export type LegalBlock = {
+  h: string
+  body?: string[]
+  bullets?: string[]
+  note?: string
+  table?: {
+    headers: string[]
+    rows: string[][]
+  }
+}
+
+// Легальные страницы (условия, конфиденциальность, cookies)
+export function LegalArticle({
+  updated,
+  version,
+  intro,
+  blocks,
+}: {
+  updated: string
+  version?: string
+  intro?: string[]
+  blocks: LegalBlock[]
+}) {
   return (
-    <div className="mx-auto max-w-[760px] px-6 py-16 md:py-20">
-      <p className="text-[13px] mb-12" style={{ color: "#9ca3af" }}>Последнее обновление: {updated}</p>
-      {blocks.map((b, i) => (
-        <div key={i} className="mb-10">
-          <h2 className="text-[21px] font-semibold text-[#0a0a0a] mb-3">{i + 1}. {b.h}</h2>
-          {b.body.map((p, j) => (
-            <p key={j} className="text-[15px] leading-[26px] mb-3" style={{ color: "#52525b" }}>{p}</p>
-          ))}
-        </div>
-      ))}
+    <div className="mx-auto grid max-w-[1120px] gap-12 px-6 py-16 md:grid-cols-[240px_minmax(0,760px)] md:py-20">
+      <aside className="self-start md:sticky md:top-24">
+        <p className="text-sm text-muted-foreground">Последнее обновление: {updated}</p>
+        {version && <p className="mt-1 text-sm text-muted-foreground">Версия: {version}</p>}
+        <nav className="mt-7 hidden border-l border-border pl-4 md:block" aria-label="Содержание документа">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Содержание</p>
+          <ol className="space-y-2.5">
+            {blocks.map((block, index) => (
+              <li key={block.h}>
+                <a className="text-sm leading-5 text-muted-foreground transition-colors hover:text-foreground" href={`#section-${index + 1}`}>
+                  {index + 1}. {block.h}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      </aside>
+
+      <article>
+        {intro && (
+          <div className="mb-12 rounded-2xl border border-border bg-muted/40 p-5 md:p-6">
+            {intro.map((paragraph) => (
+              <p key={paragraph} className="mb-3 text-[15px] leading-7 text-foreground/80 last:mb-0">{paragraph}</p>
+            ))}
+          </div>
+        )}
+
+        {blocks.map((block, index) => (
+          <section id={`section-${index + 1}`} key={block.h} className="mb-12 scroll-mt-28">
+            <h2 className="mb-4 text-[22px] font-semibold tracking-[-0.02em] text-foreground">
+              {index + 1}. {block.h}
+            </h2>
+            {block.body?.map((paragraph) => (
+              <p key={paragraph} className="mb-3 text-[15px] leading-7 text-muted-foreground">{paragraph}</p>
+            ))}
+            {block.bullets && (
+              <ul className="my-4 list-disc space-y-2 pl-5 text-[15px] leading-7 text-muted-foreground marker:text-foreground/40">
+                {block.bullets.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            )}
+            {block.table && (
+              <div className="my-5 overflow-x-auto rounded-xl border border-border">
+                <table className="w-full min-w-[620px] border-collapse text-left text-sm">
+                  <thead className="bg-muted/60 text-foreground">
+                    <tr>
+                      {block.table.headers.map((header) => (
+                        <th key={header} className="border-b border-border px-4 py-3 font-semibold">{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {block.table.rows.map((row, rowIndex) => (
+                      <tr key={`${block.h}-${rowIndex}`} className="border-b border-border last:border-0">
+                        {row.map((cell, cellIndex) => (
+                          <td key={`${cell}-${cellIndex}`} className="px-4 py-3 align-top leading-6 text-muted-foreground">{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {block.note && (
+              <p className="mt-5 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm leading-6 text-foreground/80">
+                {block.note}
+              </p>
+            )}
+          </section>
+        ))}
+      </article>
     </div>
   )
 }

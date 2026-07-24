@@ -5,11 +5,17 @@ import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 import { signUpWithClub, signInWithGoogle, type AuthState } from "@/app/(auth)/actions"
 
-function GoogleButton({ label = "Продолжить через Google" }: { label?: string }) {
+function GoogleButton({ disabled, label = "Продолжить через Google" }: { disabled?: boolean; label?: string }) {
   const [pending, start] = useTransition()
+  function continueWithGoogle() {
+    const formData = new FormData()
+    formData.set("acceptedLegal", "on")
+    start(() => signInWithGoogle(formData))
+  }
+
   return (
-    <button type="button" disabled={pending}
-      onClick={() => start(() => signInWithGoogle())}
+    <button type="button" disabled={pending || disabled}
+      onClick={continueWithGoogle}
       className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-border/70 bg-background/55 text-sm font-medium text-foreground shadow-sm backdrop-blur-sm transition-all hover:bg-background/80 active:scale-[0.98] disabled:opacity-50">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
         <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
@@ -141,11 +147,15 @@ export function RegisterForm() {
               <span className="text-sm leading-snug text-foreground/80">
                 Я принимаю{" "}
                 <a href="/terms" className="font-medium text-foreground underline hover:opacity-70">
-                  условия использования
+                  публичную оферту
                 </a>{" "}
-                и{" "}
+                и даю{" "}
+                <a href="/consent" className="font-medium text-foreground underline hover:opacity-70">
+                  согласие на обработку и возможную трансграничную передачу данных
+                </a>{" "}
+                согласно{" "}
                 <a href="/privacy" className="font-medium text-foreground underline hover:opacity-70">
-                  политику конфиденциальности
+                  политике конфиденциальности
                 </a>
               </span>
             </label>
@@ -167,7 +177,7 @@ export function RegisterForm() {
                 <div className="h-px flex-1 bg-border/80" />
               </div>
 
-              <GoogleButton />
+              <GoogleButton disabled={!agreed} />
             </div>
           </form>
         </div>

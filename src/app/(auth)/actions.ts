@@ -1,9 +1,10 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
+import { LEGAL_VERSION } from "@/lib/legal"
 
 export type AuthState = { error?: string; message?: string }
 
@@ -53,16 +54,21 @@ export async function signUpWithClub(_prev: AuthState, formData: FormData): Prom
   if (!EMAIL_PATTERN.test(email)) return { error: "Введите корректный email" }
   if (password.length < 8) return { error: "Пароль должен быть не короче 8 символов" }
   if (password !== confirmPassword) return { error: "Пароли не совпадают" }
-  if (!acceptedTerms) return { error: "Примите условия использования и политику конфиденциальности" }
+  if (!acceptedTerms) return { error: "Примите публичную оферту и согласие на обработку данных" }
 
   const supabase = await createClient()
+  const acceptedAt = new Date().toISOString()
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         pending_club_name: clubName,
-        terms_accepted_at: new Date().toISOString(),
+        terms_accepted_at: acceptedAt,
+        privacy_accepted_at: acceptedAt,
+        personal_data_consent_at: acceptedAt,
+        cross_border_consent_at: acceptedAt,
+        legal_version: LEGAL_VERSION,
       },
     },
   })
@@ -104,6 +110,18 @@ export async function signInWithGoogle(formData?: FormData) {
   const supabase = await createClient()
 
   const next = formData?.get("next") as string | undefined
+  const acceptedLegal = formData?.get("acceptedLegal") === "on"
+  if (acceptedLegal) {
+    const acceptedAt = new Date().toISOString()
+    const cookieStore = await cookies()
+    cookieStore.set("fitcrm_pending_legal", `${LEGAL_VERSION}|${acceptedAt}`, {
+      path: "/",
+      maxAge: 10 * 60,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    })
+  }
   const callbackUrl = next
     ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`
     : `${origin}/auth/callback`

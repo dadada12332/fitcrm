@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Local QA uses 127.0.0.1 to keep the synthetic session isolated from localhost cookies.
+  allowedDevOrigins: ["127.0.0.1"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.cdninstagram.com" },

@@ -266,9 +266,13 @@ export function RegisterSteps({ next }: { next?: string }) {
             <p className="text-sm text-center" style={{ color: "#64748b" }}>
               Нажимая «Продолжить», вы принимаете{" "}
               <a href="/terms" className="underline hover:opacity-70" style={{ color: "#64748b", letterSpacing: "-0.084px" }}>
-                условия использования
+                публичную оферту
               </a>
-              {" "}и{" "}
+              {" "}, даёте{" "}
+              <a href="/consent" className="underline hover:opacity-70" style={{ color: "#64748b", letterSpacing: "-0.084px" }}>
+                согласие на обработку данных
+              </a>
+              {" "}и принимаете{" "}
               <a href="/privacy" className="underline hover:opacity-70" style={{ color: "#64748b", letterSpacing: "-0.084px" }}>
                 политику конфиденциальности
               </a>

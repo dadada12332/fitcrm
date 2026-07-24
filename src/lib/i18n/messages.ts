@@ -107,7 +107,7 @@ export const messages = {
     footer: {
       brand: "FitCRM помогает создавать, управлять и масштабировать фитнес-клубы любого размера — в одной платформе.",
       product: "Продукт", resources: "Ресурсы", company: "Компания",
-      l: { features: "Возможности", pricing: "Тарифы", security: "Безопасность", faq: "FAQ", docs: "Документация", blog: "Блог", help: "Помощь", about: "О нас", contacts: "Контакты", terms: "Условия сервиса", privacy: "Конфиденциальность" },
+      l: { features: "Возможности", pricing: "Тарифы", security: "Безопасность", faq: "FAQ", docs: "Документация", blog: "Блог", help: "Помощь", about: "О нас", contacts: "Контакты", terms: "Публичная оферта", privacy: "Конфиденциальность", cookies: "Cookie Policy", dpa: "Обработка данных" },
       rights: "Все права защищены.", status: "Все системы работают",
     },
   },
@@ -214,7 +214,7 @@ export const messages = {
     footer: {
       brand: "FitCRM helps you create, manage and scale fitness clubs of any size — in one platform.",
       product: "Product", resources: "Resources", company: "Company",
-      l: { features: "Features", pricing: "Pricing", security: "Security", faq: "FAQ", docs: "Documentation", blog: "Blog", help: "Help", about: "About", contacts: "Contacts", terms: "Terms of Service", privacy: "Privacy" },
+      l: { features: "Features", pricing: "Pricing", security: "Security", faq: "FAQ", docs: "Documentation", blog: "Blog", help: "Help", about: "About", contacts: "Contacts", terms: "Terms of Service", privacy: "Privacy", cookies: "Cookie Policy", dpa: "Data Processing" },
       rights: "All rights reserved.", status: "All systems operational",
     },
   },
@@ -321,7 +321,7 @@ export const messages = {
     footer: {
       brand: "FitCRM istalgan hajmdagi fitnes klublarni yaratish, boshqarish va kengaytirishda yordam beradi — bitta platformada.",
       product: "Mahsulot", resources: "Resurslar", company: "Kompaniya",
-      l: { features: "Imkoniyatlar", pricing: "Tariflar", security: "Xavfsizlik", faq: "FAQ", docs: "Hujjatlar", blog: "Blog", help: "Yordam", about: "Biz haqimizda", contacts: "Kontaktlar", terms: "Xizmat shartlari", privacy: "Maxfiylik" },
+      l: { features: "Imkoniyatlar", pricing: "Tariflar", security: "Xavfsizlik", faq: "FAQ", docs: "Hujjatlar", blog: "Blog", help: "Yordam", about: "Biz haqimizda", contacts: "Kontaktlar", terms: "Ommaviy oferta", privacy: "Maxfiylik", cookies: "Cookie siyosati", dpa: "Ma’lumotlarni qayta ishlash" },
       rights: "Barcha huquqlar himoyalangan.", status: "Barcha tizimlar ishlamoqda",
     },
   },

@@ -360,6 +360,7 @@ function updateDashboard() {
   const file = path.join(vault, "00 Dashboard.md");
   replaceAuto(file, "recent-commits", commitLines("14 days ago", "8"));
   replaceAuto(file, "updated-at", today() + " Asia/Tashkent");
+  write(file, setFrontmatter(read(file), "updated", today()));
 }
 
 function updateHandoff() {
@@ -466,6 +467,13 @@ function validate() {
 
   for (const legacy of ["README.md", "FITCRM_ARCHITECTURE.md", "FITCRM_PROJECT_DOCUMENTATION.md", "FITCRM_ROADMAP.md", "FITCRM_CHANGELOG.md"]) {
     if (existsSync(path.join(root, legacy))) warnings.push("Historical document requires code verification: " + legacy);
+  }
+  const currentDaily = path.join(vault, "Daily", today() + ".md");
+  if (existsSync(currentDaily)) {
+    const dailyContent = read(currentDaily);
+    if (dailyContent.includes("Заполнить только содержательный итог") || dailyContent.includes("\nНе заполнено.\n")) {
+      errors.push("Daily/" + today() + ".md: semantic summary still contains template placeholders");
+    }
   }
   if (warnings.length) console.log("Warnings:\n" + warnings.map((item) => "- " + item).join("\n"));
   if (errors.length) {

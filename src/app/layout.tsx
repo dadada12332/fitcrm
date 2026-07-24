@@ -3,6 +3,7 @@ import { Inter, Oswald, Playfair_Display } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { AppToaster } from "@/components/AppToaster"
+import { CookieNotice } from "@/components/legal/CookieNotice"
 
 const inter = Inter({
   variable: "--font-sans",
@@ -71,7 +72,11 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${inter.variable} ${oswald.variable} ${playfair.variable} h-full antialiased overflow-x-hidden`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col overflow-x-hidden">
-        <ThemeProvider>{children}<AppToaster /></ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <CookieNotice />
+          <AppToaster />
+        </ThemeProvider>
       </body>
     </html>
   )

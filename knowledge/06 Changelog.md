@@ -6,11 +6,40 @@ tags: [fitcrm, releases]
 
 # Changelog
 
+## 2026-07-24 — Login option 1
+
+### Changed
+
+- Левый маркетинговый блок login собран в единый CRM snapshot с KPI, активностью и быстрыми
+  действиями.
+- Существующая правая стеклянная карточка сохранена и дополнена контекстом сверху, а также
+  блоками безопасности и поддержки снизу.
+- Отзыв встроен в общую композицию и использует тот же glass/token язык.
+- После визуального ревью CRM snapshot удалён: слева оставлены два увеличенных отзыва, а заголовок
+  рабочего пространства справа увеличен и расположен ближе к форме.
+- Отзывы переведены в прозрачный строковый формат с разделителями; нижние блоки безопасности
+  и поддержки увеличены и получили более заметный контраст.
+- Контекст рабочего пространства отделён от формы входа тонким divider с симметричными отступами.
+
+### Verification
+
+- `npx tsc --noEmit`
+- `npm run build`
+- `git diff --check`
+- Design QA: `final result: passed`
+
 Пользовательски значимые изменения в формате, близком к Keep a Changelog. Полная техническая история находится в Git.
 
 ## Unreleased
 
 ### Added
+
+- Добавлен полный публичный юридический комплект FitCRM: B2B-оферта, расширенная политика
+  конфиденциальности, Cookie Policy, согласие пользователя и поручение на обработку данных клуба.
+- На публичных и auth-страницах появилось однократное уведомление о фактических cookies; оно
+  сообщает, что рекламные и сторонние аналитические трекеры сейчас не используются.
+- Регистрация фиксирует дату и версию принятия оферты, privacy и согласия на обработку данных;
+  Google-регистрация переносит подтверждённое согласие через короткую HttpOnly cookie.
 
 - Google Calendar стал управляемым workspace внутри CRM: сотрудник видит события и заметки Google, создаёт новые события и выборочно переносит нужные посещения. После подключения автоматической синхронизации нет.
 - В существующем разделе «Интеграции» появились Beta-коннекторы Sigur, ZKTeco и Hikvision: готовый FitCRM Bridge для Windows/Linux/Docker, персональный `config.json`, привязка карт/браслетов/vendor ID, проверка допуска, журнал событий и симулятор без физического турникета.
@@ -96,6 +125,8 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Заголовок графика выручки теперь расположен над фильтрами периода, как на остальных экранах CRM;
+  ссылки, пункты sidebar и активные кнопки снова показывают явный pointer-курсор.
 - Поставка и списание теперь атомарно меняют остаток и журнал движений; исправлено неверное enum-значение прихода, а удалённые товары больше не занимают тарифный лимит.
 - Склад получил меню действий в строке товара: поставка и списание открываются с выбранным товаром, удаление работает мягко и сохраняет историю движений. Production deployment `dpl_Bf8BcGRMmRG1VQwkpbMGcY1VLa71` прошёл desktop/mobile smoke.
 
@@ -168,6 +199,22 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
+- `a7d8cb9` · 2026-07-24 · Align client profile layout
+- `31bb9b2` · 2026-07-24 · Redesign client profile actions
+- `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
+- `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
+- `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
+- `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
+- `df0517f` · 2026-07-24 · feat: group integration catalog sections
+- `dff8246` · 2026-07-23 · fix: expose bridge release download
+- `550b27e` · 2026-07-23 · feat: ship access control bridge
+- `836dcb3` · 2026-07-23 · feat: add access control integrations
+- `473b803` · 2026-07-23 · fix: improve onboarding action contrast
+- `7a6238e` · 2026-07-23 · feat: align onboarding with auth design
+- `43ab772` · 2026-07-23 · feat: add auth feature cards
+- `a4b9420` · 2026-07-23 · feat: redesign auth experience
+- `136b9ea` · 2026-07-22 · docs: record warehouse actions release [skip ci]
 - `9106080` · 2026-07-22 · feat: add warehouse product actions
 - `4e72358` · 2026-07-22 · docs: require screenshots for UI change reports [skip ci]
 - `db482fa` · 2026-07-22 · docs: record upgrade CTA refinement [skip ci]
@@ -182,20 +229,4 @@ tags: [fitcrm, releases]
 - `75221d4` · 2026-07-22 · docs: define recommended plan access matrix [skip ci]
 - `8a04d0d` · 2026-07-22 · docs: record FAQ production release [skip ci]
 - `26331e9` · 2026-07-22 · fix: align landing FAQ with product
-- `a598b22` · 2026-07-22 · docs: record pricing rollback release [skip ci]
-- `6880dab` · 2026-07-22 · revert: restore original landing pricing
-- `1ed8b1c` · 2026-07-22 · docs: record pricing width release [skip ci]
-- `e6a8ef6` · 2026-07-22 · style: widen landing pricing cards
-- `e80f8b5` · 2026-07-22 · docs: record pricing redesign release [skip ci]
-- `6dfb2a6` · 2026-07-22 · feat: redesign landing pricing around Standard
-- `94845ad` · 2026-07-22 · docs: record outreach copy release [skip ci]
-- `e12b856` · 2026-07-22 · feat: highlight ready outreach scripts on landing
-- `a721ffb` · 2026-07-22 · docs: record Growth OS landing release [skip ci]
-- `89ef57f` · 2026-07-22 · feat: add Growth OS story to landing
-- `57f4b92` · 2026-07-22 · docs: record reports attention release [skip ci]
-- `50bb457` · 2026-07-22 · feat: redesign reports attention workspace
-- `62ee8aa` · 2026-07-22 · docs: record Telegram broadcast release [skip ci]
-- `5526a88` · 2026-07-22 · feat: redesign Telegram broadcast workspace
-- `481c70e` · 2026-07-22 · docs: record Telegram KPI redesign [skip ci]
-- `440ba3d` · 2026-07-22 · style: align Telegram metrics with CRM
 <!-- AUTO:END changelog-candidates -->

@@ -3,15 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
-import {
-  CalendarDays,
-  ChartNoAxesCombined,
-  MessagesSquare,
-  Quote,
-  Star,
-  UsersRound,
-  type LucideIcon,
-} from "lucide-react"
+import { Quote, Star } from "lucide-react"
 
 type Review = {
   quote: string
@@ -19,42 +11,7 @@ type Review = {
   location: string
   initials: string
   tone: string
-  className: string
 }
-
-type Feature = {
-  title: string
-  desc: string
-  icon: LucideIcon
-  tone: string
-}
-
-const features = [
-  {
-    title: "Аналитика в реальном времени",
-    desc: "Выручка, посещения и KPI клуба на одном экране",
-    icon: ChartNoAxesCombined,
-    tone: "bg-brand/15 text-brand",
-  },
-  {
-    title: "Клиенты и абонементы",
-    desc: "Клиентская база, абонементы и сроки продления",
-    icon: UsersRound,
-    tone: "bg-chart-2/15 text-chart-2",
-  },
-  {
-    title: "Расписание и тренеры",
-    desc: "Занятия, смены и управление тренерами",
-    icon: CalendarDays,
-    tone: "bg-chart-3/15 text-chart-3",
-  },
-  {
-    title: "Интеграции",
-    desc: "Telegram, Instagram, SMS и другие каналы",
-    icon: MessagesSquare,
-    tone: "bg-chart-4/15 text-chart-4",
-  },
-] satisfies Feature[]
 
 const slides = [
   {
@@ -68,7 +25,6 @@ const slides = [
         location: "Ташкент",
         initials: "В",
         tone: "bg-brand",
-        className: "mr-10 -rotate-1",
       },
       {
         quote: "Отчёты больше не собираем вручную — вся картина уже перед глазами.",
@@ -76,7 +32,6 @@ const slides = [
         location: "Самарканд",
         initials: "У",
         tone: "bg-chart-4",
-        className: "ml-12 rotate-1",
       },
     ] satisfies Review[],
   },
@@ -91,7 +46,6 @@ const slides = [
         location: "Ташкент",
         initials: "А",
         tone: "bg-chart-2",
-        className: "mr-6 rotate-1",
       },
       {
         quote: "После перехода на FitCRM в расписании стало меньше накладок и пропущенных оплат.",
@@ -99,7 +53,6 @@ const slides = [
         location: "Бухара",
         initials: "Р",
         tone: "bg-chart-3",
-        className: "ml-16 -rotate-1",
       },
     ] satisfies Review[],
   },
@@ -114,7 +67,6 @@ const slides = [
         location: "Ташкент",
         initials: "В",
         tone: "bg-brand",
-        className: "mr-12 -rotate-1",
       },
       {
         quote: "Новые администраторы быстро включаются в работу — интерфейс понятен с первого дня.",
@@ -122,7 +74,6 @@ const slides = [
         location: "Фергана",
         initials: "О",
         tone: "bg-chart-4",
-        className: "ml-10 rotate-1",
       },
     ] satisfies Review[],
   },
@@ -137,7 +88,7 @@ function ReviewCard({
 }) {
   return (
     <motion.article
-      className="relative rounded-2xl bg-card/90 p-3.5 text-card-foreground shadow-2xl shadow-foreground/10 ring-1 ring-background/20 backdrop-blur-md"
+      className="relative border-t border-background/20 px-2 py-5 text-background"
       initial={{
         opacity: 0,
         x: 48 * direction,
@@ -160,26 +111,26 @@ function ReviewCard({
       }}
     >
       <div className="flex items-start gap-3">
-        <span className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-primary-foreground ${review.tone}`}>
+        <span className={`mt-1 flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-primary-foreground shadow-lg shadow-foreground/10 ${review.tone}`}>
           {review.initials}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="mb-1.5 flex items-center gap-0.5 text-chart-4">
+          <div className="mb-2 flex items-center gap-0.5 text-chart-4">
             {Array.from({ length: 5 }).map((_, starIndex) => (
-              <Star key={starIndex} className="size-3" fill="currentColor" strokeWidth={1.5} />
+              <Star key={starIndex} className="size-3.5" fill="currentColor" strokeWidth={1.5} />
             ))}
           </div>
-          <blockquote className="pr-7 text-xs font-medium leading-[1.45] xl:text-[13px]">
+          <blockquote className="pr-10 text-sm font-medium leading-[1.55] text-background/90 xl:text-[15px]">
             «{review.quote}»
           </blockquote>
-          <p className="mt-2 text-[10px] text-muted-foreground">
-            <span className="font-semibold text-card-foreground">{review.role}</span>
+          <p className="mt-3 text-xs text-background/50">
+            <span className="font-semibold text-background/75">{review.role}</span>
             {" · "}
             {review.location}
           </p>
         </div>
       </div>
-      <Quote className="absolute right-3.5 top-3.5 size-6 text-muted/80" fill="currentColor" strokeWidth={1.5} />
+      <Quote className="absolute right-2 top-5 size-8 text-background/25" fill="currentColor" strokeWidth={1.5} />
     </motion.article>
   )
 }
@@ -243,42 +194,14 @@ export function BrandingCarousel() {
               </p>
             </motion.div>
 
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              {features.map((feature, featureIndex) => {
-                const Icon = feature.icon
-                return (
-                  <motion.article
-                    key={feature.title}
-                    className="min-h-32 rounded-2xl bg-primary/45 p-4 text-background shadow-lg shadow-foreground/10 ring-1 ring-background/10 backdrop-blur-md"
-                    initial={{ opacity: 0, y: 16, scale: 0.97, filter: "blur(5px)" }}
-                    animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, y: -10, scale: 0.98, filter: "blur(4px)" }}
-                    transition={{
-                      duration: 0.42,
-                      delay: 0.1 + featureIndex * 0.06,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                  >
-                    <span className={`mb-3 flex size-10 items-center justify-center rounded-xl ${feature.tone}`}>
-                      <Icon className="size-5" strokeWidth={1.9} />
-                    </span>
-                    <h3 className="text-[13px] font-semibold leading-[1.3] text-background xl:text-sm">
-                      {feature.title}
-                    </h3>
-                    <p className="mt-1.5 text-[11px] leading-4 text-background/65 xl:text-xs">
-                      {feature.desc}
-                    </p>
-                  </motion.article>
-                )
-              })}
-            </div>
-
-            <div className="mt-3.5">
-              <ReviewCard
-                key={`${slide.badge}-${slide.reviews[0].role}`}
-                review={slide.reviews[0]}
-                direction={direction}
-              />
+            <div className="mt-9 xl:mt-12">
+              {slide.reviews.map((review) => (
+                <ReviewCard
+                  key={`${slide.badge}-${review.role}`}
+                  review={review}
+                  direction={direction}
+                />
+              ))}
             </div>
           </motion.div>
         </AnimatePresence>

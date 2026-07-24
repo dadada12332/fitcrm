@@ -14,6 +14,7 @@ tags: [fitcrm, decisions]
 | [[Decisions/ADR-0003-repository-knowledge-vault]] | accepted | Операционная память хранится рядом с кодом |
 | [[Decisions/ADR-0004-klientskie-obrascheniya-kak-otdel-nyi-channel-agnostic-inbox]] | accepted | Клиентские обращения как отдельный channel-agnostic inbox |
 | [[Decisions/ADR-0005-hranit-neraspoznannye-polya-importa-v-clients-import-data]] | accepted | Хранить нераспознанные поля импорта в clients.import_data |
+| [[Decisions/ADR-0006-google-calendar-only-explicit-user-sync]] | accepted | Google Calendar синхронизируется только по явному действию сотрудника |
 <!-- AUTO:END decision-index -->
 
 Новые решения создаются командой `npm run docs:adr -- "Название"`.

@@ -1,6 +1,6 @@
 ---
 type: dashboard
-updated: 2026-07-18
+updated: 2026-07-24
 tags: [fitcrm, operations]
 ---
 
@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
-- `9106080` · 2026-07-22 · feat: add warehouse product actions
-- `4e72358` · 2026-07-22 · docs: require screenshots for UI change reports [skip ci]
-- `db482fa` · 2026-07-22 · docs: record upgrade CTA refinement [skip ci]
-- `fe68f58` · 2026-07-22 · fix: preserve upgrade button height
-- `057d003` · 2026-07-22 · style: strengthen plan upgrade call to action
-- `2f37b01` · 2026-07-22 · docs: record plan limit audit release [skip ci]
-- `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
-- `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
+- `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
+- `a7d8cb9` · 2026-07-24 · Align client profile layout
+- `31bb9b2` · 2026-07-24 · Redesign client profile actions
+- `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
+- `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
+- `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
+- `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
+- `df0517f` · 2026-07-24 · feat: group integration catalog sections
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-22 Asia/Tashkent
+2026-07-24 Asia/Tashkent
 <!-- AUTO:END updated-at -->

@@ -19,6 +19,8 @@ updated: 2026-07-18
 - [[Daily/2026-07-20]]
 - [[Daily/2026-07-21]]
 - [[Daily/2026-07-22]]
+- [[Daily/2026-07-23]]
+- [[Daily/2026-07-24]]
 
 ## Database
 
@@ -31,6 +33,7 @@ updated: 2026-07-18
 - [[Decisions/ADR-0003-repository-knowledge-vault]]
 - [[Decisions/ADR-0004-klientskie-obrascheniya-kak-otdel-nyi-channel-agnostic-inbox]]
 - [[Decisions/ADR-0005-hranit-neraspoznannye-polya-importa-v-clients-import-data]]
+- [[Decisions/ADR-0006-google-calendar-only-explicit-user-sync]]
 
 ## Infrastructure
 
@@ -42,6 +45,7 @@ updated: 2026-07-18
 
 ## Integrations
 
+- [[Integrations/Access Control]]
 - [[Integrations/Instagram]]
 - [[Integrations/Telegram]]
 
