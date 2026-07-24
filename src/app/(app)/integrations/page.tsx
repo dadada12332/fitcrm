@@ -87,7 +87,7 @@ export default async function IntegrationsPage() {
           Интеграции
         </h1>
         <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>
-          Подключите платёжные системы и мессенджеры к вашему клубу
+          Подключите сервисы и оборудование к вашему клубу
         </p>
       </div>
 

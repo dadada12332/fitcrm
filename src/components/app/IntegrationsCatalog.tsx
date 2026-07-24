@@ -330,6 +330,17 @@ function getBenefits(key: string): string[] {
   return map[key] ?? []
 }
 
+function SectionDivider({ children }: { children: string }) {
+  return (
+    <div className="flex items-center gap-3" aria-label={children}>
+      <h2 className="shrink-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        {children}
+      </h2>
+      <div className="h-px flex-1 bg-border" aria-hidden />
+    </div>
+  )
+}
+
 export function IntegrationsCatalog({
   statuses,
   allowedKeys,
@@ -341,22 +352,40 @@ export function IntegrationsCatalog({
   const available = CATALOG.filter(
     (item) => item.available && (item.alwaysVisible || !allowedKeys || allowedKeys.includes(item.key)),
   )
+  const services = available.filter((item) => item.category !== "Контроль доступа")
+  const accessControl = available.filter((item) => item.category === "Контроль доступа")
   const comingSoon = CATALOG.filter((item) => !item.available)
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {available.map((integration) => (
-          <IntegrationCard
-            key={integration.key}
-            integration={integration}
-            status={statusMap.get(integration.key)}
-          />
-        ))}
+      <div className="space-y-3">
+        <SectionDivider>Сервисы и платежи</SectionDivider>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((integration) => (
+            <IntegrationCard
+              key={integration.key}
+              integration={integration}
+              status={statusMap.get(integration.key)}
+            />
+          ))}
+        </div>
       </div>
 
-      <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">СКОРО</h2>
+      <div className="space-y-3">
+        <SectionDivider>Контроль доступа</SectionDivider>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {accessControl.map((integration) => (
+            <IntegrationCard
+              key={integration.key}
+              integration={integration}
+              status={statusMap.get(integration.key)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <SectionDivider>Скоро</SectionDivider>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {comingSoon.map((integration) => (
             <IntegrationCard key={integration.key} integration={integration} status={undefined} />

@@ -1,3 +1,36 @@
+# Design QA: Integration Catalog Section Dividers
+
+## Evidence
+
+- Source visual truth: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_9gHYw1/Снимок экрана 2026-07-24 в 10.48.43.png` (`3840 × 2208` px).
+- Desktop implementation: `/Users/amiran/fitcrm/artifacts/integrations-section-dividers-desktop.png` (`1436 × 1488` px, CSS viewport `1440 × 1100`, DPR 1).
+- Mobile implementation: `/Users/amiran/fitcrm/artifacts/integrations-section-dividers-mobile.png` (`386 × 3248` px, CSS viewport `390 × 844`, DPR 1).
+- Normalized full-view comparison: `/Users/amiran/fitcrm/artifacts/integrations-section-dividers-comparison.png` (source content cropped to the catalog region and resized to `1436` px width; implementation captured at the same content width).
+- State: light theme, disconnected integration cards, all catalog providers enabled in the QA fixture.
+
+## Findings
+
+- Information architecture: the flat available-card grid is intentionally split into `Сервисы и платежи` and `Контроль доступа`; the existing `Скоро` group now uses the same divider pattern.
+- Fonts and typography: section labels use the existing UI font, muted foreground, `12px` uppercase text, semibold weight and restrained tracking; card typography is unchanged.
+- Spacing and layout rhythm: each label and one-pixel divider sit `12px` above its grid, while the existing `32px` inter-section rhythm and card gaps are preserved.
+- Colors and visual tokens: dividers use `bg-border` and labels use `text-muted-foreground`; no raw color values or new visual system were introduced.
+- Image quality and asset fidelity: no image assets were added, replaced or modified; the existing Lucide integration icons remain unchanged.
+- Copy and content: provider names, descriptions, badges, benefits and actions are unchanged. The page subtitle now includes equipment so it accurately covers access-control integrations.
+- Responsive behavior: the three-column desktop grid and one-column mobile grid both render without horizontal overflow (`386px` client and scroll width on the mobile check).
+- Accessibility: each section label is an `h2`; decorative divider lines are hidden from assistive technology.
+- Console: no browser errors were recorded.
+- Focused region comparison was not required because the complete divider labels, lines, surrounding grid rhythm and card content are readable in the normalized full-view comparison.
+- The extra Instagram card in the QA fixture is expected test-state content; the supplied club screenshot does not have that plan feature enabled.
+- No P0/P1/P2 findings remain.
+
+## Comparison History
+
+- Initial source: available integrations appeared in one uninterrupted grid, so access-control providers were visually merged with messaging and payment providers.
+- Fix: introduced semantic divider headings and grouped the same cards by catalog category without changing connection behavior.
+- Post-fix evidence: desktop and mobile captures show three clearly separated groups with preserved card layout and no overflow.
+
+final result: passed
+
 # Design QA: Onboarding Secondary Button Contrast
 
 ## Evidence
