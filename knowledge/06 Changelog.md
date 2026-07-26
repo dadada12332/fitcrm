@@ -223,6 +223,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 - `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
 - `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
 - `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
@@ -252,5 +253,4 @@ tags: [fitcrm, releases]
 - `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
 - `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
 - `908eae6` · 2026-07-22 · fix: show previous plan price on landing
-- `a080c10` · 2026-07-22 · docs: record plan enforcement release [skip ci]
 <!-- AUTO:END changelog-candidates -->
