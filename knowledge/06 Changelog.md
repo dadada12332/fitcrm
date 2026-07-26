@@ -223,6 +223,8 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
+- `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
 - `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
@@ -251,6 +253,4 @@ tags: [fitcrm, releases]
 - `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
 - `908eae6` · 2026-07-22 · fix: show previous plan price on landing
 - `a080c10` · 2026-07-22 · docs: record plan enforcement release [skip ci]
-- `0942064` · 2026-07-22 · feat: enforce plan access and usage limits
-- `75221d4` · 2026-07-22 · docs: define recommended plan access matrix [skip ci]
 <!-- AUTO:END changelog-candidates -->

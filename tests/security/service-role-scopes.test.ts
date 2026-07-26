@@ -5,6 +5,24 @@ import { describe, expect, it } from "vitest"
 const read = (relative: string) => readFileSync(path.join(process.cwd(), relative), "utf8")
 
 describe("service-role payment tenant scopes", () => {
+  it("keeps restricted staff settings out of the authenticated club query", () => {
+    const source = read("src/lib/club.ts")
+    const membershipQuery = source.slice(
+      source.indexOf("let query = supabase"),
+      source.indexOf("type ClubRow"),
+    )
+    const localeQuery = source.slice(
+      source.indexOf("async function resolveStaffLocale"),
+      source.indexOf("async function resolvePermissions"),
+    )
+
+    expect(membershipQuery).not.toContain("club_id, role, settings")
+    expect(localeQuery).toContain("createServiceClient()")
+    expect(localeQuery).toContain('.eq("user_id", userId)')
+    expect(localeQuery).toContain('.eq("club_id", clubId)')
+    expect(localeQuery).toContain('.eq("is_active", true)')
+  })
+
   it("scopes Click payment mutations to the callback club", () => {
     const source = read("src/app/api/pay/click/[clubId]/route.ts")
 

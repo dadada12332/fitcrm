@@ -28,6 +28,8 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
+- `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
 - `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
@@ -36,8 +38,6 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 - `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
 - `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
 - `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
-- `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
-- `df0517f` · 2026-07-24 · feat: group integration catalog sections
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

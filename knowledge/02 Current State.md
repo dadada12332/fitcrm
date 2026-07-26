@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: fc6c4a6 · 2026-07-24T17:34:29+05:00 · docs: record legal release [skip ci].
+- Последний commit: 0fb2e25 · 2026-07-27T04:09:49+05:00 · chore: ignore local Codex credentials.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 96; последняя `20260724145500_renewal_and_class_attendance.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

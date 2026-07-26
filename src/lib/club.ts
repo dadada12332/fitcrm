@@ -81,7 +81,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
 
   let query = supabase
     .from("staff")
-    .select(`club_id, role, settings, clubs(${CLUB_SELECT})`)
+    .select(`club_id, role, clubs(${CLUB_SELECT})`)
     .eq("user_id", uid)
     .eq("is_active", true)
 
@@ -92,7 +92,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
   if (!data) {
     const { data: fallback } = await supabase
       .from("staff")
-      .select(`club_id, role, settings, clubs(${CLUB_SELECT})`)
+      .select(`club_id, role, clubs(${CLUB_SELECT})`)
       .eq("user_id", uid)
       .eq("is_active", true)
       .limit(1)
@@ -102,13 +102,15 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
     const fb = fallback.clubs as unknown as ClubRow | null
     const permissions = await resolvePermissions(supabase, fallback.club_id, fallback.role)
     const planAccess = embeddedPlanAccess(fb?.plans)
-    return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess, fallback.settings)
+    const staffLocale = await resolveStaffLocale(uid, fallback.club_id)
+    return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess, staffLocale)
   }
 
   const club = data.clubs as unknown as ClubRow | null
   const permissions = await resolvePermissions(supabase, data.club_id, data.role)
   const planAccess = embeddedPlanAccess(club?.plans)
-  return clubResult(data.club_id, data.role, club, permissions, planAccess, data.settings)
+  const staffLocale = await resolveStaffLocale(uid, data.club_id)
+  return clubResult(data.club_id, data.role, club, permissions, planAccess, staffLocale)
 })
 
 type ClubRow = {
@@ -147,7 +149,7 @@ function clubResult(
   club: ClubRow | null,
   permissions: RolePermissions,
   planAccess: PlanAccess | null,
-  staffSettings?: Record<string, unknown> | null,
+  staffLocale?: unknown,
 ) {
   const clubSettings = club?.settings ?? {}
   return {
@@ -160,9 +162,30 @@ function clubResult(
     planExpiresAt: club?.plan_expires_at ?? null,
     permissions: applyPlanToPermissions(permissions, planAccess),
     planAccess,
-    locale: normalizeAppLocale(staffSettings?.locale ?? clubSettings.locale),
+    locale: normalizeAppLocale(staffLocale ?? clubSettings.locale),
     currency: String(clubSettings.currency ?? "UZS"),
     timezone: String(clubSettings.timezone ?? "Asia/Tashkent"),
+  }
+}
+
+async function resolveStaffLocale(userId: string, clubId: string): Promise<unknown> {
+  // `staff.settings` is intentionally unavailable through the authenticated
+  // Data API because it can contain private staff metadata. The RLS-scoped
+  // membership query above resolves the tenant first; this service-role read
+  // stays scoped to that user and club and returns only the locale.
+  try {
+    const service = createServiceClient()
+    const { data } = await service
+      .from("staff")
+      .select("settings")
+      .eq("user_id", userId)
+      .eq("club_id", clubId)
+      .eq("is_active", true)
+      .maybeSingle()
+    const settings = (data?.settings as Record<string, unknown> | null) ?? {}
+    return settings.locale
+  } catch {
+    return undefined
   }
 }
 
