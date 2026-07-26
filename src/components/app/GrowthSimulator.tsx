@@ -5,9 +5,9 @@ import { Calculator, CircleDollarSign, RotateCcw, UsersRound } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { calculateGrowthImpact, type GrowthPools, type GrowthScenario } from "@/lib/growth"
+import { useAppLocale } from "./ClubContext"
 
 const DEFAULT_SCENARIO: GrowthScenario = { renewalRate: 30, winBackRate: 15, debtCollectionRate: 40, referralsPer100: 2 }
-const formatMoney = (value: number) => `${value.toLocaleString("ru-RU")} сум`
 
 type SliderProps = { label: string; value: number; max: number; suffix: string; onChange: (value: number) => void }
 
@@ -24,6 +24,7 @@ function ScenarioSlider({ label, value, max, suffix, onChange }: SliderProps) {
 }
 
 export function GrowthSimulator({ pools }: { pools: GrowthPools }) {
+  const { money } = useAppLocale()
   const [scenario, setScenario] = useState(DEFAULT_SCENARIO)
   const impact = useMemo(() => calculateGrowthImpact(pools, scenario), [pools, scenario])
   const update = (key: keyof GrowthScenario, value: number) => setScenario((current) => ({ ...current, [key]: value }))
@@ -54,14 +55,14 @@ export function GrowthSimulator({ pools }: { pools: GrowthPools }) {
         <CardContent className="space-y-4">
           <div className="rounded-xl bg-primary p-5 text-primary-foreground">
             <p className="text-xs opacity-70">Дополнительный денежный потенциал</p>
-            <p className="mt-2 text-3xl font-semibold tabular-nums">{formatMoney(impact.total)}</p>
+            <p className="mt-2 text-3xl font-semibold tabular-nums">{money(impact.total)}</p>
             <p className="mt-2 flex items-center gap-1.5 text-xs opacity-70"><UsersRound className="size-3.5" /> Около {impact.recoveredClients} клиентов и рекомендаций</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {[["Продления", impact.renewals], ["Возврат", impact.winBack], ["Задолженность", impact.debtCollection], ["Рекомендации", impact.referrals]].map(([label, value]) => (
               <div key={label} className="rounded-xl border border-border bg-card p-4">
                 <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold tabular-nums text-foreground"><CircleDollarSign className="size-4 text-muted-foreground" />{formatMoney(Number(value))}</p>
+                <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold tabular-nums text-foreground"><CircleDollarSign className="size-4 text-muted-foreground" />{money(Number(value))}</p>
               </div>
             ))}
           </div>

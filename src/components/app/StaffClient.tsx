@@ -8,6 +8,7 @@ import { toast } from "@/lib/use-action"
 import { addStaffAction } from "@/app/(app)/staff/actions"
 import { MoneyInput } from "./MoneyInput"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "./ClubContext"
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -165,6 +166,7 @@ function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (ro
 // ── Main Component ────────────────────────────────────────────────
 
 export function StaffClient({ kpi, rows }: { kpi: StaffKPI; rows: StaffRow[] }) {
+  const { money } = useAppLocale()
   const [query, setQuery]     = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [showModal, setShowModal]   = useState(false)
@@ -195,7 +197,7 @@ export function StaffClient({ kpi, rows }: { kpi: StaffKPI; rows: StaffRow[] }) 
           { label: "Всего сотрудников", icon: Users,      value: String(kpi.total),      sub: undefined },
           { label: "Тренеров",          icon: UserCheck,  value: String(kpi.trainers),   sub: undefined },
           { label: "Администраторов",   icon: Users,      value: String(kpi.admins),     sub: undefined },
-          { label: "Зарплата за месяц", icon: Wallet,     value: fmt(kpi.monthlySalary), sub: "сум / месяц" },
+          { label: "Зарплата за месяц", icon: Wallet, value: money(kpi.monthlySalary), sub: "в месяц" },
         ].map(({ label, icon: Icon, value, sub }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
             style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
@@ -286,7 +288,7 @@ export function StaffClient({ kpi, rows }: { kpi: StaffKPI; rows: StaffRow[] }) 
                         {row.clientCount > 0 ? row.clientCount : "—"}
                       </td>
                       <td className="px-5 py-3 font-medium" style={{ color: "var(--on-dark)" }}>
-                        {row.salary > 0 ? `${fmt(row.salary)} сум` : "—"}
+                        {row.salary > 0 ? money(row.salary) : "—"}
                       </td>
                       <td className="px-5 py-3">
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: sm.bg, color: sm.color }}>

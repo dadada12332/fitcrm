@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import type { PaymentRow } from "@/lib/payments"
+import { useAppLocale } from "./ClubContext"
 
 const PROVIDER_LABEL: Record<string, string> = {
   cash: "Нал", click: "Click", payme: "Payme", uzum: "Uzum",
@@ -25,6 +28,7 @@ function timeAgo(iso: string) {
 }
 
 export function RecentPayments({ payments }: { payments: PaymentRow[] }) {
+  const { money } = useAppLocale()
   const list = payments.slice(0, 7)
 
   return (
@@ -71,7 +75,7 @@ export function RecentPayments({ payments }: { payments: PaymentRow[] }) {
                   </div>
                 </div>
                 <p className="text-sm font-semibold tabular-nums flex-shrink-0" style={{ color: "var(--on-dark)" }}>
-                  {p.amount.toLocaleString("ru-RU")} <span className="font-normal text-xs" style={{ color: "var(--gray-muted)" }}>сум</span>
+                  {money(p.amount)}
                 </p>
               </div>
             )

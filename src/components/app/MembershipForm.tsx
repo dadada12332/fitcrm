@@ -3,8 +3,10 @@
 import { useActionState, useEffect, useRef } from "react"
 import { createMembershipAction, type MembershipFormState } from "@/app/(app)/memberships/actions"
 import { Input } from "@/components/ui/input"
+import { useAppLocale } from "./ClubContext"
 
 export function MembershipForm() {
+  const { currency } = useAppLocale()
   const [state, formAction, pending] = useActionState<MembershipFormState, FormData>(
     createMembershipAction,
     {},
@@ -25,7 +27,7 @@ export function MembershipForm() {
       <h3 className="text-xl" style={{ color: "var(--on-dark)" }}>Новый абонемент</h3>
 
       <Input name="name" placeholder="Название (напр. «Безлимит 1 мес»)" required />
-      <Input name="price" type="number" min="0" step="1000" placeholder="Цена, сум" required />
+      <Input name="price" type="number" min="0" step="1000" placeholder={`Цена, ${currency}`} required />
       <Input name="duration_days" type="number" min="1" placeholder="Срок, дней (30)" required />
       <Input name="visits_limit" type="number" min="1" placeholder="Лимит визитов (пусто = безлимит)" />
 

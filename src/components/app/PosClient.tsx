@@ -15,8 +15,7 @@ import {
   type SaleProvider,
 } from "@/app/(app)/warehouse/pos-actions"
 import { sendPaymentLinkTelegramAction } from "@/app/(app)/payments/actions"
-
-const fmt = (n: number) => n.toLocaleString("ru-RU")
+import { useAppLocale } from "./ClubContext"
 
 // ── Фолбэк-иконка по категории (когда нет фото) ──
 function catEmoji(cat: string | null): string {
@@ -58,6 +57,7 @@ export function PosClient({ clubId, products, connectedProviders, canSell, versi
   canSell: boolean
   versionControl?: React.ReactNode
 }) {
+  const { money } = useAppLocale()
   const [query, setQuery] = useState("")
   const [cat, setCat] = useState("all")
   const [cart, setCart] = useState<CartLine[]>([])
@@ -159,7 +159,7 @@ export function PosClient({ clubId, products, connectedProviders, canSell, versi
               <button onClick={() => setCheckout(cart)} disabled={!canSell}
                 className="relative flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium text-white disabled:opacity-50"
                 style={{ background: "#2563eb" }}>
-                <ShoppingCart className="w-4 h-4" /> {fmt(cartTotal)} сум
+                <ShoppingCart className="w-4 h-4" /> {money(cartTotal)}
                 <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 rounded-full text-[11px] font-bold flex items-center justify-center" style={{ background: "#16a34a", color: "white" }}>{cartCount}</span>
               </button>
             </>
@@ -224,6 +224,7 @@ export function PosClient({ clubId, products, connectedProviders, canSell, versi
 function ProductCard({ p, canSell, isHit, onOpen, onAdd }: {
   p: PosProduct; canSell: boolean; isHit: boolean; onOpen: () => void; onAdd: () => void
 }) {
+  const { money } = useAppLocale()
   const st = stockStatus(p)
   const meta = STATUS_META[st]
   const out = st === "out"
@@ -253,7 +254,7 @@ function ProductCard({ p, canSell, isHit, onOpen, onAdd }: {
       {/* Info */}
       <div className="p-3 flex flex-col gap-1 flex-1">
         <p className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: "var(--on-dark)" }}>{p.name}</p>
-        <p className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(p.sellPrice)} <span className="text-xs font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></p>
+        <p className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>{money(p.sellPrice)}</p>
         <div className="flex items-center gap-1.5 mt-auto pt-1">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: meta.color }} />
           <span className="text-[11px]" style={{ color: meta.color }}>{meta.label(p.quantity, p.unit)}</span>
@@ -267,6 +268,7 @@ function ProductCard({ p, canSell, isHit, onOpen, onAdd }: {
 function ProductDrawer({ p, canSell, onClose, onAdd, onQuickSell }: {
   p: PosProduct; canSell: boolean; onClose: () => void; onAdd: (qty: number) => void; onQuickSell: () => void
 }) {
+  const { money } = useAppLocale()
   const [qty, setQty] = useState(1)
   const st = stockStatus(p)
   const meta = STATUS_META[st]
@@ -289,7 +291,7 @@ function ProductDrawer({ p, canSell, onClose, onAdd, onQuickSell }: {
             <h2 className="text-xl font-semibold" style={{ color: "var(--on-dark)" }}>{p.name}</h2>
             {p.description && <p className="text-sm mt-1" style={{ color: "var(--on-dark-soft)" }}>{p.description}</p>}
           </div>
-          <div className="text-2xl font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(p.sellPrice)} <span className="text-base font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></div>
+          <div className="text-2xl font-semibold" style={{ color: "var(--on-dark)" }}>{money(p.sellPrice)}</div>
 
           <div className="flex gap-4 text-sm" style={{ color: "var(--on-dark-soft)" }}>
             <span>Продаж: <b style={{ color: "var(--on-dark)" }}>{p.salesCount}</b></span>
@@ -337,6 +339,7 @@ const METHODS: { key: SaleProvider; label: string }[] = [
 function CheckoutSheet({ lines, connectedProviders, onClose, onDone }: {
   lines: CartLine[]; connectedProviders: string[]; onClose: () => void; onDone: () => void
 }) {
+  const { money } = useAppLocale()
   const [pending, start] = useTransition()
   const [method, setMethod] = useState<SaleProvider>("cash")
   const [online, setOnline] = useState(false)
@@ -391,7 +394,7 @@ function CheckoutSheet({ lines, connectedProviders, onClose, onDone }: {
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose} style={{ background: "rgba(2,6,23,0.4)" }}>
       <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md h-full overflow-y-auto flex flex-col" style={{ background: "var(--card)", borderLeft: "1px solid var(--border)", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)" }}>
         <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
-          <span className="font-semibold" style={{ color: "var(--on-dark)" }}>Оплата · {fmt(total)} сум</span>
+          <span className="font-semibold" style={{ color: "var(--on-dark)" }}>Оплата · {money(total)}</span>
           <button onClick={onClose}><X className="w-5 h-5" style={{ color: "var(--on-dark-soft)" }} /></button>
         </div>
 
@@ -433,7 +436,7 @@ function CheckoutSheet({ lines, connectedProviders, onClose, onDone }: {
                 {lines.map((l) => (
                   <div key={l.product.id} className="flex items-center justify-between text-sm">
                     <span style={{ color: "var(--on-dark)" }}>{l.product.name} <span style={{ color: "var(--gray-muted)" }}>×{l.qty}</span></span>
-                    <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmt(l.qty * l.product.sellPrice)}</span>
+                    <span className="font-medium" style={{ color: "var(--on-dark)" }}>{money(l.qty * l.product.sellPrice)}</span>
                   </div>
                 ))}
               </div>
@@ -505,7 +508,7 @@ function CheckoutSheet({ lines, connectedProviders, onClose, onDone }: {
               <button onClick={submit} disabled={pending}
                 className="w-full h-12 rounded-lg text-base font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: "#16a34a" }}>
                 {pending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-                {online && canOnline ? "Сформировать QR" : `Оплатить ${fmt(total)} сум`}
+                {online && canOnline ? "Сформировать QR" : `Оплатить ${money(total)}`}
               </button>
             </div>
           </>

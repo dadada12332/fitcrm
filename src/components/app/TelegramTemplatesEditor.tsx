@@ -35,6 +35,11 @@ const TEMPLATE_META: Array<{
       { key: "name", label: "Имя", sample: "Алина" },
       { key: "club", label: "Клуб", sample: "FitCity" },
       { key: "expires", label: "Дата окончания", sample: "31.08.2026" },
+      { key: "address", label: "Адрес", sample: "Ташкент, ул. Амира Темура 1" },
+      { key: "phone", label: "Телефон", sample: "+998 90 000 00 00" },
+      { key: "email", label: "Email", sample: "info@fitcity.uz" },
+      { key: "website", label: "Сайт", sample: "https://fitcity.uz" },
+      { key: "hours", label: "Рабочие часы", sample: "Пн–Сб 06:00–23:00" },
     ],
   },
   {

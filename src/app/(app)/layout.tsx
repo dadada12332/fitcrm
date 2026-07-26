@@ -49,6 +49,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       stats={stats}
       permissions={club.permissions}
       planAccess={club.planAccess}
+      locale={club.locale}
+      currency={club.currency}
+      timezone={club.timezone}
       role={club.role}
       impersonating={club.impersonating}
       lockReason={lockReason}

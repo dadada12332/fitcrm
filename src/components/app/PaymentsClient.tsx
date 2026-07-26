@@ -11,10 +11,10 @@ import { exportPaymentsCsvAction } from "@/app/(app)/payments/actions"
 import { downloadBlob } from "@/lib/csv"
 import { toast } from "sonner"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "./ClubContext"
 
 type Membership = { id: string; name: string; price: number }
 
-function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit" })
 }
@@ -81,6 +81,7 @@ export function PaymentsClient({
   canCreate?: boolean
   canExport?: boolean
 }) {
+  const { money } = useAppLocale()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -228,7 +229,7 @@ export function PaymentsClient({
           </p>
           {total > 0 && (
             <p className="text-sm font-semibold" style={{ color: "#2563eb" }}>
-              Итого: {fmtSum(totalAmount)} сум
+              Итого: {money(totalAmount)}
             </p>
           )}
         </div>
@@ -287,7 +288,7 @@ export function PaymentsClient({
                       <td className="px-5 py-3 whitespace-nowrap" style={{ color: "var(--on-dark-soft)" }} suppressHydrationWarning>{fmtDate(row.paidAt ?? row.createdAt)}</td>
                       <td className="px-5 py-3" style={{ color: row.serviceName ? "var(--on-dark)" : "var(--gray-muted)" }}>{row.serviceName ?? "—"}</td>
                       <td className="px-5 py-3 font-semibold whitespace-nowrap" style={{ color: "var(--on-dark)" }}>
-                        {fmtSum(row.amount)} <span className="font-normal text-xs" style={{ color: "var(--gray-muted)" }}>сум</span>
+                        {money(row.amount)}
                       </td>
                       <td className="px-5 py-3"><span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: pm.bg, color: pm.color }}>{pm.label}</span></td>
                       <td className="px-5 py-3"><span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: sm.bg, color: sm.color }}>{sm.label}</span></td>

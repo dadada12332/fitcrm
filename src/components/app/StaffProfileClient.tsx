@@ -17,12 +17,12 @@ import {
   updateStaffRoleAction,
 } from "@/app/(app)/staff/actions"
 import { MoneyInput } from "./MoneyInput"
+import { useAppLocale } from "./ClubContext"
 
 type SimpleRole = { id: string; key: string; name: string; isSystem: boolean }
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-function fmt(n: number) { return n.toLocaleString("ru-RU") }
 function fmtDate(iso?: string) {
   if (!iso) return "—"
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
@@ -288,12 +288,13 @@ function BasicSection({
 }
 
 function ClientsSection({ member }: { member: StaffDetail }) {
+  const { money } = useAppLocale()
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard label="Активных клиентов" value={String(member.clientCount)} accent="#2563eb" />
         <StatCard label="Проведено занятий" value={String(member.personalCount)} accent="#7c3aed" />
-        <StatCard label="Доход" value={`${fmt(member.personalRevenue)} сум`} accent="#059669" />
+        <StatCard label="Доход" value={money(member.personalRevenue)} accent="#059669" />
         <StatCard label="Продлений" value={String(member.renewals)} accent="#d97706" />
       </div>
 
@@ -369,6 +370,7 @@ function ScheduleSection({ member }: { member: StaffDetail }) {
 }
 
 function SalarySection({ member }: { member: StaffDetail }) {
+  const { money, currency } = useAppLocale()
   const s = member.settings
   const [salType, setSalType]   = useState<"none" | "fixed" | "percent" | "mixed">(s.salary_type ?? "fixed")
   const [fixed, setFixed]       = useState(String(s.salary_fixed ?? member.salary ?? 0))
@@ -438,7 +440,7 @@ function SalarySection({ member }: { member: StaffDetail }) {
               {(salType === "fixed" || salType === "mixed") && (
                 <div>
                   <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Фикс</label>
-                  <MoneyInput value={fixed} onChange={(n) => setFixed(String(n))} placeholder="4 000 000"
+                  <MoneyInput value={fixed} onChange={(n) => setFixed(String(n))} placeholder="4 000 000" suffix={currency}
                     className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
                 </div>
               )}
@@ -457,18 +459,18 @@ function SalarySection({ member }: { member: StaffDetail }) {
               {(salType === "fixed" || salType === "mixed") && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Фикс:</span>
-                  <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(fixedNum)} сум</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{money(fixedNum)}</span>
                 </div>
               )}
               {(salType === "percent" || salType === "mixed") && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Персоналки ({pct}%):</span>
-                  <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(pctAmount)} сум</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>{money(pctAmount)}</span>
                 </div>
               )}
               <div className="flex items-center justify-between pt-2" style={{ borderTop: "1px solid var(--border)" }}>
                 <span className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>Итого:</span>
-                <span className="text-base font-bold" style={{ color: "#2563eb" }}>{fmt(total)} сум</span>
+                <span className="text-base font-bold" style={{ color: "#2563eb" }}>{money(total)}</span>
               </div>
             </div>
           </div>
@@ -495,7 +497,7 @@ function SalarySection({ member }: { member: StaffDetail }) {
             <form onSubmit={handlePay} className="px-6 py-5 space-y-4">
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--on-dark-soft)" }}>Сумма</label>
-                <MoneyInput value={payAmount} onChange={(n) => setPayAmount(String(n))}
+                <MoneyInput value={payAmount} onChange={(n) => setPayAmount(String(n))} suffix={currency}
                   className="w-full h-10 px-3 rounded-lg text-sm outline-none" style={{ border: "1.5px solid var(--border)" }} />
               </div>
               <div>
@@ -537,7 +539,7 @@ function SalarySection({ member }: { member: StaffDetail }) {
                 {history.map((h, i) => (
                   <tr key={i} className="hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                     <td className="px-2 py-3" style={{ color: "var(--on-dark-soft)" }}>{fmtDate(h.date)}</td>
-                    <td className="px-2 py-3 font-semibold" style={{ color: "var(--on-dark)" }}>{fmt(h.amount)} сум</td>
+                    <td className="px-2 py-3 font-semibold" style={{ color: "var(--on-dark)" }}>{money(h.amount)}</td>
                     <td className="px-2 py-3" style={{ color: "var(--on-dark-soft)" }}>{h.note ?? "—"}</td>
                   </tr>
                 ))}
@@ -596,6 +598,7 @@ function PermissionsSection({ member }: { member: StaffDetail }) {
 }
 
 function PerformanceSection({ member }: { member: StaffDetail }) {
+  const { money } = useAppLocale()
   const isTrainer = member.role === "trainer"
 
   if (isTrainer) {
@@ -603,7 +606,7 @@ function PerformanceSection({ member }: { member: StaffDetail }) {
       { label: "Активных клиентов", value: String(member.clientCount), accent: "#2563eb" },
       { label: "Проведено персоналок", value: String(member.personalCount), accent: "#7c3aed" },
       { label: "Продлений абонементов", value: String(member.renewals), accent: "#059669" },
-      { label: "Доход от персоналок", value: `${fmt(member.personalRevenue)} сум`, accent: "#d97706" },
+      { label: "Доход от персоналок", value: money(member.personalRevenue), accent: "#d97706" },
     ]
     return (
       <div className="grid grid-cols-2 gap-4">
@@ -643,6 +646,7 @@ export function StaffProfileClient({
   canViewSalary?: boolean
   canManagePermissions?: boolean
 }) {
+  const { money } = useAppLocale()
   const [tab, setTab] = useState<Tab>("basic")
 
   const visibleTabs = TABS.filter((t) => {
@@ -708,7 +712,7 @@ export function StaffProfileClient({
         {[
           { label: "Клиентов",     value: String(member.clientCount) },
           { label: "Занятий",      value: String(member.personalCount) },
-          ...(canViewSalary ? [{ label: "Зарплата", value: `${fmt(member.salary)} сум` }] : []),
+          ...(canViewSalary ? [{ label: "Зарплата", value: money(member.salary) }] : []),
         ].map(({ label, value }) => (
           <div key={label} className="p-4 rounded-xl text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <p className="text-xl font-bold" style={{ color: "var(--on-dark)" }}>{value}</p>

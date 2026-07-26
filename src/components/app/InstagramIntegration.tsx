@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { disconnectInstagramAction, startInstagramOAuthAction, syncInstagramAction } from "@/app/(app)/integrations/instagram/actions"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "./ClubContext"
 
 export type InstagramMediaItem = {
   id: string
@@ -55,6 +56,7 @@ function date(value: string | null) {
 }
 
 export function InstagramIntegration({ data, oauth }: { data: InstagramPageData; oauth?: string }) {
+  const { money } = useAppLocale()
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(
@@ -179,7 +181,7 @@ export function InstagramIntegration({ data, oauth }: { data: InstagramPageData;
               <p className="text-xs text-muted-foreground">Только переходы и оплаты, которые CRM смогла связать с Instagram</p>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {[["Лиды", data.crmLeads], ["Стали клиентами", data.crmClients], ["Выручка", `${number(data.crmRevenue)} сум`]].map(([label, value]) => (
+              {[["Лиды", data.crmLeads], ["Стали клиентами", data.crmClients], ["Выручка", money(data.crmRevenue)]].map(([label, value]) => (
                 <Card key={String(label)} size="sm"><CardContent><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-xl font-semibold text-foreground">{value}</p></CardContent></Card>
               ))}
             </div>

@@ -5,10 +5,10 @@ import { useRef, useState, useTransition } from "react"
 import {
   CheckCircle, AlertCircle, Trash2, Eye, EyeOff,
   Bot, Zap, MessageSquare, BarChart2, RefreshCw, Send, ImagePlus,
-  Users, Activity, UserPlus, QrCode, type LucideIcon,
+  Users, Activity, UserPlus, QrCode, UserRoundCheck, ExternalLink, type LucideIcon,
 } from "lucide-react"
 import {
-  connectTelegramAction, disconnectTelegramAction, removeTelegramBotAvatarAction,
+  connectTelegramAction, createTelegramStaffPairingAction, disconnectTelegramAction, removeTelegramBotAvatarAction,
   saveTelegramSettingsAction, uploadTelegramBotAvatarAction,
 } from "@/app/(app)/integrations/actions"
 import { showActionError } from "@/lib/plan-limit-client"
@@ -114,6 +114,9 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
   const [avatarUrl, setAvatarUrl] = useState(botAvatarUrl)
   const [avatarMsg, setAvatarMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [avatarPending, startAvatar] = useTransition()
+  const [pairingUrl, setPairingUrl] = useState("")
+  const [pairingMsg, setPairingMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [pairingPending, startPairing] = useTransition()
 
   // Automation and templates share one state so saving either tab never restores stale values.
   const [settings, setSettings] = useState(tgSettings)
@@ -188,6 +191,19 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
       }
       setAvatarUrl("")
       setAvatarMsg({ text: res.warning ?? "Аватар бота удалён", ok: true })
+    })
+  }
+
+  function handleOwnerPairing() {
+    setPairingMsg(null)
+    startPairing(async () => {
+      const res = await createTelegramStaffPairingAction()
+      if (res.error || !res.pairingUrl) {
+        setPairingMsg({ text: res.error ?? "Не удалось создать ссылку", ok: false })
+        return
+      }
+      setPairingUrl(res.pairingUrl)
+      setPairingMsg({ text: "Одноразовая ссылка готова и действует 15 минут", ok: true })
     })
   }
 
@@ -268,6 +284,47 @@ function TelegramManage({ connected, botUsername, botFirstName, botAvatarUrl, co
                   {webhookReady ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
                   {webhookReady ? "Webhook активен" : "Переподключите"}
                 </span>
+              </div>
+
+              {/* Owner and staff pairing */}
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <span className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                    <UserRoundCheck className="size-5" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-foreground">Telegram владельца</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      Привяжите личный Telegram без номера телефона. После этого бот откроет панель владельца и будет присылать ежедневный отчёт клуба.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    disabled={pairingPending}
+                    onClick={handleOwnerPairing}
+                  >
+                    <UserRoundCheck className="size-4" />
+                    {pairingPending ? "Создаю ссылку…" : pairingUrl ? "Создать новую ссылку" : "Привязать мой Telegram"}
+                  </Button>
+                </div>
+                {(pairingMsg || pairingUrl) && (
+                  <div className="mt-3 space-y-3 border-t border-border pt-3">
+                    <Feedback msg={pairingMsg} />
+                    {pairingUrl && (
+                      <a
+                        href={pairingUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                      >
+                        Открыть Telegram и завершить привязку
+                        <ExternalLink className="size-4" aria-hidden="true" />
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Bot avatar */}

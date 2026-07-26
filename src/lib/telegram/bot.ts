@@ -4,6 +4,8 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { hashTelegramPairingToken, parseTelegramPairingPayload } from "@/lib/telegram/pairing"
 import { getTelegramMiniAppUrl } from "@/lib/telegram/api"
 import { normalizeTelegramPhone } from "@/lib/telegram/identity"
+import { formatClubMoney, localeTag, normalizeAppLocale, translate, type AppLocale } from "@/lib/app-locale"
+import { zonedDayRange } from "@/lib/timezone"
 
 // Vercel may reuse a function instance, so handlers are cached per club bot.
 const clubBots = new Map<string, Bot>()
@@ -41,7 +43,26 @@ type ClubTelegramSettings = {
   welcome_message?: string
 }
 
-type ClubContactSettings = { phone?: string; instagram?: string; address?: string }
+type WorkingDay = { open?: string; close?: string; closed?: boolean }
+type ClubContactSettings = {
+  phone?: string
+  email?: string
+  website?: string
+  instagram?: string
+  address?: string
+  timezone?: string
+  currency?: string
+  communication_language?: AppLocale
+  working_hours?: Record<string, WorkingDay>
+}
+
+type ClubProfile = {
+  clubName: string
+  city?: string
+  settings: ClubTelegramSettings
+  contacts: ClubContactSettings
+  locale: AppLocale
+}
 
 function firstRelation<T>(value: T | T[] | null | undefined): T | undefined {
   return Array.isArray(value) ? value[0] : value ?? undefined
@@ -49,13 +70,22 @@ function firstRelation<T>(value: T | T[] | null | undefined): T | undefined {
 
 // ── Helpers ───────────────────────────────────────────────────────
 
-function fmtMoney(n: number) { return n.toLocaleString("ru-RU") }
+function profileMoney(n: number, profile: ClubProfile) {
+  return formatClubMoney(n, profile.contacts.currency ?? "UZS", profile.locale)
+}
 
 async function getClubTelegramSettings(clubId: string) {
-  const { data } = await createServiceClient().from("clubs").select("name, settings").eq("id", clubId).single()
+  const { data } = await createServiceClient().from("clubs").select("name, city, settings").eq("id", clubId).single()
   const rootSettings = (data?.settings as Record<string, unknown> | null) ?? {}
   const settings = (rootSettings.tg_settings as ClubTelegramSettings | undefined) ?? {}
-  return { clubName: data?.name ?? "Клуб", settings }
+  const contacts = rootSettings as ClubContactSettings
+  return {
+    clubName: data?.name ?? "Клуб",
+    city: data?.city ?? undefined,
+    settings,
+    contacts,
+    locale: normalizeAppLocale(contacts.communication_language),
+  } satisfies ClubProfile
 }
 
 function renderTemplate(template: string, values: Record<string, string | number>) {
@@ -63,6 +93,47 @@ function renderTemplate(template: string, values: Record<string, string | number
     (text, [key, value]) => text.replaceAll(`{{${key}}}`, String(value)),
     template,
   )
+}
+
+const PROFILE_DAYS = [
+  ["mon", "days.mon"], ["tue", "days.tue"], ["wed", "days.wed"],
+  ["thu", "days.thu"], ["fri", "days.fri"], ["sat", "days.sat"], ["sun", "days.sun"],
+] as const
+
+function workingHoursText(profile: ClubProfile) {
+  const hours = profile.contacts.working_hours
+  if (!hours) return ""
+  return PROFILE_DAYS.map(([key, label]) => {
+    const day = hours[key]
+    if (!day || day.closed) return `${translate(profile.locale, label)} — ${translate(profile.locale, "settings.closed")}`
+    return `${translate(profile.locale, label)} ${day.open ?? "—"}–${day.close ?? "—"}`
+  }).join("\n")
+}
+
+function clubProfileText(profile: ClubProfile) {
+  const { contacts } = profile
+  const lines = [`🏋️ ${profile.clubName}`]
+  const place = contacts.address || profile.city
+  if (place) lines.push(`📍 ${place}`)
+  if (contacts.phone) lines.push(`📞 ${contacts.phone}`)
+  if (contacts.email) lines.push(`✉️ ${contacts.email}`)
+  if (contacts.website) lines.push(`🌐 ${contacts.website}`)
+  const hours = workingHoursText(profile)
+  if (hours) lines.push(`\n🕐 ${translate(profile.locale, "settings.hoursSummary")}:\n${hours}`)
+  return lines.join("\n")
+}
+
+function contactRequestText(profile: ClubProfile) {
+  const copy: Record<AppLocale, string> = {
+    ru: "Добро пожаловать!\n\nЕсли вы клиент — поделитесь номером телефона кнопкой ниже, чтобы открыть абонемент.\n\nЕсли вы владелец или сотрудник — откройте в CRM «Интеграции → Telegram» и нажмите «Привязать мой Telegram». Номер телефона для этого не нужен.",
+    uz: "Xush kelibsiz!\n\nAgar siz mijoz bo‘lsangiz, abonementni ochish uchun quyidagi tugma orqali telefon raqamingizni yuboring.\n\nAgar siz klub egasi yoki xodim bo‘lsangiz, CRM ichida «Integratsiyalar → Telegram» bo‘limini ochib, «Telegramimni ulash» tugmasini bosing. Telefon raqami kerak emas.",
+    en: "Welcome!\n\nIf you are a client, share your phone number below to open your membership.\n\nIf you are an owner or staff member, open “Integrations → Telegram” in CRM and select “Link my Telegram”. No phone number is required.",
+  }
+  return `${copy[profile.locale]}\n\n${clubProfileText(profile)}`
+}
+
+function contactButton(locale: AppLocale) {
+  return { ru: "📱 Поделиться номером", uz: "📱 Raqamni yuborish", en: "📱 Share phone number" }[locale]
 }
 
 function tashkentDayOfWeek() {
@@ -88,18 +159,40 @@ async function getTodaySchedule(clubId: string) {
   return text
 }
 
-function todayRange() {
-  const now     = new Date()
-  const from    = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-  const to      = new Date(from.getTime() + 86_400_000)
-  return { from: from.toISOString(), to: to.toISOString() }
+async function reportRange(clubId: string, offsetDays: number) {
+  const profile = await getClubTelegramSettings(clubId)
+  const timeZone = profile.contacts.timezone ?? "Asia/Tashkent"
+  return zonedDayRange(new Date(), timeZone, offsetDays)
 }
 
-function yesterdayRange() {
-  const now       = new Date()
-  const todayUTC  = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-  const yesterday = new Date(todayUTC.getTime() - 86_400_000)
-  return { from: yesterday.toISOString(), to: todayUTC.toISOString() }
+async function setChatMenuForUser(ctx: Context, tgUser: TgUser) {
+  try {
+    if (tgUser.role === "client") {
+      await ctx.api.setChatMenuButton({
+        chat_id: tgUser.telegram_id,
+        menu_button: {
+          type: "web_app",
+          text: "Открыть кабинет",
+          web_app: { url: getTelegramMiniAppUrl(tgUser.club_id) },
+        },
+      })
+      return
+    }
+    await ctx.api.setMyCommands(
+      [
+        { command: "start", description: "Главное меню" },
+        { command: "menu", description: "Панель клуба и отчёты" },
+        { command: "help", description: "Помощь" },
+      ],
+      { scope: { type: "chat", chat_id: tgUser.telegram_id } },
+    )
+    await ctx.api.setChatMenuButton({
+      chat_id: tgUser.telegram_id,
+      menu_button: { type: "commands" },
+    })
+  } catch {
+    // The inline menu remains usable even if Telegram rejects a cosmetic menu update.
+  }
 }
 
 async function getLinkedUser(telegramId: number, clubId: string): Promise<TgUser | null> {
@@ -185,6 +278,7 @@ function backBtn(cb = "staff_menu") {
 }
 
 async function sendMenuForUser(ctx: Context, tgUser: TgUser) {
+  await setChatMenuForUser(ctx, tgUser)
   const role = tgUser.role
   if (role === "client") {
     const name = tgUser.client?.full_name?.split(" ")[0] ?? "друг"
@@ -212,7 +306,7 @@ async function sendMenuForUser(ctx: Context, tgUser: TgUser) {
 async function buildReport(clubId: string, from: string, to: string, label: string) {
   const supabase = createServiceClient()
 
-  const [visitsRes, paymentsRes, newClientsRes, renewalsRes] = await Promise.all([
+  const [visitsRes, paymentsRes, newClientsRes, renewalsRes, profile] = await Promise.all([
     supabase.from("visits").select("id", { count: "exact", head: true })
       .eq("club_id", clubId).gte("checked_in_at", from).lt("checked_in_at", to),
     supabase.from("payments").select("amount")
@@ -221,6 +315,7 @@ async function buildReport(clubId: string, from: string, to: string, label: stri
       .eq("club_id", clubId).gte("created_at", from).lt("created_at", to),
     supabase.from("subscriptions").select("id", { count: "exact", head: true })
       .eq("club_id", clubId).gte("created_at", from).lt("created_at", to),
+    getClubTelegramSettings(clubId),
   ])
 
   const visits     = visitsRes.count ?? 0
@@ -229,7 +324,7 @@ async function buildReport(clubId: string, from: string, to: string, label: stri
   const renewals   = renewalsRes.count ?? 0
 
   let text = `📊 *${label}*\n\n`
-  text += `💰 Выручка: *${fmtMoney(revenue)} сум*\n`
+  text += `💰 Выручка: *${profileMoney(revenue, profile)}*\n`
   text += `👟 Посещений: *${visits}*\n`
   text += `🆕 Новых клиентов: *${newClients}*\n`
   text += `🔄 Продлений: *${renewals}*`
@@ -262,9 +357,10 @@ async function askAI(clubId: string, question: string): Promise<string> {
   const expCnt     = expiring.count ?? 0
   const totalCli   = inactive.count ?? 0
 
+  const profile = await getClubTelegramSettings(clubId)
   const context = `Данные фитнес-клуба за последние 7 дней:
 - Посещений: ${visits7cnt}
-- Выручка: ${fmtMoney(revenue7)} сум
+- Выручка: ${profileMoney(revenue7, profile)}
 - Истекающих абонементов (≤5 дней): ${expCnt}
 - Всего клиентов: ${totalCli}`
 
@@ -364,7 +460,7 @@ function setupHandlers(bot: Bot, clubId: string) {
         status: "received",
         metadata: { staff_id: staff.id },
       })
-      await ctx.reply("✅ Telegram привязан к вашему профилю FitCRM. Теперь тестовые сообщения будут приходить сюда.")
+      await ctx.reply("✅ Telegram привязан к вашему профилю FitCRM.\n\nЗдесь доступны отчёты клуба и ежедневная сводка владельца. Для быстрого доступа используйте /menu.")
       const linkedUser = await getLinkedUser(telegramId, clubId)
       if (linkedUser) await sendMenuForUser(ctx, linkedUser)
       return
@@ -372,15 +468,22 @@ function setupHandlers(bot: Bot, clubId: string) {
 
     const tgUser = await getLinkedUser(telegramId, clubId)
     if (tgUser) {
+      const isStartCommand = ctx.message?.text?.split(/\s+/, 1)[0]?.split("@", 1)[0] === "/start"
+      if (isStartCommand) {
+        const profile = await getClubTelegramSettings(clubId)
+        await ctx.reply(clubProfileText(profile))
+      }
       await sendMenuForUser(ctx, tgUser)
       return
     }
 
-    const kb = new Keyboard().requestContact("📱 Поделиться номером").resized()
-    await ctx.reply(
-      "👋 Добро пожаловать в *FitCRM*!\n\nНажмите кнопку ниже чтобы войти в систему:",
-      { reply_markup: kb, parse_mode: "Markdown" }
-    )
+    const profile = await getClubTelegramSettings(clubId)
+    const kb = new Keyboard().requestContact(contactButton(profile.locale)).resized()
+    await ctx.api.setChatMenuButton({
+      chat_id: telegramId,
+      menu_button: { type: "commands" },
+    }).catch(() => undefined)
+    await ctx.reply(contactRequestText(profile), { reply_markup: kb })
   })
 
   // /sub — абонемент напрямую ───────────────────────────────────────
@@ -549,24 +652,30 @@ function setupHandlers(bot: Bot, clubId: string) {
       }
       await supabase.from("clients").update({ telegram_id: telegramId }).eq("id", client.id).eq("club_id", clubId)
       const firstName = client.full_name.split(" ")[0]
-      const [{ clubName, settings }, { data: activeSub }] = await Promise.all([
+      const [profile, { data: activeSub }] = await Promise.all([
         getClubTelegramSettings(clubId),
         supabase.from("subscriptions").select("expires_at").eq("club_id", clubId).eq("client_id", client.id)
           .in("status", ["active", "frozen"]).order("expires_at", { ascending: false }).limit(1).maybeSingle(),
       ])
-      const welcome = settings.welcome_enabled === false
+      const hours = workingHoursText(profile)
+      const welcome = profile.settings.welcome_enabled === false
         ? `✅ Добро пожаловать, ${firstName}!`
         : renderTemplate(
-            settings.welcome_message || "Привет, {{name}}! Добро пожаловать в {{club}}.",
+            profile.settings.welcome_message || "Привет, {{name}}! Добро пожаловать в {{club}}.",
             {
               name: firstName,
-              club: clubName,
+              club: profile.clubName,
               expires: activeSub?.expires_at
-                ? new Date(activeSub.expires_at).toLocaleDateString("ru-RU")
+                ? new Date(activeSub.expires_at).toLocaleDateString(localeTag(profile.locale))
                 : "—",
+              address: profile.contacts.address || profile.city || "—",
+              phone: profile.contacts.phone || "—",
+              email: profile.contacts.email || "—",
+              website: profile.contacts.website || "—",
+              hours: hours || "—",
             },
           )
-      await ctx.reply(welcome, removeKb)
+      await ctx.reply(`${welcome}\n\n${clubProfileText(profile)}`, removeKb)
       await supabase.from("telegram_events").insert({
         club_id: clubId,
         telegram_id: telegramId,
@@ -642,8 +751,9 @@ function setupHandlers(bot: Bot, clubId: string) {
     if (tgUser) {
       await sendMenuForUser(ctx, tgUser)
     } else {
-      const kb = new Keyboard().requestContact("📱 Поделиться номером").resized()
-      await ctx.reply("Для входа поделитесь номером:", { reply_markup: kb })
+      const profile = await getClubTelegramSettings(clubId)
+      const kb = new Keyboard().requestContact(contactButton(profile.locale)).resized()
+      await ctx.reply(contactRequestText(profile), { reply_markup: kb })
     }
   })
 
@@ -799,8 +909,9 @@ function setupHandlers(bot: Bot, clubId: string) {
           club_id: clubId, telegram_id: telegramId, client_id: clientId,
           event_type: "renewal_link_created", status: "sent", metadata: { payment_id: payment.id, provider },
         })
+        const profile = await getClubTelegramSettings(clubId)
         await ctx.editMessageText(
-          `💳 *Продление абонемента*\n\n${membership.name}\nСумма: *${fmtMoney(Number(membership.price))} сум*\n\nПосле оплаты абонемент активируется автоматически.`,
+          `💳 *Продление абонемента*\n\n${membership.name}\nСумма: *${profileMoney(Number(membership.price), profile)}*\n\nПосле оплаты абонемент активируется автоматически.`,
           { reply_markup: new InlineKeyboard().url(`Оплатить через ${provider === "payme" ? "Payme" : "Click"}`, paymentUrl).row().text("⬅️ Назад", "menu"), parse_mode: "Markdown" },
         )
         return
@@ -849,15 +960,8 @@ function setupHandlers(bot: Bot, clubId: string) {
       }
 
       if (data === "contacts") {
-        const { data: clubData } = await supabase.from("clubs").select("name, city, settings").eq("id", tgUser.client!.club_id).single()
-        const s = (clubData?.settings as ClubContactSettings | null) ?? {}
-        let text   = `📞 *Контакты клуба*\n\n🏋️ *${clubData?.name ?? "Клуб"}*\n`
-        if (clubData?.city) text += `📍 ${clubData.city}\n`
-        if (s.phone)        text += `📞 ${s.phone}\n`
-        if (s.instagram)    text += `📸 @${s.instagram}\n`
-        if (s.address)      text += `🗺 ${s.address}\n`
-        if (!s.phone && !s.instagram && !s.address) text += `\nСвяжитесь с администратором клуба.`
-        await ctx.editMessageText(text, { reply_markup: back, parse_mode: "Markdown" })
+        const profile = await getClubTelegramSettings(tgUser.client!.club_id)
+        await ctx.editMessageText(clubProfileText(profile), { reply_markup: back })
         return
       }
     }
@@ -867,7 +971,7 @@ function setupHandlers(bot: Bot, clubId: string) {
     if (!isStaff) return
 
     if (data === "report_today") {
-      const { from, to } = todayRange()
+      const { from, to } = await reportRange(clubId, 0)
       const now = new Date()
       const label = `Отчёт за сегодня (${now.toLocaleDateString("ru-RU", { day: "numeric", month: "long" })})`
       const text  = await buildReport(clubId, from, to, label)
@@ -876,7 +980,7 @@ function setupHandlers(bot: Bot, clubId: string) {
     }
 
     if (data === "report_yesterday") {
-      const { from, to } = yesterdayRange()
+      const { from, to } = await reportRange(clubId, -1)
       const yesterday = new Date(Date.now() - 86_400_000)
       const label = `Отчёт за вчера (${yesterday.toLocaleDateString("ru-RU", { day: "numeric", month: "long" })})`
       const text  = await buildReport(clubId, from, to, label)
@@ -900,7 +1004,7 @@ function setupHandlers(bot: Bot, clubId: string) {
     }
 
     if (data === "stat_revenue") {
-      const { from, to }       = todayRange()
+      const { from, to }       = await reportRange(clubId, 0)
       const { from: monthFrom } = { from: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString() }
 
       const [todayRes, monthRes] = await Promise.all([
@@ -910,10 +1014,11 @@ function setupHandlers(bot: Bot, clubId: string) {
 
       const todayRev = (todayRes.data ?? []).reduce((s, p) => s + Number(p.amount), 0)
       const monthRev = (monthRes.data ?? []).reduce((s, p) => s + Number(p.amount), 0)
+      const profile = await getClubTelegramSettings(clubId)
 
       let text  = `💰 *Касса*\n\n`
-      text += `Сегодня: *${fmtMoney(todayRev)} сум*\n`
-      text += `Месяц:   *${fmtMoney(monthRev)} сум*`
+      text += `Сегодня: *${profileMoney(todayRev, profile)}*\n`
+      text += `Месяц:   *${profileMoney(monthRev, profile)}*`
       await ctx.editMessageText(text, { reply_markup: backBtn("staff_menu"), parse_mode: "Markdown" })
       return
     }

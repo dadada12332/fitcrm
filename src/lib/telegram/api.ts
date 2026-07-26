@@ -48,7 +48,6 @@ export async function callTelegramApi<T = unknown>(
 
 export async function registerClubTelegramBot(token: string, clubId: string) {
   const webhookUrl = getTelegramWebhookUrl(clubId)
-  const miniAppUrl = getTelegramMiniAppUrl(clubId)
   const secretToken = getTelegramWebhookSecret(clubId, token)
   const [webhook, commands, menu, description] = await Promise.all([
     callTelegramApi(token, "setWebhook", {
@@ -67,7 +66,9 @@ export async function registerClubTelegramBot(token: string, clubId: string) {
       ],
     }),
     callTelegramApi(token, "setChatMenuButton", {
-      menu_button: { type: "web_app", text: "Открыть кабинет", web_app: { url: miniAppUrl } },
+      // The Mini App is client-only. A linked client receives its own Web App
+      // menu button from the bot handler; owners and unlinked users see commands.
+      menu_button: { type: "commands" },
     }),
     callTelegramApi(token, "setMyDescription", {
       description: "Личный кабинет вашего фитнес-клуба: абонемент, расписание, посещения, QR-код и уведомления.",

@@ -28,6 +28,7 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 - `a7d8cb9` · 2026-07-24 · Align client profile layout
@@ -37,7 +38,6 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 - `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
 - `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
 - `df0517f` · 2026-07-24 · feat: group integration catalog sections
-- `dff8246` · 2026-07-23 · fix: expose bridge release download
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
@@ -73,5 +73,5 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 Production deploy, применённые миграции, регион Supabase, наличие провайдеров и точные пути из старых `FITCRM_*` документов.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-24 Asia/Tashkent
+2026-07-27 Asia/Tashkent
 <!-- AUTO:END updated-at -->

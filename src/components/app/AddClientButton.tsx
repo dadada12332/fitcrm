@@ -5,6 +5,7 @@ import { toast } from "@/lib/use-action"
 import { Plus, X, ChevronDown, Calendar } from "lucide-react"
 import { createClientAction, type ClientFormState } from "@/app/(app)/clients/actions"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "./ClubContext"
 
 export type MembershipOption = { id: string; name: string; price: number }
 export type TrainerOption = { id: string; name: string }
@@ -103,6 +104,7 @@ export function AddClientButton({
   trainers?: TrainerOption[]
   initialOpen?: boolean
 }) {
+  const { money } = useAppLocale()
   const [open, setOpen] = useState(initialOpen)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -301,7 +303,7 @@ export function AddClientButton({
                         <option value="">Выберите абонемент</option>
                         {allMemberships.map((m) => (
                           <option key={m.id} value={m.id}>
-                            {m.name}{m.price > 0 ? ` — ${m.price.toLocaleString("ru-RU")} сум` : ""}
+                            {m.name}{m.price > 0 ? ` — ${money(m.price)}` : ""}
                           </option>
                         ))}
                       </select>

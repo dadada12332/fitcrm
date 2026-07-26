@@ -6,8 +6,9 @@ import { cookies } from "next/headers"
 import type { RolePermissions } from "@/lib/permissions"
 import { getDefaultPermissions, mergePermissions } from "@/lib/permissions"
 import { applyPlanToPermissions, type PlanAccess } from "@/lib/plan-access"
+import { normalizeAppLocale, type AppLocale } from "@/lib/app-locale"
 
-const CLUB_SELECT = "name, plan, status, trial_expires_at, plan_expires_at, plans(code, name, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value), plan_sections(section_key, enabled))"
+const CLUB_SELECT = "name, plan, status, trial_expires_at, plan_expires_at, settings, plans(code, name, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value), plan_sections(section_key, enabled))"
 
 export type CurrentClub = {
   clubId: string
@@ -19,6 +20,9 @@ export type CurrentClub = {
   planExpiresAt: string | null
   permissions: RolePermissions
   planAccess: PlanAccess | null
+  locale: AppLocale
+  currency: string
+  timezone: string
   impersonating?: boolean
 } | null
 
@@ -61,6 +65,9 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
             planExpiresAt: club.plan_expires_at ?? null,
             permissions: applyPlanToPermissions(getDefaultPermissions("owner"), planAccess),
             planAccess,
+            locale: normalizeAppLocale((club.settings as Record<string, unknown> | null)?.locale),
+            currency: String((club.settings as Record<string, unknown> | null)?.currency ?? "UZS"),
+            timezone: String((club.settings as Record<string, unknown> | null)?.timezone ?? "Asia/Tashkent"),
             impersonating: true,
           }
         }
@@ -74,7 +81,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
 
   let query = supabase
     .from("staff")
-    .select(`club_id, role, clubs(${CLUB_SELECT})`)
+    .select(`club_id, role, settings, clubs(${CLUB_SELECT})`)
     .eq("user_id", uid)
     .eq("is_active", true)
 
@@ -85,7 +92,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
   if (!data) {
     const { data: fallback } = await supabase
       .from("staff")
-      .select(`club_id, role, clubs(${CLUB_SELECT})`)
+      .select(`club_id, role, settings, clubs(${CLUB_SELECT})`)
       .eq("user_id", uid)
       .eq("is_active", true)
       .limit(1)
@@ -95,13 +102,13 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
     const fb = fallback.clubs as unknown as ClubRow | null
     const permissions = await resolvePermissions(supabase, fallback.club_id, fallback.role)
     const planAccess = embeddedPlanAccess(fb?.plans)
-    return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess)
+    return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess, fallback.settings)
   }
 
   const club = data.clubs as unknown as ClubRow | null
   const permissions = await resolvePermissions(supabase, data.club_id, data.role)
   const planAccess = embeddedPlanAccess(club?.plans)
-  return clubResult(data.club_id, data.role, club, permissions, planAccess)
+  return clubResult(data.club_id, data.role, club, permissions, planAccess, data.settings)
 })
 
 type ClubRow = {
@@ -110,6 +117,7 @@ type ClubRow = {
   status: string | null
   trial_expires_at: string | null
   plan_expires_at: string | null
+  settings: Record<string, unknown> | null
   plans: EmbeddedPlan | null
 }
 
@@ -133,7 +141,15 @@ function embeddedPlanAccess(plan: EmbeddedPlan | EmbeddedPlan[] | null | undefin
   }
 }
 
-function clubResult(clubId: string, role: string, club: ClubRow | null, permissions: RolePermissions, planAccess: PlanAccess | null) {
+function clubResult(
+  clubId: string,
+  role: string,
+  club: ClubRow | null,
+  permissions: RolePermissions,
+  planAccess: PlanAccess | null,
+  staffSettings?: Record<string, unknown> | null,
+) {
+  const clubSettings = club?.settings ?? {}
   return {
     clubId,
     role,
@@ -144,6 +160,9 @@ function clubResult(clubId: string, role: string, club: ClubRow | null, permissi
     planExpiresAt: club?.plan_expires_at ?? null,
     permissions: applyPlanToPermissions(permissions, planAccess),
     planAccess,
+    locale: normalizeAppLocale(staffSettings?.locale ?? clubSettings.locale),
+    currency: String(clubSettings.currency ?? "UZS"),
+    timezone: String(clubSettings.timezone ?? "Asia/Tashkent"),
   }
 }
 

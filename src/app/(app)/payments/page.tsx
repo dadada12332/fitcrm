@@ -5,8 +5,7 @@ import { getActiveMemberships } from "@/lib/memberships"
 import { PaymentsClient } from "@/components/app/PaymentsClient"
 import { TrendingUp, TrendingDown, DollarSign, Receipt, Users } from "lucide-react"
 import { redirect } from "next/navigation"
-
-function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
+import { formatClubMoney } from "@/lib/app-locale"
 
 function periodFrom(period: string): string {
   const d = new Date()
@@ -50,6 +49,7 @@ export default async function PaymentsPage({
   const { data: creds } = await createServiceClient()
     .from("club_payment_credentials").select("provider, enabled").eq("club_id", club.clubId).eq("enabled", true)
   const connectedProviders = (creds ?? []).map((c: { provider: string }) => c.provider)
+  const money = (amount: number) => formatClubMoney(amount, club.currency, club.locale)
 
   return (
     <div className="space-y-5">
@@ -65,7 +65,7 @@ export default async function PaymentsPage({
         {[
           {
             label: "Выручка сегодня", icon: DollarSign,
-            value: <>{fmtSum(kpi.todayRevenue)} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></>,
+            value: money(kpi.todayRevenue),
             delta: kpi.todayRevenuePct !== undefined ? (
               <div className="flex items-center gap-1.5">
                 {kpi.todayRevenuePct >= 0
@@ -80,7 +80,7 @@ export default async function PaymentsPage({
           },
           {
             label: "Выручка за месяц", icon: TrendingUp,
-            value: <>{fmtSum(kpi.monthRevenue)} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></>,
+            value: money(kpi.monthRevenue),
             delta: kpi.monthRevenuePct !== undefined ? (
               <div className="flex items-center gap-1.5">
                 {kpi.monthRevenuePct >= 0
@@ -95,7 +95,7 @@ export default async function PaymentsPage({
           },
           {
             label: "Средний чек", icon: Receipt,
-            value: <>{fmtSum(kpi.avgCheck)} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>сум</span></>,
+            value: money(kpi.avgCheck),
             delta: null,
           },
           {

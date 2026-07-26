@@ -7,6 +7,7 @@ import { searchClientsPayments, createPaymentAction, createOnlinePaymentAction, 
 import type { PayMethod } from "@/lib/payment-methods"
 import type { ClientSearchResult } from "@/lib/visits"
 import { MoneyInput } from "./MoneyInput"
+import { useAppLocale } from "./ClubContext"
 
 type Membership = { id: string; name: string; price: number }
 type Provider = "cash" | "click" | "payme" | "uzum"
@@ -25,6 +26,7 @@ export function NewPaymentModal({ memberships, connectedProviders = [], fixedCli
   fixedClient?: PaymentClient
   onClose: () => void
 }) {
+  const { money } = useAppLocale()
   const [query, setQuery] = useState("")
   const [searchResults, setSearchResults] = useState<ClientSearchResult[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
@@ -288,7 +290,7 @@ export function NewPaymentModal({ memberships, connectedProviders = [], fixedCli
                   >
                     <option value="">— Без абонемента —</option>
                     {memberships.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name} — {m.price.toLocaleString("ru-RU")} сум</option>
+                      <option key={m.id} value={m.id}>{m.name} — {money(m.price)}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--gray-muted)" }} />

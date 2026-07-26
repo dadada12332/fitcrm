@@ -3,42 +3,33 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronRight } from "lucide-react"
+import { useAppLocale } from "./ClubContext"
+import type { AppMessageKey } from "@/lib/app-locale"
 
-const LABELS: Record<string, string> = {
-  dashboard:     "Дашборд",
-  inbox:         "Обращения",
-  clients:       "Клиенты",
-  memberships:   "Абонементы",
-  visits:        "Посещения",
-  schedule:      "Расписание",
-  payments:      "Оплата",
-  staff:         "Сотрудники",
-  profile:       "Профиль",
-  settings:      "Настройки",
-  club:          "Основное",
-  branches:      "Филиалы",
-  finance:       "Финансы",
-  notifications: "Уведомления",
-  integrations:  "Интеграции",
-  roles:         "Роли и права",
-  security:      "Безопасность",
-  subscription:  "Подписка",
-  onboarding:    "Онбординг",
-  support:       "Поддержка",
-  knowledge:     "База знаний",
-  reports:       "Отчёты",
-  retention:     "Удержание",
+const LABEL_KEYS: Record<string, AppMessageKey> = {
+  dashboard: "nav.dashboard", inbox: "nav.inbox", clients: "nav.clients",
+  memberships: "nav.memberships", visits: "nav.visits", schedule: "nav.schedule",
+  payments: "nav.payments", staff: "nav.staff", settings: "nav.settings",
+  club: "settings.basic", branches: "settings.branches", finance: "settings.finance",
+  notifications: "settings.notifications", integrations: "nav.integrations",
+  roles: "settings.roles", security: "settings.security", subscription: "settings.subscription",
+  support: "nav.support", knowledge: "nav.knowledge", reports: "nav.reports",
+  retention: "nav.retention", warehouse: "nav.warehouse", ai: "nav.ai",
+}
+
+const STATIC_LABELS: Record<string, string> = {
+  profile: "Профиль",
+  onboarding: "Онбординг",
   growth:        "Growth OS",
-  warehouse:     "Склад",
-  ai:            "AI Аналитика",
 }
 
 function isUUID(s: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
 }
 
-function segmentLabel(seg: string, prev: string): string {
-  if (LABELS[seg]) return LABELS[seg]
+function segmentLabel(seg: string, prev: string, t: (key: AppMessageKey) => string): string {
+  if (LABEL_KEYS[seg]) return t(LABEL_KEYS[seg])
+  if (STATIC_LABELS[seg]) return STATIC_LABELS[seg]
   if (isUUID(seg)) {
     if (prev === "clients")  return "Клиент"
     if (prev === "staff")    return "Профиль"
@@ -48,6 +39,7 @@ function segmentLabel(seg: string, prev: string): string {
 }
 
 export function Breadcrumbs() {
+  const { t } = useAppLocale()
   const pathname = usePathname()
   const segments = pathname.split("/").filter(Boolean)
 
@@ -55,7 +47,7 @@ export function Breadcrumbs() {
 
   const crumbs = segments.map((seg, i) => {
     const href  = "/" + segments.slice(0, i + 1).join("/")
-    const label = segmentLabel(seg, segments[i - 1] ?? "")
+    const label = segmentLabel(seg, segments[i - 1] ?? "", t)
     return { href, label }
   })
 

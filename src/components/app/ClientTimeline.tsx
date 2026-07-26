@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 
 import type { PeriodKey, PeriodStat } from "@/lib/dashboard"
+import { useAppLocale } from "./ClubContext"
 
 export type TimelineVisit = {
   id: string
@@ -56,6 +57,7 @@ export function ClientTimeline({
   expiringCount,
   churnCount,
 }: Props) {
+  const { money } = useAppLocale()
   const [period, setPeriod] = useState<PeriodKey>("Сегодня")
   const cur = periods[period]
 
@@ -96,7 +98,7 @@ export function ClientTimeline({
             Выручка · {period === "Сегодня" ? "сегодня" : `за ${cur.unit}`}
           </p>
           <p className="font-semibold tabular-nums text-[15px] text-zinc-950 dark:text-zinc-50">
-            {Math.round(cur.revenue).toLocaleString("ru-RU")} сум
+            {money(cur.revenue)}
           </p>
         </div>
         <div>

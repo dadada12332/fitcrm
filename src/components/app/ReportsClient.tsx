@@ -15,6 +15,8 @@ import { loadReportsExportDataAction, loadFinanceAction, loadSalesAction, loadVi
 import { downloadBlob } from "@/lib/csv"
 import { toast } from "sonner"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "./ClubContext"
+import { formatClubMoney, localeTag, type AppLocale } from "@/lib/app-locale"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -123,6 +125,7 @@ function AlertsSection({ agg, visitsDelta, onNavigate }: {
   visitsDelta: number
   onNavigate: (s: Section) => void
 }) {
+  const { money } = useAppLocale()
   const expiringSoonCount = agg.expiringSoonCount
   const atRiskCount       = agg.atRiskCount
   const debtsCount        = agg.debtsCount
@@ -164,7 +167,7 @@ function AlertsSection({ agg, visitsDelta, onNavigate }: {
       value: debtsCount,
       icon: Wallet,
       tone: "urgent",
-      description: debtsCount > 0 ? `${fmt(debtTotal)} сум ожидают оплаты` : "Неоплаченных счетов нет",
+      description: debtsCount > 0 ? `${money(debtTotal)} ожидают оплаты` : "Неоплаченных счетов нет",
       section: "debts",
       action: "Открыть долги",
     },
@@ -294,6 +297,7 @@ function FinanceSection({ agg, bounds }: {
   agg: FinanceAgg
   bounds: ReturnType<typeof periodBounds>
 }) {
+  const { money, currency } = useAppLocale()
   const revenue     = agg.revenue
   const count       = agg.count
   const prevRevenue = agg.prevRevenue
@@ -315,9 +319,9 @@ function FinanceSection({ agg, bounds }: {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 rounded-lg overflow-hidden"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
-          { label: "Выручка",     value: `${fmt(revenue)} сум`,       icon: TrendingUp, delta: revDelta,  sub: undefined },
-          { label: "В день",      value: `${fmt(revenuePerDay)} сум`,  icon: TrendingUp, delta: undefined, sub: `за ${days} дн.` },
-          { label: "Средний чек", value: `${fmt(avgCheck)} сум`,       icon: CreditCard, delta: undefined, sub: undefined },
+          { label: "Выручка", value: money(revenue), icon: TrendingUp, delta: revDelta, sub: undefined },
+          { label: "В день", value: money(revenuePerDay), icon: TrendingUp, delta: undefined, sub: `за ${days} дн.` },
+          { label: "Средний чек", value: money(avgCheck), icon: CreditCard, delta: undefined, sub: undefined },
           { label: "Платежей",    value: String(count),                icon: BarChart2,  delta: undefined, sub: `~${days > 0 ? Math.round(count / days) : 0}/день` },
         ].map(({ label, value, icon: Icon, delta, sub }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
@@ -357,17 +361,17 @@ function FinanceSection({ agg, bounds }: {
                 </span>
               </>
             )}
-            <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{fmt(revenue)} сум</span>
+            <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{money(revenue)}</span>
           </div>
         }>
           <div className="grid grid-cols-3 px-5 py-3 gap-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
             <div>
               <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Итого</p>
-              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmtShort(revenue)} сум</p>
+              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmtShort(revenue)} {currency}</p>
             </div>
             <div>
               <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>В среднем / день</p>
-              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmtShort(Math.round(revenue / days))} сум</p>
+              <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmtShort(Math.round(revenue / days))} {currency}</p>
             </div>
             <div>
               <p className="text-xs mb-0.5" style={{ color: "var(--gray-muted)" }}>Платежей</p>
@@ -386,7 +390,7 @@ function FinanceSection({ agg, bounds }: {
                 <CartesianGrid strokeDasharray="0" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} interval="preserveStartEnd" />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} width={48} tickFormatter={fmtShort} />
-                <Tooltip {...chartTooltipStyle} formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, "Выручка"]} />
+                <Tooltip {...chartTooltipStyle} formatter={(v) => [money(Number(v)), "Выручка"]} />
                 <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2.5} fill="url(#rGrad)" dot={false} activeDot={{ r: 5, fill: "#2563eb", strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
@@ -412,7 +416,7 @@ function FinanceSection({ agg, bounds }: {
                       {providerData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                     </Pie>
                     <Tooltip
-                      formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, ""]}
+                      formatter={(v) => [money(Number(v)), ""]}
                       contentStyle={chartTooltipStyle.contentStyle}
                       labelStyle={chartTooltipStyle.labelStyle}
                       itemStyle={chartTooltipStyle.itemStyle}
@@ -431,7 +435,7 @@ function FinanceSection({ agg, bounds }: {
                           <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{p.name}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmt(p.value)} сум</span>
+                          <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{money(p.value)}</span>
                           <span className="text-xs tabular-nums font-semibold w-8 text-right" style={{ color: p.color }}>{share}%</span>
                         </div>
                       </div>
@@ -443,7 +447,7 @@ function FinanceSection({ agg, bounds }: {
                 })}
                 <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
                   <span className="text-xs" style={{ color: "var(--gray-muted)" }}>Итого выручка</span>
-                  <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{fmt(revenue)} сум</span>
+                  <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--on-dark)" }}>{money(revenue)}</span>
                 </div>
               </div>
             </div>
@@ -459,6 +463,7 @@ function FinanceSection({ agg, bounds }: {
 // ── 3. Sales Section ─────────────────────────────────────────────────
 
 function SalesSection({ agg }: { agg: SalesAgg }) {
+  const { money } = useAppLocale()
   const totalRev = agg.totalRevenue
   // byService уже отсортирован по revenue desc сервером; долю считаем так же, как раньше.
   const rows = agg.byService
@@ -472,7 +477,7 @@ function SalesSection({ agg }: { agg: SalesAgg }) {
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
           { label: "Продано",  value: String(agg.sold),      icon: CreditCard },
-          { label: "Выручка",  value: `${fmt(totalRev)} сум`, icon: TrendingUp },
+          { label: "Выручка", value: money(totalRev), icon: TrendingUp },
           { label: "Тарифов",  value: String(rows.length),    icon: BarChart2 },
         ].map(({ label, value, icon: Icon }, i) => (
           <div key={label}
@@ -512,7 +517,7 @@ function SalesSection({ agg }: { agg: SalesAgg }) {
                         </div>
                       </td>
                       <td className="px-5 py-3 tabular-nums" style={{ color: "var(--on-dark-soft)" }}>{r.count}</td>
-                      <td className="px-5 py-3 tabular-nums font-medium" style={{ color: "var(--on-dark)" }}>{fmt(r.revenue)} сум</td>
+                      <td className="px-5 py-3 tabular-nums font-medium" style={{ color: "var(--on-dark)" }}>{money(r.revenue)}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card-2)", minWidth: 40 }}>
@@ -536,7 +541,7 @@ function SalesSection({ agg }: { agg: SalesAgg }) {
                 <CartesianGrid strokeDasharray="0" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--gray-muted)" }} tickFormatter={fmtShort} />
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "var(--on-dark-soft)" }} width={90} />
-                <Tooltip {...chartTooltipStyle} formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, "Выручка"]} />
+                <Tooltip {...chartTooltipStyle} formatter={(v) => [money(Number(v)), "Выручка"]} />
                 <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
                   {rows.slice(0, 6).map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                 </Bar>
@@ -886,6 +891,7 @@ function ClientsSection({ agg }: { agg: ClientsAgg }) {
 // ── 7. Staff Section ──────────────────────────────────────────────────
 
 function StaffSection({ staff }: { staff: ReportStaffRow[] }) {
+  const { money } = useAppLocale()
   return (
     <SectionCard title="Сотрудники">
       {staff.length === 0 ? (
@@ -919,7 +925,7 @@ function StaffSection({ staff }: { staff: ReportStaffRow[] }) {
                       </span>
                     </td>
                     <td className="px-5 py-3 font-medium" style={{ color: "var(--on-dark)" }}>{s.clientCount > 0 ? s.clientCount : "—"}</td>
-                    <td className="px-5 py-3" style={{ color: "var(--on-dark-soft)" }}>{s.salary > 0 ? `${fmt(s.salary)} сум` : "—"}</td>
+                    <td className="px-5 py-3" style={{ color: "var(--on-dark-soft)" }}>{s.salary > 0 ? money(s.salary) : "—"}</td>
                     <td className="px-5 py-3">
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: sm.bg, color: sm.color }}>{sm.label}</span>
                     </td>
@@ -937,6 +943,7 @@ function StaffSection({ staff }: { staff: ReportStaffRow[] }) {
 // ── 8. Debts Section ──────────────────────────────────────────────────
 
 function DebtsSection({ agg }: { agg: DebtsAgg }) {
+  const { money } = useAppLocale()
   const total = agg.total
 
   return (
@@ -945,7 +952,7 @@ function DebtsSection({ agg }: { agg: DebtsAgg }) {
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         {[
           { label: "Должников",  value: String(agg.count), icon: AlertTriangle },
-          { label: "Общий долг", value: `${fmt(total)} сум`,  icon: Wallet },
+          { label: "Общий долг", value: money(total), icon: Wallet },
         ].map(({ label, value, icon: Icon }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
             style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
@@ -976,7 +983,7 @@ function DebtsSection({ agg }: { agg: DebtsAgg }) {
                   <tr key={p.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                     <td className="px-5 py-3 font-medium" style={{ color: "var(--on-dark)" }}>{p.clientName ?? "—"}</td>
                     <td className="px-5 py-3" style={{ color: "var(--on-dark-soft)" }}>{p.clientPhone ?? "—"}</td>
-                    <td className="px-5 py-3 tabular-nums font-semibold" style={{ color: "#dc2626" }}>{fmt(p.amount)} сум</td>
+                    <td className="px-5 py-3 tabular-nums font-semibold" style={{ color: "#dc2626" }}>{money(p.amount)}</td>
                     <td className="px-5 py-3 text-xs" style={{ color: "var(--gray-muted)" }}>
                       {new Date(p.createdAt).toLocaleDateString("ru-RU")}
                     </td>
@@ -1000,6 +1007,7 @@ function AiSection({ finance, sales, visits, alerts, bounds }: {
   alerts: AlertsAgg
   bounds: ReturnType<typeof periodBounds>
 }) {
+  const { money } = useAppLocale()
   const insights = useMemo(() => {
     const result: Array<{ icon: string; title: string; detail: string; level: "info" | "warning" | "success" }> = []
 
@@ -1032,11 +1040,11 @@ function AiSection({ finance, sales, visits, alerts, bounds }: {
     // Revenue insight
     if (revenue > 0) {
       const avgPerDay = revenue / daysBetween(bounds.from, bounds.to)
-      result.push({ icon: "📈", title: `Средняя выручка в день: ${fmt(Math.round(avgPerDay))} сум`, detail: `На основе периода ${finance.count} платежей`, level: "success" })
+      result.push({ icon: "📈", title: `Средняя выручка в день: ${money(Math.round(avgPerDay))}`, detail: `На основе периода ${finance.count} платежей`, level: "success" })
     }
 
     return result
-  }, [finance, sales, visits, alerts, bounds])
+  }, [finance, sales, visits, alerts, bounds, money])
 
   // Вход для AI-прогноза (те же деривации, что и в insights)
   const forecastInput = useMemo<ForecastInput>(() => {
@@ -1203,8 +1211,12 @@ function printPdf(
   periodVisits: Array<{ clientId: string; checkedInAt: string }>,
   debts: ReportPayment[],
   period: string,
+  currency: string,
+  locale: AppLocale,
 ) {
-  const stamp     = new Date().toLocaleDateString("ru-RU")
+  const tag       = localeTag(locale)
+  const money     = (value: number) => formatClubMoney(value, currency, locale)
+  const stamp     = new Date().toLocaleDateString(tag)
   const revenue   = paidPayments.reduce((a, p) => a + p.amount, 0)
   const avgCheck  = paidPayments.length ? Math.round(revenue / paidPayments.length) : 0
   const active    = data.clients.filter(c => c.status === "active").length
@@ -1214,7 +1226,7 @@ function printPdf(
   const female    = data.clients.filter(c => c.gender === "female").length
 
   const html = `<!DOCTYPE html>
-<html lang="ru">
+<html lang="${locale}">
 <head>
 <meta charset="UTF-8">
 <title>FitCRM — Отчёт (${PERIOD_LABELS[period] ?? period})</title>
@@ -1260,13 +1272,13 @@ function printPdf(
 
 <h2>Сводка</h2>
 ${kpiGrid([
-  { label: "Выручка", value: revenue.toLocaleString("ru-RU") + " сум" },
-  { label: "Платежей", value: String(paidPayments.length), sub: avgCheck ? `ср. чек ${avgCheck.toLocaleString("ru-RU")} сум` : undefined },
+  { label: "Выручка", value: money(revenue) },
+  { label: "Платежей", value: String(paidPayments.length), sub: avgCheck ? `ср. чек ${money(avgCheck)}` : undefined },
   { label: "Посещений", value: String(periodVisits.length) },
   { label: "Всего клиентов", value: String(data.clients.length), sub: `активных: ${active}` },
   { label: "Мужчин / Женщин", value: `${male} / ${female}` },
   { label: "Истёкших", value: String(expired) },
-  { label: "Долгов", value: String(debts.length), sub: debtTotal ? `${debtTotal.toLocaleString("ru-RU")} сум` : undefined },
+  { label: "Долгов", value: String(debts.length), sub: debtTotal ? money(debtTotal) : undefined },
   { label: "Сотрудников", value: String(data.staff.length) },
 ])}
 
@@ -1275,10 +1287,10 @@ ${paidPayments.length === 0 ? "<p class='note'>Нет оплат за выбра
   tbl(
     ["Дата", "Клиент", "Услуга", "Сумма", "Способ оплаты"],
     paidPayments.slice(0, 200).map(p => [
-      p.paidAt ? new Date(p.paidAt).toLocaleDateString("ru-RU") : "—",
+      p.paidAt ? new Date(p.paidAt).toLocaleDateString(tag) : "—",
       p.clientName ?? "—",
       p.serviceName ?? "—",
-      `<span class="right">${p.amount.toLocaleString("ru-RU")} сум</span>`,
+      `<span class="right">${money(p.amount)}</span>`,
       PROVIDER_LABELS_RU[p.provider] ?? p.provider,
     ])
   )
@@ -1315,24 +1327,24 @@ ${tbl(
   debts.slice(0, 100).map(p => [
     p.clientName ?? "—",
     p.clientPhone ?? "—",
-    `<span class="badge badge-red">${p.amount.toLocaleString("ru-RU")} сум</span>`,
-    new Date(p.createdAt).toLocaleDateString("ru-RU"),
+    `<span class="badge badge-red">${money(p.amount)}</span>`,
+    new Date(p.createdAt).toLocaleDateString(tag),
   ])
 )}
-<p class="note">Итого долг: <strong>${debtTotal.toLocaleString("ru-RU")} сум</strong></p>
+<p class="note">Итого долг: <strong>${money(debtTotal)}</strong></p>
 ` : ""}
 
 ${data.staff.length > 0 ? `
 <h2>Сотрудники (${data.staff.length})</h2>
 ${tbl(
-  ["Имя", "Роль", "Клиентов", "Зарплата (сум)", "Статус"],
+  ["Имя", "Роль", "Клиентов", `Зарплата (${currency})`, "Статус"],
   data.staff.map(s => {
     const sc = s.status === "active" ? "badge-green" : s.status === "fired" ? "badge-red" : "badge-amber"
     return [
       `<strong>${s.name}</strong>`,
       ROLE_LABELS[s.role] ?? s.role,
       s.clientCount > 0 ? String(s.clientCount) : "—",
-      s.salary > 0 ? s.salary.toLocaleString("ru-RU") : "—",
+      s.salary > 0 ? money(s.salary) : "—",
       `<span class="badge ${sc}">${s.status === "active" ? "Активен" : s.status === "vacation" ? "Отпуск" : "Уволен"}</span>`,
     ]
   })
@@ -1352,6 +1364,7 @@ ${tbl(
 }
 
 export function ReportsClient({ canExport = false }: { canExport?: boolean }) {
+  const { currency, locale } = useAppLocale()
   const [period,  setPeriod]  = useState<Period>("30d")
   const [section, setSection] = useState<Section>("alerts")
 
@@ -1461,7 +1474,7 @@ export function ReportsClient({ canExport = false }: { canExport?: boolean }) {
       const paidPayments = data.payments.filter(p => p.status === "paid" && p.paidAt && p.paidAt >= bounds.from && p.paidAt <= bounds.to)
       const periodVisits = data.visits.filter(v => v.checkedInAt >= bounds.from && v.checkedInAt <= bounds.to)
       const debts = data.payments.filter(p => p.status === "pending")
-      printPdf(data, paidPayments, periodVisits, debts, period)
+      printPdf(data, paidPayments, periodVisits, debts, period, currency, locale)
     } finally {
       setExporting(null)
     }

@@ -8,21 +8,23 @@ import {
 import { ClubSettings, type ClubData } from "@/components/app/ClubSettings"
 import { RolesSettings } from "@/components/app/RolesSettings"
 import { getRolesAction, type RoleRow } from "./roles/actions"
+import { useAppLocale } from "@/components/app/ClubContext"
+import type { AppMessageKey } from "@/lib/app-locale"
 
 type TabKey = "club" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "roles" | "security" | "subscription"
 
 type AllowedTabs = Partial<Record<TabKey, boolean>>
 
-const ALL_TABS: { key: TabKey; label: string; icon: typeof Building2 }[] = [
-  { key: "club",          label: "Основное",      icon: Building2   },
-  { key: "branches",      label: "Филиалы",       icon: GitFork     },
-  { key: "staff",         label: "Сотрудники",    icon: Users       },
-  { key: "finance",       label: "Финансы",       icon: Wallet      },
-  { key: "notifications", label: "Уведомления",   icon: Bell        },
-  { key: "integrations",  label: "Интеграции",    icon: Plug        },
-  { key: "roles",         label: "Роли и права",  icon: ShieldCheck },
-  { key: "security",      label: "Безопасность",  icon: Shield      },
-  { key: "subscription",  label: "Подписка",      icon: Crown       },
+const ALL_TABS: { key: TabKey; label: AppMessageKey; icon: typeof Building2 }[] = [
+  { key: "club",          label: "settings.basic",         icon: Building2   },
+  { key: "branches",      label: "settings.branches",      icon: GitFork     },
+  { key: "staff",         label: "settings.staff",         icon: Users       },
+  { key: "finance",       label: "settings.finance",       icon: Wallet      },
+  { key: "notifications", label: "settings.notifications", icon: Bell        },
+  { key: "integrations",  label: "settings.integrations",  icon: Plug        },
+  { key: "roles",         label: "settings.roles",         icon: ShieldCheck },
+  { key: "security",      label: "settings.security",      icon: Shield      },
+  { key: "subscription",  label: "settings.subscription",  icon: Crown       },
 ]
 
 // Maps settings tab key → ClubSettings section prop
@@ -56,6 +58,7 @@ export function SettingsShell({
   initialRoles?: RoleRow[]
   initialRolesError?: string
 }) {
+  const { t } = useAppLocale()
   const visibleTabs = ALL_TABS.filter(t => allowedTabs[t.key] !== false)
 
   // Resolve initial tab (might come from redirect with ?tab=X)
@@ -128,7 +131,7 @@ export function SettingsShell({
                 }}
               >
                 <Icon style={{ width: 15, height: 15, color: active ? "#2563eb" : "var(--gray-muted)", flexShrink: 0 }} />
-                {label}
+                {t(label)}
               </button>
             )
           })}

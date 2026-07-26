@@ -1,6 +1,6 @@
 ---
 type: dashboard
-updated: 2026-07-24
+updated: 2026-07-27
 tags: [fitcrm, operations]
 ---
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 - `a7d8cb9` · 2026-07-24 · Align client profile layout
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
 - `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
 - `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
-- `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-24 Asia/Tashkent
+2026-07-27 Asia/Tashkent
 <!-- AUTO:END updated-at -->

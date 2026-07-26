@@ -9,8 +9,8 @@ import {
   confirmReconAction, ignoreReconAction, rematchReconAction, refreshReconAction,
   searchClientsReconAction, manualAttachAction,
 } from "@/app/(app)/payments/reconcile/actions"
+import { useAppLocale } from "./ClubContext"
 
-const fmtSum = (n: number) => n.toLocaleString("ru-RU")
 const fmtTime = (iso: string) => new Date(iso).toLocaleString("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
 const providerLabel: Record<string, string> = { click: "Click", payme: "Payme" }
 
@@ -108,6 +108,7 @@ function ConfidenceBadge({ value }: { value: number | null }) {
 function ReconCard({ r, pending, start, reload }: {
   r: ReconRow; pending: boolean; start: React.TransitionStartFunction; reload: () => Promise<void>
 }) {
+  const { money } = useAppLocale()
   const [msg, setMsg] = useState<string | null>(null)
   const [attaching, setAttaching] = useState(false)
   const hasSuggestion = !!r.suggestedPaymentId && r.status === "suggested"
@@ -136,7 +137,7 @@ function ReconCard({ r, pending, start, reload }: {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold" style={{ color: "var(--on-dark)" }}>
-              {fmtSum(r.amount)} <span className="font-normal text-xs" style={{ color: "var(--gray-muted)" }}>сум</span>
+              {money(r.amount)}
             </p>
             <p className="text-xs truncate" style={{ color: "var(--gray-muted)" }}>
               {providerLabel[r.provider] ?? r.provider} · {fmtTime(r.paidAt)}{r.cardMask ? ` · ${r.cardMask}` : ""}

@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAppLocale } from "./ClubContext"
 
 export function fmtSum(n: number) { return n.toLocaleString("ru-RU") }
 export function fmtQty(n: number, unit: string) { return `${n % 1 === 0 ? n : n.toFixed(2)} ${unit}` }
@@ -424,6 +425,7 @@ type Props = {
 }
 
 export function InventoryClient({ clubId, products, movements, stats, canSupply, canWriteoff, canViewCost, versionControl }: Props) {
+  const { money } = useAppLocale()
   const [query, setQuery] = useState("")
   const [addOpen, setAddOpen] = useState(false)
   const [supplyOpen, setSupplyOpen] = useState(false)
@@ -512,8 +514,8 @@ export function InventoryClient({ clubId, products, movements, stats, canSupply,
         {[
           { label: "Товаров",          value: String(stats.totalProducts),        icon: Package },
           { label: "Мало на складе",   value: String(stats.lowStockCount),        icon: AlertTriangle },
-          { label: "Стоимость склада", value: canViewCost ? fmtSum(stats.totalValue) + " сум" : "—", icon: DollarSign },
-          { label: "Продаж за месяц",  value: fmtSum(stats.totalSalesMonth) + " сум", icon: TrendingUp },
+          { label: "Стоимость склада", value: canViewCost ? money(stats.totalValue) : "—", icon: DollarSign },
+          { label: "Продаж за месяц", value: money(stats.totalSalesMonth), icon: TrendingUp },
         ].map(({ label, value, icon: Icon }, i) => (
           <div key={label} className="p-5 flex flex-col gap-3"
             style={{ borderLeft: i === 0 ? "none" : "1px solid var(--border)" }}>
@@ -636,10 +638,10 @@ export function InventoryClient({ clubId, products, movements, stats, canSupply,
                       )}
                     </div>
                     <div className="hidden text-right text-sm text-foreground lg:col-span-2 lg:block">
-                      {fmtSum(p.sellPrice)} сум
+                      {money(p.sellPrice)}
                     </div>
                     <div className="hidden text-right text-sm font-medium text-foreground lg:col-span-2 lg:block">
-                      {canViewCost ? `${fmtSum(p.quantity * p.buyPrice)} сум` : "—"}
+                      {canViewCost ? money(p.quantity * p.buyPrice) : "—"}
                     </div>
                     <div className="col-span-2 flex justify-end lg:col-span-1">
                       <ProductActionsMenu
@@ -692,7 +694,7 @@ export function InventoryClient({ clubId, products, movements, stats, canSupply,
                     {m.type === "in" || m.type === "return" ? "+" : "-"}{m.qty}
                   </div>
                   <div className="col-span-2 text-right text-sm" style={{ color: "var(--on-dark-soft)" }}>
-                    {m.unitPrice > 0 ? fmtSum(m.qty * m.unitPrice) + " сум" : "—"}
+                    {m.unitPrice > 0 ? money(m.qty * m.unitPrice) : "—"}
                   </div>
                 </div>
               ))}

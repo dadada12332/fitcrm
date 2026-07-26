@@ -1,11 +1,15 @@
+"use client"
+
 import { Users, Box, CheckCircle2, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react"
 import type { MembershipsStats as Stats } from "@/lib/memberships"
+import { useAppLocale } from "./ClubContext"
 
 function fmt(n: number) {
   return n.toLocaleString("ru-RU")
 }
 
 export function MembershipsStats({ stats }: { stats: Stats }) {
+  const { money } = useAppLocale()
   const revPct = stats.revenuePrevMonth
     ? Math.round(((stats.revenueThisMonth - stats.revenuePrevMonth) / stats.revenuePrevMonth) * 100)
     : 0
@@ -31,11 +35,7 @@ export function MembershipsStats({ stats }: { stats: Stats }) {
     },
     {
       label: "Выручка за месяц",
-      value: (
-        <>
-          {fmt(stats.revenueThisMonth)} <span className="text-lg font-normal" style={{ color: "var(--gray-muted)" }}>сум</span>
-        </>
-      ),
+      value: money(stats.revenueThisMonth),
       icon: ArrowUpRight,
       delta: <Up up={revPct >= 0} text="к прошлому месяцу" deltaText={`${revPct >= 0 ? "+" : ""}${revPct}%`} />,
     },

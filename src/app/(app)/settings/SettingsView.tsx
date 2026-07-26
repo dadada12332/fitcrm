@@ -6,7 +6,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getPlans, planBenefits } from "@/lib/plans"
 import { SettingsShell } from "./SettingsShell"
 import { getRolesAction, type RoleRow } from "./roles/actions"
-import type { ClubData, PlanForClient } from "@/components/app/ClubSettings"
+import type { ClubData, PlanForClient, PlanUsageForClient } from "@/components/app/ClubSettings"
 import { planFeatureEnabled } from "@/lib/plan-access"
 
 /**
@@ -40,7 +40,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
       .select("id, name, plan, trial_expires_at, plan_expires_at, plan_price_locked, settings, staff!inner(id, role, user_id, is_active, users(id, email, full_name))")
       .eq("id", club.clubId)
       .single(),
-    allowedTabs.staff ? getAuthUser() : Promise.resolve(null),
+    allowedTabs.staff || allowedTabs.subscription ? getAuthUser() : Promise.resolve(null),
     allowedTabs.subscription ? service
       .from("platform_billing_requests")
       .select("plan, months, amount, created_at")
@@ -66,6 +66,48 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
   if (!clubRow) redirect("/dashboard")
 
   const userId = user?.id
+
+  const planUsage: PlanUsageForClient[] = []
+  if (allowedTabs.subscription) {
+    const monthStart = new Date()
+    monthStart.setUTCDate(1)
+    const periodStart = monthStart.toISOString().slice(0, 10)
+    const [
+      staffCount,
+      branchCount,
+      productCount,
+      roleCount,
+      telegramCount,
+      connectionCount,
+      paymentCount,
+      monthlyUsage,
+    ] = await Promise.all([
+      service.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
+      userId
+        ? service.from("staff").select("club_id", { count: "exact", head: true }).eq("user_id", userId).eq("role", "owner").eq("is_active", true)
+        : Promise.resolve({ count: 1 }),
+      service.from("products").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
+      service.from("club_roles").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_system", false),
+      service.from("telegram_integrations").select("club_id", { count: "exact", head: true }).eq("club_id", club.clubId),
+      service.from("integration_connections").select("id", { count: "exact", head: true }).eq("club_id", club.clubId),
+      service.from("payment_connection_requests").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).in("status", ["new", "active"]),
+      service.from("plan_usage").select("usage_key, used").eq("club_id", club.clubId).eq("period_start", periodStart),
+    ])
+
+    const monthly = new Map((monthlyUsage.data ?? []).map((item) => [item.usage_key, Number(item.used)]))
+    planUsage.push(
+      { key: "clients", used: clientsResult.count ?? 0 },
+      { key: "staff", used: staffCount.count ?? 0 },
+      { key: "branches", used: branchCount.count ?? 1 },
+      { key: "products", used: productCount.count ?? 0 },
+      { key: "roles", used: roleCount.count ?? 0 },
+      { key: "integrations", used: (telegramCount.count ?? 0) + (connectionCount.count ?? 0) + (paymentCount.count ?? 0) },
+      { key: "ai_requests", used: monthly.get("ai_requests") ?? 0 },
+      { key: "telegram_messages", used: monthly.get("telegram_messages") ?? 0 },
+      { key: "imports", used: monthly.get("imports") ?? 0 },
+      { key: "exports", used: monthly.get("exports") ?? 0 },
+    )
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const staffList = (allowedTabs.staff ? ((clubRow as any).staff ?? []) : [])
@@ -103,7 +145,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     isTrial: p.is_trial, isActive: p.is_active && !p.is_archived,
     isPopular: p.is_popular || p.is_recommended, color: p.color,
     subtitle: p.short_description || p.landing_subtitle, benefits: planBenefits(p),
-    clients: p.limits.clients ?? null, staff: p.limits.staff ?? null,
+    clients: p.limits.clients ?? null, staff: p.limits.staff ?? null, limits: p.limits,
   }))
 
   const data: ClubData = {
@@ -130,6 +172,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     planPriceLocked: (clubRow as any).plan_price_locked ?? null,
     clientCount: clientsResult.count ?? 0,
+    planUsage,
   }
 
   const initialRoles = tab === "roles" ? rolesResult.roles : undefined

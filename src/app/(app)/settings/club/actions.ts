@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { can } from "@/lib/permissions"
 import { requireIntegrationSlot, requirePlanFeature, requirePlanSection, requireRecordLimit } from "@/lib/plan-enforcement"
+import { APP_LOCALES, normalizeAppLocale, type AppLocale } from "@/lib/app-locale"
 
 export type SaveResult = { ok?: boolean; error?: string }
 type WorkingDay = { open: string; close: string; closed: boolean }
@@ -128,14 +129,21 @@ export async function saveClubBasicAction(data: {
   website: string
   timezone: string
   currency: string
+  communicationLanguage: AppLocale
   workingHours: Record<string, WorkingDay>
 }): Promise<SaveResult> {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }
   if (!can(club.permissions, "settings", "general")) return { error: "Недостаточно прав" }
   if (!data.name.trim()) return { error: "Укажите название клуба" }
   if (!/^\S+@\S+\.\S+$/.test(data.email) && data.email) return { error: "Проверьте email" }
+  if (!["Asia/Tashkent", "Asia/Almaty", "Europe/Moscow"].includes(data.timezone)) return { error: "Неизвестный часовой пояс" }
+  if (!["UZS", "USD", "RUB"].includes(data.currency)) return { error: "Неизвестная валюта" }
+  if (!APP_LOCALES.includes(data.communicationLanguage)) return { error: "Неизвестный язык сообщений" }
+  const expectedDays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+  if (Object.keys(data.workingHours).length !== expectedDays.length || expectedDays.some((day) => !data.workingHours[day])) {
+    return { error: "Рабочие часы заполнены не полностью" }
+  }
   for (const hours of Object.values(data.workingHours)) {
     if (!/^\d{2}:\d{2}$/.test(hours.open) || !/^\d{2}:\d{2}$/.test(hours.close)) {
       return { error: "Проверьте рабочие часы" }
@@ -143,25 +151,63 @@ export async function saveClubBasicAction(data: {
     if (!hours.closed && hours.open >= hours.close) return { error: "Время закрытия должно быть позже времени открытия" }
   }
 
-  const { data: clubRow } = await supabase.from("clubs").select("settings").eq("id", club.clubId).single()
+  const service = createServiceClient()
+  const { data: clubRow, error: readError } = await service.from("clubs")
+    .select("settings")
+    .eq("id", club.clubId)
+    .maybeSingle()
+  if (readError || !clubRow) return { error: readError?.message ?? "Клуб не найден" }
   const currentSettings = (clubRow?.settings as Record<string, unknown>) ?? {}
 
-  const { error } = await supabase.from("clubs").update({
+  const { data: updated, error } = await service.from("clubs").update({
     name: data.name.trim(),
     settings: {
       ...currentSettings,
-      address: data.address,
-      phone: data.phone,
-      email: data.email,
-      website: data.website,
+      address: data.address.trim(),
+      phone: data.phone.trim(),
+      email: data.email.trim(),
+      website: data.website.trim(),
       timezone: data.timezone,
       currency: data.currency,
+      communication_language: data.communicationLanguage,
       working_hours: data.workingHours,
     },
-  }).eq("id", club.clubId)
+  }).eq("id", club.clubId).select("id").maybeSingle()
 
   if (error) return { error: error.message }
+  if (!updated) return { error: "Настройки не были сохранены" }
+  revalidatePath("/", "layout")
   revalidatePath("/settings/club")
+  return { ok: true }
+}
+
+export async function saveUserLocaleAction(locale: AppLocale): Promise<SaveResult> {
+  const normalized = normalizeAppLocale(locale)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+  const club = await getCurrentClub()
+  if (!club) return { error: "Клуб не найден" }
+
+  const service = createServiceClient()
+  const { data: staff, error: staffError } = await service.from("staff")
+    .select("id, settings")
+    .eq("club_id", club.clubId)
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .maybeSingle()
+  if (staffError || !staff) return { error: staffError?.message ?? "Профиль сотрудника не найден" }
+
+  const currentSettings = (staff.settings as Record<string, unknown> | null) ?? {}
+  const { data: updated, error } = await service.from("staff")
+    .update({ settings: { ...currentSettings, locale: normalized } })
+    .eq("id", staff.id)
+    .eq("club_id", club.clubId)
+    .select("id")
+    .maybeSingle()
+  if (error) return { error: error.message }
+  if (!updated) return { error: "Язык не был сохранён" }
+  revalidatePath("/", "layout")
   return { ok: true }
 }
 

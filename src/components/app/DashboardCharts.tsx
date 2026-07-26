@@ -11,6 +11,7 @@ import {
   LineChart,
   Line,
 } from "recharts"
+import { useAppLocale } from "./ClubContext"
 
 type DayData = { day: string; value: number }
 
@@ -28,6 +29,7 @@ const tooltipStyle = {
 }
 
 export function RevenueChart({ data }: { data: DayData[] }) {
+  const { money } = useAppLocale()
   return (
     <ResponsiveContainer width="100%" height={180} initialDimension={{ width: 480, height: 180 }}>
       <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
@@ -41,7 +43,7 @@ export function RevenueChart({ data }: { data: DayData[] }) {
         />
         <Tooltip
           {...tooltipStyle}
-          formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, ""]}
+          formatter={(v) => [money(Number(v)), ""]}
           separator=""
         />
         <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={32} />

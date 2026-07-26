@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { NewPaymentModal } from "./NewPaymentModal"
 import { RenewSubscriptionButton } from "./RenewSubscriptionButton"
+import { useAppLocale } from "./ClubContext"
 
 type Membership = { id: string; name: string; price: number }
 
@@ -37,10 +38,6 @@ function initials(name: string) {
 function fmtDate(iso: string | null) {
   if (!iso) return "—"
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
-}
-
-function fmtMoney(v: number) {
-  return `${Math.round(v).toLocaleString("ru-RU")} сум`
 }
 
 function Field({ label, value, link }: { label: string; value: string | null; link?: string }) {
@@ -143,6 +140,7 @@ export function ClientProfileCard({
   canDelete?: boolean
   showFinancials?: boolean
 }) {
+  const { money } = useAppLocale()
   const [status, setStatus] = useState<ClientStatus>(client.status)
   const sm = statusMeta[status]
   const comment = client.notes && client.notes !== "[demo]" ? client.notes : ""
@@ -242,13 +240,13 @@ export function ClientProfileCard({
           <div className="rounded-lg bg-muted/50 px-3 py-2.5">
             <p className="mb-0.5 text-xs text-muted-foreground">Баланс</p>
             <p className={`break-words text-sm font-semibold leading-tight tabular-nums ${client.balance > 0 ? "text-chart-2" : "text-foreground"}`}>
-              {fmtMoney(client.balance)}
+              {money(client.balance)}
             </p>
           </div>
           <div className={`rounded-lg px-3 py-2.5 ${client.debt > 0 ? "bg-destructive/10" : "bg-muted/50"}`}>
             <p className="mb-0.5 text-xs text-muted-foreground">Долг</p>
             <p className={`break-words text-sm font-semibold leading-tight tabular-nums ${client.debt > 0 ? "text-destructive" : "text-foreground"}`}>
-              {fmtMoney(client.debt)}
+              {money(client.debt)}
             </p>
           </div>
         </div>}

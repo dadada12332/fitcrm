@@ -6,8 +6,20 @@ import Link from "next/link"
 import {
   Crown, Check, X, Plus, ArrowRight,
   MessageCircle, Eye, EyeOff, LogOut,
-  Pencil, Trash2,
+  Pencil, Trash2, Users, Building2, Package, ShieldCheck,
+  Plug, Bot, Send, Upload, Download, CalendarDays, Clock3,
 } from "lucide-react"
+import {
+  Card as UiCard,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Button as UiButton } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs"
 import {
   saveClubBasicAction,
   saveFinanceAction,
@@ -29,6 +41,13 @@ import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
 import { fmtMoney } from "@/lib/money"
 import { runAction } from "@/lib/use-action"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "@/components/app/ClubContext"
+import {
+  APP_LOCALE_LABELS,
+  normalizeAppLocale,
+  translate,
+  type AppLocale,
+} from "@/lib/app-locale"
 
 export type ClubData = {
   generatedAt: number
@@ -45,6 +64,7 @@ export type ClubData = {
     website?: string
     timezone?: string
     currency?: string
+    communication_language?: AppLocale
     working_hours?: Record<string, { open: string; close: string; closed: boolean }>
     tg_settings?: Partial<TelegramSettings>
     branches?: { name: string; address: string }[]
@@ -57,6 +77,12 @@ export type ClubData = {
   /** Статус подключения платёжек: провайдер → статус последней заявки (new/active). */
   paymentConnections?: Record<string, "new" | "active">
   clientCount: number
+  planUsage?: PlanUsageForClient[]
+}
+
+export type PlanUsageForClient = {
+  key: "clients" | "staff" | "branches" | "products" | "roles" | "integrations" | "ai_requests" | "telegram_messages" | "imports" | "exports"
+  used: number
 }
 
 /** Тариф для отображения в CRM (данные из раздела «Тарифы» Platform Admin). */
@@ -74,6 +100,7 @@ export type PlanForClient = {
   benefits: string[]
   clients: number | null
   staff: number | null
+  limits: Record<string, number | null>
 }
 
 type Section = "basic" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "security" | "plan"
@@ -143,11 +170,16 @@ function Btn({ onClick, children, variant = "primary", disabled, type = "button"
 }
 
 function SaveBtn({ pending, saved }: { pending: boolean; saved: boolean }) {
+  const { t } = useAppLocale()
   return (
     <button type="submit" disabled={pending}
       className="h-9 px-5 rounded-lg text-sm font-medium text-white flex items-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-50"
       style={{ background: "#2563eb" }}>
-      {saved ? <><Check className="w-4 h-4" />Сохранено</> : pending ? "Сохранение..." : "Сохранить"}
+      {saved
+        ? <><Check className="w-4 h-4" />{t("settings.saved")}</>
+        : pending
+          ? t("settings.saving")
+          : t("settings.save")}
     </button>
   )
 }
@@ -175,6 +207,8 @@ function Alert({ msg, type }: { msg: string; type: "ok" | "err" }) {
 // ── Basic ────────────────────────────────────────────────────────
 
 function BasicSection({ club }: { club: ClubData }) {
+  const router = useRouter()
+  const { locale, t } = useAppLocale()
   const s = club.settings
   const [name, setName]         = useState(club.name)
   const [address, setAddress]   = useState(s.address ?? "")
@@ -183,6 +217,9 @@ function BasicSection({ club }: { club: ClubData }) {
   const [website, setWebsite]   = useState(s.website ?? "")
   const [tz, setTz]             = useState(s.timezone ?? "Asia/Tashkent")
   const [currency, setCurrency] = useState(s.currency ?? "UZS")
+  const [communicationLanguage, setCommunicationLanguage] = useState<AppLocale>(
+    normalizeAppLocale(s.communication_language ?? locale),
+  )
   const [workingHours, setWorkingHours] = useState(() => {
     const defaults = Object.fromEntries(["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((key) => [key, { open: "06:00", close: "23:00", closed: false }]))
     return { ...defaults, ...(s.working_hours ?? {}) }
@@ -194,33 +231,58 @@ function BasicSection({ club }: { club: ClubData }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaved(false); setError(null)
     start(async () => {
-      const res = await saveClubBasicAction({ name, address, phone, email, website, timezone: tz, currency, workingHours })
+      const res = await saveClubBasicAction({
+        name,
+        address,
+        phone,
+        email,
+        website,
+        timezone: tz,
+        currency,
+        communicationLanguage,
+        workingHours,
+      })
       if (res.error) { setError(res.error); return }
       setSaved(true); setTimeout(() => setSaved(false), 2500)
+      router.refresh()
     })
   }
 
+  const days = [
+    ["mon", "days.mon"],
+    ["tue", "days.tue"],
+    ["wed", "days.wed"],
+    ["thu", "days.thu"],
+    ["fri", "days.fri"],
+    ["sat", "days.sat"],
+    ["sun", "days.sun"],
+  ] as const
+  const openHours = days
+    .filter(([key]) => !workingHours[key].closed)
+    .map(([key, label]) => `${translate(communicationLanguage, label)} ${workingHours[key].open}–${workingHours[key].close}`)
+    .join("\n")
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Card title="Основная информация">
+      <Card title={t("settings.mainInfo")}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Название клуба"><Input value={name} onChange={setName} placeholder="FitClub" /></Field>
-          <Field label="Адрес"><Input value={address} onChange={setAddress} placeholder="г. Ташкент, ул. Амира Темура 1" /></Field>
-          <Field label="Телефон"><Input value={phone} onChange={setPhone} placeholder="+998 90 000 00 00" type="tel" /></Field>
-          <Field label="Email"><Input value={email} onChange={setEmail} placeholder="info@fitclub.uz" type="email" /></Field>
-          <Field label="Сайт"><Input value={website} onChange={setWebsite} placeholder="https://fitclub.uz" /></Field>
+          <Field label={t("settings.clubName")}><Input value={name} onChange={setName} placeholder="FitClub" /></Field>
+          <Field label={t("settings.address")}><Input value={address} onChange={setAddress} placeholder="г. Ташкент, ул. Амира Темура 1" /></Field>
+          <Field label={t("settings.phone")}><Input value={phone} onChange={setPhone} placeholder="+998 90 000 00 00" type="tel" /></Field>
+          <Field label={t("settings.email")}><Input value={email} onChange={setEmail} placeholder="info@fitclub.uz" type="email" /></Field>
+          <Field label={t("settings.website")}><Input value={website} onChange={setWebsite} placeholder="https://fitclub.uz" /></Field>
         </div>
       </Card>
 
-      <Card title="Рабочие часы">
+      <Card title={t("settings.hours")}>
         <div className="space-y-2.5">
-          {([["mon","Понедельник"],["tue","Вторник"],["wed","Среда"],["thu","Четверг"],["fri","Пятница"],["sat","Суббота"],["sun","Воскресенье"]] as const).map(([key, day]) => (
+          {days.map(([key, day]) => (
             <div key={key} className="flex flex-wrap items-center justify-between gap-2">
-              <span className="w-28 text-sm" style={{ color: "var(--on-dark-soft)" }}>{day}</span>
+              <span className="w-28 text-sm" style={{ color: "var(--on-dark-soft)" }}>{t(day)}</span>
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <input type="checkbox" checked={workingHours[key].closed} onChange={(event) => setWorkingHours((value) => ({ ...value, [key]: { ...value[key], closed: event.target.checked } }))} />
-                  Выходной
+                  {t("settings.closed")}
                 </label>
                 <input value={workingHours[key].open} onChange={(event) => setWorkingHours((value) => ({ ...value, [key]: { ...value[key], open: event.target.value } }))} disabled={workingHours[key].closed} type="time" className="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none disabled:opacity-40" />
                 <span className="text-xs" style={{ color: "var(--gray-muted)" }}>—</span>
@@ -231,9 +293,9 @@ function BasicSection({ club }: { club: ClubData }) {
         </div>
       </Card>
 
-      <Card title="Региональные настройки">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Часовой пояс">
+      <Card title={t("settings.regional")}>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Field label={t("settings.timezone")}>
             <select value={tz} onChange={(e) => setTz(e.target.value)}
               className="w-full h-10 px-3 rounded-lg text-sm outline-none appearance-none"
               style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: "var(--card)" }}>
@@ -242,7 +304,7 @@ function BasicSection({ club }: { club: ClubData }) {
               <option value="Europe/Moscow">Europe/Moscow (UTC+3)</option>
             </select>
           </Field>
-          <Field label="Валюта">
+          <Field label={t("settings.currency")}>
             <select value={currency} onChange={(e) => setCurrency(e.target.value)}
               className="w-full h-10 px-3 rounded-lg text-sm outline-none appearance-none"
               style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: "var(--card)" }}>
@@ -251,6 +313,47 @@ function BasicSection({ club }: { club: ClubData }) {
               <option value="RUB">RUB — Российский рубль</option>
             </select>
           </Field>
+          <Field label={t("settings.botLanguage")}>
+            <select
+              value={communicationLanguage}
+              onChange={(event) => setCommunicationLanguage(normalizeAppLocale(event.target.value))}
+              className="h-10 w-full appearance-none rounded-lg px-3 text-sm outline-none"
+              style={{ border: "1.5px solid var(--border)", color: "var(--on-dark)", background: "var(--card)" }}
+            >
+              {Object.entries(APP_LOCALE_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+            <p className="mt-1.5 text-xs text-muted-foreground">{t("settings.botLanguageHint")}</p>
+          </Field>
+        </div>
+      </Card>
+
+      <Card title={t("settings.telegramPreview")}>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
+          <div>
+            <p className="text-sm text-muted-foreground">{t("settings.telegramPreviewHint")}</p>
+            <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+              <p><span className="text-muted-foreground">{t("settings.address")}:</span> {address || t("settings.notSpecified")}</p>
+              <p><span className="text-muted-foreground">{t("settings.phone")}:</span> {phone || t("settings.notSpecified")}</p>
+              <p><span className="text-muted-foreground">{t("settings.website")}:</span> {website || t("settings.notSpecified")}</p>
+              <p><span className="text-muted-foreground">{t("settings.botLanguage")}:</span> {APP_LOCALE_LABELS[communicationLanguage]}</p>
+            </div>
+          </div>
+          <div className="rounded-xl border bg-muted/30 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Bot className="size-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{name || "FitCRM"}</p>
+                <p className="text-xs text-muted-foreground">Telegram bot</p>
+              </div>
+            </div>
+            <p className="whitespace-pre-line text-sm leading-6 text-foreground">
+              {`${name || "FitCRM"}\n${address || ""}${phone ? `\n${phone}` : ""}${website ? `\n${website}` : ""}${openHours ? `\n\n${translate(communicationLanguage, "settings.hoursSummary")}:\n${openHours}` : ""}`}
+            </p>
+          </div>
         </div>
       </Card>
 
@@ -908,11 +1011,30 @@ function fmtPlanPrice(price: number, currency: string, isTrial: boolean): string
 }
 const fmtLimit = (n: number | null) => (n == null ? "∞" : n.toLocaleString("ru-RU"))
 
+const PLAN_LIMIT_META = [
+  { key: "clients", label: "Клиенты", icon: Users, monthly: false },
+  { key: "staff", label: "Сотрудники", icon: Users, monthly: false },
+  { key: "branches", label: "Филиалы", icon: Building2, monthly: false },
+  { key: "products", label: "Товары", icon: Package, monthly: false },
+  { key: "roles", label: "Пользовательские роли", icon: ShieldCheck, monthly: false },
+  { key: "integrations", label: "Интеграции", icon: Plug, monthly: false },
+  { key: "ai_requests", label: "AI-запросы", icon: Bot, monthly: true },
+  { key: "telegram_messages", label: "Telegram-сообщения", icon: Send, monthly: true },
+  { key: "imports", label: "Импорты", icon: Upload, monthly: true },
+  { key: "exports", label: "Экспорты", icon: Download, monthly: true },
+] as const
+
+function formatPlanDate(value: string | null) {
+  if (!value) return "Без даты окончания"
+  return new Date(value).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+}
+
 function PlanSection({ club }: { club: ClubData }) {
   const plan   = club.plan
   const plans  = club.plans ?? []
   const current = plans.find((p) => p.code === plan)
   const paidPlans = plans.filter((p) => !p.isTrial && p.isActive)
+  const expiresAt = club.planExpiresAt ?? club.trialExpiresAt
   const daysLeft = club.planExpiresAt
     ? Math.ceil((new Date(club.planExpiresAt).getTime() - club.generatedAt) / 86_400_000)
     : club.trialExpiresAt
@@ -936,159 +1058,256 @@ function PlanSection({ club }: { club: ClubData }) {
     start(async () => { await cancelPlanRequestAction(); router.refresh() })
   }
 
+  const usageByKey = new Map((club.planUsage ?? []).map((item) => [item.key, item.used]))
+  const currentPrice = club.planPriceLocked ?? current?.price ?? 0
+  const currentCurrency = current?.currency ?? "UZS"
+
   return (
-    <div className="space-y-4">
-      {/* Активная заявка */}
+    <div className="space-y-5 pb-8">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">Подписка</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Текущий тариф, доступный остаток лимитов и варианты перехода.
+        </p>
+      </div>
+
       {req && (
-        <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.3)" }}>
-          <Crown className="w-5 h-5 shrink-0" style={{ color: "#2563eb" }} />
+        <div className="flex flex-col gap-3 rounded-xl border border-brand/20 bg-brand/5 p-4 sm:flex-row sm:items-center">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+            <Clock3 className="size-4" />
+          </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium" style={{ color: "#1e3a8a" }}>
+            <p className="text-sm font-medium text-foreground">
               Заявка отправлена: {plans.find((x) => x.code === req.plan)?.name ?? PLAN_LABELS[req.plan] ?? req.plan} · {req.months} мес{req.amount != null ? ` · ${fmtMoney(req.amount, current?.currency ?? "UZS")}` : ""}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "#3b82f6" }}>Ожидает подтверждения администратором. Мы свяжемся для оплаты.</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Ожидает подтверждения. Менеджер свяжется для оплаты.</p>
           </div>
-          <button onClick={cancelRequest} disabled={pending}
-            className="text-xs font-medium px-3 h-8 rounded-lg disabled:opacity-50" style={{ border: "1px solid var(--border)", color: "#2563eb", background: "var(--card)" }}>
+          <UiButton variant="outline" onClick={cancelRequest} disabled={pending}>
             Отменить
-          </button>
+          </UiButton>
         </div>
       )}
 
-      <Card title="Текущий тариф">
-        <div className="flex items-center gap-4 mb-5">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(217,119,6,0.14)" }}>
-            <Crown className="w-6 h-6" style={{ color: "#d97706" }} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-lg font-bold" style={{ color: "var(--on-dark)" }}>{current?.name ?? PLAN_LABELS[plan] ?? plan}</p>
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(217,119,6,0.14)", color: "#d97706" }}>
-                {fmtPlanPrice(club.planPriceLocked ?? current?.price ?? 0, current?.currency ?? "USD", plan === "trial" || !!current?.isTrial)} / мес
-              </span>
+      <UiCard className="gap-0 py-0">
+        <CardHeader className="border-b py-5 sm:grid-cols-[1fr_auto]">
+          <div className="flex items-start gap-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <Crown className="size-5" />
             </div>
-            {daysLeft !== null && (
-              <p className="text-sm mt-0.5" style={{ color: daysLeft <= 7 ? "#dc2626" : "var(--on-dark-soft)" }}>
-                {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : "Срок истёк"}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            { label: "Клиенты",    used: club.clientCount,      max: current?.clients ?? null },
-            { label: "Сотрудники", used: club.staffList.length,               max: current?.staff ?? null },
-          ].map(({ label, used, max }) => (
-            <div key={label}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>{label}</span>
-                <span className="text-xs font-medium" style={{ color: "var(--on-dark)" }}>{used} / {fmtLimit(max)}</span>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <CardTitle className="text-xl">{current?.name ?? PLAN_LABELS[plan] ?? plan}</CardTitle>
+                <Badge variant="secondary">Текущий тариф</Badge>
               </div>
-              <div className="h-2 rounded-full" style={{ background: "var(--card-2)" }}>
-                <div className="h-2 rounded-full transition-all"
-                  style={{ background: "#2563eb", width: `${max == null ? 4 : Math.min(100, (used / max) * 100)}%`, opacity: max == null ? 0.4 : 1 }} />
-              </div>
+              <CardDescription className="mt-1">
+                {daysLeft !== null
+                  ? daysLeft > 0
+                    ? `Действует до ${formatPlanDate(expiresAt)}`
+                    : "Срок действия тарифа истёк"
+                  : "Тариф без даты окончания"}
+              </CardDescription>
             </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card title="Тарифы">
-        {/* Период оплаты */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs" style={{ color: "var(--on-dark-soft)" }}>Период:</span>
-          <div className="flex items-center gap-0.5 p-0.5 rounded-lg" style={{ background: "var(--card-2)" }}>
-            {MONTHS_OPTIONS.map((o) => (
-              <button key={o.m} onClick={() => setMonths(o.m)}
-                className="h-7 px-3 rounded-md text-xs font-medium transition-all"
-                style={{ background: months === o.m ? "white" : "transparent", color: months === o.m ? "#2563eb" : "var(--on-dark-soft)", boxShadow: months === o.m ? "0 1px 2px rgba(0,0,0,0.08)" : "none" }}>
-                {o.label}
-              </button>
-            ))}
           </div>
-        </div>
+          <CardAction className="hidden text-right sm:block">
+            <p className="text-xl font-semibold text-foreground">
+              {fmtPlanPrice(currentPrice, currentCurrency, plan === "trial" || !!current?.isTrial)}
+            </p>
+            <p className="text-xs text-muted-foreground">за месяц</p>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="grid gap-3 py-5 sm:grid-cols-3">
+          <div className="rounded-lg border bg-muted/20 p-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <CalendarDays className="size-4" />
+              <span className="text-xs">Осталось</span>
+            </div>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">
+              {daysLeft === null ? "∞" : Math.max(0, daysLeft)}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{daysLeft === null ? "без срока" : "дней"}</p>
+          </div>
+          <div className="rounded-lg border bg-muted/20 p-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="size-4" />
+              <span className="text-xs">Клиенты</span>
+            </div>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">
+              {(usageByKey.get("clients") ?? club.clientCount).toLocaleString("ru-RU")}
+              <span className="ml-1 text-sm font-normal text-muted-foreground">из {fmtLimit(current?.limits.clients ?? null)}</span>
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">использовано</p>
+          </div>
+          <div className="rounded-lg border bg-muted/20 p-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="size-4" />
+              <span className="text-xs">Команда</span>
+            </div>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">
+              {(usageByKey.get("staff") ?? club.staffList.length).toLocaleString("ru-RU")}
+              <span className="ml-1 text-sm font-normal text-muted-foreground">из {fmtLimit(current?.limits.staff ?? null)}</span>
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">активных сотрудников</p>
+          </div>
+        </CardContent>
+      </UiCard>
 
-        {err && <p className="text-sm mb-3" style={{ color: "#dc2626" }}>{err}</p>}
-
-        {paidPlans.length === 0 ? (
-          <p className="text-sm py-6 text-center" style={{ color: "var(--gray-muted)" }}>Тарифы недоступны</p>
-        ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch">
-          {paidPlans.map((pl) => {
-            const isCurrent = pl.code === plan
-            const requested = req?.plan === pl.code
-            const highlight = pl.isPopular && !isCurrent   // акцентная (синяя) карточка, как «Популярный» на лендинге
-            const total = pl.price * months
-            const money = fmtMoney(total, pl.currency)
-            const tMain = highlight ? "#ffffff" : "var(--on-dark)"
-            const tMuted = highlight ? "rgba(255,255,255,0.75)" : "var(--on-dark-soft)"
+      <UiCard className="gap-0 py-0">
+        <CardHeader className="border-b py-5">
+          <CardTitle>Лимиты и использование</CardTitle>
+          <CardDescription>Постоянные лимиты и расходы за текущий календарный месяц.</CardDescription>
+          <CardAction>
+            <Badge variant="outline">Текущий месяц</Badge>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="grid gap-3 py-5 lg:grid-cols-2">
+          {PLAN_LIMIT_META.map(({ key, label, icon: Icon, monthly }) => {
+            const used = usageByKey.get(key) ?? 0
+            const limit = current?.limits[key] ?? null
+            const remaining = limit === null ? null : Math.max(0, limit - used)
+            const percent = limit === null ? 0 : limit <= 0 ? 100 : Math.min(100, (used / limit) * 100)
+            const unavailable = limit === 0
             return (
-              <div key={pl.code} className="relative rounded-2xl p-5 flex flex-col"
-                style={{
-                  border: `1.5px solid ${highlight ? "#2563eb" : isCurrent ? "#2563eb" : "var(--border)"}`,
-                  background: highlight ? "#2563eb" : isCurrent ? "rgba(37,99,235,0.1)" : "var(--card)",
-                }}>
-                {highlight && (
-                  <span className="absolute top-4 right-4 text-[10px] font-semibold px-2 h-5 inline-flex items-center gap-1 rounded-full" style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}>
-                    <Crown className="w-3 h-3" />Популярный
-                  </span>
-                )}
-                {/* icon + name */}
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold"
-                    style={highlight
-                      ? { background: "rgba(255,255,255,0.15)", color: "#fff" }
-                      : { background: `${pl.color}22`, color: pl.color }}>
-                    {pl.name.charAt(0)}
+              <div key={key} className="rounded-xl border bg-card p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <Icon className="size-4" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: tMain }}>{pl.name}</p>
-                    {pl.subtitle && <p className="text-[11px] truncate" style={{ color: tMuted }}>{pl.subtitle}</p>}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{label}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{monthly ? "за текущий месяц" : "всего в клубе"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold tabular-nums text-foreground">
+                          {used.toLocaleString("ru-RU")} / {fmtLimit(limit)}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {unavailable ? "Не входит" : remaining === null ? "Без ограничений" : `Осталось ${remaining.toLocaleString("ru-RU")}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-brand transition-[width]"
+                        style={{ width: limit === null ? "3%" : `${percent}%`, opacity: limit === null ? 0.35 : 1 }}
+                      />
+                    </div>
                   </div>
                 </div>
-                {/* price */}
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-2xl font-bold tracking-[-0.5px]" style={{ color: highlight ? "#fff" : "#2563eb" }}>{money}</span>
-                  <span className="text-xs" style={{ color: tMuted }}>{months > 1 ? `/ ${months} мес` : "/мес"}</span>
-                </div>
-                {/* benefits */}
-                <div className="h-px w-full mb-3" style={{ background: highlight ? "rgba(255,255,255,0.2)" : "var(--border-subtle)" }} />
-                <ul className="flex flex-col gap-2 mb-4 flex-1">
-                  {pl.benefits.map((b) => (
-                    <li key={b} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 shrink-0" style={{ color: highlight ? "#fff" : "#2563eb" }} />
-                      <span className="text-[13px]" style={{ color: highlight ? "rgba(255,255,255,0.9)" : "var(--on-dark-soft)" }}>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-                {/* CTA / status */}
-                {isCurrent ? (
-                  <div className="h-9 flex items-center justify-center gap-1.5 rounded-lg" style={{ background: "rgba(37,99,235,0.1)" }}>
-                    <Check className="w-4 h-4" style={{ color: "#2563eb" }} />
-                    <span className="text-xs font-semibold" style={{ color: "#2563eb" }}>Текущий тариф</span>
-                  </div>
-                ) : requested ? (
-                  <div className="h-9 flex items-center justify-center gap-1.5 rounded-lg" style={{ background: highlight ? "rgba(255,255,255,0.15)" : "rgba(59,130,246,0.1)" }}>
-                    <Check className="w-4 h-4" style={{ color: highlight ? "#fff" : "#3b82f6" }} />
-                    <span className="text-xs font-semibold" style={{ color: highlight ? "#fff" : "#3b82f6" }}>Заявка отправлена</span>
-                  </div>
-                ) : (
-                  <button onClick={() => requestPlan(pl.code)} disabled={pending}
-                    className="w-full h-9 rounded-lg text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-                    style={highlight ? { background: "rgba(37,99,235,0.12)", color: "#2563eb" } : { background: "#2563eb", color: "#fff" }}>
-                    {pending ? "..." : (plan === "trial" ? "Оформить" : "Перейти")}
-                  </button>
-                )}
               </div>
             )
           })}
-        </div>
-        )}
-        <p className="text-xs mt-4" style={{ color: "var(--gray-muted)" }}>
-          После заявки менеджер свяжется для оплаты (Payme / Click / перевод). Тариф активирует администратор платформы.
-        </p>
-      </Card>
+        </CardContent>
+      </UiCard>
+
+      <UiCard id="available-plans" className="gap-0 py-0">
+        <CardHeader className="border-b py-5">
+          <CardTitle>Доступные тарифы</CardTitle>
+          <CardDescription>Сравните возможности и выберите подходящий объём.</CardDescription>
+          <CardAction className="col-span-2 col-start-1 row-start-3 mt-3 justify-self-start sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
+            <Tabs value={String(months)} onValueChange={(value) => setMonths(Number(value))}>
+              <TabsList>
+                {MONTHS_OPTIONS.map((option) => (
+                  <TabsTab key={option.m} value={String(option.m)}>{option.label}</TabsTab>
+                ))}
+              </TabsList>
+            </Tabs>
+          </CardAction>
+        </CardHeader>
+
+        <CardContent className="py-5">
+          {err && <p className="mb-4 text-sm text-destructive">{err}</p>}
+
+          {paidPlans.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">Тарифы временно недоступны</p>
+          ) : (
+            <div className="grid items-stretch gap-4 lg:grid-cols-3">
+              {paidPlans.map((pl) => {
+                const isCurrent = pl.code === plan
+                const requested = req?.plan === pl.code
+                const total = pl.price * months
+                return (
+                  <div
+                    key={pl.code}
+                    className={`flex flex-col rounded-xl border p-5 ${
+                      isCurrent ? "border-brand bg-brand/[0.03] ring-1 ring-brand/20" : "bg-card"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex size-10 items-center justify-center rounded-lg text-sm font-semibold ${
+                          isCurrent ? "bg-brand/10 text-brand" : "bg-muted text-foreground"
+                        }`}>
+                          {pl.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-base font-semibold text-foreground">{pl.name}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{pl.subtitle || "Тариф FitCRM"}</p>
+                        </div>
+                      </div>
+                      {isCurrent ? (
+                        <Badge variant="outline" className="border-brand/30 text-brand">Текущий</Badge>
+                      ) : pl.isPopular ? (
+                        <Badge variant="secondary">Популярный</Badge>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-6">
+                      <p className="text-2xl font-semibold tracking-tight text-foreground">
+                        {fmtPlanPrice(total, pl.currency, false)}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {months === 1 ? "за месяц" : `за ${months} месяца · ${fmtMoney(pl.price, pl.currency)} / мес`}
+                      </p>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-2 gap-2">
+                      <div className="rounded-lg bg-muted/60 p-3">
+                        <p className="text-[11px] text-muted-foreground">Клиенты</p>
+                        <p className="mt-1 text-sm font-semibold text-foreground">{fmtLimit(pl.limits.clients ?? null)}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted/60 p-3">
+                        <p className="text-[11px] text-muted-foreground">Сотрудники</p>
+                        <p className="mt-1 text-sm font-semibold text-foreground">{fmtLimit(pl.limits.staff ?? null)}</p>
+                      </div>
+                    </div>
+
+                    <ul className="mt-5 flex flex-1 flex-col gap-2.5 border-t pt-5">
+                      {pl.benefits.slice(0, 5).map((benefit) => (
+                        <li key={benefit} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                          <Check className="mt-0.5 size-4 shrink-0 text-brand" />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-5">
+                      {isCurrent ? (
+                        <UiButton className="w-full" variant="secondary" disabled>
+                          <Check className="size-4" /> Текущий тариф
+                        </UiButton>
+                      ) : requested ? (
+                        <UiButton className="w-full" variant="secondary" disabled>
+                          <Clock3 className="size-4" /> Заявка отправлена
+                        </UiButton>
+                      ) : (
+                        <UiButton className="w-full" onClick={() => requestPlan(pl.code)} disabled={pending}>
+                          {pending ? "Отправляем..." : plan === "trial" ? "Оформить тариф" : "Перейти на тариф"}
+                          {!pending && <ArrowRight className="size-4" />}
+                        </UiButton>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          <p className="mt-4 text-xs text-muted-foreground">
+            После заявки менеджер свяжется для оплаты через Payme, Click или банковский перевод.
+          </p>
+        </CardContent>
+      </UiCard>
     </div>
   )
 }

@@ -21,11 +21,6 @@ import { useT } from "@/lib/i18n/context"
 
 const ease = [0.22, 1, 0.36, 1] as const
 const SIGNAL_ICONS = [CalendarClock, UserRoundX, WalletCards]
-const SIGNAL_TONES = [
-  "bg-destructive/10 text-destructive",
-  "bg-chart-3/10 text-chart-3",
-  "bg-chart-1/10 text-chart-1",
-]
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 22 },
@@ -87,7 +82,7 @@ export function GrowthRetention() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                    <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
                       <Activity className="size-4" />
                     </span>
                     <p className="text-sm font-semibold text-foreground">{t.retentionTitle}</p>
@@ -95,7 +90,7 @@ export function GrowthRetention() {
                   </div>
                   <p className="mt-2 max-w-[440px] text-sm leading-5 text-muted-foreground">{t.retentionDesc}</p>
                 </div>
-                <span className="hidden rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive sm:inline-flex">
+                <span className="hidden rounded-md bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand sm:inline-flex">
                   {t.riskBadge}
                 </span>
               </div>
@@ -116,7 +111,11 @@ export function GrowthRetention() {
                       {selected && (
                         <motion.span layoutId="retention-signal-rail" className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-brand" transition={{ duration: 0.4, ease }} />
                       )}
-                      <span className={`ml-3 flex size-9 shrink-0 items-center justify-center rounded-lg ${SIGNAL_TONES[index]}`}>
+                      <span
+                        className={`ml-3 flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                          selected ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground"
+                        }`}
+                      >
                         <Icon className="size-[18px]" />
                       </span>
                       <span className="min-w-0 flex-1">
@@ -216,7 +215,7 @@ export function GrowthRetention() {
                       </span>
                       <span className={`text-sm ${index <= 1 ? "text-primary-foreground/85" : "text-primary-foreground/45"}`}>{step}</span>
                       {index === 1 && !reduceMotion && (
-                        <motion.span className="ml-auto size-1.5 rounded-full bg-chart-2" animate={{ opacity: [1, 0.25, 1] }} transition={{ duration: 1.6, repeat: Infinity }} />
+                        <motion.span className="ml-auto size-1.5 rounded-full bg-primary-foreground/70" animate={{ opacity: [1, 0.25, 1] }} transition={{ duration: 1.6, repeat: Infinity }} />
                       )}
                     </div>
                   ))}

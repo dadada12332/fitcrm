@@ -274,6 +274,31 @@ export async function removeTelegramBotAvatarAction(): Promise<TelegramAvatarRes
 // ── Broadcast helpers ────────────────────────────────────────────
 
 type BroadcastCtx = { clubId: string; clubName: string; botUsername: string; token: string; userId: string }
+type TelegramPairingCtx = { clubId: string; botUsername: string; userId: string }
+
+async function getTelegramPairingCtx(): Promise<{ ctx?: TelegramPairingCtx; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+
+  const cc = await getCurrentClub()
+  if (!cc) return { error: "Клуб не найден" }
+  if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
+  const featureError = requirePlanFeature(cc, "telegram")
+  if (featureError) return { error: featureError }
+
+  const [{ data: club }, { data: integration }] = await Promise.all([
+    supabase.from("clubs").select("settings").eq("id", cc.clubId).single(),
+    createServiceClient().from("telegram_integrations").select("bot_token").eq("club_id", cc.clubId).maybeSingle(),
+  ])
+  if (!integration?.bot_token) return { error: "Сначала подключите бота на вкладке «Основное»" }
+
+  const settings = (club?.settings as Record<string, unknown> | null) ?? {}
+  const bot = (settings.tg_bot as { username?: string } | undefined) ?? {}
+  if (!bot.username) return { error: "Переподключите бота: не найден его Telegram username" }
+
+  return { ctx: { clubId: cc.clubId, botUsername: bot.username, userId: user.id } }
+}
 
 async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }> {
   const supabase = await createClient()
@@ -302,7 +327,7 @@ async function getBroadcastCtx(): Promise<{ ctx?: BroadcastCtx; error?: string }
 }
 
 export async function createTelegramStaffPairingAction(): Promise<{ error?: string; ok?: boolean; pairingUrl?: string }> {
-  const { ctx, error } = await getBroadcastCtx()
+  const { ctx, error } = await getTelegramPairingCtx()
   if (!ctx) return { error }
 
   const service = createServiceClient()
@@ -511,7 +536,7 @@ export async function saveTelegramSettingsAction(
     return { error: "Шаблон Telegram не может быть длиннее 4096 символов" }
   }
   const allowedVariables: Array<[string, Set<string>]> = [
-    [settings.welcome_message, new Set(["name", "club", "expires"])],
+    [settings.welcome_message, new Set(["name", "club", "expires", "address", "phone", "email", "website", "hours"])],
     [settings.expiry_template, new Set(["name", "club", "days", "expires"])],
     [settings.payment_template, new Set(["amount", "membership", "expires"])],
   ]
@@ -520,14 +545,18 @@ export async function saveTelegramSettingsAction(
     if (unknown) return { error: `Неизвестная переменная в шаблоне: {{${unknown}}}` }
   }
 
-  const { data: club } = await supabase.from("clubs").select("settings").eq("id", cc.clubId).single()
+  const service = createServiceClient()
+  const { data: club, error: readError } = await service.from("clubs")
+    .select("settings").eq("id", cc.clubId).maybeSingle()
+  if (readError || !club) return { error: readError?.message ?? "Клуб не найден" }
   const cur = (club?.settings as Record<string, unknown>) ?? {}
 
-  const { error } = await supabase.from("clubs").update({
+  const { data: updated, error } = await service.from("clubs").update({
     settings: { ...cur, tg_settings: settings },
-  }).eq("id", cc.clubId)
+  }).eq("id", cc.clubId).select("id").maybeSingle()
 
   if (error) return { error: error.message }
+  if (!updated) return { error: "Настройки Telegram не были сохранены" }
 
   revalidatePath("/integrations/telegram")
   return { ok: true }

@@ -8,10 +8,9 @@ import { fillColor, type ClassItem } from "@/lib/schedule"
 import {
   addClientToClassAction, markAttendanceAction, cancelClassAction, rescheduleClassAction,
 } from "@/app/(app)/schedule/actions"
+import { useAppLocale } from "./ClubContext"
 
 type ClientOpt = { id: string; name: string }
-
-function fmtSum(n: number) { return `${n.toLocaleString("ru-RU")} сум` }
 
 function Info({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
   return (
@@ -24,6 +23,7 @@ function Info({ icon: Icon, label, value }: { icon: typeof Clock; label: string;
 }
 
 export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; clients: ClientOpt[]; onClose: () => void }) {
+  const { money } = useAppLocale()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [pickClient, setPickClient] = useState("")
@@ -75,7 +75,7 @@ export function ClassDrawer({ cls, clients, onClose }: { cls: ClassItem | null; 
                   <Info icon={Clock} label="Время" value={`${cls.startTime}–${cls.endTime}`} />
                   <Info icon={MapPin} label="Зал" value={cls.roomName} />
                   <Info icon={Users} label="Записано" value={`${cls.seatsBooked} из ${cls.seatsTotal}`} />
-                  <Info icon={Wallet} label="Доход" value={fmtSum(cls.income)} />
+                  <Info icon={Wallet} label="Доход" value={money(cls.income)} />
                 </div>
 
                 {error && <p className="text-sm mt-2" style={{ color: "#dc2626" }}>{error}</p>}

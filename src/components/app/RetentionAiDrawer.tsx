@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { runAction, toast } from "@/lib/use-action"
 import { cn } from "@/lib/utils"
 import type { RetentionAiAnalysis, RetentionAiPriority } from "@/lib/retention-ai"
+import { useAppLocale } from "./ClubContext"
 
 const LEVEL_LABELS = { critical: "Критический", high: "Высокий", medium: "Средний" } as const
 const CONFIDENCE_LABELS = { high: "Высокая", medium: "Средняя", low: "Низкая" } as const
@@ -52,10 +53,6 @@ const OUTCOME_LABELS: Record<string, string> = {
   returned: "вернулся",
   declined: "отказался",
   follow_up: "связаться позже",
-}
-
-function formatMoney(value: number) {
-  return `${Math.round(value).toLocaleString("ru-RU")} сум`
 }
 
 function AnalysisSkeleton() {
@@ -104,6 +101,7 @@ async function writeClipboard(value: string) {
 }
 
 function PriorityItem({ item, onRefresh }: { item: RetentionAiPriority; onRefresh: () => void }) {
+  const { money } = useAppLocale()
   const [draft, setDraft] = useState(item.messageDraft)
   const [copied, setCopied] = useState(false)
   const [confirmTelegram, setConfirmTelegram] = useState(false)
@@ -181,7 +179,7 @@ function PriorityItem({ item, onRefresh }: { item: RetentionAiPriority; onRefres
               {LEVEL_LABELS[item.level]} · {item.score}
             </Badge>
           </div>
-          {item.estimatedValue > 0 && <p className="mt-1 text-xs text-muted-foreground">Потенциал {formatMoney(item.estimatedValue)}</p>}
+          {item.estimatedValue > 0 && <p className="mt-1 text-xs text-muted-foreground">Потенциал {money(item.estimatedValue)}</p>}
         </div>
         <Link href={`/clients/${item.clientId}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
           Карточка <ArrowRight data-icon="inline-end" />
@@ -321,6 +319,7 @@ export function RetentionAiDrawer({
   onRetry: () => void
   onRefresh: () => void
 }) {
+  const { money } = useAppLocale()
   const isClient = analysis?.scope.kind === "client"
 
   return (
@@ -364,7 +363,7 @@ export function RetentionAiDrawer({
                 {[
                   ["В разборе", analysis.metrics.selected.toLocaleString("ru-RU")],
                   ["Критические", analysis.metrics.critical.toLocaleString("ru-RU")],
-                  ["Под риском", formatMoney(analysis.metrics.revenueAtRisk)],
+                  ["Под риском", money(analysis.metrics.revenueAtRisk)],
                 ].map(([label, value]) => (
                   <div key={label} className="min-w-0 p-3 sm:p-4">
                     <p className="text-xs text-muted-foreground">{label}</p>

@@ -66,9 +66,12 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
   if (!auth) return fail("Откройте кабинет заново через Telegram", 401)
 
   const { data: link } = await service.from("telegram_users")
-    .select("client_id, preferences")
-    .eq("club_id", clubId).eq("telegram_id", auth.user.id).eq("role", "client").maybeSingle()
-  if (!link?.client_id) return fail("Сначала привяжите номер командой /start в боте", 403)
+    .select("client_id, staff_id, role, preferences")
+    .eq("club_id", clubId).eq("telegram_id", auth.user.id).maybeSingle()
+  if (link?.staff_id || (link?.role && link.role !== "client")) {
+    return fail("Этот кабинет предназначен для клиентов. Отчёты владельца доступны в главном меню Telegram-бота.", 403)
+  }
+  if (!link?.client_id) return fail("Если вы клиент, привяжите номер через /start. Владельцу нужно привязать Telegram в CRM: Интеграции → Telegram.", 403)
 
   const { data: linkedClient } = await service.from("clients").select("id, full_name")
     .eq("id", link.client_id).eq("club_id", clubId).maybeSingle()

@@ -14,6 +14,7 @@ import {
   type ManualClientResult,
   type ManualClientSub,
 } from "@/app/(app)/visits/actions"
+import { useAppLocale } from "./ClubContext"
 
 // ── helpers ──────────────────────────────────────────────────────
 
@@ -99,6 +100,7 @@ function ClientCard({
   selectedSubId: string | null
   onSelectSub: (id: string | null) => void
 }) {
+  const { money } = useAppLocale()
   const initials = client.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()
   const activeSubs = client.subscriptions.filter((s) => s.status === "active")
   const allSubs = client.subscriptions
@@ -174,7 +176,7 @@ function ClientCard({
           style={{ background: "rgba(217,119,6,0.08)", border: "1px solid rgba(217,119,6,0.2)" }}>
           <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#d97706" }} />
           <p className="text-xs font-medium" style={{ color: "#d97706" }}>
-            Долг: {client.debt.toLocaleString("ru-RU")} сум
+            Долг: {money(client.debt)}
           </p>
         </div>
       )}
@@ -185,6 +187,7 @@ function ClientCard({
 // ── Right-side preview ────────────────────────────────────────────
 
 function PreviewPanel({ client, selectedSubId }: { client: ManualClientResult | null; selectedSubId: string | null }) {
+  const { money } = useAppLocale()
   if (!client) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 py-12">
@@ -244,7 +247,7 @@ function PreviewPanel({ client, selectedSubId }: { client: ManualClientResult | 
         {
           icon: Wallet,
           label: "Долг",
-          value: client.debt > 0 ? `${client.debt.toLocaleString("ru-RU")} сум` : "0 сум",
+          value: money(client.debt),
           valueColor: client.debt > 0 ? "#d97706" : "#16a34a",
         },
         {

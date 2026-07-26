@@ -1,4 +1,7 @@
+"use client"
+
 import { TrendingDown, AlertCircle, Clock, PackageX, HelpCircle, Calendar } from "lucide-react"
+import { useAppLocale } from "./ClubContext"
 
 type Props = {
   attendanceChangePct: number
@@ -7,11 +10,8 @@ type Props = {
   potentialLoss: number
 }
 
-function fmt(n: number) {
-  return n.toLocaleString("ru-RU")
-}
-
 export function ClubAnalytics({ attendanceChangePct, churnCount, expiringCount, potentialLoss }: Props) {
+  const { money } = useAppLocale()
   const attendanceDown = Math.abs(Math.round(attendanceChangePct))
 
   const cards = [
@@ -63,7 +63,7 @@ export function ClubAnalytics({ attendanceChangePct, churnCount, expiringCount, 
           <p className="text-sm leading-5 mb-1" style={{ color: "var(--on-dark-soft)" }}>{expiringCount} абонементов истекают</p>
           <p className="text-sm" style={{ color: "var(--on-dark-soft)" }}>
             Потенциальная потеря:<br />
-            <span className="text-base font-medium" style={{ color: "var(--on-dark)" }}>{fmt(potentialLoss)} сум</span>
+            <span className="text-base font-medium" style={{ color: "var(--on-dark)" }}>{money(potentialLoss)}</span>
           </p>
         </>
       ),

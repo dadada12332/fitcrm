@@ -14,6 +14,7 @@ import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
 import type { ProductOnboardingData } from "@/lib/product-onboarding"
 import type { PlanAccess } from "@/lib/plan-access"
+import type { AppLocale } from "@/lib/app-locale"
 
 type LockReason = "suspended" | "trial" | "plan" | null
 
@@ -25,6 +26,9 @@ type Props = {
   stats: SidebarStats
   permissions: RolePermissions
   planAccess: PlanAccess | null
+  locale: AppLocale
+  currency: string
+  timezone: string
   role: string
   impersonating?: boolean
   lockReason?: LockReason
@@ -69,7 +73,7 @@ function LockScreen({ reason, clubName }: { reason: "suspended" | "trial" | "pla
   )
 }
 
-export function AppShell({ clubId, clubName, plan, email, stats, permissions, planAccess, role, impersonating, lockReason, productOnboarding, children }: Props) {
+export function AppShell({ clubId, clubName, plan, email, stats, permissions, planAccess, locale, currency, timezone, role, impersonating, lockReason, productOnboarding, children }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
@@ -89,6 +93,10 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
     return () => window.removeEventListener("resize", fn)
   }, [])
 
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
+
   const handleMenuToggle = () => {
     if (window.innerWidth < 1024) setMobileOpen((v) => !v)
     else setCollapsed((v) => !v)
@@ -98,14 +106,14 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
 
   if (showLock && lockReason) {
     return (
-      <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess }}>
+      <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess, locale, currency, timezone }}>
         <LockScreen reason={lockReason} clubName={clubName} />
       </ClubProvider>
     )
   }
 
   return (
-    <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess }}>
+    <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess, locale, currency, timezone }}>
       <PlanLimitUpgradeDialog />
       {impersonating && (
         <div

@@ -5,10 +5,7 @@ import { Search, Users, Clock, CheckCircle2, Download } from "lucide-react"
 import { pluralDays, membershipStatus, statusMeta, type MembershipRow } from "@/lib/memberships"
 import { MembershipRowMenu } from "./MembershipRowMenu"
 import { downloadCSV } from "@/lib/csv"
-
-function fmtSum(n: number) {
-  return n.toLocaleString("ru-RU")
-}
+import { useAppLocale } from "./ClubContext"
 
 const CARD_PALETTES = [
   { from: "#2563eb", to: "#3b82f6", accent: "rgba(37,99,235,0.3)" },  // blue
@@ -23,11 +20,11 @@ const CARD_PALETTES = [
 
 type Tab = "active" | "archived"
 
-function exportMemberships(rows: MembershipRow[]) {
+function exportMemberships(rows: MembershipRow[], currency: string) {
   const today = new Date().toISOString().slice(0, 10)
   downloadCSV(
     `memberships_${today}.csv`,
-    ["Название", "Цена (сум)", "Срок (дней)", "Посещений", "Активных клиентов", "Статус"],
+    ["Название", `Цена (${currency})`, "Срок (дней)", "Посещений", "Активных клиентов", "Статус"],
     rows.map((row) => [
       row.name,
       row.price,
@@ -40,6 +37,7 @@ function exportMemberships(rows: MembershipRow[]) {
 }
 
 export function MembershipsCards({ rows, canExport, canManage = false }: { rows: MembershipRow[]; canExport: boolean; canManage?: boolean }) {
+  const { money, currency } = useAppLocale()
   const [query, setQuery] = useState("")
   const [tab, setTab] = useState<Tab>("active")
 
@@ -125,7 +123,7 @@ export function MembershipsCards({ rows, canExport, canManage = false }: { rows:
         {canExport && (
           <button
             type="button"
-            onClick={() => exportMemberships(filtered)}
+            onClick={() => exportMemberships(filtered, currency)}
             className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
           >
             <Download className="h-4 w-4" />
@@ -176,8 +174,7 @@ export function MembershipsCards({ rows, canExport, canManage = false }: { rows:
                       {row.name}
                     </h3>
                     <p className="relative z-10" style={{ color: "white" }}>
-                      <span className="text-2xl font-bold tracking-tight">{fmtSum(row.price)}</span>
-                      <span className="text-sm font-normal ml-1.5" style={{ color: palette.accent }}>сум</span>
+                      <span className="text-2xl font-bold tracking-tight">{money(row.price)}</span>
                     </p>
 
                     {/* Decorative blobs */}

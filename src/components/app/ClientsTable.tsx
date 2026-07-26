@@ -6,6 +6,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowDown } from "lucide-react"
 import type { ClientRow, ClientStatus } from "@/lib/clients"
 import { ClientsFilterDrawer, type FilterSection } from "./ClientsFilterDrawer"
+import { useAppLocale } from "./ClubContext"
 
 const statusMeta: Record<ClientStatus, { label: string; bg: string; color: string }> = {
   active:  { label: "Активный",  bg: "rgba(22,163,74,0.12)",  color: "#16a34a" },
@@ -41,6 +42,7 @@ export function ClientsTable({
   membershipNames: string[]
   showFinancials?: boolean
 }) {
+  const { money } = useAppLocale()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -213,7 +215,7 @@ export function ClientsTable({
                 </span>
                 <span style={{ color: "var(--on-dark-soft)" }}>{r.source ?? "—"}</span>
                 {showFinancials && <span className="text-right font-medium" style={{ color: r.debt > 0 ? "#dc2626" : "var(--on-dark-soft)" }}>
-                  {r.debt > 0 ? `${r.debt.toLocaleString("ru-RU")} сум` : "—"}
+                  {r.debt > 0 ? money(r.debt) : "—"}
                 </span>}
               </Link>
             )

@@ -1,10 +1,12 @@
 "use client"
 
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from "recharts"
+import { useAppLocale } from "./ClubContext"
 
 type Props = { data: { label: string; value: number }[] }
 
 export function MiniChart({ data }: Props) {
+  const { money } = useAppLocale()
   return (
     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 240, height: 80 }}>
       <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
@@ -15,7 +17,7 @@ export function MiniChart({ data }: Props) {
           </linearGradient>
         </defs>
         <Tooltip
-          formatter={(v) => [`${Number(v).toLocaleString("ru-RU")} сум`, ""]}
+          formatter={(v) => [money(Number(v)), ""]}
           labelFormatter={(_, payload) => payload?.[0]?.payload?.label ?? ""}
           contentStyle={{
             background: "var(--card)",

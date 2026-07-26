@@ -1,30 +1,35 @@
-# Design QA — Login review-only iteration
+# Design QA — subscription workspace redesign
 
-- Source screenshots:
-  - `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_mvEjcU/Снимок экрана 2026-07-24 в 16.23.24.png`
-  - `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_qULwp0/Снимок экрана 2026-07-24 в 16.24.03.png`
-- Target state: unauthenticated desktop login
+- Source visual truth:
+  `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_seqlvX/Снимок экрана 2026-07-27 в 02.34.48.png`
+- Route/state: `/settings/subscription`, authenticated club owner.
+- Source pixels: `2048 × 1054`; used as the current-state reference for hierarchy, density and content.
 
-## Implemented
+## Implemented direction
 
-- Removed the KPI/activity/quick-actions CRM surface from the left carousel.
-- Kept both testimonials and increased their avatar, copy, spacing and glass-card size.
-- Moved the workspace context into the same centered stack as the login form.
-- Increased the workspace icon, title and supporting copy.
-- Preserved the existing login form, controls and bottom support/security cards.
+- The current subscription is promoted to a compact summary with plan, expiry, monthly price,
+  days remaining and the two primary capacity metrics.
+- A dedicated usage section shows all ten working entitlement limits. Persistent club capacity and
+  calendar-month consumption are labelled separately.
+- Available plans use the shared Card, Badge, Button and Tabs primitives. The former full-blue plan
+  card is replaced with a neutral two-tone hierarchy; brand blue only marks the selected/current
+  state and primary action.
+- Existing request, cancellation and duration-selection behaviour is preserved.
 
 ## Verification
 
+- Supabase read contracts for every displayed usage source were exercised with tenant-scoped,
+  read-only queries.
 - `npx tsc --noEmit` — passed.
-- `npm run build` — passed.
-- `git diff --check` — passed.
-- Local production server responds with HTTP 200.
+- Focused ESLint for both edited files — passed.
+- `npm run build` — passed; all 62 routes generated.
+- `npm test` — 151 passed, 1 skipped, 2 unrelated existing security-suite failures.
 
-## Blocker
+## Visual gate
 
-The selected in-app browser rejected the local loopback reload under its URL security policy.
-Per the browser-choice policy, no alternate browser or indirect capture method was used. A fresh
-post-change implementation screenshot and same-viewport visual comparison could therefore not be
-captured in this pass.
+Chrome has an authenticated production FitCRM tab, but there is no authenticated localhost tab.
+The redesigned protected route therefore could not be captured from the current local source
+without copying credentials or bypassing authentication. No mock screenshot or old production
+screen was substituted for the real implementation.
 
-final result: blocked
+final result: blocked — authenticated localhost session is unavailable for the required desktop and mobile screenshots

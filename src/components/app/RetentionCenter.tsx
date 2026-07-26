@@ -23,6 +23,7 @@ import { analyzeRetentionAction } from "@/app/(app)/retention/actions"
 import type { RetentionCandidate, RetentionData, RetentionLevel, RetentionReason } from "@/lib/retention"
 import type { RetentionAiAnalysis, RetentionAiFilter, RetentionAiScope } from "@/lib/retention-ai"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "./ClubContext"
 
 type Filter = RetentionAiFilter
 
@@ -49,16 +50,13 @@ const FILTERS: Array<{ value: Filter; label: string }> = [
   { value: "expired", label: "Возврат" },
 ]
 
-function formatMoney(value: number) {
-  return `${value.toLocaleString("ru-RU")} сум`
-}
-
 function formatDate(value: string | null) {
   if (!value) return "Никогда"
   return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value))
 }
 
 function CandidateCard({ item, onAnalyze }: { item: RetentionCandidate; onAnalyze: (clientId: string) => void }) {
+  const { money } = useAppLocale()
   return (
     <Card size="sm" className="gap-3">
       <CardHeader className="grid-cols-[1fr_auto]">
@@ -79,7 +77,7 @@ function CandidateCard({ item, onAnalyze }: { item: RetentionCandidate; onAnalyz
           </div>
           <div>
             <p className="text-muted-foreground">Потенциал</p>
-            <p className="mt-1 font-medium text-foreground">{item.estimatedValue ? formatMoney(item.estimatedValue) : "Не рассчитан"}</p>
+            <p className="mt-1 font-medium text-foreground">{item.estimatedValue ? money(item.estimatedValue) : "Не рассчитан"}</p>
           </div>
         </div>
         <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
@@ -97,6 +95,7 @@ function CandidateCard({ item, onAnalyze }: { item: RetentionCandidate; onAnalyz
 }
 
 export function RetentionCenter({ data }: { data: RetentionData }) {
+  const { money } = useAppLocale()
   const [filter, setFilter] = useState<Filter>("all")
   const [query, setQuery] = useState("")
   const [aiOpen, setAiOpen] = useState(false)
@@ -134,7 +133,7 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
     { label: "В зоне риска", value: data.summary.atRisk.toLocaleString("ru-RU"), hint: "клиентов требуют внимания", icon: UsersRound },
     { label: "Срочно", value: data.summary.critical.toLocaleString("ru-RU"), hint: "совпало несколько сигналов", icon: ShieldAlert },
     { label: "Нет визитов 14+", value: data.summary.inactive14.toLocaleString("ru-RU"), hint: "или ещё не было посещений", icon: UserRoundX },
-    { label: "Выручка под риском", value: formatMoney(data.summary.revenueAtRisk), hint: "по стоимости текущих тарифов", icon: CircleDollarSign },
+    { label: "Выручка под риском", value: money(data.summary.revenueAtRisk), hint: "по стоимости текущих тарифов", icon: CircleDollarSign },
   ]
 
   return (
@@ -235,7 +234,7 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
                         <td className="px-4 py-3"><Badge variant={LEVEL_META[item.level].variant}>{LEVEL_META[item.level].label} · {item.score}</Badge></td>
                         <td className="px-4 py-3"><div className="flex max-w-xs flex-wrap gap-1">{item.reasons.map((reason) => <Badge key={reason} variant="outline">{REASON_LABELS[reason]}</Badge>)}</div></td>
                         <td className="px-4 py-3 text-muted-foreground">{formatDate(item.lastVisit)}</td>
-                        <td className="px-4 py-3 font-medium tabular-nums text-foreground">{item.estimatedValue ? formatMoney(item.estimatedValue) : "—"}</td>
+                        <td className="px-4 py-3 font-medium tabular-nums text-foreground">{item.estimatedValue ? money(item.estimatedValue) : "—"}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="inline-flex items-center gap-1">
                             <Button type="button" variant="ghost" size="sm" onClick={() => runAiAnalysis({ kind: "client", clientId: item.id })}><Sparkles /> AI-разбор</Button>

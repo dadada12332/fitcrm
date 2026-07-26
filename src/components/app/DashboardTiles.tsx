@@ -1,4 +1,7 @@
+"use client"
+
 import { Users, CreditCard, Zap, Clock, TrendingUp, TrendingDown } from "lucide-react"
+import { useAppLocale } from "./ClubContext"
 
 type Tile = {
   label: string
@@ -60,6 +63,7 @@ type Props = {
 }
 
 export function DashboardTiles({ activeClients, prevClients, todayRevenue, prevRevenue, todayVisits, prevVisits, expiringCount, canViewFinance = true }: Props) {
+  const { money } = useAppLocale()
   function pct(curr: number, prev: number) {
     if (!prev) return curr > 0 ? 100 : 0
     return ((curr - prev) / prev) * 100
@@ -79,7 +83,7 @@ export function DashboardTiles({ activeClients, prevClients, todayRevenue, prevR
     },
     {
       label: "Выручка сегодня",
-      value: `${fmt(todayRevenue)} сум`,
+      value: money(todayRevenue),
       trend: revDelta,
       trendLabel: `${revDelta >= 0 ? "+" : ""}${revDelta.toFixed(2)}% вчера`,
       icon: <CreditCard className="w-6 h-6" style={{ color: "var(--gray-muted)" }} />,

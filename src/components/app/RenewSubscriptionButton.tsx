@@ -6,10 +6,10 @@ import { renewSubscriptionAction } from "@/app/(app)/clients/actions"
 import type { CurrentSubscription } from "@/lib/client-profile"
 import { toast } from "@/lib/use-action"
 import { Button } from "@/components/ui/button"
+import { useAppLocale } from "./ClubContext"
 
 type Membership = { id: string; name: string; price: number }
 
-const fmt = (n: number) => n.toLocaleString("ru-RU")
 const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("ru-RU") : "—")
 
 export function RenewSubscriptionButton({ clientId, clientName, subscription, memberships }: {
@@ -18,6 +18,7 @@ export function RenewSubscriptionButton({ clientId, clientName, subscription, me
   subscription: CurrentSubscription | null
   memberships: Membership[]
 }) {
+  const { money } = useAppLocale()
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -97,7 +98,7 @@ export function RenewSubscriptionButton({ clientId, clientName, subscription, me
                     style={{ background: "var(--card)", border: "1px solid var(--border)", color: membershipId ? "var(--on-dark)" : "var(--gray-muted)" }}>
                     <option value="">Выберите абонемент</option>
                     {options.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name}{m.price > 0 ? ` — ${fmt(m.price)} сум` : ""}</option>
+                      <option key={m.id} value={m.id}>{m.name}{m.price > 0 ? ` — ${money(m.price)}` : ""}</option>
                     ))}
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--gray-muted)" }} />

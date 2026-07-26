@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import {
   Search, Bell,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
-  PanelLeft, SunMoon, Inbox, CheckCircle2, Loader2, ChevronRight,
+  PanelLeft, SunMoon, Inbox, CheckCircle2, Loader2, ChevronRight, Languages, Check,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useTheme } from "next-themes"
@@ -13,11 +13,23 @@ import { globalSearchAction, getNotificationsAction, getRequestsAction, type Glo
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Breadcrumbs } from "./Breadcrumbs"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { APP_LOCALE_LABELS, APP_LOCALE_SHORT, type AppLocale } from "@/lib/app-locale"
+import { saveUserLocaleAction } from "@/app/(app)/settings/club/actions"
+import { useAppLocale } from "./ClubContext"
+import { toast } from "sonner"
 
 type Props = { clubName: string; email: string; initialNotificationCount: number; onToggleSidebar?: () => void }
 
 // ── Global Search ────────────────────────────────────────────────
 function GlobalSearch({ onClose }: { onClose: () => void }) {
+  const { t } = useAppLocale()
   const [query, setQuery]     = useState("")
   const [results, setResults] = useState<GlobalSearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -82,7 +94,7 @@ function GlobalSearch({ onClose }: { onClose: () => void }) {
                 onClose()
               }
             }}
-            placeholder="Поиск клиентов по имени или телефону..."
+            placeholder={`${t("top.search")}...`}
             className="flex-1 text-base outline-none bg-transparent text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-600" />
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
             <X className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
@@ -333,6 +345,21 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const { locale, t } = useAppLocale()
+  const router = useRouter()
+  const [languagePending, startLanguageTransition] = useTransition()
+
+  function changeLanguage(nextLocale: AppLocale) {
+    if (nextLocale === locale) return
+    startLanguageTransition(async () => {
+      const result = await saveUserLocaleAction(nextLocale)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      router.refresh()
+    })
+  }
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
@@ -353,8 +380,8 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
             onClick={onToggleSidebar}
             className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
             style={{ width: 28, height: 28 }}
-            aria-label="Переключить боковое меню"
-            title="Переключить боковое меню"
+            aria-label={t("top.toggleMenu")}
+            title={t("top.toggleMenu")}
           >
             <PanelLeft style={{ width: 16, height: 16 }} />
           </button>
@@ -374,17 +401,38 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
             className="flex items-center gap-2.5 rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700"
             style={{ height: 36, width: 260, paddingLeft: 12, paddingRight: 10, fontSize: 13 }}>
             <Search style={{ width: 15, height: 15, flexShrink: 0 }} />
-            <span className="flex-1 text-left">Поиск</span>
+            <span className="flex-1 text-left">{t("top.search")}</span>
             <span className="flex-shrink-0 px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 font-mono" style={{ fontSize: 11 }}>⌘K</span>
           </button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              disabled={languagePending}
+              aria-label={t("top.language")}
+              title={t("top.language")}
+              className="flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            >
+              <Languages className="size-4" />
+              <span className="hidden sm:inline">{APP_LOCALE_SHORT[locale]}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-44">
+              <DropdownMenuLabel>{t("top.language")}</DropdownMenuLabel>
+              {(Object.keys(APP_LOCALE_LABELS) as AppLocale[]).map((item) => (
+                <DropdownMenuItem key={item} onClick={() => changeLanguage(item)}>
+                  <span className="flex-1">{APP_LOCALE_LABELS[item]}</span>
+                  {locale === item && <Check className="size-4 text-brand" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Theme toggle */}
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
             className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
             style={{ width: 32, height: 32 }}
-            title="Переключить тему"
-            aria-label="Переключить тему"
+            title={t("top.toggleTheme")}
+            aria-label={t("top.toggleTheme")}
           >
             <SunMoon style={{ width: 20, height: 20 }} />
           </button>
@@ -392,7 +440,7 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
           {/* Bell */}
           <div ref={notifRef} className="relative">
             <button onClick={() => { setNotifOpen((v) => !v) }}
-              aria-label="Открыть уведомления"
+              aria-label={t("top.notifications")}
               className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 relative"
               style={{ width: 32, height: 32 }}>
               <Bell style={{ width: 20, height: 20 }} />

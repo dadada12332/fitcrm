@@ -19,6 +19,7 @@ import { createMembershipAction } from "@/app/(app)/memberships/actions"
 import type { ClientSearchResult } from "@/lib/visits"
 import { MoneyInput } from "./MoneyInput"
 import { showActionError } from "@/lib/plan-limit-client"
+import { useAppLocale } from "./ClubContext"
 
 // ── Shared primitives ────────────────────────────────────────────────
 
@@ -110,6 +111,7 @@ export type QuickActionView = "client" | "payment" | "membership" | "visit" | "s
 // ── View: New client ─────────────────────────────────────────────────
 
 function NewClientView({ memberships, onDone }: { memberships: QuickMembership[]; onDone: () => void }) {
+  const { money } = useAppLocale()
   const [firstName, setFirstName] = useState("")
   const [lastName,  setLastName]  = useState("")
   const [phoneDig,  setPhoneDig]  = useState("")
@@ -215,7 +217,7 @@ function NewClientView({ memberships, onDone }: { memberships: QuickMembership[]
             <option value="">Выберите абонемент</option>
             {allMemberships.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.name}{m.price > 0 ? ` — ${m.price.toLocaleString("ru-RU")} сум` : ""}
+                {m.name}{m.price > 0 ? ` — ${money(m.price)}` : ""}
               </option>
             ))}
           </FSelect>
@@ -259,6 +261,7 @@ const PROVIDERS: { value: PayProvider; label: string }[] = [
 ]
 
 function NewPaymentView({ memberships, onDone }: { memberships: QuickMembership[]; onDone: () => void }) {
+  const { money } = useAppLocale()
   const [query,      setQuery]      = useState("")
   const [results,    setResults]    = useState<ClientSearchResult[]>([])
   const [dropOpen,   setDropOpen]   = useState(false)
@@ -381,7 +384,7 @@ function NewPaymentView({ memberships, onDone }: { memberships: QuickMembership[
         <FSelect value={membershipId ?? ""} onChange={(e) => selectMembership(e.target.value || null)}>
           <option value="">— Без абонемента —</option>
           {memberships.map((m) => (
-            <option key={m.id} value={m.id}>{m.name} — {m.price.toLocaleString("ru-RU")} сум</option>
+            <option key={m.id} value={m.id}>{m.name} — {money(m.price)}</option>
           ))}
         </FSelect>
       </div>

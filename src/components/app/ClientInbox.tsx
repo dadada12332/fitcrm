@@ -35,6 +35,7 @@ import {
 } from "@/lib/client-inbox"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "@/lib/use-action"
+import { useAppLocale } from "./ClubContext"
 
 type Filter = "active" | "new" | "mine" | "waiting_client" | "resolved"
 
@@ -65,10 +66,6 @@ function relativeTime(value: string) {
   if (seconds < 3600) return `${Math.floor(seconds / 60)} мин`
   if (date.toDateString() === new Date().toDateString()) return date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
   return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" })
-}
-
-function formatMoney(value: number) {
-  return `${new Intl.NumberFormat("ru-RU").format(value)} сум`
 }
 
 function formatDate(value: string | null) {
@@ -468,6 +465,7 @@ function ConversationThread({ detail, loading, staff, templates, canReply, canAs
 }
 
 function ClientContext({ detail }: { detail: InboxConversationDetail | null }) {
+  const { money } = useAppLocale()
   if (!detail) return <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">Выберите обращение</div>
   const client = detail.client
   return (
@@ -483,7 +481,7 @@ function ClientContext({ detail }: { detail: InboxConversationDetail | null }) {
       <div className="mt-5 space-y-3 border-t border-border pt-5">
         <ContextRow icon={CreditCard} label="Абонемент" value={client.membershipName ?? "Нет абонемента"} hint={client.membershipExpiresAt ? `до ${formatDate(client.membershipExpiresAt)}` : undefined} />
         <ContextRow icon={Clock3} label="Последнее посещение" value={formatDate(client.lastVisitAt)} />
-        <ContextRow icon={Wallet} label="Баланс" value={formatMoney(client.balance)} hint={client.debt > 0 ? `Долг: ${formatMoney(client.debt)}` : undefined} destructive={client.debt > 0} />
+        <ContextRow icon={Wallet} label="Баланс" value={money(client.balance)} hint={client.debt > 0 ? `Долг: ${money(client.debt)}` : undefined} destructive={client.debt > 0} />
         <ContextRow icon={MessageCircle} label="Telegram" value={client.telegramUsername ? `@${client.telegramUsername}` : "Подключён"} />
       </div>
     </div>

@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid,
 } from "recharts"
 import type { PeriodKey, PeriodStat } from "@/lib/dashboard"
+import { useAppLocale } from "./ClubContext"
 
 const PERIODS: { key: PeriodKey; label: string }[] = [
   { key: "Сегодня", label: "Сегодня" },
@@ -16,6 +17,7 @@ const PERIODS: { key: PeriodKey; label: string }[] = [
 ]
 
 export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodStat> }) {
+  const { money } = useAppLocale()
   const [period, setPeriod] = useState<PeriodKey>("7Д")
   const cur = periods[period]
 
@@ -105,7 +107,7 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
 
             <Tooltip
               formatter={(v, name) => [
-                `${Number(v).toLocaleString("ru-RU")} сум`,
+                money(Number(v)),
                 name === "value" ? "Текущий" : "Прошлый"
               ]}
               labelFormatter={(_, payload) => payload?.[0]?.payload?.label ?? ""}

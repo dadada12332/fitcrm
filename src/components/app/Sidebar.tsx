@@ -19,6 +19,7 @@ import { resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
 import { planFeatureEnabled, planSectionEnabled, type PlanAccess } from "@/lib/plan-access"
+import { useAppLocale } from "./ClubContext"
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный",
@@ -120,6 +121,7 @@ function NavItem({
 
 // ── AI NavItem (gradient shimmer) ────────────────────────────────
 function AINavItem({ collapsed }: { collapsed?: boolean }) {
+  const { t } = useAppLocale()
   const pathname = usePathname()
   const active = pathname === "/ai" || pathname.startsWith("/ai/")
 
@@ -152,7 +154,7 @@ function AINavItem({ collapsed }: { collapsed?: boolean }) {
 
       <Link
         href="/ai"
-        title={collapsed ? "AI Аналитика" : undefined}
+        title={collapsed ? t("nav.ai") : undefined}
         className={`flex items-center rounded-md transition-colors ${
           active ? "bg-violet-50 dark:bg-violet-950/30" : "hover:bg-zinc-100 dark:hover:bg-zinc-800/60"
         }`}
@@ -181,7 +183,7 @@ function AINavItem({ collapsed }: { collapsed?: boolean }) {
         {!collapsed && (
           <>
             <span className="ai-gradient-text flex-1 text-sm font-normal" style={{ fontWeight: active ? 500 : 400 }}>
-              AI Аналитика
+              {t("nav.ai")}
             </span>
             <Badge value="NEW" type="new" />
           </>
@@ -221,6 +223,7 @@ type Props = {
 }
 
 export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess, role, collapsed = false, mobile = false }: Props) {
+  const { t } = useAppLocale()
   const router = useRouter()
   const [clubOpen, setClubOpen] = useState(false)
   const [branches, setBranches] = useState<Branch[]>([])
@@ -254,9 +257,9 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
   }
 
   const isTrial = plan === "trial"
-  const planLabel = PLAN_LABELS[plan] ?? plan
+  const planLabel = plan === "trial" ? t("nav.trial") : PLAN_LABELS[plan] ?? plan
   const clubSubtitle = isTrial && stats.trialDaysLeft !== null
-    ? `Trial · осталось ${stats.trialDaysLeft} дн.`
+    ? `${t("nav.trial")} · ${t("nav.daysLeft", { count: stats.trialDaysLeft })}`
     : planLabel
   const statusColor = isTrial ? "#f59e0b" : "#22c55e"
 
@@ -319,7 +322,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
               <div className="py-1">
                 <Link href="/settings?tab=branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
                   <GitFork className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                  Добавить клуб
+                  {t("nav.addClub")}
                 </Link>
               </div>
             )}
@@ -337,34 +340,34 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
       {/* ── Nav ── */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2">
         <div className="flex flex-col gap-0.5">
-          <NavItem href="/dashboard"   icon={LayoutDashboard} label="Дашборд"    collapsed={collapsed} />
+          <NavItem href="/dashboard" icon={LayoutDashboard} label={t("nav.dashboard")} collapsed={collapsed} />
           {p.clients.view && (
-            <NavItem href="/clients" icon={Users} label="Клиенты" collapsed={collapsed} tour="nav-clients" badge={stats.clientCount > 0 ? stats.clientCount : undefined} badgeType="count" />
+            <NavItem href="/clients" icon={Users} label={t("nav.clients")} collapsed={collapsed} tour="nav-clients" badge={stats.clientCount > 0 ? stats.clientCount : undefined} badgeType="count" />
           )}
           {p.memberships.view && (
-            <NavItem href="/memberships" icon={CreditCard} label="Абонементы" collapsed={collapsed} tour="nav-memberships" badge={stats.activeMembershipCount > 0 ? stats.activeMembershipCount : undefined} badgeType="count" />
+            <NavItem href="/memberships" icon={CreditCard} label={t("nav.memberships")} collapsed={collapsed} tour="nav-memberships" badge={stats.activeMembershipCount > 0 ? stats.activeMembershipCount : undefined} badgeType="count" />
           )}
         </div>
 
         {(p.visits.view || p.inbox.view || p.schedule.view || p.payments.view || p.warehouse.view) && (
           <>
             <Divider />
-            {!collapsed && <SectionLabel label="Операции" />}
+            {!collapsed && <SectionLabel label={t("nav.operations")} />}
             <div className="flex flex-col gap-0.5">
               {p.visits.view && (
-                <NavItem href="/visits" icon={Activity} label="Посещения" collapsed={collapsed} badge={stats.todayVisits > 0 ? "LIVE" : undefined} badgeType="live" />
+                <NavItem href="/visits" icon={Activity} label={t("nav.visits")} collapsed={collapsed} badge={stats.todayVisits > 0 ? "LIVE" : undefined} badgeType="live" />
               )}
               {p.inbox.view && (
-                <NavItem href="/inbox" icon={MessagesSquare} label="Обращения" collapsed={collapsed} badge={stats.inboxUnread > 0 ? stats.inboxUnread : undefined} badgeType="count" />
+                <NavItem href="/inbox" icon={MessagesSquare} label={t("nav.inbox")} collapsed={collapsed} badge={stats.inboxUnread > 0 ? stats.inboxUnread : undefined} badgeType="count" />
               )}
               {p.schedule.view && (
-                <NavItem href="/schedule" icon={Calendar} label="Расписание" collapsed={collapsed} />
+                <NavItem href="/schedule" icon={Calendar} label={t("nav.schedule")} collapsed={collapsed} />
               )}
               {p.payments.view && (
-                <NavItem href="/payments" icon={Wallet} label="Оплаты" collapsed={collapsed} />
+                <NavItem href="/payments" icon={Wallet} label={t("nav.payments")} collapsed={collapsed} />
               )}
               {p.warehouse.view && (
-                <NavItem href="/warehouse" icon={Package} label="Склад" collapsed={collapsed} badge={stats.lowStockCount > 0 ? stats.lowStockCount : undefined} badgeType="warn" />
+                <NavItem href="/warehouse" icon={Package} label={t("nav.warehouse")} collapsed={collapsed} badge={stats.lowStockCount > 0 ? stats.lowStockCount : undefined} badgeType="warn" />
               )}
             </div>
           </>
@@ -373,22 +376,22 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
         {(p.staff.view || p.reports.view || p.settings.integrations || p.ai.use) && (
           <>
             <Divider />
-            {!collapsed && <SectionLabel label="Управление" />}
+            {!collapsed && <SectionLabel label={t("nav.management")} />}
             <div className="flex flex-col gap-0.5">
               {p.staff.view && (
-                <NavItem href="/staff" icon={UserCog} label="Сотрудники" collapsed={collapsed} />
+                <NavItem href="/staff" icon={UserCog} label={t("nav.staff")} collapsed={collapsed} />
               )}
               {p.reports.view && p.clients.view && planSectionEnabled(planAccess, "retention") && planFeatureEnabled(planAccess, "retention") && (
-                <NavItem href="/retention" icon={HeartHandshake} label="Удержание" collapsed={collapsed} badge="BETA" badgeType="new" />
+                <NavItem href="/retention" icon={HeartHandshake} label={t("nav.retention")} collapsed={collapsed} badge="BETA" badgeType="new" />
               )}
               {p.reports.view && p.clients.view && planSectionEnabled(planAccess, "growth") && planFeatureEnabled(planAccess, "growth") && (
                 <NavItem href="/growth" icon={Rocket} label="Growth OS" collapsed={collapsed} badge="LAB" badgeType="new" />
               )}
               {p.reports.view && (
-                <NavItem href="/reports" icon={BarChart2} label="Отчёты" collapsed={collapsed} />
+                <NavItem href="/reports" icon={BarChart2} label={t("nav.reports")} collapsed={collapsed} />
               )}
               {p.settings.integrations && (
-                <NavItem href="/integrations" icon={Plug} label="Интеграции" collapsed={collapsed} tour="nav-integrations" />
+                <NavItem href="/integrations" icon={Plug} label={t("nav.integrations")} collapsed={collapsed} tour="nav-integrations" />
               )}
               {p.ai.use && (
                 <AINavItem collapsed={collapsed} />
@@ -402,10 +405,10 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
 
       <div className="flex-shrink-0 px-2 pb-1">
         <div className="flex flex-col gap-0.5">
-          <NavItem href="/settings"      icon={Settings}   label="Настройки клуба" collapsed={collapsed} />
-          <NavItem href="/support"       icon={HelpCircle} label="Поддержка"        collapsed={collapsed} badge={stats.supportUnread > 0 ? stats.supportUnread : undefined} badgeType="warn" />
+          <NavItem href="/settings" icon={Settings} label={t("nav.settings")} collapsed={collapsed} />
+          <NavItem href="/support" icon={HelpCircle} label={t("nav.support")} collapsed={collapsed} badge={stats.supportUnread > 0 ? stats.supportUnread : undefined} badgeType="warn" />
           {planSectionEnabled(planAccess, "knowledge") && planFeatureEnabled(planAccess, "knowledge") && (
-            <NavItem href="/support?tab=kb" icon={BookOpen} label="База знаний" collapsed={collapsed} />
+            <NavItem href="/support?tab=kb" icon={BookOpen} label={t("nav.knowledge")} collapsed={collapsed} />
           )}
         </div>
       </div>

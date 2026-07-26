@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { TrendingUp, TrendingDown, Users, Zap, AlertTriangle, CreditCard } from "lucide-react"
+import { useAppLocale } from "./ClubContext"
 
 function pct(curr: number, prev: number) {
   if (!prev) return curr > 0 ? 100 : 0
@@ -78,6 +81,7 @@ export function DashboardKPIRow({
   todayRevenue, prevRevenue, activeClients, todayNewClients,
   todayVisits, expiringCount, debtCount, debtTotal, isEmpty,
 }: Props) {
+  const { money } = useAppLocale()
   if (isEmpty) return null
 
   const revPct = pct(todayRevenue, prevRevenue)
@@ -86,8 +90,8 @@ export function DashboardKPIRow({
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       <KPICard
         label="Выручка сегодня"
-        value={`${fmt(todayRevenue)} сум`}
-        sub={`vs вчера (${fmt(prevRevenue)} сум)`}
+        value={money(todayRevenue)}
+        sub={`vs вчера (${money(prevRevenue)})`}
         trend={revPct}
         icon={<CreditCard className="w-3.5 h-3.5" style={{ color: "#2563eb" }} />}
       />
@@ -117,7 +121,7 @@ export function DashboardKPIRow({
       />
       <KPICard
         label="Задолженность"
-        value={debtTotal > 0 ? `${fmt(debtTotal)} сум` : "0 сум"}
+        value={money(debtTotal)}
         sub={debtCount > 0 ? `${debtCount} клиентов` : "нет долгов"}
         subColor={debtCount > 0 ? "#dc2626" : undefined}
         icon={<CreditCard className="w-3.5 h-3.5" style={{ color: debtCount > 0 ? "#dc2626" : "var(--gray-muted)" }} />}

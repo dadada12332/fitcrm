@@ -12,6 +12,7 @@ import {
   visitMethodMeta,
 } from "@/lib/client-profile"
 import { downloadCSV } from "@/lib/csv"
+import { useAppLocale } from "./ClubContext"
 
 type TabKey = "profile" | "visits" | "payments" | "history"
 
@@ -22,9 +23,6 @@ const TABS: { key: TabKey; label: string; icon: typeof User }[] = [
   { key: "history",  label: "История",   icon: Clock },
 ]
 
-function fmtSum(n: number) {
-  return `${n.toLocaleString("ru-RU")} сум`
-}
 function fmtDate(iso: string | null) {
   if (!iso) return "—"
   return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
@@ -194,10 +192,10 @@ function Mini({ label, value }: { label: string; value: string }) {
   )
 }
 
-function exportTransactions(payments: ProfilePayment[]) {
+function exportTransactions(payments: ProfilePayment[], currency: string) {
   const today = new Date().toISOString().slice(0, 10)
   downloadCSV(`transactions_${today}.csv`,
-    ["Дата", "Сумма (сум)", "Способ оплаты", "Статус"],
+    ["Дата", `Сумма (${currency})`, "Способ оплаты", "Статус"],
     payments.map((p) => [
       p.paidAt ? new Date(p.paidAt).toLocaleDateString("ru-RU") : "—",
       p.amount,
@@ -208,6 +206,7 @@ function exportTransactions(payments: ProfilePayment[]) {
 }
 
 function TransactionsTable({ payments, canExport }: { payments: ProfilePayment[]; canExport: boolean }) {
+  const { money, currency } = useAppLocale()
   const [query, setQuery] = useState("")
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -238,7 +237,7 @@ function TransactionsTable({ payments, canExport }: { payments: ProfilePayment[]
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
             {canExport && <button
-              onClick={() => exportTransactions(filtered)}
+              onClick={() => exportTransactions(filtered, currency)}
               className="flex h-9 w-full items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 sm:w-auto sm:px-4"
               style={{ background: "var(--card)", color: "var(--on-dark)", border: "1px solid var(--border)" }}>
               <Download className="w-4 h-4" />Экспорт в CSV
@@ -263,14 +262,14 @@ function TransactionsTable({ payments, canExport }: { payments: ProfilePayment[]
           <div key={p.id}>
             <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:hidden" style={{ borderTop: "1px solid var(--border-subtle)" }}>
               <MobileDetail label="Дата">{fmtDate(p.paidAt)}</MobileDetail>
-              <MobileDetail label="Сумма"><span className="font-medium">{fmtSum(p.amount)}</span></MobileDetail>
+              <MobileDetail label="Сумма"><span className="font-medium">{money(p.amount)}</span></MobileDetail>
               <MobileDetail label="Категория">Абонемент</MobileDetail>
               <MobileDetail label="Платёжная система"><Badge meta={providerMeta[p.provider] ?? null} /></MobileDetail>
               <MobileDetail label="Статус"><Badge meta={paymentStatusMeta[p.status] ?? null} /></MobileDetail>
             </div>
             <div className="hidden h-[60px] items-center px-6 text-sm sm:grid" style={{ gridTemplateColumns: cols, borderBottom: "1px solid var(--border-subtle)" }}>
               <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
-              <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
+              <span className="font-medium" style={{ color: "var(--on-dark)" }}>{money(p.amount)}</span>
               <span style={{ color: "var(--on-dark-soft)" }}>Абонемент</span>
               <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
               <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
@@ -325,13 +324,14 @@ function VisitsTab({ visits }: { visits: ProfileVisit[] }) {
 /* ───────────────────────── Платежи ───────────────────────── */
 
 function PaymentsTab({ payments }: { payments: ProfilePayment[] }) {
+  const { money } = useAppLocale()
   const total = payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0)
   const cols = "minmax(120px,1fr) minmax(120px,1fr) minmax(140px,1fr) minmax(110px,0.8fr)"
   return (
     <Card>
       <div className="flex flex-col items-start gap-1 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
         <span className="text-base font-medium tracking-[-0.12px] sm:text-xl" style={{ color: "var(--on-dark)" }}>Платежи</span>
-        <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Всего оплачено: <span className="font-semibold" style={{ color: "var(--on-dark)" }}>{fmtSum(total)}</span></span>
+        <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Всего оплачено: <span className="font-semibold" style={{ color: "var(--on-dark)" }}>{money(total)}</span></span>
       </div>
       <div className="hidden h-12 items-center px-6 text-sm sm:grid"
         style={{ gridTemplateColumns: cols, borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
@@ -347,13 +347,13 @@ function PaymentsTab({ payments }: { payments: ProfilePayment[] }) {
           <div key={p.id}>
             <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:hidden" style={{ borderTop: "1px solid var(--border-subtle)" }}>
               <MobileDetail label="Дата">{fmtDate(p.paidAt)}</MobileDetail>
-              <MobileDetail label="Сумма"><span className="font-medium">{fmtSum(p.amount)}</span></MobileDetail>
+              <MobileDetail label="Сумма"><span className="font-medium">{money(p.amount)}</span></MobileDetail>
               <MobileDetail label="Платёжная система"><Badge meta={providerMeta[p.provider] ?? null} /></MobileDetail>
               <MobileDetail label="Статус"><Badge meta={paymentStatusMeta[p.status] ?? null} /></MobileDetail>
             </div>
             <div className="hidden h-[60px] items-center px-6 text-sm sm:grid" style={{ gridTemplateColumns: cols, borderBottom: "1px solid var(--border-subtle)" }}>
               <span style={{ color: "var(--on-dark-soft)" }}>{fmtDate(p.paidAt)}</span>
-              <span className="font-medium" style={{ color: "var(--on-dark)" }}>{fmtSum(p.amount)}</span>
+              <span className="font-medium" style={{ color: "var(--on-dark)" }}>{money(p.amount)}</span>
               <span><Badge meta={providerMeta[p.provider] ?? null} /></span>
               <span className="flex justify-end"><Badge meta={paymentStatusMeta[p.status] ?? null} /></span>
             </div>
@@ -369,6 +369,7 @@ function PaymentsTab({ payments }: { payments: ProfilePayment[] }) {
 type TimelineItem = { id: string; ts: number; icon: typeof CreditCard; color: string; bg: string; title: string; sub: string }
 
 function HistoryTab({ client }: { client: ClientProfile }) {
+  const { money } = useAppLocale()
   const items = useMemo<TimelineItem[]>(() => {
     const arr: TimelineItem[] = []
     arr.push({
@@ -388,7 +389,7 @@ function HistoryTab({ client }: { client: ClientProfile }) {
       arr.push({
         id: `p-${p.id}`, ts: new Date(p.paidAt ?? client.createdAt).getTime(),
         icon: CreditCard, color: "#7c3aed", bg: "#ede9fe",
-        title: `Платёж ${fmtSum(p.amount)}`,
+        title: `Платёж ${money(p.amount)}`,
         sub: `${providerMeta[p.provider].label} · ${fmtDate(p.paidAt)}`,
       })
     }
@@ -401,7 +402,7 @@ function HistoryTab({ client }: { client: ClientProfile }) {
       })
     }
     return arr.sort((a, b) => b.ts - a.ts)
-  }, [client])
+  }, [client, money])
 
   return (
     <Card className="p-4 sm:p-6">
