@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 - `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
 - `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 - `a7d8cb9` · 2026-07-24 · Align client profile layout
-- `31bb9b2` · 2026-07-24 · Redesign client profile actions
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

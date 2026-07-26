@@ -21,6 +21,12 @@ import { Button as UiButton } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs"
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
   saveClubBasicAction,
   saveFinanceAction,
   changePasswordAction,
@@ -1024,6 +1030,8 @@ const PLAN_LIMIT_META = [
   { key: "exports", label: "Экспорты", icon: Download, monthly: true },
 ] as const
 
+const PRIMARY_PLAN_LIMIT_KEYS = new Set(["clients", "staff", "branches", "ai_requests"])
+
 function formatPlanDate(value: string | null) {
   if (!value) return "Без даты окончания"
   return new Date(value).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
@@ -1061,6 +1069,8 @@ function PlanSection({ club }: { club: ClubData }) {
   const usageByKey = new Map((club.planUsage ?? []).map((item) => [item.key, item.used]))
   const currentPrice = club.planPriceLocked ?? current?.price ?? 0
   const currentCurrency = current?.currency ?? "UZS"
+  const primaryLimits = PLAN_LIMIT_META.filter(({ key }) => PRIMARY_PLAN_LIMIT_KEYS.has(key))
+  const secondaryLimits = PLAN_LIMIT_META.filter(({ key }) => !PRIMARY_PLAN_LIMIT_KEYS.has(key))
 
   return (
     <div className="space-y-5 pb-8">
@@ -1088,15 +1098,15 @@ function PlanSection({ club }: { club: ClubData }) {
         </div>
       )}
 
-      <UiCard className="gap-0 py-0">
-        <CardHeader className="border-b py-5 sm:grid-cols-[1fr_auto]">
-          <div className="flex items-start gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+      <UiCard className="gap-0 overflow-hidden py-0">
+        <CardHeader className="grid-cols-1 border-b py-4 sm:grid-cols-[1fr_auto]">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
               <Crown className="size-5" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <CardTitle className="text-xl">{current?.name ?? PLAN_LABELS[plan] ?? plan}</CardTitle>
+                <CardTitle className="text-lg">{current?.name ?? PLAN_LABELS[plan] ?? plan}</CardTitle>
                 <Badge variant="secondary">Текущий тариф</Badge>
               </div>
               <CardDescription className="mt-1">
@@ -1108,93 +1118,47 @@ function PlanSection({ club }: { club: ClubData }) {
               </CardDescription>
             </div>
           </div>
-          <CardAction className="hidden text-right sm:block">
-            <p className="text-xl font-semibold text-foreground">
+          <CardAction className="col-start-1 row-span-1 row-start-2 mt-2 justify-self-start text-left sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:text-right">
+            <p className="text-lg font-semibold text-foreground">
               {fmtPlanPrice(currentPrice, currentCurrency, plan === "trial" || !!current?.isTrial)}
             </p>
             <p className="text-xs text-muted-foreground">за месяц</p>
           </CardAction>
         </CardHeader>
-        <CardContent className="grid gap-3 py-5 sm:grid-cols-3">
-          <div className="rounded-lg border bg-muted/20 p-4">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <CalendarDays className="size-4" />
-              <span className="text-xs">Осталось</span>
+        <CardContent className="grid grid-cols-2 gap-px bg-border p-0 sm:grid-cols-[0.8fr_repeat(4,1fr)]">
+          <div className="col-span-2 flex min-h-16 items-center gap-3 bg-card px-4 py-3 sm:col-span-1 sm:min-h-20">
+            <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Осталось</p>
+              <p className="mt-0.5 text-base font-semibold tabular-nums text-foreground">
+                {daysLeft === null ? "Без срока" : `${Math.max(0, daysLeft)} дн.`}
+              </p>
             </div>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">
-              {daysLeft === null ? "∞" : Math.max(0, daysLeft)}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{daysLeft === null ? "без срока" : "дней"}</p>
           </div>
-          <div className="rounded-lg border bg-muted/20 p-4">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="size-4" />
-              <span className="text-xs">Клиенты</span>
-            </div>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">
-              {(usageByKey.get("clients") ?? club.clientCount).toLocaleString("ru-RU")}
-              <span className="ml-1 text-sm font-normal text-muted-foreground">из {fmtLimit(current?.limits.clients ?? null)}</span>
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">использовано</p>
-          </div>
-          <div className="rounded-lg border bg-muted/20 p-4">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="size-4" />
-              <span className="text-xs">Команда</span>
-            </div>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">
-              {(usageByKey.get("staff") ?? club.staffList.length).toLocaleString("ru-RU")}
-              <span className="ml-1 text-sm font-normal text-muted-foreground">из {fmtLimit(current?.limits.staff ?? null)}</span>
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">активных сотрудников</p>
-          </div>
-        </CardContent>
-      </UiCard>
-
-      <UiCard className="gap-0 py-0">
-        <CardHeader className="border-b py-5">
-          <CardTitle>Лимиты и использование</CardTitle>
-          <CardDescription>Постоянные лимиты и расходы за текущий календарный месяц.</CardDescription>
-          <CardAction>
-            <Badge variant="outline">Текущий месяц</Badge>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="grid gap-3 py-5 lg:grid-cols-2">
-          {PLAN_LIMIT_META.map(({ key, label, icon: Icon, monthly }) => {
-            const used = usageByKey.get(key) ?? 0
+          {primaryLimits.map(({ key, label, icon: Icon, monthly }) => {
+            const used = usageByKey.get(key)
+              ?? (key === "clients" ? club.clientCount : key === "staff" ? club.staffList.length : 0)
             const limit = current?.limits[key] ?? null
-            const remaining = limit === null ? null : Math.max(0, limit - used)
             const percent = limit === null ? 0 : limit <= 0 ? 100 : Math.min(100, (used / limit) * 100)
-            const unavailable = limit === 0
             return (
-              <div key={key} className="rounded-xl border bg-card p-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    <Icon className="size-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{label}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{monthly ? "за текущий месяц" : "всего в клубе"}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold tabular-nums text-foreground">
-                          {used.toLocaleString("ru-RU")} / {fmtLimit(limit)}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {unavailable ? "Не входит" : remaining === null ? "Без ограничений" : `Осталось ${remaining.toLocaleString("ru-RU")}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-brand transition-[width]"
-                        style={{ width: limit === null ? "3%" : `${percent}%`, opacity: limit === null ? 0.35 : 1 }}
-                      />
-                    </div>
-                  </div>
+              <div key={key} className="min-h-20 bg-card px-4 py-3">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Icon className="size-3.5" />
+                  <span className="text-xs">{label}</span>
                 </div>
+                <p className="mt-1 text-sm font-semibold tabular-nums text-foreground">
+                  {used.toLocaleString("ru-RU")}
+                  <span className="font-normal text-muted-foreground"> / {fmtLimit(limit)}</span>
+                </p>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-brand transition-[width]"
+                    style={{ width: limit === null ? "3%" : `${percent}%`, opacity: limit === null ? 0.35 : 1 }}
+                  />
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  {monthly ? "за месяц" : "всего в клубе"}
+                </p>
               </div>
             )
           })}
@@ -1202,9 +1166,9 @@ function PlanSection({ club }: { club: ClubData }) {
       </UiCard>
 
       <UiCard id="available-plans" className="gap-0 py-0">
-        <CardHeader className="border-b py-5">
+        <CardHeader className="grid-cols-1 border-b py-4 sm:grid-cols-[1fr_auto]">
           <CardTitle>Доступные тарифы</CardTitle>
-          <CardDescription>Сравните возможности и выберите подходящий объём.</CardDescription>
+          <CardDescription className="col-start-1 row-start-2">Сравните возможности и выберите подходящий объём.</CardDescription>
           <CardAction className="col-span-2 col-start-1 row-start-3 mt-3 justify-self-start sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
             <Tabs value={String(months)} onValueChange={(value) => setMonths(Number(value))}>
               <TabsList>
@@ -1216,13 +1180,13 @@ function PlanSection({ club }: { club: ClubData }) {
           </CardAction>
         </CardHeader>
 
-        <CardContent className="py-5">
+        <CardContent className="py-4">
           {err && <p className="mb-4 text-sm text-destructive">{err}</p>}
 
           {paidPlans.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">Тарифы временно недоступны</p>
           ) : (
-            <div className="grid items-stretch gap-4 lg:grid-cols-3">
+            <div className="grid items-stretch gap-3 lg:grid-cols-3">
               {paidPlans.map((pl) => {
                 const isCurrent = pl.code === plan
                 const requested = req?.plan === pl.code
@@ -1230,7 +1194,7 @@ function PlanSection({ club }: { club: ClubData }) {
                 return (
                   <div
                     key={pl.code}
-                    className={`flex flex-col rounded-xl border p-5 ${
+                    className={`flex flex-col rounded-xl border p-4 ${
                       isCurrent ? "border-brand bg-brand/[0.03] ring-1 ring-brand/20" : "bg-card"
                     }`}
                   >
@@ -1253,7 +1217,7 @@ function PlanSection({ club }: { club: ClubData }) {
                       ) : null}
                     </div>
 
-                    <div className="mt-6">
+                    <div className="mt-4">
                       <p className="text-2xl font-semibold tracking-tight text-foreground">
                         {fmtPlanPrice(total, pl.currency, false)}
                       </p>
@@ -1262,7 +1226,7 @@ function PlanSection({ club }: { club: ClubData }) {
                       </p>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-2 gap-2">
+                    <div className="mt-4 grid grid-cols-2 gap-2">
                       <div className="rounded-lg bg-muted/60 p-3">
                         <p className="text-[11px] text-muted-foreground">Клиенты</p>
                         <p className="mt-1 text-sm font-semibold text-foreground">{fmtLimit(pl.limits.clients ?? null)}</p>
@@ -1273,8 +1237,8 @@ function PlanSection({ club }: { club: ClubData }) {
                       </div>
                     </div>
 
-                    <ul className="mt-5 flex flex-1 flex-col gap-2.5 border-t pt-5">
-                      {pl.benefits.slice(0, 5).map((benefit) => (
+                    <ul className="mt-4 flex flex-1 flex-col gap-2 border-t pt-4">
+                      {pl.benefits.slice(0, 4).map((benefit) => (
                         <li key={benefit} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                           <Check className="mt-0.5 size-4 shrink-0 text-brand" />
                           <span>{benefit}</span>
@@ -1282,7 +1246,7 @@ function PlanSection({ club }: { club: ClubData }) {
                       ))}
                     </ul>
 
-                    <div className="mt-5">
+                    <div className="mt-4">
                       {isCurrent ? (
                         <UiButton className="w-full" variant="secondary" disabled>
                           <Check className="size-4" /> Текущий тариф
@@ -1307,6 +1271,66 @@ function PlanSection({ club }: { club: ClubData }) {
             После заявки менеджер свяжется для оплаты через Payme, Click или банковский перевод.
           </p>
         </CardContent>
+      </UiCard>
+
+      <UiCard className="gap-0 overflow-hidden py-0">
+        <Accordion>
+          <AccordionItem value="limits" className="border-0">
+            <AccordionTrigger className="rounded-none px-4 py-4 hover:no-underline">
+              <span className="flex min-w-0 items-center gap-3 pr-4">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <Package className="size-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-foreground">Все лимиты тарифа</span>
+                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                    Товары, роли, интеграции и месячные операции
+                  </span>
+                </span>
+              </span>
+              <Badge variant="outline" className="mr-3 hidden shrink-0 sm:inline-flex">
+                Ещё {secondaryLimits.length}
+              </Badge>
+            </AccordionTrigger>
+            <AccordionContent className="border-t px-4 pb-4 pt-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {secondaryLimits.map(({ key, label, icon: Icon, monthly }) => {
+                  const used = usageByKey.get(key) ?? 0
+                  const limit = current?.limits[key] ?? null
+                  const remaining = limit === null ? null : Math.max(0, limit - used)
+                  const percent = limit === null ? 0 : limit <= 0 ? 100 : Math.min(100, (used / limit) * 100)
+                  const unavailable = limit === 0
+                  return (
+                    <div key={key} className="rounded-lg border bg-muted/20 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+                          <p className="truncate text-xs font-medium text-foreground">{label}</p>
+                        </div>
+                        <p className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
+                          {used.toLocaleString("ru-RU")} / {fmtLimit(limit)}
+                        </p>
+                      </div>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-brand transition-[width]"
+                          style={{ width: limit === null ? "3%" : `${percent}%`, opacity: limit === null ? 0.35 : 1 }}
+                        />
+                      </div>
+                      <p className="mt-1.5 text-[10px] text-muted-foreground">
+                        {unavailable
+                          ? "Не входит в тариф"
+                          : remaining === null
+                            ? "Без ограничений"
+                            : `Осталось ${remaining.toLocaleString("ru-RU")}${monthly ? " в этом месяце" : ""}`}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </UiCard>
     </div>
   )

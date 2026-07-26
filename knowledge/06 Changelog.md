@@ -84,8 +84,9 @@ tags: [fitcrm, releases]
   email, сайтом и рабочими часами; редактор приветствия получил соответствующие переменные.
 - Команда `/start` повторно показывает актуальную карточку клуба даже уже привязанному
   пользователю, а `/menu` остаётся быстрым входом в действия.
-- Экран подписки объединяет текущий тариф, срок действия, стоимость и фактический остаток всех
-  десяти лимитов CRM; доступные тарифы приведены к компактной двухтонной дизайн-системе.
+- Экран подписки объединяет текущий тариф, срок действия, стоимость и четыре главных лимита в
+  компактной сводке. Доступные тарифы теперь видны сразу под ней, а остальные лимиты доступны
+  в раскрываемом блоке без длинной прокрутки.
 - Публичный лендинг и юридические страницы закреплены в светлой теме независимо от сохранённой
   темы CRM; секция Growth OS/удержания использует единый двухтонный язык — brand blue для
   выбранных действий и нейтральные Zinc-токены для остальных состояний.
@@ -223,6 +224,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 - `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
 - `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
@@ -252,5 +254,4 @@ tags: [fitcrm, releases]
 - `2f37b01` · 2026-07-22 · docs: record plan limit audit release [skip ci]
 - `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
 - `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
-- `908eae6` · 2026-07-22 · fix: show previous plan price on landing
 <!-- AUTO:END changelog-candidates -->
