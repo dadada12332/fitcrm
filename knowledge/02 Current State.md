@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 24c1ec5 · 2026-07-27T04:27:14+05:00 · docs: record redirect-loop incident [skip ci].
+- Последний commit: e602832 · 2026-07-27T04:42:32+05:00 · feat: compact subscription overview.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 96; последняя `20260724145500_renewal_and_class_attendance.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

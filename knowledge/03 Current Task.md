@@ -45,6 +45,8 @@ tags: [fitcrm, tasks, legal, privacy, cookies, auth]
 - TypeScript, focused ESLint и production build прошли. Авторизованные localhost desktop/mobile
   screenshots сняты; disclosure, выбор периода и отсутствие horizontal overflow проверены,
   Design QA: `passed`.
+- Версия `e602832` опубликована в production deployment `dpl_FcvjS59DTxiobTGdEUA8dqjY97J4`;
+  основной alias обновлён, публичные и auth smoke-проверки прошли.
 
 ## Настройки клуба, Telegram и языки 2026-07-27
 

@@ -224,6 +224,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 - `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
@@ -253,5 +254,4 @@ tags: [fitcrm, releases]
 - `057d003` · 2026-07-22 · style: strengthen plan upgrade call to action
 - `2f37b01` · 2026-07-22 · docs: record plan limit audit release [skip ci]
 - `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
-- `898f6b8` · 2026-07-22 · docs: record landing previous-price release [skip ci]
 <!-- AUTO:END changelog-candidates -->

@@ -28,6 +28,7 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 - `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
@@ -37,7 +38,6 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 - `a7d8cb9` · 2026-07-24 · Align client profile layout
 - `31bb9b2` · 2026-07-24 · Redesign client profile actions
-- `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
