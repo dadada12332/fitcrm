@@ -47,6 +47,9 @@ next-env.d.ts
 # MCP config (contains tokens)
 .mcp.json
 
+# Local Codex configuration can contain personal connector tokens.
+/.codex/
+
 # Obsidian local state. Vault content under /knowledge remains tracked.
 /knowledge/.obsidian/
 /knowledge/.trash/
