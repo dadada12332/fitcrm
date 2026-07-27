@@ -383,9 +383,8 @@ export function ProfileClient({
         </div>
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(380px,0.9fr)]">
-        <div className="space-y-4">
-          <Card>
+      <div className="grid items-stretch gap-4 xl:grid-cols-2">
+          <Card className="h-full">
             <CardHeader className="border-b border-border">
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
@@ -439,7 +438,7 @@ export function ProfileClient({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="h-full">
             <CardHeader className="border-b border-border">
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-lg bg-brand/10 text-brand">
@@ -485,10 +484,8 @@ export function ProfileClient({
               )}
             </CardContent>
           </Card>
-        </div>
 
-        <div id="security" className="space-y-4 scroll-mt-20">
-          <Card>
+          <Card id="security" className="h-full scroll-mt-20">
             <CardHeader className="border-b border-border">
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
@@ -563,7 +560,7 @@ export function ProfileClient({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="h-full">
             <CardHeader className="border-b border-border">
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
@@ -602,6 +599,7 @@ export function ProfileClient({
               </form>
             </CardContent>
           </Card>
+      </div>
 
           <Card>
             <CardHeader className="border-b border-border">
@@ -622,8 +620,6 @@ export function ProfileClient({
               {sessionsResult && <InlineResult result={sessionsResult} />}
             </CardContent>
           </Card>
-        </div>
-      </div>
     </>
   )
 }

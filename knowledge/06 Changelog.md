@@ -238,6 +238,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
 - `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
 - `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
@@ -267,5 +268,4 @@ tags: [fitcrm, releases]
 - `136b9ea` · 2026-07-22 · docs: record warehouse actions release [skip ci]
 - `9106080` · 2026-07-22 · feat: add warehouse product actions
 - `4e72358` · 2026-07-22 · docs: require screenshots for UI change reports [skip ci]
-- `db482fa` · 2026-07-22 · docs: record upgrade CTA refinement [skip ci]
 <!-- AUTO:END changelog-candidates -->

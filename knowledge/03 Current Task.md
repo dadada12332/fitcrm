@@ -40,6 +40,11 @@ Telegram и безопасность сотрудника собрать в од
   `dpl_BsSMbJ7pKan9RYFBMyfpRwB8qu5v`; основной alias обновлён.
 - Production smoke: `/` и `/login` — `200`, закрытые `/profile` и `/settings/security` —
   ожидаемый `307` на `/login`; Vercel error scan чистый.
+- Повторный визуальный проход убрал независимые masonry-колонки профиля: личные данные и
+  Telegram образуют первый ряд, пароль и email — второй, все четыре карточки имеют измеренную
+  высоту 307 px, а активные сессии занимают отдельный ряд на всю ширину.
+- Authenticated browser QA при 1681 × 1420 подтвердил одинаковые координаты рядов и отсутствие
+  horizontal overflow; TypeScript, focused ESLint, production build и Design QA прошли.
 
 ## Готово
 
