@@ -121,7 +121,7 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
       {/* Mobile header */}
       {mobile && (
         <div className="flex items-center justify-between px-3 h-[60px] flex-shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
-          <BrandLogo href="/dashboard" />
+          <BrandLogo href="/dashboard" quiet />
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-zinc-100 transition-colors"

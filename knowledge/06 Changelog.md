@@ -34,8 +34,9 @@ tags: [zalkins, releases]
 
 ### Added
 
-- Новый бренд Zalkins: Kinetic Z, wordmark на Onest, favicon/app icons и единые компоненты
-  логотипа для landing, auth, onboarding, CRM sidebar и Platform Admin.
+- Новый бренд Zalkins: единый строчный wordmark без отдельной эмблемы, синяя наклонная точка
+  над `i`, компактная строчная `z` для favicon/app icon и общие компоненты логотипа для
+  landing, auth, onboarding, CRM sidebar и Platform Admin.
 - Ребрендинг опубликован в production deployment `dpl_B2UDXgPo2JMy9gZuegYnJ5N4yNRk`;
   основной alias обновлён, публичные и auth smoke-проверки прошли.
 
@@ -247,6 +248,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
 - `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
 - `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
@@ -276,5 +278,4 @@ tags: [zalkins, releases]
 - `550b27e` · 2026-07-23 · feat: ship access control bridge
 - `836dcb3` · 2026-07-23 · feat: add access control integrations
 - `473b803` · 2026-07-23 · fix: improve onboarding action contrast
-- `7a6238e` · 2026-07-23 · feat: align onboarding with auth design
 <!-- AUTO:END changelog-candidates -->

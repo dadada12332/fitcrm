@@ -9,13 +9,48 @@ tags: [zalkins, tasks, profile, navigation, subscription, ui, brand]
 
 ## Rebrand Zalkins 2026-07-27
 
-- Выбран и внедрён финальный Kinetic Z.
-- Добавлены общие `BrandLogo`/`BrandMark`, Onest, favicon/app icons и metadata.
+- Финальный вариант упрощён до единого строчного wordmark `zalkins` без отдельной эмблемы.
+- Синяя наклонная точка над `i` остаётся единственным цветным акцентом.
+- В CRM wordmark переведён в тихий служебный размер 15 px; на mobile marketing рядом с
+  16 px wordmark добавлена отдельная компактная 20 px `z`-плашка.
+- Добавлены общие `BrandLogo`/`BrandMark`, favicon/app icons и metadata; в компактных слотах
+  используется только маленькая строчная `z`.
 - Название Zalkins проведено через landing, auth, onboarding, CRM, Platform Admin, Telegram,
   legal copy, экспорты и Bridge.
 - Применена миграция публичных текстов тарифов.
-- Desktop `1440 × 1000`, mobile `390 × 844`, authenticated CRM, TypeScript и production build
-  прошли; console errors отсутствуют, `design-qa.md` — `passed`.
+- Desktop `1440 × 1000`, mobile `390 × 844`, TypeScript и production build прошли;
+  `design-qa.md` — `passed`.
+
+## Marketing logo и mobile hero — 2026-07-27
+
+- В landing navbar desktop и mobile используют единый lockup: компактный синий знак `z` и
+  lowercase wordmark.
+- Знак выровнен по оптической линии текста; desktop wordmark уменьшен до 16 px.
+- На мобильном активный CRM-мокап расширен за пределы контейнера, чтобы интерфейс читался на
+  первом экране; стеклянная браузерная рамка и служебные точки уменьшены.
+- Соседние слайды сохранены как мягкая глубина карусели, а не как большие боковые панели.
+- TypeScript и Design QA прошли без browser console errors.
+
+## Serif wordmark — 2026-07-27
+
+- Wordmark переведён с геометрического sans на Playfair Display Italic — тот же serif,
+  который используется во второй строке landing hero.
+- В marketing navigation сохранён компактный синий знак `z`; новый wordmark имеет размер
+  19 px на mobile и 20 px на desktop.
+- В CRM wordmark остаётся служебным и тихим: 17–18 px.
+- Общий `BrandLogo` проводит новый стиль через landing, auth, onboarding и CRM без
+  дублирования разметки.
+- Desktop/mobile Design QA и browser console проверка прошли.
+- После проверки читаемости полный italic заменён на мягкий наклон `6deg`, а межбуквенный
+  интервал ослаблен с `-0.055em` до `-0.045em`.
+
+## Mobile TopBar — 2026-07-27
+
+- На mobile кнопка управления сайдбаром остаётся отдельной слева.
+- Поиск, язык, тема и уведомления выровнены по правому краю через flex auto-margin.
+- На viewport `390 × 844` группа действий занимает `x=214…374`, документ не имеет
+  горизонтального переполнения.
+- TypeScript, production build и сравнительный Design QA прошли.
 
 Завершить UX-проход по глобальной навигации и персональному профилю: исправить список клубов
 в свёрнутом сайдбаре, выровнять TopBar и дополнительные лимиты подписки, а личные данные,

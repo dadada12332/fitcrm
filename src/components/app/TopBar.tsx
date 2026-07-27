@@ -395,7 +395,7 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
         </div>
 
         {/* Right actions */}
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1">
 
           {/* Search */}
           <button onClick={() => { setSearchOpen(true); setNotifOpen(false) }}

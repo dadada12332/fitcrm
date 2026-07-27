@@ -272,7 +272,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
       style={{ boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
 
       <div className={`flex h-12 shrink-0 items-center border-b border-sidebar-border ${collapsed ? "justify-center px-1" : "px-4"}`}>
-        <BrandLogo href="/dashboard" compact={collapsed} priority />
+        <BrandLogo href="/dashboard" compact={collapsed} quiet priority />
       </div>
 
       {/* ── Club card ── */}

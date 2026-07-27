@@ -30,7 +30,7 @@ export function Navbar() {
         }}
       >
         {/* Logo */}
-        <BrandLogo href="/" className="h-9 flex-shrink-0 text-[#0a0a0a]" priority />
+        <BrandLogo href="/" className="h-9 flex-shrink-0 text-[#0a0a0a]" navigationMark priority />
 
         {/* Center links */}
         <div className="hidden md:flex items-center">

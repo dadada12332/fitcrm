@@ -21,7 +21,7 @@ const SLIDES = [
 
 function Frame({ src, alt, priority }: { src: string; alt: string; priority?: boolean }) {
   return (
-    <div className="rounded-[18px] p-2.5"
+    <div className="rounded-[14px] p-1.5 sm:rounded-[18px] sm:p-2.5"
       style={{
         background: "rgba(255,255,255,0.5)",
         backdropFilter: "blur(22px) saturate(1.6)",
@@ -30,15 +30,15 @@ function Frame({ src, alt, priority }: { src: string; alt: string; priority?: bo
         boxShadow: "0 30px 80px -20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.75)",
         transform: "translateZ(0)",
       }}>
-      <div className="flex items-center px-2 py-[7px]">
-        <div className="flex gap-1.5">
-          <div className="w-[9px] h-[9px] rounded-full bg-neutral-300" />
-          <div className="w-[9px] h-[9px] rounded-full bg-neutral-300" />
-          <div className="w-[9px] h-[9px] rounded-full bg-neutral-300" />
+      <div className="flex items-center px-1.5 py-1.5 sm:px-2 sm:py-[7px]">
+        <div className="flex gap-1 sm:gap-1.5">
+          <div className="size-1.5 rounded-full bg-neutral-300 sm:size-[9px]" />
+          <div className="size-1.5 rounded-full bg-neutral-300 sm:size-[9px]" />
+          <div className="size-1.5 rounded-full bg-neutral-300 sm:size-[9px]" />
         </div>
       </div>
-      <div className="relative border border-black/[0.06] bg-white" style={{ borderRadius: 10, overflow: "hidden", transform: "translateZ(0)" }}>
-        <Image src={src} alt={alt} width={3840} height={2230} priority={priority} className="w-full h-auto block align-top" style={{ borderRadius: 10 }} />
+      <div className="relative overflow-hidden rounded-[9px] border border-black/[0.06] bg-white sm:rounded-[10px]" style={{ transform: "translateZ(0)" }}>
+        <Image src={src} alt={alt} width={3840} height={2230} priority={priority} className="block h-auto w-full align-top" />
       </div>
     </div>
   )
@@ -56,8 +56,8 @@ function HeroCarousel() {
   }, [paused, n])
 
   return (
-    <div className="relative w-full max-w-[1400px] mx-auto mt-14"
-      style={{ height: "clamp(340px, 50vw, 700px)", perspective: 2000 }}
+    <div className="relative mx-auto mt-9 h-[300px] w-full max-w-[1400px] sm:mt-12 sm:h-[430px] lg:mt-14 lg:h-[clamp(500px,50vw,700px)]"
+      style={{ perspective: 2000 }}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       {SLIDES.map((s, i) => {
         const rel = ((i - active) % n + n) % n           // 0 центр, 1 справа, 2 слева
@@ -68,7 +68,7 @@ function HeroCarousel() {
         const blur = isCenter ? "blur(0px)" : "blur(1.5px)"
         const z = isCenter ? 30 : 10
         return (
-          <div key={s.src} className="absolute top-1/2 left-1/2 w-[78%] max-w-[1000px] -translate-x-1/2 -translate-y-1/2"
+          <div key={s.src} className="absolute left-1/2 top-1/2 w-[118%] max-w-[1000px] -translate-x-1/2 -translate-y-1/2 sm:w-[86%] lg:w-[78%]"
             style={{ zIndex: z }}>
             <motion.div
               animate={{ x, scale, opacity, filter: blur }}

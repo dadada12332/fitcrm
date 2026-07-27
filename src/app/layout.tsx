@@ -20,7 +20,7 @@ const oswald = Oswald({
 const playfair = Playfair_Display({
   variable: "--font-serif",
   subsets: ["latin", "cyrillic"],
-  style: ["italic"],
+  style: ["normal", "italic"],
   weight: ["400", "500", "600"],
 })
 
