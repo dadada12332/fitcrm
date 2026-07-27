@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 2579503 · 2026-07-27T05:34:18+05:00 · docs: record Telegram workspace release [skip ci].
+- Последний commit: f2ea391 · 2026-07-27T06:24:57+05:00 · feat: polish navigation and account profile.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 96; последняя `20260724145500_renewal_and_class_attendance.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

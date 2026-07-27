@@ -36,7 +36,10 @@ Telegram и безопасность сотрудника собрать в од
 - TypeScript, focused ESLint, focused security tests, production build и browser UI checks прошли.
 - Полный suite: 162 passed, 1 skipped, 2 известных несвязанных legacy-падения.
 - `design-qa.md`: `final result: passed`.
-- Остались commit/push, production deployment и smoke.
+- Commit `f2ea391` опубликован в production deployment
+  `dpl_BsSMbJ7pKan9RYFBMyfpRwB8qu5v`; основной alias обновлён.
+- Production smoke: `/` и `/login` — `200`, закрытые `/profile` и `/settings/security` —
+  ожидаемый `307` на `/login`; Vercel error scan чистый.
 
 ## Готово
 
