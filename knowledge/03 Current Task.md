@@ -54,6 +54,8 @@ Telegram и безопасность сотрудника собрать в од
   истины между входами.
 - Browser QA подтвердил: первое окно показалось через 10 секунд, после «Напомнить позже» не
   вернулось за следующие 12 секунд, а `trial_offer_last_seen_at` сохранился в БД.
+- Hotfix опубликован commit `f70c7a4` в production deployment
+  `dpl_FZvrR9gPxUJSCTMT3KCekaUqtALT`; основной alias обновлён, smoke и Vercel error scan чистые.
 
 ## Готово
 

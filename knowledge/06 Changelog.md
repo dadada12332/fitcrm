@@ -238,6 +238,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
 - `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
 - `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
@@ -267,5 +268,4 @@ tags: [fitcrm, releases]
 - `7a6238e` · 2026-07-23 · feat: align onboarding with auth design
 - `43ab772` · 2026-07-23 · feat: add auth feature cards
 - `a4b9420` · 2026-07-23 · feat: redesign auth experience
-- `136b9ea` · 2026-07-22 · docs: record warehouse actions release [skip ci]
 <!-- AUTO:END changelog-candidates -->
