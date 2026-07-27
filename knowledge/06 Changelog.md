@@ -232,6 +232,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
 - `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
@@ -261,5 +262,4 @@ tags: [fitcrm, releases]
 - `db482fa` · 2026-07-22 · docs: record upgrade CTA refinement [skip ci]
 - `fe68f58` · 2026-07-22 · fix: preserve upgrade button height
 - `057d003` · 2026-07-22 · style: strengthen plan upgrade call to action
-- `2f37b01` · 2026-07-22 · docs: record plan limit audit release [skip ci]
 <!-- AUTO:END changelog-candidates -->

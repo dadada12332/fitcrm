@@ -1,6 +1,6 @@
 ---
 type: current-task
-status: active
+status: complete
 updated: 2026-07-27
 tags: [fitcrm, tasks, telegram, permissions, i18n, subscription]
 ---
@@ -11,7 +11,7 @@ tags: [fitcrm, tasks, telegram, permissions, i18n, subscription]
 починить глобальный переключатель RU/UZ/EN и превратить Telegram Mini App в безопасное
 ролевое рабочее пространство для владельца и сотрудников, сохранив клиентский кабинет.
 
-## В работе 2026-07-27
+## Объём задачи 2026-07-27
 
 - Заменить слишком тёмные «текущего цвета» границы подписки на системный `border-border`.
 - Исправить падение меню языка Base UI и привести триггер к компактному виду RU/UZ/EN без иконки.
@@ -47,6 +47,10 @@ tags: [fitcrm, tasks, telegram, permissions, i18n, subscription]
   Повторный review: P0/P1 не осталось.
 - Desktop/mobile browser QA экрана подписки и интерактивная проверка RU/UZ/EN пройдены;
   horizontal overflow отсутствует, `design-qa.md`: `passed`.
+- Commit `d332e23` опубликован в production deployment
+  `dpl_C2cfVWXtbKeCTwupMiuaHe9RsJs3`; основной alias обновлён.
+- Telegram API подтвердил персональные Web App кнопки и команды `start,menu,help` для client/staff;
+  production Mini App smoke для linked owner вернул `200`.
 
 ## Готово
 
