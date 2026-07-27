@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: b244330 · 2026-07-27T11:28:26+05:00 · docs: record trial offer hotfix deployment [skip ci].
+- Последний commit: 2d09c57 · 2026-07-27T16:49:02+05:00 · feat: rebrand product as Zalkins.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 97; последняя `20260727123000_rebrand_zalkins.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

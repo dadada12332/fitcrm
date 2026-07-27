@@ -36,6 +36,8 @@ tags: [zalkins, releases]
 
 - Новый бренд Zalkins: Kinetic Z, wordmark на Onest, favicon/app icons и единые компоненты
   логотипа для landing, auth, onboarding, CRM sidebar и Platform Admin.
+- Ребрендинг опубликован в production deployment `dpl_B2UDXgPo2JMy9gZuegYnJ5N4yNRk`;
+  основной alias обновлён, публичные и auth smoke-проверки прошли.
 
 - В Telegram-интеграции появилась одноразовая привязка личного Telegram владельца без номера
   телефона. После привязки бот открывает рабочую панель клуба и присылает ежедневную сводку.
@@ -245,6 +247,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
 - `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
 - `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
 - `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
@@ -274,5 +277,4 @@ tags: [zalkins, releases]
 - `836dcb3` · 2026-07-23 · feat: add access control integrations
 - `473b803` · 2026-07-23 · fix: improve onboarding action contrast
 - `7a6238e` · 2026-07-23 · feat: align onboarding with auth design
-- `43ab772` · 2026-07-23 · feat: add auth feature cards
 <!-- AUTO:END changelog-candidates -->
