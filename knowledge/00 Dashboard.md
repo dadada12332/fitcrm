@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
 - `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 - `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
 - `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
-- `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

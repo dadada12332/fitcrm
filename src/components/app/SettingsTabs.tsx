@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Building2, GitFork, Users, Wallet,
-  Bell, Plug, Shield, Crown, ShieldCheck,
+  Bell, Plug, Crown, ShieldCheck,
 } from "lucide-react"
 
 type AllowedTabs = {
@@ -15,7 +15,6 @@ type AllowedTabs = {
   notifications?: boolean
   integrations?: boolean
   roles?: boolean
-  security?: boolean
   subscription?: boolean
 }
 
@@ -27,7 +26,6 @@ const ALL_TABS = [
   { key: "notifications", href: "/settings/notifications", label: "Уведомления",    icon: Bell        },
   { key: "integrations",  href: "/settings/integrations",  label: "Интеграции",     icon: Plug        },
   { key: "roles",         href: "/settings/roles",         label: "Роли и права",   icon: ShieldCheck },
-  { key: "security",      href: "/settings/security",      label: "Безопасность",   icon: Shield      },
   { key: "subscription",  href: "/settings/subscription",  label: "Подписка",       icon: Crown       },
 ]
 

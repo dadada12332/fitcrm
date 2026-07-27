@@ -1,5 +1,5 @@
-import { SettingsView } from "../SettingsView"
+import { redirect } from "next/navigation"
 
 export default function Page() {
-  return <SettingsView tab="security" />
+  redirect("/profile#security")
 }

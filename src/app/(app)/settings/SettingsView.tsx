@@ -29,7 +29,6 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     notifications: club.permissions.telegram.manage && planFeatureEnabled(club.planAccess, "telegram_automation"),
     integrations:  club.permissions.settings.integrations,
     roles:         club.permissions.settings.roles,
-    security:      true,
     subscription:  club.permissions.settings.subscription,
   }
 

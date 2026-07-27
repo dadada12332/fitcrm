@@ -250,26 +250,6 @@ export async function saveFinanceAction(data: {
   return { ok: true }
 }
 
-export async function changePasswordAction(currentPassword: string, password: string): Promise<SaveResult> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) return { error: "Не удалось определить аккаунт" }
-  if (!currentPassword) return { error: "Введите текущий пароль" }
-  const { error: verifyError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword })
-  if (verifyError) return { error: "Текущий пароль неверен" }
-  const { error } = await supabase.auth.updateUser({ password })
-  if (error) return { error: error.message }
-  return { ok: true }
-}
-
-export async function signOutOtherSessionsAction(): Promise<SaveResult> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: "Не авторизован" }
-  const { error } = await supabase.auth.signOut({ scope: "others" })
-  return error ? { error: error.message } : { ok: true }
-}
-
 export async function inviteStaffAction(data: { email: string; role: string }): Promise<SaveResult> {
   const club = await getCurrentClub()
   if (!club) return { error: "Клуб не найден" }

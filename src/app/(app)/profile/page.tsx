@@ -20,6 +20,10 @@ export default async function ProfilePage() {
         phone={profile.phone}
         avatarPreset={profile.avatarPreset}
         avatarUrl={profile.avatarUrl}
+        clubName={profile.clubName}
+        role={profile.role}
+        telegramConnected={profile.telegramConnected}
+        telegramId={profile.telegramId}
       />
     </div>
   )

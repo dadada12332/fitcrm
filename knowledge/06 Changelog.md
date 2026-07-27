@@ -72,6 +72,12 @@ tags: [fitcrm, releases]
 
 ### Changed
 
+- Персональный профиль стал единым местом для личных данных, Telegram, пароля, email и активных
+  сессий. Дублирующая безопасность из настроек клуба удалена, а старый маршрут перенаправляет в
+  профиль.
+- Переключение клуба в свёрнутом сайдбаре больше не обрезается; поиск и utility actions верхней
+  панели получили устойчивую адаптивную компоновку, а дополнительные лимиты тарифа — компактный
+  trailing badge.
 - Telegram Mini App закреплён за клиентским сценарием; владельцы и сотрудники получают отдельное
   контекстное меню бота. Финансовая сводка отправляется только активному owner своего клуба,
   считается по локальному дню и защищена от повторной доставки.
@@ -232,6 +238,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
 - `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
@@ -261,5 +268,4 @@ tags: [fitcrm, releases]
 - `4e72358` · 2026-07-22 · docs: require screenshots for UI change reports [skip ci]
 - `db482fa` · 2026-07-22 · docs: record upgrade CTA refinement [skip ci]
 - `fe68f58` · 2026-07-22 · fix: preserve upgrade button height
-- `057d003` · 2026-07-22 · style: strengthen plan upgrade call to action
 <!-- AUTO:END changelog-candidates -->

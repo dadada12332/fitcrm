@@ -1,92 +1,114 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckCircle2, Eye, EyeOff, Check, Camera, Send, X } from "lucide-react"
+import {
+  Building2,
+  Camera,
+  Check,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Laptop2,
+  Mail,
+  Send,
+  ShieldCheck,
+  Unlink,
+  UserRound,
+  X,
+} from "lucide-react"
 import { AVATAR_PRESETS, resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import {
-  updateProfileAction,
+  disconnectProfileTelegramAction,
+  signOutOtherSessionsAction,
   updateAvatarPresetAction,
-  updatePasswordAction,
   updateEmailAction,
+  updatePasswordAction,
+  updateProfileAction,
 } from "./actions"
 import { createTelegramStaffPairingAction } from "@/app/(app)/integrations/actions"
+import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
-// ── design primitives ─────────────────────────────────────────────
+type Result = { ok: boolean; msg: string }
 
-const S = { background: "var(--card)", border: "1px solid var(--border)", color: "var(--on-dark)" }
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Владелец",
+  admin: "Администратор",
+  manager: "Менеджер",
+  trainer: "Тренер",
+  receptionist: "Ресепшен",
+  staff: "Сотрудник",
+}
 
-function FInput(p: React.InputHTMLAttributes<HTMLInputElement>) {
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: React.ReactNode
+}) {
   return (
-    <input {...p}
-      className="h-10 w-full rounded-lg px-3 text-sm outline-none transition-colors"
-      style={{ ...S, ...(p.style ?? {}) }}
-    />
+    <label className="block space-y-1.5">
+      <span className="flex items-baseline gap-2 text-sm font-medium text-foreground">
+        {label}
+        {hint && <span className="text-xs font-normal text-muted-foreground">{hint}</span>}
+      </span>
+      {children}
+    </label>
   )
 }
 
-function FLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
+function InlineResult({ result }: { result: Result }) {
   return (
-    <div className="flex items-baseline gap-2 mb-1.5">
-      <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{children}</p>
-      {hint && <span className="text-xs" style={{ color: "var(--gray-muted)" }}>{hint}</span>}
+    <div
+      className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm ${
+        result.ok
+          ? "border-chart-2/25 bg-chart-2/10 text-chart-2"
+          : "border-destructive/25 bg-destructive/10 text-destructive"
+      }`}
+    >
+      {result.ok && <CheckCircle2 className="size-4 shrink-0" />}
+      {result.msg}
     </div>
   )
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm font-semibold mb-4" style={{ color: "var(--on-dark-soft)" }}>{children}</p>
-}
-
-function Divider() {
-  return <div style={{ borderTop: "1px solid var(--border-subtle)", margin: "20px 0" }} />
-}
-
-function Toast({ ok, msg }: { ok: boolean; msg: string }) {
+function AvatarCircle({
+  meta,
+  initials,
+  size,
+}: {
+  meta: AvatarMeta
+  initials: string
+  size: number
+}) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium"
+    <div
+      className="flex shrink-0 items-center justify-center font-bold text-white"
       style={{
-        background: ok ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
-        border: `1px solid ${ok ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.25)"}`,
-        color: ok ? "#16a34a" : "#dc2626",
-      }}>
-      {ok && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />}
-      {msg}
-    </div>
-  )
-}
-
-function SaveBtn({ pending, label, pendingLabel = "Сохранение..." }: { pending: boolean; label: string; pendingLabel?: string }) {
-  return (
-    <button type="submit" disabled={pending}
-      className="h-9 w-full rounded-lg px-5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
-      style={{ background: "#2563eb" }}>
-      {pending ? pendingLabel : label}
-    </button>
-  )
-}
-
-// ── Avatar display ────────────────────────────────────────────────
-
-function AvatarCircle({ meta, initials, size }: { meta: AvatarMeta; initials: string; size: number }) {
-  return (
-    <div className="flex items-center justify-center text-white font-bold flex-shrink-0"
-      style={{
-        width: size, height: size,
+        width: size,
+        height: size,
         borderRadius: size * 0.22,
         background: resolveAvatarBackground(meta),
         fontSize: size * 0.32,
         letterSpacing: "-0.5px",
-      }}>
+      }}
+    >
       {initials}
     </div>
   )
 }
 
-// ── Avatar picker modal ───────────────────────────────────────────
-
 function AvatarModal({
-  initials, meta, onClose, onSaved,
+  initials,
+  meta,
+  onClose,
+  onSaved,
 }: {
   initials: string
   meta: AvatarMeta
@@ -95,142 +117,218 @@ function AvatarModal({
 }) {
   const [local, setLocal] = useState<AvatarMeta>(meta)
   const [saving, startSave] = useTransition()
-  const [res, setRes] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [result, setResult] = useState<Result | null>(null)
 
-  async function pickPreset(id: string) {
+  function pickPreset(id: string) {
     const next: AvatarMeta = { preset: id, url: null }
-    setLocal(next); setRes(null)
+    setLocal(next)
+    setResult(null)
     startSave(async () => {
-      const r = await updateAvatarPresetAction(id)
-      if (r.ok) { onSaved(next) }
-      else        setRes({ ok: false, msg: r.error ?? "Ошибка" })
+      const response = await updateAvatarPresetAction(id)
+      if (response.ok) onSaved(next)
+      else setResult({ ok: false, msg: response.error ?? "Не удалось изменить аватар" })
     })
   }
 
   return (
     <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
-      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }} onClick={onClose} />
-      <div className="relative rounded-2xl p-6 w-full" style={{ maxWidth: 380, background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 24px 48px rgba(0,0,0,0.18)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-base font-semibold" style={{ color: "var(--on-dark)" }}>Выберите аватар</p>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: "var(--on-dark-soft)" }}>
-            <X className="w-4 h-4" />
+      <button
+        type="button"
+        aria-label="Закрыть"
+        className="absolute inset-0 bg-foreground/35 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <Card className="relative w-full max-w-sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle>Выберите аватар</CardTitle>
+          <CardDescription>Цвет будет использоваться во всей CRM.</CardDescription>
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Закрыть"
+          >
+            <X className="size-4" />
           </button>
-        </div>
-
-        {/* Preview */}
-        <div className="flex items-center gap-4 mb-5">
-          <AvatarCircle meta={local} initials={initials} size={56} />
-          <div>
-            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Предпросмотр</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Нажмите на цвет для выбора</p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="flex items-center gap-4">
+            <AvatarCircle meta={local} initials={initials} size={56} />
+            <div>
+              <p className="text-sm font-medium text-foreground">Предпросмотр</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Нажмите на цвет для выбора</p>
+            </div>
           </div>
-        </div>
-
-        {/* Presets grid */}
-        <div className="grid grid-cols-5 gap-2">
-          {AVATAR_PRESETS.map((p) => {
-            const active = local.preset === p.id
-            return (
-              <button key={p.id} onClick={() => pickPreset(p.id)} title={p.label} disabled={saving}
-                className="relative flex items-center justify-center text-white font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-60"
-                style={{
-                  height: 52, borderRadius: 12,
-                  background: `linear-gradient(135deg, ${p.from}, ${p.to})`,
-                  outline: active ? "2.5px solid #2563eb" : "none",
-                  outlineOffset: 2,
-                  fontSize: 15,
-                }}>
-                {initials}
-                {active && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
-                    <Check className="w-2.5 h-2.5 text-white" />
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {res && <div className="mt-3"><Toast ok={res.ok} msg={res.msg} /></div>}
-      </div>
+          <div className="grid grid-cols-5 gap-2">
+            {AVATAR_PRESETS.map((preset) => {
+              const active = local.preset === preset.id
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => pickPreset(preset.id)}
+                  title={preset.label}
+                  disabled={saving}
+                  className="relative flex h-12 items-center justify-center rounded-xl font-bold text-white transition-transform hover:scale-105 active:scale-95 disabled:opacity-60"
+                  style={{ background: `linear-gradient(135deg, ${preset.from}, ${preset.to})` }}
+                >
+                  {initials}
+                  {active && (
+                    <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-brand">
+                      <Check className="size-2.5 text-primary-foreground" />
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+          {result && <InlineResult result={result} />}
+        </CardContent>
+      </Card>
     </div>
   )
 }
 
-// ── Main ──────────────────────────────────────────────────────────
-
 type Props = {
-  fullName: string; email: string; phone: string | null
-  avatarPreset: string | null; avatarUrl: string | null
+  fullName: string
+  email: string
+  phone: string | null
+  avatarPreset: string | null
+  avatarUrl: string | null
+  clubName: string
+  role: string
+  telegramConnected: boolean
+  telegramId: string | null
 }
 
-export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl }: Props) {
-  const [name, setName]   = useState(fullName)
-  const [tel,  setTel]    = useState(phone ?? "")
+export function ProfileClient({
+  fullName,
+  email,
+  phone,
+  avatarPreset,
+  avatarUrl,
+  clubName,
+  role,
+  telegramConnected,
+  telegramId,
+}: Props) {
+  const [name, setName] = useState(fullName)
+  const [tel, setTel] = useState(phone ?? "")
   const [avatarMeta, setAvatarMeta] = useState<AvatarMeta>({ preset: avatarPreset, url: avatarUrl })
   const [showAvatarModal, setShowAvatarModal] = useState(false)
-  const [pRes,  setPRes]  = useState<{ ok: boolean; msg: string } | null>(null)
-  const [pPend, startP]   = useTransition()
-  const [tgPairingUrl, setTgPairingUrl] = useState("")
-  const [tgResult, setTgResult] = useState<{ ok: boolean; msg: string } | null>(null)
-  const [tgPending, startTgPairing] = useTransition()
+  const [profileResult, setProfileResult] = useState<Result | null>(null)
+  const [profilePending, startProfile] = useTransition()
 
-  // password
-  const [curPwd,  setCurPwd]  = useState("")
-  const [newPwd,  setNewPwd]  = useState("")
-  const [confPwd, setConfPwd] = useState("")
-  const [showCur, setShowCur] = useState(false)
-  const [showNew, setShowNew] = useState(false)
-  const [pwRes,   setPwRes]   = useState<{ ok: boolean; msg: string } | null>(null)
-  const [pwPend,  startPw]    = useTransition()
+  const [connected, setConnected] = useState(telegramConnected)
+  const [pairingUrl, setPairingUrl] = useState("")
+  const [telegramResult, setTelegramResult] = useState<Result | null>(null)
+  const [telegramPending, startTelegram] = useTransition()
 
-  // email
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [passwordResult, setPasswordResult] = useState<Result | null>(null)
+  const [passwordPending, startPassword] = useTransition()
+
   const [newEmail, setNewEmail] = useState("")
-  const [emailPwd, setEmailPwd] = useState("")
-  const [emailRes, setEmailRes] = useState<{ ok: boolean; msg: string } | null>(null)
-  const [emailPend, startEmail] = useTransition()
+  const [emailPassword, setEmailPassword] = useState("")
+  const [emailResult, setEmailResult] = useState<Result | null>(null)
+  const [emailPending, startEmail] = useTransition()
 
-  const initials = name.trim().split(" ").filter(Boolean).map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?"
+  const [sessionsResult, setSessionsResult] = useState<Result | null>(null)
+  const [sessionsPending, startSessions] = useTransition()
 
-  function saveProfile(e: React.FormEvent) {
-    e.preventDefault(); setPRes(null)
-    startP(async () => {
-      const r = await updateProfileAction({ fullName: name, phone: tel })
-      setPRes(r.ok ? { ok: true, msg: "Профиль сохранён" } : { ok: false, msg: r.error ?? "Ошибка" })
+  const initials = name
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "?"
+
+  function saveProfile(event: React.FormEvent) {
+    event.preventDefault()
+    setProfileResult(null)
+    startProfile(async () => {
+      const response = await updateProfileAction({ fullName: name, phone: tel })
+      setProfileResult(response.ok
+        ? { ok: true, msg: "Личные данные сохранены" }
+        : { ok: false, msg: response.error ?? "Не удалось сохранить профиль" })
     })
   }
 
-  function savePassword(e: React.FormEvent) {
-    e.preventDefault(); setPwRes(null)
-    if (newPwd !== confPwd) { setPwRes({ ok: false, msg: "Пароли не совпадают" }); return }
-    startPw(async () => {
-      const r = await updatePasswordAction({ currentPassword: curPwd, newPassword: newPwd })
-      if (r.ok) { setPwRes({ ok: true, msg: "Пароль изменён" }); setCurPwd(""); setNewPwd(""); setConfPwd("") }
-      else        setPwRes({ ok: false, msg: r.error ?? "Ошибка" })
+  function savePassword(event: React.FormEvent) {
+    event.preventDefault()
+    setPasswordResult(null)
+    if (newPassword !== confirmPassword) {
+      setPasswordResult({ ok: false, msg: "Пароли не совпадают" })
+      return
+    }
+    startPassword(async () => {
+      const response = await updatePasswordAction({ currentPassword, newPassword })
+      if (response.ok) {
+        setPasswordResult({ ok: true, msg: "Пароль изменён" })
+        setCurrentPassword("")
+        setNewPassword("")
+        setConfirmPassword("")
+      } else {
+        setPasswordResult({ ok: false, msg: response.error ?? "Не удалось изменить пароль" })
+      }
     })
   }
 
-  function saveEmail(e: React.FormEvent) {
-    e.preventDefault(); setEmailRes(null)
+  function saveEmail(event: React.FormEvent) {
+    event.preventDefault()
+    setEmailResult(null)
     startEmail(async () => {
-      const r = await updateEmailAction({ newEmail, password: emailPwd })
-      if (r.ok) { setEmailRes({ ok: true, msg: "Письмо отправлено на новый адрес" }); setNewEmail(""); setEmailPwd("") }
-      else        setEmailRes({ ok: false, msg: r.error ?? "Ошибка" })
+      const response = await updateEmailAction({ newEmail, password: emailPassword })
+      if (response.ok) {
+        setEmailResult({ ok: true, msg: "Подтверждение отправлено на новый адрес" })
+        setNewEmail("")
+        setEmailPassword("")
+      } else {
+        setEmailResult({ ok: false, msg: response.error ?? "Не удалось изменить email" })
+      }
     })
   }
 
   function pairTelegram() {
-    setTgResult(null)
-    startTgPairing(async () => {
-      const result = await createTelegramStaffPairingAction()
-      if (!result.ok || !result.pairingUrl) {
-        setTgResult({ ok: false, msg: result.error ?? "Не удалось создать ссылку" })
+    setTelegramResult(null)
+    startTelegram(async () => {
+      const response = await createTelegramStaffPairingAction()
+      if (!response.ok || !response.pairingUrl) {
+        setTelegramResult({ ok: false, msg: response.error ?? "Не удалось создать ссылку" })
         return
       }
-      setTgPairingUrl(result.pairingUrl)
-      setTgResult({ ok: true, msg: "Одноразовая ссылка действует 15 минут" })
+      setPairingUrl(response.pairingUrl)
+      setTelegramResult({ ok: true, msg: "Одноразовая ссылка действует 15 минут" })
+    })
+  }
+
+  function disconnectTelegram() {
+    setTelegramResult(null)
+    startTelegram(async () => {
+      const response = await disconnectProfileTelegramAction()
+      if (response.ok) {
+        setConnected(false)
+        setPairingUrl("")
+        setTelegramResult({ ok: true, msg: "Telegram отключён от профиля" })
+      } else {
+        setTelegramResult({ ok: false, msg: response.error ?? "Не удалось отключить Telegram" })
+      }
+    })
+  }
+
+  function signOutOtherSessions() {
+    setSessionsResult(null)
+    startSessions(async () => {
+      const response = await signOutOtherSessionsAction()
+      setSessionsResult(response.ok
+        ? { ok: true, msg: "Другие сессии завершены" }
+        : { ok: false, msg: response.error ?? "Не удалось завершить сессии" })
     })
   }
 
@@ -241,176 +339,289 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
           initials={initials}
           meta={avatarMeta}
           onClose={() => setShowAvatarModal(false)}
-          onSaved={(next) => { setAvatarMeta(next); setShowAvatarModal(false) }}
+          onSaved={(next) => {
+            setAvatarMeta(next)
+            setShowAvatarModal(false)
+          }}
         />
       )}
 
-      {/* ── Two-column layout ── */}
-      <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:gap-5">
-
-        {/* ── Left: identity card ── */}
-        <div className="flex w-full flex-col items-center gap-3 rounded-2xl p-5 text-center sm:w-56 sm:shrink-0"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+      <Card className="gap-0 py-0">
+        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center">
           <div className="relative">
-            <AvatarCircle meta={avatarMeta} initials={initials} size={80} />
+            <AvatarCircle meta={avatarMeta} initials={initials} size={72} />
             <button
+              type="button"
               onClick={() => setShowAvatarModal(true)}
-              className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center text-white shadow-md transition-opacity hover:opacity-80"
-              style={{ background: "#2563eb" }}>
-              <Camera className="w-3.5 h-3.5" />
+              className="absolute -bottom-1.5 -right-1.5 flex size-7 items-center justify-center rounded-full bg-brand text-primary-foreground shadow-sm hover:bg-brand/90"
+              aria-label="Изменить аватар"
+            >
+              <Camera className="size-3.5" />
             </button>
           </div>
-          <div>
-            <p className="text-sm font-semibold leading-snug" style={{ color: "var(--on-dark)" }}>
-              {name || "—"}
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>{email}</p>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="truncate text-xl font-semibold text-foreground">{name || "Без имени"}</h2>
+              <Badge variant="secondary">{ROLE_LABELS[role] ?? role}</Badge>
+            </div>
+            <p className="mt-1 truncate text-sm text-muted-foreground">{email}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                <Building2 className="size-3.5" />
+                {clubName}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                <ShieldCheck className="size-3.5" />
+                Аккаунт защищён
+              </span>
+            </div>
           </div>
-          <button
-            onClick={() => setShowAvatarModal(true)}
-            className="w-full h-8 rounded-lg text-xs font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            style={{ border: "1px solid var(--border)", color: "var(--on-dark-soft)" }}>
+          <Button type="button" variant="outline" onClick={() => setShowAvatarModal(true)}>
+            <Camera className="size-4" />
             Изменить аватар
-          </button>
+          </Button>
+        </div>
+      </Card>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(380px,0.9fr)]">
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="border-b border-border">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <UserRound className="size-4" />
+                </span>
+                <div>
+                  <CardTitle>Личные данные</CardTitle>
+                  <CardDescription>Имя и телефон используются в CRM и Telegram Mini App.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={saveProfile} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Имя и фамилия">
+                    <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Азиз Каримов" />
+                  </Field>
+                  <Field label="Телефон">
+                    <Input
+                      value={tel}
+                      onChange={(event) => {
+                        const digits = event.target.value.replace(/\D/g, "")
+                        if (!digits) {
+                          setTel("")
+                          return
+                        }
+                        const value = digits.startsWith("998") ? digits : `998${digits.replace(/^998/, "")}`
+                        let masked = `+${value.slice(0, 3)}`
+                        if (value.length > 3) masked += ` ${value.slice(3, 5)}`
+                        if (value.length > 5) masked += ` ${value.slice(5, 8)}`
+                        if (value.length > 8) masked += ` ${value.slice(8, 10)}`
+                        if (value.length > 10) masked += ` ${value.slice(10, 12)}`
+                        setTel(masked)
+                      }}
+                      placeholder="+998 90 000 00 00"
+                      type="tel"
+                      maxLength={17}
+                    />
+                  </Field>
+                </div>
+                <Field label="Email" hint="основной адрес входа">
+                  <Input value={email} disabled />
+                </Field>
+                {profileResult && <InlineResult result={profileResult} />}
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={profilePending}>
+                    {profilePending ? "Сохраняю…" : "Сохранить изменения"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b border-border">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                  <Send className="size-4" />
+                </span>
+                <div>
+                  <CardTitle>Telegram Mini App</CardTitle>
+                  <CardDescription>Рабочий кабинет автоматически подстраивается под вашу роль.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col gap-3 rounded-lg bg-muted/60 p-4 sm:flex-row sm:items-center">
+                <span className={`size-2.5 shrink-0 rounded-full ${connected ? "bg-chart-2" : "bg-muted-foreground/40"}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">
+                    {connected ? "Telegram подключён" : "Telegram не подключён"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {connected
+                      ? `Mini App доступен для роли «${ROLE_LABELS[role] ?? role}»${telegramId ? ` · ID ${telegramId}` : ""}`
+                      : "Подключение занимает один клик и не требует номера телефона."}
+                  </p>
+                </div>
+                {connected ? (
+                  <Button type="button" variant="outline" onClick={disconnectTelegram} disabled={telegramPending}>
+                    <Unlink className="size-4" />
+                    Отключить
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={pairTelegram} disabled={telegramPending}>
+                    <Send className="size-4" />
+                    {telegramPending ? "Создаю ссылку…" : "Подключить Telegram"}
+                  </Button>
+                )}
+              </div>
+              {telegramResult && <InlineResult result={telegramResult} />}
+              {pairingUrl && (
+                <a href={pairingUrl} target="_blank" rel="noreferrer" className={buttonVariants()}>
+                  <Send className="size-4" />
+                  Открыть Telegram
+                </a>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* ── Right: forms ── */}
-        <div className="flex-1 min-w-0 space-y-4">
-          <section className="rounded-2xl border border-border bg-card p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                <Send className="size-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground">Telegram Mini App</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Привяжите Telegram к профилю. Состав Mini App автоматически зависит от вашей роли и прав в клубе.
-                </p>
-              </div>
-              <Button type="button" variant="outline" onClick={pairTelegram} disabled={tgPending}>
-                {tgPending ? "Создаю ссылку…" : "Подключить Telegram"}
-              </Button>
-            </div>
-            {(tgResult || tgPairingUrl) && (
-              <div className="mt-4 space-y-3 border-t border-border pt-4">
-                {tgResult && (
-                  <p className={`text-sm ${tgResult.ok ? "text-chart-2" : "text-destructive"}`}>{tgResult.msg}</p>
-                )}
-                {tgPairingUrl && (
-                  <a href={tgPairingUrl} target="_blank" rel="noreferrer" className={buttonVariants()}>
-                    <Send className="size-4" />
-                    Открыть Telegram
-                  </a>
-                )}
-              </div>
-            )}
-          </section>
-
-          {/* Personal data */}
-          <form onSubmit={saveProfile}
-            className="rounded-2xl p-5"
-            style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <SectionTitle>Личные данные</SectionTitle>
-            <div className="space-y-3">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div id="security" className="space-y-4 scroll-mt-20">
+          <Card>
+            <CardHeader className="border-b border-border">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <KeyRound className="size-4" />
+                </span>
                 <div>
-                  <FLabel>Имя и фамилия</FLabel>
-                  <FInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Азиз Каримов" />
+                  <CardTitle>Пароль</CardTitle>
+                  <CardDescription>Единое место для смены пароля аккаунта.</CardDescription>
                 </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={savePassword} className="space-y-4">
+                <Field label="Текущий пароль">
+                  <div className="relative">
+                    <Input
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(event) => setCurrentPassword(event.target.value)}
+                      placeholder="••••••••"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword((value) => !value)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={showCurrentPassword ? "Скрыть пароль" : "Показать пароль"}
+                    >
+                      {showCurrentPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Новый пароль">
+                    <div className="relative">
+                      <Input
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        placeholder="Минимум 8 символов"
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword((value) => !value)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showNewPassword ? "Скрыть пароль" : "Показать пароль"}
+                      >
+                        {showNewPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
+                  </Field>
+                  <Field label="Повторите пароль">
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      placeholder="••••••••"
+                    />
+                  </Field>
+                </div>
+                {passwordResult && <InlineResult result={passwordResult} />}
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={passwordPending || !currentPassword || !newPassword || !confirmPassword}
+                  >
+                    {passwordPending ? "Меняю…" : "Изменить пароль"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b border-border">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <Mail className="size-4" />
+                </span>
                 <div>
-                  <FLabel>Телефон</FLabel>
-                  <FInput
-                    value={tel}
-                    onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, "")
-                      let masked = ""
-                      if (digits.length === 0) { masked = ""; }
-                      else {
-                        const d = digits.startsWith("998") ? digits : "998" + digits.replace(/^998/, "")
-                        masked = "+" + d.slice(0, 3)
-                        if (d.length > 3)  masked += " " + d.slice(3, 5)
-                        if (d.length > 5)  masked += " " + d.slice(5, 8)
-                        if (d.length > 8)  masked += " " + d.slice(8, 10)
-                        if (d.length > 10) masked += " " + d.slice(10, 12)
-                      }
-                      setTel(masked)
-                    }}
-                    placeholder="+998 90 000 00 00"
-                    type="tel"
-                    maxLength={17}
+                  <CardTitle>Email для входа</CardTitle>
+                  <CardDescription>На новый адрес придёт письмо подтверждения.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={saveEmail} className="space-y-4">
+                <Field label="Новый email">
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(event) => setNewEmail(event.target.value)}
+                    placeholder="new@email.com"
                   />
+                </Field>
+                <Field label="Подтвердите текущим паролем">
+                  <Input
+                    type="password"
+                    value={emailPassword}
+                    onChange={(event) => setEmailPassword(event.target.value)}
+                    placeholder="Текущий пароль"
+                  />
+                </Field>
+                {emailResult && <InlineResult result={emailResult} />}
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={emailPending || !newEmail || !emailPassword}>
+                    {emailPending ? "Отправляю…" : "Сменить email"}
+                  </Button>
                 </div>
-              </div>
-              <div>
-                <FLabel hint="(только для просмотра)">Email</FLabel>
-                <FInput value={email} disabled style={{ opacity: 0.45, cursor: "not-allowed" }} />
-              </div>
-              {pRes && <Toast ok={pRes.ok} msg={pRes.msg} />}
-              <div className="flex justify-end pt-1">
-                <SaveBtn pending={pPend} label="Сохранить" />
-              </div>
-            </div>
-          </form>
+              </form>
+            </CardContent>
+          </Card>
 
-          {/* Security */}
-          <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <SectionTitle>Безопасность</SectionTitle>
-
-            {/* Change password */}
-            <form onSubmit={savePassword} className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--gray-muted)" }}>Смена пароля</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Card>
+            <CardHeader className="border-b border-border">
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <Laptop2 className="size-4" />
+                </span>
                 <div>
-                  <FLabel>Текущий</FLabel>
-                  <div className="relative">
-                    <FInput type={showCur ? "text" : "password"} value={curPwd} onChange={(e) => setCurPwd(e.target.value)} placeholder="••••••••" style={{ paddingRight: 36 }} />
-                    <button type="button" onClick={() => setShowCur(v => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }}>
-                      {showCur ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <FLabel>Новый</FLabel>
-                  <div className="relative">
-                    <FInput type={showNew ? "text" : "password"} value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="Мин. 8 символов" style={{ paddingRight: 36 }} />
-                    <button type="button" onClick={() => setShowNew(v => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--gray-muted)" }}>
-                      {showNew ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <FLabel>Повторите</FLabel>
-                  <FInput type="password" value={confPwd} onChange={(e) => setConfPwd(e.target.value)} placeholder="••••••••" />
+                  <CardTitle>Активные сессии</CardTitle>
+                  <CardDescription>Текущее устройство останется в системе.</CardDescription>
                 </div>
               </div>
-              {pwRes && <Toast ok={pwRes.ok} msg={pwRes.msg} />}
-              <div className="flex justify-end">
-                <SaveBtn pending={pwPend} label="Изменить пароль" pendingLabel="Смена..." />
-              </div>
-            </form>
-
-            <Divider />
-
-            {/* Change email */}
-            <form onSubmit={saveEmail} className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--gray-muted)" }}>Смена Email</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <FLabel>Новый email</FLabel>
-                  <FInput type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="new@email.com" />
-                </div>
-                <div>
-                  <FLabel>Подтвердите паролем</FLabel>
-                  <FInput type="password" value={emailPwd} onChange={(e) => setEmailPwd(e.target.value)} placeholder="Текущий пароль" />
-                </div>
-              </div>
-              {emailRes && <Toast ok={emailRes.ok} msg={emailRes.msg} />}
-              <div className="flex justify-end">
-                <SaveBtn pending={emailPend} label="Сменить email" pendingLabel="Отправка..." />
-              </div>
-            </form>
-          </div>
-
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button type="button" variant="outline" onClick={signOutOtherSessions} disabled={sessionsPending}>
+                {sessionsPending ? "Завершаю…" : "Выйти на других устройствах"}
+              </Button>
+              {sessionsResult && <InlineResult result={sessionsResult} />}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>

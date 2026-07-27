@@ -28,6 +28,7 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
 - `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
@@ -37,7 +38,6 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 - `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
 - `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
-- `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

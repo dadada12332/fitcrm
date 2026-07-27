@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Crown, Check, X, Plus, ArrowRight,
-  MessageCircle, Eye, EyeOff, LogOut,
+  MessageCircle,
   Pencil, Trash2, Users, Building2, Package, ShieldCheck,
   Plug, Bot, Send, Upload, Download, CalendarDays, Clock3,
 } from "lucide-react"
@@ -29,8 +29,6 @@ import {
 import {
   saveClubBasicAction,
   saveFinanceAction,
-  changePasswordAction,
-  signOutOtherSessionsAction,
   inviteStaffAction,
   createBranchAction,
   createInviteLinkAction,
@@ -109,7 +107,7 @@ export type PlanForClient = {
   limits: Record<string, number | null>
 }
 
-type Section = "basic" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "security" | "plan"
+type Section = "basic" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "plan"
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный", starter: "Starter", standard: "Standard", business: "Business",
@@ -929,84 +927,6 @@ function IntegrationsSection() {
   )
 }
 
-// ── Security ──────────────────────────────────────────────────────
-
-function SecuritySection() {
-  const [cur, setCur]       = useState("")
-  const [next, setNext]     = useState("")
-  const [conf, setConf]     = useState("")
-  const [show, setShow]     = useState(false)
-  const [msg, setMsg]       = useState<{ text: string; type: "ok" | "err" } | null>(null)
-  const [pending, start]    = useTransition()
-  const [sessionsMsg, setSessionsMsg] = useState<{ text: string; type: "ok" | "err" } | null>(null)
-
-  function handlePw(e: React.FormEvent) {
-    e.preventDefault(); setMsg(null)
-    if (next.length < 8) { setMsg({ text: "Пароль должен быть не менее 8 символов", type: "err" }); return }
-    if (next !== conf)   { setMsg({ text: "Пароли не совпадают", type: "err" }); return }
-    start(async () => {
-      const res = await changePasswordAction(cur, next)
-      if (res.error) { setMsg({ text: res.error, type: "err" }); return }
-      setMsg({ text: "Пароль успешно изменён", type: "ok" })
-      setCur(""); setNext(""); setConf("")
-      setTimeout(() => setMsg(null), 3000)
-    })
-  }
-
-  function handleSignOutOthers() {
-    setSessionsMsg(null)
-    start(async () => {
-      const result = await signOutOtherSessionsAction()
-      setSessionsMsg(result.error
-        ? { text: result.error, type: "err" }
-        : { text: "Другие сессии завершены", type: "ok" })
-    })
-  }
-
-  const type = show ? "text" : "password"
-
-  return (
-    <div className="space-y-4">
-      <Card title="Пароль" action={
-        <button type="button" onClick={() => setShow((v) => !v)}
-          className="flex items-center gap-1.5 text-xs" style={{ color: "var(--gray-muted)" }}>
-          {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          {show ? "Скрыть" : "Показать"}
-        </button>
-      }>
-        <form onSubmit={handlePw} className="space-y-3 max-w-sm">
-          <Field label="Текущий пароль">
-            <Input value={cur} onChange={setCur} type={type} placeholder="••••••••" />
-          </Field>
-          <Field label="Новый пароль">
-            <Input value={next} onChange={setNext} type={type} placeholder="••••••••" />
-          </Field>
-          <Field label="Повторите новый пароль">
-            <Input value={conf} onChange={setConf} type={type} placeholder="••••••••" />
-          </Field>
-          {msg && <Alert msg={msg.text} type={msg.type} />}
-          <Btn type="submit" disabled={pending || !cur || !next || !conf}>
-            {pending ? "Сохранение..." : "Сменить пароль"}
-          </Btn>
-        </form>
-      </Card>
-
-      <Card title="Активные сессии">
-        <div className="flex flex-col gap-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>Текущее устройство</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--gray-muted)" }}>Останется в системе после завершения других сессий</p>
-          </div>
-          <Btn variant="secondary" onClick={handleSignOutOthers} disabled={pending}>
-            <LogOut className="h-4 w-4" /> Выйти на других
-          </Btn>
-        </div>
-        {sessionsMsg && <div className="mt-3"><Alert msg={sessionsMsg.text} type={sessionsMsg.type} /></div>}
-      </Card>
-    </div>
-  )
-}
-
 // ── Plan ──────────────────────────────────────────────────────────
 
 const MONTHS_OPTIONS = [{ m: 1, label: "1 мес" }, { m: 3, label: "3 мес" }, { m: 12, label: "12 мес" }]
@@ -1277,7 +1197,7 @@ function PlanSection({ club }: { club: ClubData }) {
         <Accordion>
           <AccordionItem value="limits" className="border-0">
             <AccordionTrigger className="rounded-none px-4 py-4 hover:no-underline">
-              <span className="flex min-w-0 items-center gap-3 pr-4">
+              <span className="flex min-w-0 flex-1 items-center gap-3 pr-4">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                   <Package className="size-4" />
                 </span>
@@ -1288,8 +1208,8 @@ function PlanSection({ club }: { club: ClubData }) {
                   </span>
                 </span>
               </span>
-              <Badge variant="outline" className="mr-3 hidden shrink-0 sm:inline-flex">
-                Ещё {secondaryLimits.length}
+              <Badge variant="secondary" className="mr-2 hidden shrink-0 sm:inline-flex">
+                {secondaryLimits.length} лимитов
               </Badge>
             </AccordionTrigger>
             <AccordionContent className="border-t border-border px-4 pb-4 pt-4">
@@ -1346,7 +1266,6 @@ export function ClubSettings({ club, section }: { club: ClubData; section: Secti
     case "finance":       return <FinanceSection club={club} />
     case "notifications": return <NotificationsSection club={club} />
     case "integrations":  return <IntegrationsSection />
-    case "security":      return <SecuritySection />
     case "plan":          return <PlanSection club={club} />
   }
 }

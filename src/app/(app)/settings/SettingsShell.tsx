@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import {
   Building2, GitFork, Users, Wallet,
-  Bell, Plug, ShieldCheck, Shield, Crown,
+  Bell, Plug, ShieldCheck, Crown,
 } from "lucide-react"
 import { ClubSettings, type ClubData } from "@/components/app/ClubSettings"
 import { RolesSettings } from "@/components/app/RolesSettings"
@@ -11,7 +11,7 @@ import { getRolesAction, type RoleRow } from "./roles/actions"
 import { useAppLocale } from "@/components/app/ClubContext"
 import type { AppMessageKey } from "@/lib/app-locale"
 
-type TabKey = "club" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "roles" | "security" | "subscription"
+type TabKey = "club" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "roles" | "subscription"
 
 type AllowedTabs = Partial<Record<TabKey, boolean>>
 
@@ -23,19 +23,17 @@ const ALL_TABS: { key: TabKey; label: AppMessageKey; icon: typeof Building2 }[] 
   { key: "notifications", label: "settings.notifications", icon: Bell        },
   { key: "integrations",  label: "settings.integrations",  icon: Plug        },
   { key: "roles",         label: "settings.roles",         icon: ShieldCheck },
-  { key: "security",      label: "settings.security",      icon: Shield      },
   { key: "subscription",  label: "settings.subscription",  icon: Crown       },
 ]
 
 // Maps settings tab key → ClubSettings section prop
-const SECTION_MAP: Record<string, "basic" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "security" | "plan"> = {
+const SECTION_MAP: Record<string, "basic" | "branches" | "staff" | "finance" | "notifications" | "integrations" | "plan"> = {
   club:          "basic",
   branches:      "branches",
   staff:         "staff",
   finance:       "finance",
   notifications: "notifications",
   integrations:  "integrations",
-  security:      "security",
   subscription:  "plan",
 }
 

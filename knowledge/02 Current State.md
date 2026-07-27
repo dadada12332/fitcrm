@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: d332e23 · 2026-07-27T05:30:20+05:00 · feat: add role-aware Telegram workspace.
+- Последний commit: 2579503 · 2026-07-27T05:34:18+05:00 · docs: record Telegram workspace release [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 96; последняя `20260724145500_renewal_and_class_attendance.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

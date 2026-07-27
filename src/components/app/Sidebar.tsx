@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useEffect, useRef, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import {
   LayoutDashboard, Users, CreditCard, Activity,
   Calendar, Wallet, Package, UserCog, BarChart2,
@@ -15,6 +15,15 @@ import {
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 import { QuickActionsMenu } from "@/components/app/QuickActionsMenu"
 import { ConfirmSignOut } from "@/components/app/ConfirmSignOut"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
@@ -225,34 +234,28 @@ type Props = {
 export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess, role, collapsed = false, mobile = false }: Props) {
   const { t } = useAppLocale()
   const router = useRouter()
-  const [clubOpen, setClubOpen] = useState(false)
   const [branches, setBranches] = useState<Branch[]>([])
+  const [branchesLoading, setBranchesLoading] = useState(false)
   const [, startTransition] = useTransition()
-  const clubRef = useRef<HTMLDivElement>(null)
 
   const isOwner = role === "owner"
   const p = permissions
   const canUseBranches = planFeatureEnabled(planAccess, "multi_branch")
 
-  useEffect(() => {
-    const fn = (e: MouseEvent) => {
-      if (clubRef.current && !clubRef.current.contains(e.target as Node)) setClubOpen(false)
-    }
-    document.addEventListener("mousedown", fn)
-    return () => document.removeEventListener("mousedown", fn)
-  }, [])
-
-  const openClub = async () => {
-    setClubOpen((v) => !v)
+  const loadBranches = async (open: boolean) => {
+    if (!open || branches.length > 0 || branchesLoading) return
+    setBranchesLoading(true)
     const data = await getBranchesAction()
     setBranches(data)
+    setBranchesLoading(false)
   }
 
   const switchBranch = (branchId: string) => {
-    setClubOpen(false)
+    if (branchId === clubId) return
     startTransition(async () => {
       await switchBranchAction(branchId)
-      router.refresh()
+      // A full navigation clears prefetched Router Cache from the previous tenant.
+      window.location.assign("/dashboard")
     })
   }
 
@@ -268,66 +271,65 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
       style={{ boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
 
       {/* ── Club card ── */}
-      <div ref={clubRef} className="relative px-2 pt-2 flex-shrink-0">
-        <button
-          onClick={openClub}
-          className="w-full flex items-center rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          style={{ padding: "8px 10px", gap: 10, justifyContent: collapsed ? "center" : "flex-start" }}
-        >
-          <div className="flex-shrink-0 flex items-center justify-center font-semibold text-white"
-            style={{ width: 32, height: 32, background: "#2563eb", borderRadius: 8, fontSize: 14 }}>
-            {clubName.charAt(0).toUpperCase()}
-          </div>
+      <div className="px-2 pt-2 flex-shrink-0">
+        <DropdownMenu onOpenChange={loadBranches}>
+          <DropdownMenuTrigger
+            aria-label={t("nav.switchClub")}
+            title={collapsed ? clubName : undefined}
+            className="flex w-full items-center rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            style={{ padding: "8px 10px", gap: 10, justifyContent: collapsed ? "center" : "flex-start" }}
+          >
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-sm font-semibold text-primary-foreground">
+              {clubName.charAt(0).toUpperCase()}
+            </div>
 
-          {!collapsed && (
-            <>
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 truncate">
-                  {clubName}
-                </p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: statusColor, flexShrink: 0 }} />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{clubSubtitle}</p>
+            {!collapsed && (
+              <>
+                <div className="min-w-0 flex-1 text-left">
+                  <p className="truncate text-sm font-semibold text-foreground">{clubName}</p>
+                  <div className="mt-0.5 flex items-center gap-1">
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: statusColor, flexShrink: 0 }} />
+                    <p className="truncate text-xs text-muted-foreground">{clubSubtitle}</p>
+                  </div>
                 </div>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-            </>
-          )}
-        </button>
-
-        {/* Club dropdown */}
-        {clubOpen && (
-          <div className="absolute left-2 right-2 top-full mt-1 rounded-lg overflow-hidden z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700"
-            style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
-            {branches.length > 0 && (
-              <div className="py-1 border-b border-zinc-100 dark:border-zinc-800">
-                {branches.map((b) => (
-                  <button
-                    key={b.clubId}
-                    onClick={() => switchBranch(b.clubId)}
-                    className="w-full flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                  >
-                    <div className="flex-shrink-0 flex items-center justify-center font-semibold text-xs rounded-md"
-                      style={{ width: 24, height: 24, background: b.clubId === clubId ? "#2563eb" : undefined, color: b.clubId === clubId ? "white" : undefined }}
-                    >
-                      {b.name.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="flex-1 text-sm text-left text-zinc-800 dark:text-zinc-200">{b.name}</span>
-                    {b.clubId === clubId && <Check className="w-3.5 h-3.5 text-blue-600" />}
-                  </button>
-                ))}
-              </div>
+                <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+              </>
             )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            sideOffset={8}
+            className="w-64"
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t("nav.switchClub")}</DropdownMenuLabel>
+              {branchesLoading ? (
+                <p className="px-3 py-2 text-sm text-muted-foreground">Загрузка…</p>
+              ) : branches.length === 0 ? (
+                <p className="px-3 py-2 text-sm text-muted-foreground">Других клубов нет</p>
+              ) : branches.map((b) => (
+                <DropdownMenuItem key={b.clubId} onClick={() => switchBranch(b.clubId)}>
+                  <span className={`flex size-7 shrink-0 items-center justify-center rounded-md text-xs font-semibold ${
+                    b.clubId === clubId ? "bg-brand text-primary-foreground" : "bg-muted text-muted-foreground"
+                  }`}>
+                    {b.name.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">{b.name}</span>
+                  {b.clubId === clubId && <Check className="size-4 text-brand" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
             {isOwner && canUseBranches && (
-              <div className="py-1">
-                <Link href="/settings?tab=branches" onClick={() => setClubOpen(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 text-sm text-zinc-700 dark:text-zinc-300">
-                  <GitFork className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/settings/branches")}>
+                  <GitFork />
                   {t("nav.addClub")}
-                </Link>
-              </div>
+                </DropdownMenuItem>
+              </>
             )}
-          </div>
-        )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* ── Quick action ── */}

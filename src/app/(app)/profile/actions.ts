@@ -1,6 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
+import { getCurrentClub } from "@/lib/club"
 import { revalidatePath } from "next/cache"
 
 export type ProfileData = {
@@ -9,6 +11,10 @@ export type ProfileData = {
   phone: string | null
   avatarPreset: string | null
   avatarUrl: string | null
+  clubName: string
+  role: string
+  telegramConnected: boolean
+  telegramId: string | null
 }
 
 export type ProfileResult = { ok?: boolean; error?: string }
@@ -24,6 +30,32 @@ export async function getProfileAction(): Promise<ProfileData | null> {
     .eq("id", user.id)
     .maybeSingle()
 
+  const club = await getCurrentClub()
+  let telegramConnected = false
+  let telegramId: string | null = null
+
+  if (club) {
+    const service = createServiceClient()
+    const { data: staff } = await service
+      .from("staff")
+      .select("id")
+      .eq("club_id", club.clubId)
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle()
+
+    if (staff) {
+      const { data: telegramUser } = await service
+        .from("telegram_users")
+        .select("telegram_id")
+        .eq("club_id", club.clubId)
+        .eq("staff_id", staff.id)
+        .maybeSingle()
+      telegramConnected = Boolean(telegramUser)
+      telegramId = telegramUser?.telegram_id == null ? null : String(telegramUser.telegram_id)
+    }
+  }
+
   const meta = user.user_metadata ?? {}
   return {
     fullName:     data?.full_name ?? (meta.full_name as string) ?? "",
@@ -31,6 +63,10 @@ export async function getProfileAction(): Promise<ProfileData | null> {
     phone:        (meta.phone as string) ?? null,
     avatarPreset: (meta.avatar_preset as string) ?? null,
     avatarUrl:    (meta.avatar_url    as string) ?? null,
+    clubName: club?.clubName ?? "Клуб",
+    role: club?.role ?? "staff",
+    telegramConnected,
+    telegramId,
   }
 }
 
@@ -45,7 +81,7 @@ export async function updateProfileAction(input: {
   const fullName = input.fullName.trim()
   if (!fullName) return { error: "Имя обязательно" }
 
-  // Save full_name to users table + phone to user_metadata (no phone column in users)
+  // Save the canonical profile and keep the active staff display name in sync.
   const [usersRes, metaRes] = await Promise.all([
     supabase.from("users").update({ full_name: fullName }).eq("id", user.id),
     supabase.auth.updateUser({ data: { full_name: fullName, phone: input.phone.trim() || null } }),
@@ -53,6 +89,27 @@ export async function updateProfileAction(input: {
 
   if (usersRes.error) return { error: usersRes.error.message }
   if (metaRes.error) return { error: metaRes.error.message }
+
+  const club = await getCurrentClub()
+  if (club) {
+    const service = createServiceClient()
+    const { data: staff } = await service
+      .from("staff")
+      .select("id, settings")
+      .eq("club_id", club.clubId)
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle()
+    if (staff) {
+      const settings = (staff.settings as Record<string, unknown> | null) ?? {}
+      const { error: staffError } = await service
+        .from("staff")
+        .update({ settings: { ...settings, full_name: fullName, phone: input.phone.trim() || null } })
+        .eq("id", staff.id)
+        .eq("club_id", club.clubId)
+      if (staffError) return { error: staffError.message }
+    }
+  }
 
   revalidatePath("/profile")
   revalidatePath("/dashboard")
@@ -155,5 +212,42 @@ export async function updateEmailAction(input: {
   const { error } = await supabase.auth.updateUser({ email: input.newEmail })
   if (error) return { error: error.message }
 
+  return { ok: true }
+}
+
+export async function signOutOtherSessionsAction(): Promise<ProfileResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+  const { error } = await supabase.auth.signOut({ scope: "others" })
+  return error ? { error: error.message } : { ok: true }
+}
+
+export async function disconnectProfileTelegramAction(): Promise<ProfileResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Не авторизован" }
+
+  const club = await getCurrentClub()
+  if (!club) return { error: "Клуб не найден" }
+
+  const service = createServiceClient()
+  const { data: staff } = await service
+    .from("staff")
+    .select("id")
+    .eq("club_id", club.clubId)
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .maybeSingle()
+  if (!staff) return { error: "Профиль сотрудника не найден" }
+
+  const { error } = await service
+    .from("telegram_users")
+    .delete()
+    .eq("club_id", club.clubId)
+    .eq("staff_id", staff.id)
+  if (error) return { error: error.message }
+
+  revalidatePath("/profile")
   return { ok: true }
 }

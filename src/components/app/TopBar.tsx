@@ -372,7 +372,7 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
 
   return (
     <>
-      <header className="flex items-center flex-shrink-0 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800"
+      <header className="flex items-center flex-shrink-0 border-b border-border bg-card"
         style={{ height: 64, paddingLeft: 16, paddingRight: 16, gap: 12 }}>
 
         {/* Sidebar toggle + divider */}
@@ -395,15 +395,15 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
         </div>
 
         {/* Right actions */}
-        <div className="flex items-center flex-shrink-0" style={{ gap: 4 }}>
+        <div className="flex shrink-0 items-center gap-1">
 
           {/* Search */}
           <button onClick={() => { setSearchOpen(true); setNotifOpen(false) }}
-            className="flex items-center gap-2.5 rounded-lg transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700"
-            style={{ height: 36, width: 260, paddingLeft: 12, paddingRight: 10, fontSize: 13 }}>
-            <Search style={{ width: 15, height: 15, flexShrink: 0 }} />
-            <span className="flex-1 text-left">{t("top.search")}</span>
-            <span className="flex-shrink-0 px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 font-mono" style={{ fontSize: 11 }}>⌘K</span>
+            className="mr-2 flex h-9 w-9 items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:w-52 lg:w-64 2xl:w-80"
+            aria-label={t("top.search")}>
+            <Search className="size-4 shrink-0" />
+            <span className="hidden flex-1 text-left sm:inline">{t("top.search")}</span>
+            <span className="hidden shrink-0 rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground lg:inline-flex">⌘K</span>
           </button>
 
           <DropdownMenu>
@@ -411,7 +411,7 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
               disabled={languagePending}
               aria-label={t("top.language")}
               title={t("top.language")}
-              className="flex h-8 min-w-9 items-center justify-center rounded-full border border-border bg-card px-2.5 text-xs font-semibold text-foreground shadow-xs transition-colors hover:bg-muted disabled:opacity-50"
+              className="flex h-8 min-w-10 items-center justify-center rounded-full border border-border bg-card px-2.5 text-xs font-semibold text-foreground shadow-xs transition-colors hover:bg-muted disabled:opacity-50"
             >
               {APP_LOCALE_SHORT[locale]}
             </DropdownMenuTrigger>
@@ -431,21 +431,19 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
           {/* Theme toggle */}
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
-            className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
-            style={{ width: 32, height: 32 }}
+            className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title={t("top.toggleTheme")}
             aria-label={t("top.toggleTheme")}
           >
-            <SunMoon style={{ width: 20, height: 20 }} />
+            <SunMoon className="size-5" />
           </button>
 
           {/* Bell */}
           <div ref={notifRef} className="relative">
             <button onClick={() => { setNotifOpen((v) => !v) }}
               aria-label={t("top.notifications")}
-              className="flex items-center justify-center rounded-md transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 relative"
-              style={{ width: 32, height: 32 }}>
-              <Bell style={{ width: 20, height: 20 }} />
+              className="relative flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+              <Bell className="size-[18px]" />
               {notifCount !== null && notifCount > 0 && (
                 <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center text-white font-bold"
                   style={{ background: "#dc2626", fontSize: 8 }}>
