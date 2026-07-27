@@ -270,7 +270,7 @@ export async function transferVisitToGoogleCalendar(
     summary: `Посещение · ${visit.clientName}`,
     description: [
       visit.comment || null,
-      "Перенесено вручную из журнала посещений FitCRM",
+      "Перенесено вручную из журнала посещений Zalkins",
     ].filter(Boolean).join("\n"),
     start: { dateTime: start.toISOString() },
     end: { dateTime: end.toISOString() },

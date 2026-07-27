@@ -327,7 +327,7 @@ export async function askAiAction(messages: AiMessage[]): Promise<{ reply: strin
   const systemInstruction = {
     parts: [{
       text:
-        `Ты — ассистент FitCRM для клуба «${club.clubName}». Сегодня ${new Date().toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" })}. ` +
+        `Ты — ассистент Zalkins для клуба «${club.clubName}». Сегодня ${new Date().toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" })}. ` +
         `Отвечай очень кратко (1-2 предложения) на русском — детали покажет карточка. Валюта — сум. ` +
         `Для любых данных/действий вызывай функции, не выдумывай цифры. Если для действия не хватает данных — уточни.`,
     }],

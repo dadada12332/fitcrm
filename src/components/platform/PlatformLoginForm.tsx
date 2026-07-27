@@ -6,6 +6,7 @@ import { platformSignIn, type PlatformLoginState } from "@/app/platform/login/ac
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { BrandMark } from "@/components/brand/BrandLogo"
 
 export function PlatformLoginForm() {
   const [state, action, pending] = useActionState<PlatformLoginState, FormData>(platformSignIn, {})
@@ -14,11 +15,9 @@ export function PlatformLoginForm() {
     <main className="flex min-h-dvh items-center justify-center bg-background p-4">
       <div className="w-full max-w-[400px]">
         <div className="mb-6 flex items-center justify-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <ShieldCheck className="size-5" />
-          </div>
+          <BrandMark appIcon className="size-10" priority />
           <div>
-            <p className="text-base font-semibold text-foreground">FitCRM Platform</p>
+            <p className="text-base font-semibold text-foreground">Zalkins Platform</p>
             <p className="text-xs text-muted-foreground">Управление SaaS</p>
           </div>
         </div>

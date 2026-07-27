@@ -29,6 +29,7 @@ import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
 import { planFeatureEnabled, planSectionEnabled, type PlanAccess } from "@/lib/plan-access"
 import { useAppLocale } from "./ClubContext"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный",
@@ -269,6 +270,10 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
   return (
     <aside className={`${mobile ? "flex" : "hidden md:flex"} flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg`}
       style={{ boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
+
+      <div className={`flex h-12 shrink-0 items-center border-b border-sidebar-border ${collapsed ? "justify-center px-1" : "px-4"}`}>
+        <BrandLogo href="/dashboard" compact={collapsed} priority />
+      </div>
 
       {/* ── Club card ── */}
       <div className="px-2 pt-2 flex-shrink-0">

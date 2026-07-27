@@ -43,7 +43,7 @@ async function main() {
   const service = new BridgeService(config, { logger })
   await service.start()
   const shutdown = async (signal) => {
-    logger.info("Stopping FitCRM Bridge", { signal })
+    logger.info("Stopping Zalkins Bridge", { signal })
     await service.stop()
     process.exit(0)
   }
@@ -52,6 +52,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  logger.error("FitCRM Bridge failed", { error: error.message })
+  logger.error("Zalkins Bridge failed", { error: error.message })
   process.exitCode = 1
 })

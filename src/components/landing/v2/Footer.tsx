@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { Zap, Send, MessageCircle, Camera } from "lucide-react"
+import { Send, MessageCircle, Camera } from "lucide-react"
 import { useT } from "@/lib/i18n/context"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 const SOCIALS = [
   { icon: Send,          href: "https://t.me/fitcrm",  label: "Telegram" },
@@ -44,12 +45,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 pb-16">
           {/* Brand */}
           <div className="col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <span className="w-7 h-7 rounded-md flex items-center justify-center bg-neutral-900">
-                <Zap className="w-4 h-4 text-white" fill="currentColor" />
-              </span>
-              <span className="text-[15px] font-semibold text-[#0a0a0a]">FitCRM</span>
-            </Link>
+            <BrandLogo href="/" className="mb-6 text-[#0a0a0a]" />
             <p className="text-[14px] font-normal leading-[21px] text-[#52525b] max-w-[300px]">
               {t.footer.brand}
             </p>
@@ -83,7 +79,7 @@ export function Footer() {
         <div className="h-px w-full" style={{ background: "rgba(0,0,0,0.08)" }} />
 
         <div className="flex flex-wrap items-center justify-between gap-4 pt-8">
-          <p className="text-[14px] font-normal text-[#52525b]">© FitCRM, {new Date().getFullYear()}. {t.footer.rights}</p>
+          <p className="text-[14px] font-normal text-[#52525b]">© Zalkins, {new Date().getFullYear()}. {t.footer.rights}</p>
           <div className="flex items-center gap-2">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-ping" />

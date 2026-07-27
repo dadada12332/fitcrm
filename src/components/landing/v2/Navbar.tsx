@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Menu, X, Zap } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { useT } from "@/lib/i18n/context"
 import { LangSwitcher } from "./LangSwitcher"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 export function Navbar() {
   const t = useT()
@@ -29,12 +30,7 @@ export function Navbar() {
         }}
       >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 h-9 flex-shrink-0">
-          <span className="w-7 h-7 rounded-md flex items-center justify-center bg-neutral-900">
-            <Zap className="w-4 h-4 text-white" fill="currentColor" />
-          </span>
-          <span className="text-[14px] font-medium text-[#0a0a0a]">FitCRM</span>
-        </Link>
+        <BrandLogo href="/" className="h-9 flex-shrink-0 text-[#0a0a0a]" priority />
 
         {/* Center links */}
         <div className="hidden md:flex items-center">

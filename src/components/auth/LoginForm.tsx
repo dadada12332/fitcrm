@@ -45,7 +45,7 @@ export function LoginForm({ next }: { next?: string }) {
                 <UserRound className="size-6" strokeWidth={1.8} />
               </span>
               <p className="mt-4 text-xl font-semibold text-foreground">
-                Войдите в рабочее пространство fitCRM
+                Войдите в рабочее пространство Zalkins
               </p>
               <p className="mt-2 text-sm leading-6 text-foreground/60">
                 Управляйте клубом, командой и клиентами из одного окна
@@ -58,7 +58,7 @@ export function LoginForm({ next }: { next?: string }) {
               <h1 className="mb-2 text-3xl font-semibold text-foreground">
                 С возвращением!
               </h1>
-              <p className="text-base text-foreground/80">Войдите в свой аккаунт fitCRM</p>
+              <p className="text-base text-foreground/80">Войдите в свой аккаунт Zalkins</p>
             </div>
 
             <form action={action} className="flex flex-col gap-5">
@@ -145,7 +145,7 @@ export function LoginForm({ next }: { next?: string }) {
             </span>
             <div>
               <p className="text-sm font-semibold text-foreground">Нужна помощь?</p>
-              <p className="mt-1 text-xs text-foreground/60">Поддержка FitCRM рядом</p>
+              <p className="mt-1 text-xs text-foreground/60">Поддержка Zalkins рядом</p>
             </div>
           </Link>
         </div>

@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Google Calendar — Интеграции FitCRM" }
+export const metadata = { title: "Google Calendar — Интеграции Zalkins" }
 
 export default async function GoogleCalendarPage({
   searchParams,

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 import { IntegrationsCatalog, type IntegrationStatus } from "@/components/app/IntegrationsCatalog"
 import { planFeatureEnabled } from "@/lib/plan-access"
 
-export const metadata = { title: "Интеграции — FitCRM" }
+export const metadata = { title: "Интеграции — Zalkins" }
 
 export default async function IntegrationsPage() {
   const supabase = await createClient()

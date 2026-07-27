@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
 - `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
 - `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
 - `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
-- `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

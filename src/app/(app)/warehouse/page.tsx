@@ -5,7 +5,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { WarehouseSwitcher } from "@/components/app/WarehouseSwitcher"
 import { redirect } from "next/navigation"
 
-export const metadata = { title: "Склад — FitCRM" }
+export const metadata = { title: "Склад — Zalkins" }
 
 export default async function WarehousePage() {
   const supabase = await createClient()

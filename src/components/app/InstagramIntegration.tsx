@@ -121,7 +121,7 @@ export function InstagramIntegration({ data, oauth }: { data: InstagramPageData;
         <Card>
           <CardHeader>
             <CardTitle>Подключите профессиональный аккаунт</CardTitle>
-            <CardDescription>FitCRM запросит доступ к профилю, публикациям, Insights, комментариям и сообщениям. Токен хранится зашифрованным и не доступен браузеру.</CardDescription>
+            <CardDescription>Zalkins запросит доступ к профилю, публикациям, Insights, комментариям и сообщениям. Токен хранится зашифрованным и не доступен браузеру.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {!data.configured && (
@@ -177,7 +177,7 @@ export function InstagramIntegration({ data, oauth }: { data: InstagramPageData;
 
           <section className="space-y-3">
             <div>
-              <h2 className="font-semibold text-foreground">Атрибуция FitCRM</h2>
+              <h2 className="font-semibold text-foreground">Атрибуция Zalkins</h2>
               <p className="text-xs text-muted-foreground">Только переходы и оплаты, которые CRM смогла связать с Instagram</p>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

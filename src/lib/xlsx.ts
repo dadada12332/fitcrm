@@ -4,7 +4,7 @@ const THIN_BORDER: Partial<ExcelJS.Borders> = {
   bottom: { style: "thin", color: { argb: "FFE4E4E7" } },
 }
 
-/** Shared FitCRM spreadsheet treatment for readable exports in Excel and Sheets. */
+/** Shared Zalkins spreadsheet treatment for readable exports in Excel and Sheets. */
 export function styleDataWorksheet(worksheet: ExcelJS.Worksheet) {
   const lastColumn = Math.max(1, worksheet.columnCount)
   const lastRow = Math.max(1, worksheet.rowCount)

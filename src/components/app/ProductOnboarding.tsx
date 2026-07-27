@@ -33,7 +33,7 @@ type TargetRect = { top: number; left: number; right: number; bottom: number; wi
 const TOUR_STEPS: TourStep[] = [
   {
     selector: null,
-    eyebrow: "Добро пожаловать в FitCRM",
+    eyebrow: "Добро пожаловать в Zalkins",
     title: "Настроим ваш первый рабочий день",
     text: "За минуту покажем четыре места, с которых начинается ежедневная работа клуба.",
   },
@@ -186,7 +186,7 @@ export function ProductOnboarding({
             transition={{ duration: reduceMotion ? 0 : 0.24 }}
             role="dialog"
             aria-modal="true"
-            aria-label="Знакомство с FitCRM"
+            aria-label="Знакомство с Zalkins"
           >
             {targetRect ? (
               <>

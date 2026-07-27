@@ -257,7 +257,7 @@ export function GoogleCalendarIntegration({ data, oauth }: { data: GoogleCalenda
             </CardAction>
             <CardTitle className="mt-3">Подключите рабочий календарь</CardTitle>
             <CardDescription className="max-w-2xl leading-6">
-              Выберите аккаунт Google один раз. FitCRM ничего не переносит автоматически — вы сами решаете, какие
+              Выберите аккаунт Google один раз. Zalkins ничего не переносит автоматически — вы сами решаете, какие
               события и посещения добавить.
             </CardDescription>
           </CardHeader>
@@ -283,7 +283,7 @@ export function GoogleCalendarIntegration({ data, oauth }: { data: GoogleCalenda
             </div>
             {!data.configured && (
               <p className="mt-3 text-sm text-muted-foreground">
-                Подключение временно недоступно: администратор FitCRM завершает настройку Google.
+                Подключение временно недоступно: администратор Zalkins завершает настройку Google.
               </p>
             )}
             {notice && <NoticeView notice={notice} />}

@@ -808,7 +808,7 @@ const ART: Record<string, KbArticle[]> = {
 // ── Категории ──────────────────────────────────────────────────────────
 
 export const KB_CATEGORIES: KbCategory[] = [
-  { id: "start",        icon: "🚀", title: "Начало работы",  description: "Первые шаги в FitCRM",        color: "#7c3aed", articles: ART.start },
+  { id: "start",        icon: "🚀", title: "Начало работы",  description: "Первые шаги в Zalkins",        color: "#7c3aed", articles: ART.start },
   { id: "clients",      icon: "👤", title: "Клиенты",        description: "Управление клиентской базой",  color: "#2563eb", articles: ART.clients },
   { id: "memberships",  icon: "💳", title: "Абонементы",     description: "Тарифы и подписки",            color: "#059669", articles: ART.memberships },
   { id: "visits",       icon: "✅", title: "Посещения",       description: "Чекины и QR-коды",             color: "#0891b2", articles: ART.visits },

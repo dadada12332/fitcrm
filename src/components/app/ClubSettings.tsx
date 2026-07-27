@@ -350,12 +350,12 @@ function BasicSection({ club }: { club: ClubData }) {
                 <Bot className="size-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">{name || "FitCRM"}</p>
+                <p className="text-sm font-semibold text-foreground">{name || "Zalkins"}</p>
                 <p className="text-xs text-muted-foreground">Telegram bot</p>
               </div>
             </div>
             <p className="whitespace-pre-line text-sm leading-6 text-foreground">
-              {`${name || "FitCRM"}\n${address || ""}${phone ? `\n${phone}` : ""}${website ? `\n${website}` : ""}${openHours ? `\n\n${translate(communicationLanguage, "settings.hoursSummary")}:\n${openHours}` : ""}`}
+              {`${name || "Zalkins"}\n${address || ""}${phone ? `\n${phone}` : ""}${website ? `\n${website}` : ""}${openHours ? `\n\n${translate(communicationLanguage, "settings.hoursSummary")}:\n${openHours}` : ""}`}
             </p>
           </div>
         </div>
@@ -1127,7 +1127,7 @@ function PlanSection({ club }: { club: ClubData }) {
                         </div>
                         <div>
                           <p className="text-base font-semibold text-foreground">{pl.name}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{pl.subtitle || "Тариф FitCRM"}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{pl.subtitle || "Тариф Zalkins"}</p>
                         </div>
                       </div>
                       {isCurrent ? (

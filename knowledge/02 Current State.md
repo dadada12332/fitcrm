@@ -2,7 +2,7 @@
 type: current-state
 status: active
 updated: 2026-07-24
-tags: [fitcrm, operations]
+tags: [zalkins, operations]
 ---
 
 # Current State
@@ -12,13 +12,18 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: f70c7a4 · 2026-07-27T11:26:08+05:00 · fix: stop repeated trial upgrade prompt.
+- Последний commit: b244330 · 2026-07-27T11:28:26+05:00 · docs: record trial offer hotfix deployment [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 96; последняя `20260724145500_renewal_and_class_attendance.sql`.
+- Миграции в Git: 97; последняя `20260727123000_rebrand_zalkins.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
 ## Готовность модулей
+
+Публичный бренд продукта — **Zalkins**. Во всех пользовательских поверхностях используется
+единый Kinetic Z, wordmark на Onest и существующий brand-blue токен. Исторические lowercase
+технические идентификаторы `fitcrm`, текущий Vercel alias и интеграционные контракты пока
+сохранены для совместимости и не являются видимым названием продукта.
 
 **Работают:** auth и onboarding, dashboard, клиенты, абонементы, посещения, расписание, оплаты, склад, сотрудники, отчёты, настройки, Telegram, Payme/Click, поддержка и основные разделы Platform Admin. В существующем разделе интеграций добавлен Beta cloud-контур контроля доступа Sigur, ZKTeco и Hikvision: настройки локального Bridge, привязки карт/браслетов, online decision, журнал, симулятор и атомарное создание посещений. Google Calendar имеет server-side OAuth и управляемый workspace: сотрудник видит календарь/заметки, создаёт события и вручную переносит только выбранные посещения; OAuth credentials, callback и Calendar API настроены в Google Cloud/Vercel. Склад поддерживает создание товара, поставку, списание, продажу и мягкое удаление из строки с сохранением истории; остаток и движение записываются атомарно. Тарифы из Platform Admin реально управляют разделами, функциями и 10 рабочими лимитами CRM; UI, Server Actions и Telegram cron используют одну матрицу Trial/Starter/Standard/Business. При достижении лимита CRM сохраняет данные, блокирует только новую операцию и предлагает следующий подходящий тариф с актуальной ценой. Импорт клиентов принимает CSV/XLSX с гибким mapping и сохраняет неподдержанные поля; CSV/XLSX-экспорты CRM унифицированы, защищены от formula injection и проверены на кириллице. Настройки клуба, финансов, Telegram-уведомлений, интеграций, безопасности, подписки, ролей, филиалов и сотрудников повторно проверены в production. Telegram templates имеют сценарный редактор с live preview, контекстными переменными и двойной валидацией; automation toggles и тексты сохраняются из одного состояния. Брендинг Telegram-бота позволяет установить, заменить и удалить аватар из CRM с серверным приведением к требованиям Bot API. Telegram Mini App и CRM имеют отдельный tenant-scoped inbox клиентских обращений с ответами, ответственными, статусами, шаблонами и retry доставки. Beta-раздел удержания и Growth OS выпущены в production и проверены на синтетическом QA-клубе; Growth-эксперименты сохраняют club-scoped lifecycle и результаты.
 

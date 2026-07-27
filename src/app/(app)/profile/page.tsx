@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { getProfileAction } from "./actions"
 import { ProfileClient } from "./ProfileClient"
 
-export const metadata = { title: "Профиль — FitCRM" }
+export const metadata = { title: "Профиль — Zalkins" }
 
 export default async function ProfilePage() {
   const profile = await getProfileAction()

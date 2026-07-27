@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
   LayoutDashboard, Building2, Users, CreditCard, Receipt, BarChart3,
-  Activity, ScrollText, LifeBuoy, Send, Ticket, Settings, ShieldCheck,
+  Activity, ScrollText, LifeBuoy, Send, Ticket, Settings,
   LogOut, Menu, ExternalLink, Tag, Plug, X, SunMoon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { BrandMark } from "@/components/brand/BrandLogo"
 
 export type NavItem = { label: string; href: string; icon: string; badge?: number; section?: string }
 
@@ -41,11 +42,9 @@ export function PlatformShell({
   const renderSidebar = (mobile = false) => (
     <aside className="flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <ShieldCheck className="size-4" />
-        </div>
+        <BrandMark appIcon className="size-8 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold leading-tight">FitCRM Platform</p>
+          <p className="truncate text-sm font-semibold leading-tight">Zalkins Platform</p>
           <p className="truncate text-[11px] leading-tight text-muted-foreground">Управление SaaS</p>
         </div>
         {mobile && (
@@ -140,10 +139,8 @@ export function PlatformShell({
           <Button type="button" variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Открыть меню платформы">
             <Menu className="size-5" />
           </Button>
-          <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <ShieldCheck className="size-3.5" />
-          </div>
-          <span className="text-sm font-semibold">FitCRM Platform</span>
+          <BrandMark appIcon className="size-7" />
+          <span className="text-sm font-semibold">Zalkins Platform</span>
         </header>
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>

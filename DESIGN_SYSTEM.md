@@ -1,4 +1,4 @@
-# FitCRM — Дизайн-система
+# Zalkins — Дизайн-система
 
 Канон: **shadcn/ui (палитра Zinc)** на `@base-ui/react` + Tailwind v4.
 Источник токенов: Figma «Shadcn UI / PRO Variables V6.0» → выгрузка в `design/tokens/zinc.json`.

@@ -81,7 +81,7 @@ export async function GET(req: Request) {
   const debts = data.payments.filter(p => p.status === "pending")
 
   const wb = new ExcelJS.Workbook()
-  wb.creator = "FitCRM"
+  wb.creator = "Zalkins"
   wb.created = new Date()
 
   // ── Лист 1: Финансы ─────────────────────────────────────────────
@@ -239,7 +239,7 @@ export async function GET(req: Request) {
   return new Response(buffer, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="fitcrm-reports-${period}-${stamp}.xlsx"`,
+      "Content-Disposition": `attachment; filename="zalkins-reports-${period}-${stamp}.xlsx"`,
       "Cache-Control": "no-store",
     },
   })

@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Building2, Clock, CreditCard, Users, ArrowLeft, ArrowRight, Check, Plus } from "lucide-react"
 import { BrandingCarousel } from "@/app/(auth)/BrandingCarousel"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 import { inviteStaffAction } from "@/app/(app)/settings/club/actions"
 import { saveClubInfoAction, saveWorkingHoursAction, createFirstMembershipAction, completeOnboardingAction, type OnboardingState } from "./actions"
 import { MoneyInput } from "@/components/app/MoneyInput"
@@ -333,12 +334,7 @@ export function OnboardingWizard({ clubName, initialStep }: { clubName: string; 
         <div className="dark relative z-10 m-3 flex min-h-0 flex-1 flex-col overflow-auto rounded-3xl bg-background/25 shadow-2xl shadow-foreground/20 ring-1 ring-background/35 backdrop-blur-md backdrop-brightness-90 backdrop-saturate-75 lg:m-5">
           {/* Top bar */}
           <div className="flex items-center justify-between px-4 pt-4 sm:px-8 sm:pt-8 lg:px-9 lg:pt-9">
-            <div className="flex items-center gap-2">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Plus className="size-4" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-semibold text-foreground">fitCRM</span>
-            </div>
+            <BrandLogo inverse />
             {step > 1 && (
               <Button
                 type="button"

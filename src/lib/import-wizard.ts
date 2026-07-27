@@ -1,5 +1,5 @@
 /**
- * FitCRM Import Wizard — config-driven field map + competitive scoring.
+ * Zalkins Import Wizard — config-driven field map + competitive scoring.
  *
  * Three column categories:
  *   importable  — user can map & import

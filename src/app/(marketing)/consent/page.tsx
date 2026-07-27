@@ -3,8 +3,8 @@ import { LegalArticle, PageHero, PageShell } from "@/components/landing/v2/PageS
 import { LEGAL_CONTACTS, LEGAL_UPDATED_RU, LEGAL_VERSION } from "@/lib/legal"
 
 export const metadata = {
-  title: "Согласие на обработку персональных данных — FitCRM",
-  description: "Согласие пользователя FitCRM на обработку персональных данных.",
+  title: "Согласие на обработку персональных данных — Zalkins",
+  description: "Согласие пользователя Zalkins на обработку персональных данных.",
 }
 
 const BLOCKS: LegalBlock[] = [
@@ -25,7 +25,7 @@ const BLOCKS: LegalBlock[] = [
   {
     h: "Цели",
     bullets: [
-      "регистрация, авторизация и предоставление функций FitCRM;",
+      "регистрация, авторизация и предоставление функций Zalkins;",
       "исполнение договора, поддержка, расчёты и сервисные уведомления;",
       "защита аккаунта, предупреждение мошенничества и расследование инцидентов;",
       "работа выбранных мной интеграций;",

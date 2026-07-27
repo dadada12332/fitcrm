@@ -76,4 +76,4 @@ $settings = New-ScheduledTaskSettingsSet -RestartCount 100 -RestartInterval (New
 Register-ScheduledTask -TaskName "FitCRMBridge" -Action $action -Trigger $trigger `
   -Principal $principal -Settings $settings -Force | Out-Null
 Start-ScheduledTask -TaskName "FitCRMBridge"
-Write-Host "FitCRM Bridge installed and started. Health: http://127.0.0.1:8787/health"
+Write-Host "Zalkins Bridge installed and started. Health: http://127.0.0.1:8787/health"

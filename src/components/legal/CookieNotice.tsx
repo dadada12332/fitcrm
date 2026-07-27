@@ -47,7 +47,7 @@ export function CookieNotice() {
           <Cookie className="size-4.5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold">Cookies для работы FitCRM</h2>
+          <h2 className="text-sm font-semibold">Cookies для работы Zalkins</h2>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
             Мы используем только необходимые cookies для входа и безопасности, а также функциональные настройки.
             Рекламных и аналитических трекеров сейчас нет. Подробнее — в{" "}

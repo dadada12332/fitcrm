@@ -24,7 +24,7 @@ export async function GET() {
   const d = await getDashboardData(supabase, club.clubId, true)
 
   const wb = new ExcelJS.Workbook()
-  wb.creator = "FitCRM"
+  wb.creator = "Zalkins"
   wb.created = new Date()
 
   // Лист 1 — Сводка
@@ -70,7 +70,7 @@ export async function GET() {
   return new Response(buffer, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="fitcrm-dashboard-${stamp}.xlsx"`,
+      "Content-Disposition": `attachment; filename="zalkins-dashboard-${stamp}.xlsx"`,
       "Cache-Control": "no-store",
     },
   })

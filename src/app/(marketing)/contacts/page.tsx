@@ -2,7 +2,7 @@ import Link from "next/link"
 import { PageShell, PageHero } from "@/components/landing/v2/PageShell"
 import { Mail, Send, Phone, MapPin, ArrowRight } from "lucide-react"
 
-export const metadata = { title: "Контакты — FitCRM" }
+export const metadata = { title: "Контакты — Zalkins" }
 
 const CONTACTS = [
   { icon: Mail, title: "Почта", value: "hello@fitcrm.uz", href: "mailto:hello@fitcrm.uz", note: "Ответим в течение дня" },
@@ -43,7 +43,7 @@ export default function ContactsPage() {
           <div className="relative overflow-hidden rounded-[24px] mt-8 px-8 py-12 text-center" style={{ background: "#0e1117" }}>
             <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 55% 60% at 50% 0%, rgba(0,101,252,0.32), transparent 62%)" }} />
             <div className="relative">
-              <h2 className="text-[26px] md:text-[32px] font-semibold tracking-[-0.8px] text-white">Готовы попробовать FitCRM?</h2>
+              <h2 className="text-[26px] md:text-[32px] font-semibold tracking-[-0.8px] text-white">Готовы попробовать Zalkins?</h2>
               <p className="mt-3 text-[15px] max-w-[440px] mx-auto" style={{ color: "#a1a1aa" }}>Запустите клуб бесплатно уже сегодня — карта не нужна.</p>
               <Link href="/register" className="group inline-flex items-center gap-2 mt-7 h-11 px-6 rounded-full text-[15px] font-semibold" style={{ background: "#ffffff", color: "#0a0a0a" }}>
                 Начать бесплатно <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />

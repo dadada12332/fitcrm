@@ -3,7 +3,7 @@ import { AiChat } from "@/components/app/AiChat"
 import { redirect } from "next/navigation"
 import { getBriefingAction } from "./actions"
 
-export const metadata = { title: "AI Аналитика — FitCRM" }
+export const metadata = { title: "AI Аналитика — Zalkins" }
 
 export default async function AiPage() {
   const club = await getCurrentClub()

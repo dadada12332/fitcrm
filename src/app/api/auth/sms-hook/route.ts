@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing phone or otp" }, { status: 400 })
     }
 
-    const msg = `🔐 FitCRM — код: ${otp}\nТелефон: ${phone}`
+    const msg = `🔐 Zalkins — код: ${otp}\nТелефон: ${phone}`
 
     const tgRes = await fetch(
       `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,

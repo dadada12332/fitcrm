@@ -6,7 +6,7 @@ import { InstagramIntegration, type InstagramPageData } from "@/components/app/I
 import { planFeatureEnabled } from "@/lib/plan-access"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Instagram — Интеграции FitCRM" }
+export const metadata = { title: "Instagram — Интеграции Zalkins" }
 
 export default async function InstagramPage({ searchParams }: { searchParams: Promise<{ oauth?: string }> }) {
   const club = await getCurrentClub()

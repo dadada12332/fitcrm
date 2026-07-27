@@ -203,7 +203,7 @@ export class BridgeService {
       this.server.once("error", reject)
       this.server.listen(this.config.bridge.listenPort, this.config.bridge.listenHost, resolve)
     })
-    this.logger.info("FitCRM Bridge started", {
+    this.logger.info("Zalkins Bridge started", {
       bridgeId: this.config.bridge.id,
       provider: this.config.provider.type,
       address: `${this.config.bridge.listenHost}:${this.config.bridge.listenPort}`,

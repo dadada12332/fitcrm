@@ -25,7 +25,7 @@ if (!accessToken || !projectRef) {
 const quote = (value) => `'${String(value).replaceAll("'", "''")}'`
 const vaultSecretSql = cronSecret
   ? `delete from vault.secrets where name = 'fitcrm_cron_secret';
-select vault.create_secret(${quote(cronSecret)}, 'fitcrm_cron_secret', 'Authorization for FitCRM scheduled jobs');`
+select vault.create_secret(${quote(cronSecret)}, 'fitcrm_cron_secret', 'Authorization for Zalkins scheduled jobs');`
   : `do $$
 begin
   if not exists (select 1 from vault.decrypted_secrets where name = 'fitcrm_cron_secret') then

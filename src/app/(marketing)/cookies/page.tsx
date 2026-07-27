@@ -3,8 +3,8 @@ import { LegalArticle, PageHero, PageShell } from "@/components/landing/v2/PageS
 import { LEGAL_CONTACTS, LEGAL_UPDATED_RU, LEGAL_VERSION } from "@/lib/legal"
 
 export const metadata = {
-  title: "Политика использования cookies — FitCRM",
-  description: "Какие cookies и локальные хранилища использует FitCRM и как ими управлять.",
+  title: "Политика использования cookies — Zalkins",
+  description: "Какие cookies и локальные хранилища использует Zalkins и как ими управлять.",
 }
 
 const BLOCKS: LegalBlock[] = [
@@ -16,7 +16,7 @@ const BLOCKS: LegalBlock[] = [
     ],
   },
   {
-    h: "Какие технологии использует FitCRM",
+    h: "Какие технологии использует Zalkins",
     table: {
       headers: ["Название/категория", "Назначение", "Срок", "Тип"],
       rows: [
@@ -34,7 +34,7 @@ const BLOCKS: LegalBlock[] = [
   {
     h: "Аналитика и реклама",
     body: [
-      "На дату этой версии FitCRM не использует рекламные cookies, пиксели, Google Analytics, Meta Pixel или иные сторонние аналитические трекеры.",
+      "На дату этой версии Zalkins не использует рекламные cookies, пиксели, Google Analytics, Meta Pixel или иные сторонние аналитические трекеры.",
       "Если такие технологии появятся, политика будет обновлена, а там, где это требуется, необязательные cookies будут включаться только после отдельного выбора пользователя.",
     ],
   },

@@ -1,9 +1,9 @@
 "use client"
 
-import Link from "next/link"
-import { Search, Bell, Zap, LogOut, Menu, PanelLeftClose } from "lucide-react"
+import { Search, Bell, LogOut, Menu, PanelLeftClose } from "lucide-react"
 import { useState } from "react"
 import { signOut } from "@/app/(auth)/actions"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 type Props = {
   clubName: string
@@ -43,26 +43,15 @@ export function AppHeader({ clubName, email, onToggle, onMobileOpen }: Props) {
           <PanelLeftClose className="w-4 h-4" />
         </button>
 
-        <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{
-              background: "#0c111d",
-              boxShadow: "0 2px 3px -1px rgba(42,42,42,0.14), 0 1px 1px rgba(42,42,42,0.08)",
-              border: "1.33px solid rgba(255,255,255,0.12)",
-            }}
-          >
-            <Zap className="w-4 h-4 text-white" fill="white" />
-          </div>
-          <div className="hidden sm:flex flex-col min-w-0">
-            <span className="text-sm font-medium leading-none tracking-[-0.084px] truncate" style={{ color: "#09090b" }}>
-              fitCRM
-            </span>
+        <div className="flex min-w-0 items-center gap-2">
+          <BrandLogo href="/dashboard" compact />
+          <div className="hidden min-w-0 flex-col sm:flex">
+            <span className="truncate text-sm font-semibold leading-none text-foreground">Zalkins</span>
             <span className="text-xs leading-none mt-0.5 tracking-[-0.072px] truncate" style={{ color: "var(--on-dark-soft)" }}>
               {clubName}
             </span>
           </div>
-        </Link>
+        </div>
       </div>
 
       {/* Right: search + bell + avatar */}

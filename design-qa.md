@@ -1,62 +1,33 @@
-# Design QA — aligned profile grid
+# Zalkins rebrand — Design QA
 
-- Source visual:
-  `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_8jemcw/Снимок экрана 2026-07-27 в 10.15.38.png`
-- Implementation screenshots:
-  - `/Users/amiran/fitcrm/artifacts/profile-equal-grid-local.jpg`
-  - `/Users/amiran/fitcrm/artifacts/profile-equal-grid-bottom-local.jpg`
-- Combined comparison:
-  `/Users/amiran/fitcrm/artifacts/profile-equal-grid-comparison-final.png`
-- Browser viewport: 1681 × 1420 CSS pixels, device scale 1
-- State: authenticated owner, light theme, profile route
+## Target
 
-## Full-view comparison evidence
+- Reference: `codex-clipboard-42a5ca2e-5786-4de9-a927-d26576ce5be7.png`
+- Direction: Kinetic Z
+- Typeface: Onest
+- Primary brand color: existing `brand` token
 
-The source used two independent vertical columns. As a result, the shorter Telegram card
-ended well above the email card and the sessions card appeared stranded at the bottom-right.
-The implementation uses one shared two-column grid, so cards participate in real horizontal
-rows instead of two unrelated stacks.
+## Verified surfaces
 
-The content order is now:
+- Marketing landing: desktop `1440 × 1000`
+- Marketing landing: mobile `390 × 844`
+- Auth branding components
+- CRM sidebar and dashboard: desktop `1440 × 1000`
+- App icon, favicon and Apple touch icon
+- Public metadata, exports, Telegram copy, legal pages and localized messages
 
-1. Identity summary across the full width.
-2. Personal data and Telegram access.
-3. Password and login email.
-4. Active sessions across the full width.
+## Comparison
 
-## Measured layout evidence
+The implemented mark preserves the reference’s two linked rounded trajectories and remains legible at sidebar and favicon sizes. The wordmark uses Onest with a compact optical lockup. Existing product tokens remain unchanged, so the rebrand does not introduce a second visual system.
 
-- Personal data: 307 px.
-- Telegram Mini App: 307 px.
-- Password: 307 px.
-- Login email: 307 px.
-- Row 1 cards share the same top coordinate.
-- Row 2 cards share the same top coordinate.
-- The sessions card spans the complete content width.
-- Document `scrollWidth` equals the 1681 px viewport width; the main container has no
-  horizontal overflow.
+## Findings
 
-## Required fidelity surfaces
+- P0: none
+- P1: none
+- P2: none
+- Browser console warnings/errors: none
+- Responsive overflow or clipping in tested viewports: none
 
-- Existing Card, Button, Badge and Input primitives are unchanged.
-- Existing semantic color tokens, typography and 16 px grid gap are preserved.
-- All profile actions and form states remain functional.
-- On widths below `xl`, the grid naturally collapses into one ordered column.
+## Result
 
-## Comparison history
-
-1. P1 — independent columns produced unrelated vertical rhythms and visibly different card
-   endings.
-2. Fix — flattened both columns into one `xl:grid-cols-2` grid with stretched card items.
-3. P2 — sessions belonged to neither column and made the right side look heavier.
-4. Fix — sessions moved below the grid as one full-width account-level action.
-5. Post-fix measurement — all four primary cards render at exactly 307 px in the verified
-   desktop state.
-
-## Remaining findings
-
-No actionable P0/P1/P2 findings remain in the requested profile-layout scope.
-
-## Final result
-
-passed
+Passed.

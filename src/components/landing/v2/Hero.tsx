@@ -14,9 +14,9 @@ const fadeUp = (delay = 0) => ({
 })
 
 const SLIDES = [
-  { src: "/screens/hero-dashboard.png",    alt: "FitCRM — дашборд клуба" },
-  { src: "/screens/hero-clients2.png",     alt: "FitCRM — база клиентов" },
-  { src: "/screens/hero-memberships2.png", alt: "FitCRM — абонементы" },
+  { src: "/screens/hero-dashboard.png",    alt: "Zalkins — дашборд клуба" },
+  { src: "/screens/hero-clients2.png",     alt: "Zalkins — база клиентов" },
+  { src: "/screens/hero-memberships2.png", alt: "Zalkins — абонементы" },
 ]
 
 function Frame({ src, alt, priority }: { src: string; alt: string; priority?: boolean }) {

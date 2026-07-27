@@ -1,4 +1,4 @@
-# FitCRM AI Workflow
+# Zalkins AI Workflow
 
 Этот файл — единый источник правил обновления проектной памяти для Codex, Claude и других AI-агентов.
 

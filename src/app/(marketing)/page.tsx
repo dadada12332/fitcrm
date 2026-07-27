@@ -18,7 +18,7 @@ export const revalidate = 300
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "FitCRM",
+  name: "Zalkins",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description: "CRM для фитнес-клубов: клиенты, абонементы, расписание, оплаты, QR-чекин, Telegram-бот и AI-аналитика в одной платформе.",

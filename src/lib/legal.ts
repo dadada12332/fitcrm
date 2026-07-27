@@ -2,8 +2,8 @@ export const LEGAL_VERSION = "2026-07-24"
 export const LEGAL_UPDATED_RU = "24 июля 2026 года"
 
 export const LEGAL_CONTACTS = {
-  serviceName: "FitCRM",
-  providerName: "правообладатель и поставщик сервиса FitCRM",
+  serviceName: "Zalkins",
+  providerName: "правообладатель и поставщик сервиса Zalkins",
   jurisdiction: "Республика Узбекистан",
   city: "Ташкент",
   email: "hello@fitcrm.uz",

@@ -79,7 +79,7 @@ export type AccessControlIntegrationProps = {
 }
 
 const MODE_LABELS: Record<string, string> = {
-  bridge: "FitCRM Bridge (локальная сеть)",
+  bridge: "Zalkins Bridge (локальная сеть)",
   web_delegation: "Web Delegation",
   rest_poll: "REST / периодическая синхронизация",
   zkbio: "ZKBio",
@@ -463,7 +463,7 @@ export function AccessControlIntegration({
           <CardHeader className="border-b">
             <CardTitle>Настройки подключения</CardTitle>
             <CardDescription>
-              Укажите адрес локального FitCRM Bridge. Секрет хранится на сервере и не возвращается в браузер.
+              Укажите адрес локального Zalkins Bridge. Секрет хранится на сервере и не возвращается в браузер.
             </CardDescription>
           </CardHeader>
           <form action={saveSettings}>
@@ -498,7 +498,7 @@ export function AccessControlIntegration({
 
               <div className="space-y-1.5 md:col-span-2">
                 <label htmlFor="access-base-url" className="text-sm font-medium text-foreground">
-                  Адрес FitCRM Bridge
+                  Адрес Zalkins Bridge
                 </label>
                 <Input
                   id="access-base-url"
@@ -509,7 +509,7 @@ export function AccessControlIntegration({
                   defaultValue={integration?.baseUrl ?? ""}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Адрес локального агента в сети клуба. FitCRM Cloud к нему не обращается.
+                  Адрес локального агента в сети клуба. Zalkins Cloud к нему не обращается.
                 </p>
               </div>
 
@@ -597,7 +597,7 @@ export function AccessControlIntegration({
             <CardHeader className="border-b">
               <CardTitle>Webhook-адреса</CardTitle>
               <CardDescription>
-                Добавьте эти адреса в FitCRM Bridge. Прямой Web Delegation включается только по
+                Добавьте эти адреса в Zalkins Bridge. Прямой Web Delegation включается только по
                 активированной спецификации производителя.
               </CardDescription>
             </CardHeader>
@@ -633,10 +633,10 @@ export function AccessControlIntegration({
                   <PackageCheck className="size-5" aria-hidden />
                 </div>
                 <div>
-                  <CardTitle>Установка FitCRM Bridge</CardTitle>
+                  <CardTitle>Установка Zalkins Bridge</CardTitle>
                   <CardDescription className="mt-1">
                     Готовая локальная сборка для Windows, Linux и Docker. Она работает внутри сети клуба
-                    и передаёт проходы в FitCRM.
+                    и передаёт проходы в Zalkins.
                   </CardDescription>
                 </div>
               </div>
@@ -700,7 +700,7 @@ export function AccessControlIntegration({
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Карты и браслеты</CardTitle>
-              <CardDescription>Привяжите внешний идентификатор к клиенту FitCRM.</CardDescription>
+              <CardDescription>Привяжите внешний идентификатор к клиенту Zalkins.</CardDescription>
             </CardHeader>
             <form action={addCredential}>
               <CardContent className="grid gap-3 pt-4 md:grid-cols-[minmax(12rem,1fr)_11rem_minmax(12rem,1fr)_auto]">
@@ -786,7 +786,7 @@ export function AccessControlIntegration({
             <Card>
               <CardHeader className="border-b">
                 <CardTitle>Последние события</CardTitle>
-                <CardDescription>Реальные и тестовые события, нормализованные FitCRM.</CardDescription>
+                <CardDescription>Реальные и тестовые события, нормализованные Zalkins.</CardDescription>
               </CardHeader>
               {integration.events.length > 0 ? (
                 <Table>

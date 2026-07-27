@@ -155,7 +155,7 @@ export function PaymentsClient({
         return
       }
       downloadBlob(
-        `fitcrm-payments-${new Date().toISOString().slice(0, 10)}.csv`,
+        `zalkins-payments-${new Date().toISOString().slice(0, 10)}.csv`,
         new Blob(["﻿" + res.csv], { type: "text/csv;charset=utf-8;" }),
       )
       toast.success("Экспорт платежей готов")

@@ -543,7 +543,7 @@ function TelegramPreview({
           {(botName || "F")[0].toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-foreground">{botName || "fitCRM"}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{botName || "Zalkins"}</p>
           <p className="text-xs text-muted-foreground">бот</p>
         </div>
         <Search className="size-4 text-muted-foreground" />

@@ -43,7 +43,7 @@ export async function qrCheckInAction(qrToken: string): Promise<QrVisitResult> {
   const pass = validateQrPass(token, club.clubId)
   if (!pass) return { error: token.startsWith("fitcrm.qr.")
     ? "QR-код истёк. Попросите клиента открыть новый код"
-    : "Этот QR-код не относится к FitCRM" }
+    : "Этот QR-код не относится к Zalkins" }
 
   const { data: client } = await supabase.from("clients")
     .select("id, full_name")

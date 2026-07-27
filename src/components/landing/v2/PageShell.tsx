@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Zap } from "lucide-react"
 import { Footer } from "./Footer"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 export function PageShell({ children }: { children: React.ReactNode }) {
   return (
@@ -8,12 +8,7 @@ export function PageShell({ children }: { children: React.ReactNode }) {
       {/* Шапка */}
       <header className="sticky top-0 z-50" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
         <div className="mx-auto max-w-[1280px] px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-md flex items-center justify-center bg-neutral-900">
-              <Zap className="w-4 h-4 text-white" fill="currentColor" />
-            </span>
-            <span className="text-[15px] font-semibold text-[#0a0a0a]">FitCRM</span>
-          </Link>
+          <BrandLogo href="/" className="text-[#0a0a0a]" />
           <nav className="hidden md:flex items-center gap-8 text-[14px]" style={{ color: "#52525b" }}>
             <Link href="/#features" className="hover:text-[#0a0a0a] transition-colors">Возможности</Link>
             <Link href="/#pricing" className="hover:text-[#0a0a0a] transition-colors">Тарифы</Link>

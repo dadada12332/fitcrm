@@ -1,7 +1,7 @@
 ---
 type: changelog
 updated: 2026-07-18
-tags: [fitcrm, releases]
+tags: [zalkins, releases]
 ---
 
 # Changelog
@@ -33,6 +33,9 @@ tags: [fitcrm, releases]
 ## Unreleased
 
 ### Added
+
+- Новый бренд Zalkins: Kinetic Z, wordmark на Onest, favicon/app icons и единые компоненты
+  логотипа для landing, auth, onboarding, CRM sidebar и Platform Admin.
 
 - В Telegram-интеграции появилась одноразовая привязка личного Telegram владельца без номера
   телефона. После привязки бот открывает рабочую панель клуба и присылает ежедневную сводку.
@@ -71,6 +74,10 @@ tags: [fitcrm, releases]
 - Фундамент Instagram: безопасный OAuth, posts/reels и Insights, webhook/data deletion и раздельные platform/CRM метрики.
 
 ### Changed
+
+- Пользовательские названия, metadata, legal copy, Telegram-сообщения, экспорты и Bridge
+  переведены с FitCRM на Zalkins. Совместимые технические ключи и текущий production domain
+  намеренно сохранены.
 
 - Персональный профиль стал единым местом для личных данных, Telegram, пароля, email и активных
   сессий. Дублирующая безопасность из настроек клуба удалена, а старый маршрут перенаправляет в
@@ -238,6 +245,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
 - `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
 - `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
@@ -267,5 +275,4 @@ tags: [fitcrm, releases]
 - `473b803` · 2026-07-23 · fix: improve onboarding action contrast
 - `7a6238e` · 2026-07-23 · feat: align onboarding with auth design
 - `43ab772` · 2026-07-23 · feat: add auth feature cards
-- `a4b9420` · 2026-07-23 · feat: redesign auth experience
 <!-- AUTO:END changelog-candidates -->

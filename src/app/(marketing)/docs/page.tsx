@@ -2,7 +2,7 @@ import Link from "next/link"
 import { PageShell, PageHero } from "@/components/landing/v2/PageShell"
 import { Rocket, Users, CreditCard, CalendarClock, Plug, ShieldCheck, ArrowUpRight, ArrowRight } from "lucide-react"
 
-export const metadata = { title: "Документация — FitCRM" }
+export const metadata = { title: "Документация — Zalkins" }
 
 const CATS = [
   { icon: Rocket, title: "Быстрый старт", desc: "Регистрация, создание клуба, импорт базы из Excel и первый QR-чекин.", href: "/register" },
@@ -18,7 +18,7 @@ export default function DocsPage() {
     <PageShell>
       <PageHero
         eyebrow="ДОКУМЕНТАЦИЯ"
-        title="Всё, что нужно знать о FitCRM"
+        title="Всё, что нужно знать о Zalkins"
         subtitle="Пошаговые руководства по настройке и работе с платформой. Начните с быстрого старта — большинство клубов запускаются за один день."
       />
 

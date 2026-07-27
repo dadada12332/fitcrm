@@ -1,9 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
 import { Quote, Star } from "lucide-react"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 type Review = {
   quote: string
@@ -48,7 +48,7 @@ const slides = [
         tone: "bg-chart-2",
       },
       {
-        quote: "После перехода на FitCRM в расписании стало меньше накладок и пропущенных оплат.",
+        quote: "После перехода на Zalkins в расписании стало меньше накладок и пропущенных оплат.",
         role: "Руководитель студии",
         location: "Бухара",
         initials: "Р",
@@ -158,13 +158,7 @@ export function BrandingCarousel() {
 
   return (
     <div className="flex h-full min-h-0 flex-col p-7">
-      <Link href="/" className="flex shrink-0 items-center gap-2 text-background">
-        <svg className="size-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect width="24" height="24" rx="5" fill="currentColor" fillOpacity="0.12" />
-          <path d="M7 12H17M12 7V17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
-        <span className="text-xl font-semibold">fitCRM</span>
-      </Link>
+      <BrandLogo href="/" inverse className="shrink-0" priority />
 
       <div className="relative min-h-0 flex-1">
         <AnimatePresence initial={false} mode="wait">

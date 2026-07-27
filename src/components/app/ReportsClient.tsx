@@ -1229,7 +1229,7 @@ function printPdf(
 <html lang="${locale}">
 <head>
 <meta charset="UTF-8">
-<title>FitCRM — Отчёт (${PERIOD_LABELS[period] ?? period})</title>
+<title>Zalkins — Отчёт (${PERIOD_LABELS[period] ?? period})</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0 }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #0f172a; background: #fff }
@@ -1265,7 +1265,7 @@ function printPdf(
 </head>
 <body>
 <div class="page-header">
-  <h1>FitCRM — Отчёт</h1>
+  <h1>Zalkins — Отчёт</h1>
   <span>Период: ${PERIOD_LABELS[period] ?? period} &nbsp;|&nbsp; Сформирован: ${stamp}</span>
 </div>
 <div class="content">
@@ -1299,7 +1299,7 @@ ${paidPayments.length > 200 ? `<p class="note">Показаны первые 200
 
 <div class="page-break"></div>
 <div class="page-header">
-  <h1>FitCRM — Отчёт</h1>
+  <h1>Zalkins — Отчёт</h1>
   <span>Период: ${PERIOD_LABELS[period] ?? period} &nbsp;|&nbsp; Сформирован: ${stamp}</span>
 </div>
 
@@ -1488,7 +1488,7 @@ export function ReportsClient({ canExport = false }: { canExport?: boolean }) {
       if (!response.ok) throw new Error(await response.text())
       const blob = await response.blob()
       const today = new Date().toISOString().slice(0, 10)
-      downloadBlob(`fitcrm-reports-${period}-${today}.xlsx`, blob)
+      downloadBlob(`zalkins-reports-${period}-${today}.xlsx`, blob)
       toast.success("Отчёт XLSX готов")
     } catch (error) {
       showActionError(error instanceof Error ? error.message : "Не удалось скачать отчёт")

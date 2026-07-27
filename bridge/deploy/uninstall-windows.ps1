@@ -14,7 +14,7 @@ if (-not $KeepData -and (Test-Path $InstallDir)) {
   Remove-Item -LiteralPath $InstallDir -Recurse -Force
 }
 
-Write-Host "FitCRM Bridge task removed."
+Write-Host "Zalkins Bridge task removed."
 if ($KeepData) {
   Write-Host "Configuration and queue kept at $InstallDir"
 }

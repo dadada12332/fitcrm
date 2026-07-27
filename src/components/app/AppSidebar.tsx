@@ -16,11 +16,11 @@ import {
   HelpCircle,
   BookOpen,
   ChevronsUpDown,
-  Zap,
   X,
 } from "lucide-react"
 import { useState } from "react"
 import { signOut } from "@/app/(auth)/actions"
+import { BrandLogo } from "@/components/brand/BrandLogo"
 
 const mainNav = [
   { href: "/dashboard",   label: "Дашборд",    icon: LayoutDashboard },
@@ -121,15 +121,7 @@ export function AppSidebar({ email, collapsed = false, mobile = false, onClose }
       {/* Mobile header */}
       {mobile && (
         <div className="flex items-center justify-between px-3 h-[60px] flex-shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "#0c111d" }}
-            >
-              <Zap className="w-4 h-4 text-white" fill="white" />
-            </div>
-            <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>fitCRM</span>
-          </div>
+          <BrandLogo href="/dashboard" />
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-zinc-100 transition-colors"

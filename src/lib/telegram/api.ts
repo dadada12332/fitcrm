@@ -59,7 +59,7 @@ export async function registerClubTelegramBot(token: string, clubId: string) {
     callTelegramApi(token, "setMyCommands", {
       commands: [
         { command: "start", description: "Главное меню" },
-        { command: "menu", description: "Открыть FitCRM" },
+        { command: "menu", description: "Открыть Zalkins" },
         { command: "help", description: "Помощь" },
       ],
     }),
@@ -69,7 +69,7 @@ export async function registerClubTelegramBot(token: string, clubId: string) {
       menu_button: { type: "commands" },
     }),
     callTelegramApi(token, "setMyDescription", {
-      description: "FitCRM в Telegram: кабинет клиента и рабочее пространство команды клуба с доступом по роли.",
+      description: "Zalkins в Telegram: кабинет клиента и рабочее пространство команды клуба с доступом по роли.",
     }),
   ])
 

@@ -246,7 +246,7 @@ export function AcceptInvite({ state, token, email, roleName, clubName, currentU
           </div>
           <h1 className="text-2xl font-semibold" style={{ color: "#020617" }}>Приглашение не найдено</h1>
           <p className="text-sm" style={{ color: "#64748b" }}>Ссылка недействительна или приглашение было удалено.</p>
-          <LBtn onClick={() => window.location.href = "/login"}>Войти в fitCRM</LBtn>
+          <LBtn onClick={() => window.location.href = "/login"}>Войти в Zalkins</LBtn>
         </div>
       </PageShell>
     )
@@ -269,7 +269,7 @@ export function AcceptInvite({ state, token, email, roleName, clubName, currentU
           </p>
           <Link href="/login" className="block w-full h-10 rounded-md text-sm font-medium text-center leading-10 transition-opacity hover:opacity-80"
             style={{ background: "#f1f5f9", color: "#020617" }}>
-            Войти в fitCRM
+            Войти в Zalkins
           </Link>
         </div>
       </PageShell>

@@ -50,7 +50,7 @@ export function GrowthSimulator({ pools }: { pools: GrowthPools }) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Calculator className="size-4 text-muted-foreground" /> Потенциал сценария</CardTitle>
-          <CardDescription>Расчёт использует текущие пулы FitCRM и среднюю стоимость абонемента.</CardDescription>
+          <CardDescription>Расчёт использует текущие пулы Zalkins и среднюю стоимость абонемента.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-xl bg-primary p-5 text-primary-foreground">

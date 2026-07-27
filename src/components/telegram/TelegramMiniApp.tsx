@@ -525,7 +525,7 @@ function TelegramStaffMiniApp({ data }: { data: StaffMiniAppData }) {
             <p className="text-sm text-muted-foreground">Добрый день,</p>
             <h1 className="mt-1 text-2xl font-semibold">{actor.fullName}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Здесь только данные и действия, доступные вашей роли в FitCRM.
+              Здесь только данные и действия, доступные вашей роли в Zalkins.
             </p>
           </section>
 

@@ -17,7 +17,7 @@ export function DashboardExportButton() {
         showActionError(await response.text())
         return
       }
-      downloadBlob(`fitcrm-dashboard-${new Date().toISOString().slice(0, 10)}.xlsx`, await response.blob())
+      downloadBlob(`zalkins-dashboard-${new Date().toISOString().slice(0, 10)}.xlsx`, await response.blob())
       toast.success("Сводка XLSX готова")
     } catch {
       toast.error("Не удалось скачать сводку")

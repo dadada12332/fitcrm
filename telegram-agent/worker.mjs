@@ -1,4 +1,4 @@
-// FitCRM Telegram Agent — оркестратор команды агентов через Telegram.
+// Zalkins Telegram Agent — оркестратор команды агентов через Telegram.
 //
 // Как это работает:
 //   ТГ-сообщение (задача) → воркер запускает Claude Code headless в репо
@@ -142,7 +142,7 @@ bot.use(async (ctx, next) => {
 })
 
 bot.command("start", (ctx) => ctx.reply(
-  "👋 Я — оркестратор команды агентов FitCRM.\n\n" +
+  "👋 Я — оркестратор команды агентов Zalkins.\n\n" +
   "Напиши задачу текстом — лид разберёт её и подключит нужных агентов " +
   "(🧪 QA, 🔒 Security, 🎨 Designer, 🗄️ DB, 🔍 Review), а я буду присылать шаги сюда.\n\n" +
   "Команды: /queue — очередь, /help — помощь."
@@ -166,5 +166,5 @@ bot.on("message:text", async (ctx) => {
 
 bot.catch((err) => console.error("bot error:", err))
 
-console.log(`FitCRM Telegram Agent запущен. PROJECT_DIR=${PROJECT_DIR}, allowed=${ALLOWED.join(",") || "(никого!)"}`)
+console.log(`Zalkins Telegram Agent запущен. PROJECT_DIR=${PROJECT_DIR}, allowed=${ALLOWED.join(",") || "(никого!)"}`)
 bot.start()

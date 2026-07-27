@@ -43,7 +43,7 @@ for (const integration of integrations ?? []) {
 
   const defaultCommands = [
     { command: "start", description: "Главное меню" },
-    { command: "menu", description: "Открыть FitCRM" },
+    { command: "menu", description: "Открыть Zalkins" },
     { command: "help", description: "Помощь" },
   ]
 
@@ -85,7 +85,7 @@ for (const integration of integrations ?? []) {
           chat_id: link.telegram_id,
           menu_button: {
             type: "web_app",
-            text: isStaff ? "Открыть FitCRM" : "Открыть кабинет",
+            text: isStaff ? "Открыть Zalkins" : "Открыть кабинет",
             web_app: { url: `${appUrl}/tg/${integration.club_id}` },
           },
         }),

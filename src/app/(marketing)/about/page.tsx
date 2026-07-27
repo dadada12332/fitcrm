@@ -2,7 +2,7 @@ import Link from "next/link"
 import { PageShell, PageHero } from "@/components/landing/v2/PageShell"
 import { Target, Heart, Zap, ShieldCheck, ArrowRight } from "lucide-react"
 
-export const metadata = { title: "О нас — FitCRM" }
+export const metadata = { title: "О нас — Zalkins" }
 
 const VALUES = [
   { icon: Target, title: "Фокус на результат", desc: "Мы делаем не «ещё одну CRM», а инструмент, который экономит время и растит выручку клуба." },
@@ -24,7 +24,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow="О КОМПАНИИ"
         title="Мы строим операционную систему для фитнеса"
-        subtitle="FitCRM появилась из простой идеи: у владельца клуба должно оставаться время на клиентов, а не на таблицы. Мы объединили клиентов, абонементы, расписание, оплаты и аналитику в одну платформу."
+        subtitle="Zalkins появилась из простой идеи: у владельца клуба должно оставаться время на клиентов, а не на таблицы. Мы объединили клиентов, абонементы, расписание, оплаты и аналитику в одну платформу."
       />
 
       {/* Миссия */}

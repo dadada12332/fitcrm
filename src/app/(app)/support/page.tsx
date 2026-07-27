@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import { SupportClient } from "@/components/app/SupportClient"
 
-export const metadata = { title: "Поддержка — FitCRM" }
+export const metadata = { title: "Поддержка — Zalkins" }
 
 export default async function SupportPage() {
   const club = await getCurrentClub()

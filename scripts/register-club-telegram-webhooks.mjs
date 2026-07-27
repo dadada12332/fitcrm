@@ -53,7 +53,7 @@ for (const integration of integrations ?? []) {
       }),
       api("setMyCommands", { commands: [
         { command: "start", description: "Главное меню" },
-        { command: "menu", description: "Открыть FitCRM" },
+        { command: "menu", description: "Открыть Zalkins" },
         { command: "help", description: "Помощь" },
       ] }),
       api("setChatMenuButton", { menu_button: { type: "commands" } }),

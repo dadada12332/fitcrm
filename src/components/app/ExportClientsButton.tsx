@@ -28,7 +28,7 @@ export function ExportClientsButton() {
         return
       }
       downloadBlob(
-        `fitcrm-clients-${new Date().toISOString().slice(0, 10)}.csv`,
+        `zalkins-clients-${new Date().toISOString().slice(0, 10)}.csv`,
         new Blob(["﻿" + res.csv], { type: "text/csv;charset=utf-8;" }),
       )
       toast.success("Экспорт клиентов готов")

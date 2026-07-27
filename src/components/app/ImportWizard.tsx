@@ -168,7 +168,7 @@ function Step1Upload({ onParsed }: { onParsed: (f: ParsedFile) => void }) {
     styleWorkbook(workbook)
     const buffer = await workbook.xlsx.writeBuffer()
     downloadBlob(
-      "fitcrm-clients-template.xlsx",
+      "zalkins-clients-template.xlsx",
       new Blob([buffer as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
     )
   }
@@ -439,7 +439,7 @@ function Step2Mapping({
         <div className="grid px-4 py-2.5"
           style={{ gridTemplateColumns: "8px 1fr 1fr 1fr auto", gap: "12px", background: "var(--card-2)", borderBottom: "1px solid var(--border)" }}>
           <div />
-          {["Колонка в файле", "Примеры данных", "Поле FitCRM", ""].map((h, i) => (
+          {["Колонка в файле", "Примеры данных", "Поле Zalkins", ""].map((h, i) => (
             <span key={i} className="text-xs font-semibold uppercase tracking-wide"
               style={{ color: "var(--on-dark-soft)", letterSpacing: "0.06em" }}>{h}</span>
           ))}
@@ -804,7 +804,7 @@ function Step5Report({ result, onClose }: {
   function downloadReport() {
     if (!allErrors.length) return
     downloadCSV(
-      `fitcrm-import-errors-${new Date().toISOString().slice(0, 10)}.csv`,
+      `zalkins-import-errors-${new Date().toISOString().slice(0, 10)}.csv`,
       ["Строка", "Имя", "Причина"],
       allErrors.map((error) => [error.row, error.name, error.reason]),
     )

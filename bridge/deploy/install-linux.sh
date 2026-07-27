@@ -47,4 +47,4 @@ install -m 0644 "$SOURCE_DIR/deploy/fitcrm-bridge.service" /etc/systemd/system/f
 
 systemctl daemon-reload
 systemctl enable --now fitcrm-bridge.service
-echo "FitCRM Bridge installed. Run: curl http://127.0.0.1:8787/health"
+echo "Zalkins Bridge installed. Run: curl http://127.0.0.1:8787/health"

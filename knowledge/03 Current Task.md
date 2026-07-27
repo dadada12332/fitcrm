@@ -2,10 +2,20 @@
 type: current-task
 status: complete
 updated: 2026-07-27
-tags: [fitcrm, tasks, profile, navigation, subscription, ui]
+tags: [zalkins, tasks, profile, navigation, subscription, ui, brand]
 ---
 
 # Current Task
+
+## Rebrand Zalkins 2026-07-27
+
+- Выбран и внедрён финальный Kinetic Z.
+- Добавлены общие `BrandLogo`/`BrandMark`, Onest, favicon/app icons и metadata.
+- Название Zalkins проведено через landing, auth, onboarding, CRM, Platform Admin, Telegram,
+  legal copy, экспорты и Bridge.
+- Применена миграция публичных текстов тарифов.
+- Desktop `1440 × 1000`, mobile `390 × 844`, authenticated CRM, TypeScript и production build
+  прошли; console errors отсутствуют, `design-qa.md` — `passed`.
 
 Завершить UX-проход по глобальной навигации и персональному профилю: исправить список клубов
 в свёрнутом сайдбаре, выровнять TopBar и дополнительные лимиты подписки, а личные данные,

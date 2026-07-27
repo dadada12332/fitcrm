@@ -182,7 +182,7 @@ async function setChatMenuForUser(ctx: Context, tgUser: TgUser) {
       chat_id: tgUser.telegram_id,
       menu_button: {
         type: "web_app",
-        text: tgUser.role === "client" ? "Открыть кабинет" : "Открыть FitCRM",
+        text: tgUser.role === "client" ? "Открыть кабинет" : "Открыть Zalkins",
         web_app: { url: getTelegramMiniAppUrl(tgUser.club_id) },
       },
     }),
@@ -497,7 +497,7 @@ function setupHandlers(bot: Bot, clubId: string) {
         status: "received",
         metadata: { staff_id: staff.id },
       })
-      await ctx.reply("✅ Telegram привязан к вашему профилю FitCRM.\n\nНажмите «Открыть FitCRM» внизу: Mini App покажет рабочее пространство с данными и действиями вашей роли.")
+      await ctx.reply("✅ Telegram привязан к вашему профилю Zalkins.\n\nНажмите «Открыть Zalkins» внизу: Mini App покажет рабочее пространство с данными и действиями вашей роли.")
       const linkedUser = await getLinkedUser(telegramId, clubId)
       if (linkedUser) await sendMenuForUser(ctx, linkedUser)
       return

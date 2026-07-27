@@ -22,7 +22,7 @@ export function GrowthPlaybooks({ playbooks }: { playbooks: GrowthPlaybook[] }) 
         <ShieldCheck className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
         <div>
           <p className="text-sm font-medium text-foreground">Отправляет сотрудник</p>
-          <p className="mt-1 text-xs text-muted-foreground">FitCRM готовит аудиторию и текст. Скопируйте его для Telegram или используйте как основу разговора по телефону.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Zalkins готовит аудиторию и текст. Скопируйте его для Telegram или используйте как основу разговора по телефону.</p>
         </div>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">

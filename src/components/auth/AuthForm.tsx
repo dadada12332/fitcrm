@@ -116,7 +116,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: st
         {isLogin ? "Вход" : "Регистрация"}
       </h1>
       <p className="text-sm mb-6" style={{ color: "var(--on-dark-soft)" }}>
-        {isLogin ? "С возвращением в FitCRM" : "Создайте аккаунт FitCRM"}
+        {isLogin ? "С возвращением в Zalkins" : "Создайте аккаунт Zalkins"}
       </p>
 
       {/* Google OAuth */}

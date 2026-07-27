@@ -9,7 +9,7 @@ export const messages = {
     nav: { features: "Возможности", howitworks: "Как работает", pricing: "Цены", login: "Войти", start: "Начать" },
     hero: {
       title1: "Ваш фитнес-клуб,", title2: "готов к работе.",
-      subtitle: "FitCRM автоматизирует управление клиентами, абонементами, расписанием и оплатой — всё в одной системе, которая работает 24/7.",
+      subtitle: "Zalkins автоматизирует управление клиентами, абонементами, расписанием и оплатой — всё в одной системе, которая работает 24/7.",
       cta: "Опробовать бесплатно",
     },
     features: {
@@ -18,7 +18,7 @@ export const messages = {
       clients: "Клиенты и абонементы", payments: "Оплаты и касса", ai: "AI Аналитика", schedule: "Расписание · сегодня", core: "ЯДРО",
     },
     why: {
-      title1: "Чем FitCRM отличается", title2: "от",
+      title1: "Чем Zalkins отличается", title2: "от",
       rivals: ["Excel", "других CRM", "deepen", "FitBase"],
       subtitle: "Мы храним данные, помним о клиентах и подключаем инструменты так, как это делали бы вы — только автоматически.",
       col1t: "Все данные клиента", col1s: "Профиль, абонемент, история, баланс — в одном месте.",
@@ -27,7 +27,7 @@ export const messages = {
     },
     how: {
       title1: "Корпоративные возможности", title2: "для любого клуба",
-      subtitle: "От небольшой студии до сети залов — FitCRM масштабируется вместе с вашим бизнесом без дополнительных затрат.",
+      subtitle: "От небольшой студии до сети залов — Zalkins масштабируется вместе с вашим бизнесом без дополнительных затрат.",
       cards: [
         { t: "Управление клиентами", d: "Полные профили с историей, балансом и абонементами. Быстрый поиск по любому полю." },
         { t: "Мультифилиальность", d: "Управляйте несколькими залами из одного аккаунта. Своя статистика и настройки для каждого." },
@@ -86,16 +86,16 @@ export const messages = {
     faq: {
       title: "FAQ",
       items: [
-        { q: "Что такое FitCRM?", a: "CRM для фитнес-клубов и студий. В одной системе собраны клиенты, абонементы, посещения, расписание, оплаты, склад, отчёты и инструменты удержания." },
-        { q: "Нужно ли устанавливать приложение?", a: "Нет. FitCRM работает в браузере на любом устройстве — компьютере, планшете или смартфоне. Ничего устанавливать не нужно." },
+        { q: "Что такое Zalkins?", a: "CRM для фитнес-клубов и студий. В одной системе собраны клиенты, абонементы, посещения, расписание, оплаты, склад, отчёты и инструменты удержания." },
+        { q: "Нужно ли устанавливать приложение?", a: "Нет. Zalkins работает в браузере на любом устройстве — компьютере, планшете или смартфоне. Ничего устанавливать не нужно." },
         { q: "Для каких клубов подходит?", a: "Для тренажёрных залов, фитнес- и йога-студий, танцевальных школ и секций единоборств. Можно вести один клуб или несколько филиалов, если они включены в выбранный тариф." },
         { q: "Как устроен пробный период?", a: "После регистрации клуб получает 14 дней бесплатного доступа без привязки карты. Когда пробный период закончится, работа в CRM будет приостановлена до активации платного тарифа." },
-        { q: "Как оформить тариф FitCRM?", a: "В CRM откройте Настройки → Подписка, выберите тариф и срок на 1, 3 или 12 месяцев и отправьте заявку. Менеджер свяжется для оплаты через Payme, Click или перевод; после подтверждения тариф активирует администратор платформы." },
+        { q: "Как оформить тариф Zalkins?", a: "В CRM откройте Настройки → Подписка, выберите тариф и срок на 1, 3 или 12 месяцев и отправьте заявку. Менеджер свяжется для оплаты через Payme, Click или перевод; после подтверждения тариф активирует администратор платформы." },
         { q: "Какие оплаты клиентов поддерживаются?", a: "Сотрудник может фиксировать наличные, Payme, Click и Uzum в истории клиента. Онлайн-приём через Payme или Click становится доступен после подключения платёжной интеграции клуба." },
         { q: "Насколько безопасны данные клиентов?", a: "Данные хранятся в Supabase в регионе Sydney. Row Level Security изолирует клубы, а доступ пользователей защищён JWT-аутентификацией и проверками прав." },
         { q: "Кто имеет доступ к данным?", a: "Владелец назначает сотрудникам роли и права по разделам и действиям. Пользователь видит и изменяет только то, что разрешено его ролью в конкретном клубе." },
-        { q: "Как перенести базу из другой CRM?", a: "Импорт принимает XLSX и CSV до 25 МБ и 15 000 строк. FitCRM распознаёт знакомые колонки, показывает предварительную проверку и сохраняет неподдержанные поля в карточке клиента, а ошибки можно скачать отдельным файлом." },
-        { q: "Что умеет Telegram-интеграция?", a: "Подключите собственного бота токеном от @BotFather — FitCRM настроит webhook, команды и меню. После привязки клиентов доступны рассылки, напоминания и Mini App с расписанием, QR-пропуском, продлением абонемента и обращениями в клуб." },
+        { q: "Как перенести базу из другой CRM?", a: "Импорт принимает XLSX и CSV до 25 МБ и 15 000 строк. Zalkins распознаёт знакомые колонки, показывает предварительную проверку и сохраняет неподдержанные поля в карточке клиента, а ошибки можно скачать отдельным файлом." },
+        { q: "Что умеет Telegram-интеграция?", a: "Подключите собственного бота токеном от @BotFather — Zalkins настроит webhook, команды и меню. После привязки клиентов доступны рассылки, напоминания и Mini App с расписанием, QR-пропуском, продлением абонемента и обращениями в клуб." },
       ],
     },
     cta: {
@@ -105,7 +105,7 @@ export const messages = {
       reassurance: "14 дней бесплатно · без привязки карты · отмена в любой момент",
     },
     footer: {
-      brand: "FitCRM помогает создавать, управлять и масштабировать фитнес-клубы любого размера — в одной платформе.",
+      brand: "Zalkins помогает создавать, управлять и масштабировать фитнес-клубы любого размера — в одной платформе.",
       product: "Продукт", resources: "Ресурсы", company: "Компания",
       l: { features: "Возможности", pricing: "Тарифы", security: "Безопасность", faq: "FAQ", docs: "Документация", blog: "Блог", help: "Помощь", about: "О нас", contacts: "Контакты", terms: "Публичная оферта", privacy: "Конфиденциальность", cookies: "Cookie Policy", dpa: "Обработка данных" },
       rights: "Все права защищены.", status: "Все системы работают",
@@ -116,7 +116,7 @@ export const messages = {
     nav: { features: "Features", howitworks: "How it works", pricing: "Pricing", login: "Sign in", start: "Get started" },
     hero: {
       title1: "Your fitness club,", title2: "ready to run.",
-      subtitle: "FitCRM automates clients, memberships, scheduling and payments — all in one system that works 24/7.",
+      subtitle: "Zalkins automates clients, memberships, scheduling and payments — all in one system that works 24/7.",
       cta: "Try for free",
     },
     features: {
@@ -125,7 +125,7 @@ export const messages = {
       clients: "Clients & memberships", payments: "Payments & cashbox", ai: "AI Analytics", schedule: "Schedule · today", core: "CORE",
     },
     why: {
-      title1: "How FitCRM is different", title2: "from",
+      title1: "How Zalkins is different", title2: "from",
       rivals: ["Excel", "other CRMs", "deepen", "FitBase"],
       subtitle: "We store the data, remember your clients and connect the tools the way you would — just automatically.",
       col1t: "All client data", col1s: "Profile, membership, history, balance — in one place.",
@@ -134,7 +134,7 @@ export const messages = {
     },
     how: {
       title1: "Enterprise-grade features", title2: "for any club",
-      subtitle: "From a small studio to a chain of gyms — FitCRM scales with your business at no extra cost.",
+      subtitle: "From a small studio to a chain of gyms — Zalkins scales with your business at no extra cost.",
       cards: [
         { t: "Client management", d: "Full profiles with history, balance and memberships. Instant search by any field." },
         { t: "Multi-location", d: "Manage several gyms from one account. Separate stats and settings for each." },
@@ -193,16 +193,16 @@ export const messages = {
     faq: {
       title: "FAQ",
       items: [
-        { q: "What is FitCRM?", a: "A CRM for fitness clubs and studios. It brings clients, memberships, visits, scheduling, payments, inventory, reports and retention tools into one system." },
-        { q: "Do I need to install an app?", a: "No. FitCRM runs in the browser on any device — computer, tablet or phone. Nothing to install." },
-        { q: "Which clubs is it for?", a: "FitCRM works for gyms, fitness and yoga studios, dance schools and martial-arts clubs. You can manage one club or multiple branches when they are included in your plan." },
+        { q: "What is Zalkins?", a: "A CRM for fitness clubs and studios. It brings clients, memberships, visits, scheduling, payments, inventory, reports and retention tools into one system." },
+        { q: "Do I need to install an app?", a: "No. Zalkins runs in the browser on any device — computer, tablet or phone. Nothing to install." },
+        { q: "Which clubs is it for?", a: "Zalkins works for gyms, fitness and yoga studios, dance schools and martial-arts clubs. You can manage one club or multiple branches when they are included in your plan." },
         { q: "How does the trial work?", a: "A newly registered club gets 14 days of free access without adding a card. When the trial ends, CRM access is paused until a paid plan is activated." },
-        { q: "How do I activate a FitCRM plan?", a: "Open Settings → Subscription in the CRM, choose a plan and a 1, 3 or 12-month term, then submit a request. A manager will contact you for payment via Payme, Click or bank transfer, and the platform administrator activates the plan after confirmation." },
+        { q: "How do I activate a Zalkins plan?", a: "Open Settings → Subscription in the CRM, choose a plan and a 1, 3 or 12-month term, then submit a request. A manager will contact you for payment via Payme, Click or bank transfer, and the platform administrator activates the plan after confirmation." },
         { q: "Which client payments are supported?", a: "Staff can record cash, Payme, Click and Uzum payments in the client history. Online payments through Payme or Click become available after the club connects the relevant payment integration." },
         { q: "How secure is client data?", a: "Data is stored in Supabase in the Sydney region. Row Level Security isolates clubs, while JWT authentication and permission checks protect user access." },
         { q: "Who has access to the data?", a: "The owner assigns roles and permissions for individual sections and actions. Each employee can only view or change what their role allows in that club." },
-        { q: "How do I migrate from another CRM?", a: "The importer accepts XLSX and CSV files up to 25 MB and 15,000 rows. FitCRM recognizes common columns, previews validation results and preserves unsupported fields in the client profile; import errors can be downloaded separately." },
-        { q: "What can the Telegram integration do?", a: "Connect your own bot with a token from @BotFather, and FitCRM configures its webhook, commands and menu. Once clients are linked, you can use broadcasts, reminders and a Mini App with schedules, a QR pass, membership renewal and support requests." },
+        { q: "How do I migrate from another CRM?", a: "The importer accepts XLSX and CSV files up to 25 MB and 15,000 rows. Zalkins recognizes common columns, previews validation results and preserves unsupported fields in the client profile; import errors can be downloaded separately." },
+        { q: "What can the Telegram integration do?", a: "Connect your own bot with a token from @BotFather, and Zalkins configures its webhook, commands and menu. Once clients are linked, you can use broadcasts, reminders and a Mini App with schedules, a QR pass, membership renewal and support requests." },
       ],
     },
     cta: {
@@ -212,7 +212,7 @@ export const messages = {
       reassurance: "14 days free · no credit card · cancel anytime",
     },
     footer: {
-      brand: "FitCRM helps you create, manage and scale fitness clubs of any size — in one platform.",
+      brand: "Zalkins helps you create, manage and scale fitness clubs of any size — in one platform.",
       product: "Product", resources: "Resources", company: "Company",
       l: { features: "Features", pricing: "Pricing", security: "Security", faq: "FAQ", docs: "Documentation", blog: "Blog", help: "Help", about: "About", contacts: "Contacts", terms: "Terms of Service", privacy: "Privacy", cookies: "Cookie Policy", dpa: "Data Processing" },
       rights: "All rights reserved.", status: "All systems operational",
@@ -223,7 +223,7 @@ export const messages = {
     nav: { features: "Imkoniyatlar", howitworks: "Qanday ishlaydi", pricing: "Narxlar", login: "Kirish", start: "Boshlash" },
     hero: {
       title1: "Fitnes klubingiz,", title2: "ishga tayyor.",
-      subtitle: "FitCRM mijozlar, abonementlar, jadval va to‘lovlarni avtomatlashtiradi — barchasi 24/7 ishlaydigan yagona tizimda.",
+      subtitle: "Zalkins mijozlar, abonementlar, jadval va to‘lovlarni avtomatlashtiradi — barchasi 24/7 ishlaydigan yagona tizimda.",
       cta: "Bepul sinab ko‘rish",
     },
     features: {
@@ -232,7 +232,7 @@ export const messages = {
       clients: "Mijozlar va abonementlar", payments: "To‘lovlar va kassa", ai: "AI Tahlil", schedule: "Jadval · bugun", core: "YADRO",
     },
     why: {
-      title1: "FitCRM nimasi bilan farq qiladi", title2: "boshqalardan",
+      title1: "Zalkins nimasi bilan farq qiladi", title2: "boshqalardan",
       rivals: ["Excel", "boshqa CRM", "deepen", "FitBase"],
       subtitle: "Biz ma’lumotlarni saqlaymiz, mijozlarni eslab qolamiz va vositalarni siz qilganingizdek ulaymiz — faqat avtomatik tarzda.",
       col1t: "Mijozning barcha ma’lumotlari", col1s: "Profil, abonement, tarix, balans — bir joyda.",
@@ -241,7 +241,7 @@ export const messages = {
     },
     how: {
       title1: "Korporativ imkoniyatlar", title2: "har qanday klub uchun",
-      subtitle: "Kichik studiyadan zallar tarmog‘igacha — FitCRM biznesingiz bilan birga qo‘shimcha xarajatsiz kengayadi.",
+      subtitle: "Kichik studiyadan zallar tarmog‘igacha — Zalkins biznesingiz bilan birga qo‘shimcha xarajatsiz kengayadi.",
       cards: [
         { t: "Mijozlarni boshqarish", d: "Tarix, balans va abonementli to‘liq profillar. Istalgan maydon bo‘yicha tez qidiruv." },
         { t: "Ko‘p filiallilik", d: "Bir nechta zalni bitta akkauntdan boshqaring. Har biri uchun alohida statistika va sozlamalar." },
@@ -300,16 +300,16 @@ export const messages = {
     faq: {
       title: "FAQ",
       items: [
-        { q: "FitCRM nima?", a: "Fitnes klublari va studiyalari uchun CRM. Mijozlar, abonementlar, tashriflar, jadval, to‘lovlar, ombor, hisobotlar va mijozlarni saqlab qolish vositalari bitta tizimda jamlangan." },
-        { q: "Ilova o‘rnatish kerakmi?", a: "Yo‘q. FitCRM istalgan qurilmada — kompyuter, planshet yoki telefonda brauzerda ishlaydi. Hech narsa o‘rnatish shart emas." },
+        { q: "Zalkins nima?", a: "Fitnes klublari va studiyalari uchun CRM. Mijozlar, abonementlar, tashriflar, jadval, to‘lovlar, ombor, hisobotlar va mijozlarni saqlab qolish vositalari bitta tizimda jamlangan." },
+        { q: "Ilova o‘rnatish kerakmi?", a: "Yo‘q. Zalkins istalgan qurilmada — kompyuter, planshet yoki telefonda brauzerda ishlaydi. Hech narsa o‘rnatish shart emas." },
         { q: "Qaysi klublar uchun mos?", a: "Sport zallari, fitnes va yoga studiyalari, raqs maktablari hamda yakkakurash klublari uchun mos. Tanlangan tarifda mavjud bo‘lsa, bitta klub yoki bir nechta filialni boshqarish mumkin." },
         { q: "Sinov davri qanday ishlaydi?", a: "Yangi ro‘yxatdan o‘tgan klub kartani bog‘lamasdan 14 kun bepul foydalanadi. Sinov muddati tugagach, pullik tarif faollashtirilguncha CRMga kirish to‘xtatiladi." },
-        { q: "FitCRM tarifini qanday faollashtiraman?", a: "CRMda Sozlamalar → Obuna bo‘limini oching, tarif va 1, 3 yoki 12 oylik muddatni tanlab, ariza yuboring. Menejer Payme, Click yoki bank o‘tkazmasi orqali to‘lov uchun bog‘lanadi, tasdiqdan so‘ng platforma administratori tarifni faollashtiradi." },
+        { q: "Zalkins tarifini qanday faollashtiraman?", a: "CRMda Sozlamalar → Obuna bo‘limini oching, tarif va 1, 3 yoki 12 oylik muddatni tanlab, ariza yuboring. Menejer Payme, Click yoki bank o‘tkazmasi orqali to‘lov uchun bog‘lanadi, tasdiqdan so‘ng platforma administratori tarifni faollashtiradi." },
         { q: "Mijoz to‘lovlarining qaysi turlari qo‘llanadi?", a: "Xodim mijoz tarixida naqd pul, Payme, Click va Uzum to‘lovlarini qayd etishi mumkin. Payme yoki Click orqali onlayn to‘lov klub tegishli to‘lov integratsiyasini ulaganidan keyin ishlaydi." },
         { q: "Mijoz ma’lumotlari qanchalik xavfsiz?", a: "Ma’lumotlar Supabase Sydney hududida saqlanadi. Row Level Security klublarni ajratadi, JWT autentifikatsiya va ruxsat tekshiruvlari esa foydalanuvchi kirishini himoya qiladi." },
         { q: "Ma’lumotlarga kim kira oladi?", a: "Klub egasi xodimlarga bo‘limlar va amallar bo‘yicha rol hamda ruxsatlarni beradi. Har bir xodim faqat o‘z roli shu klubda ruxsat bergan ma’lumotlarni ko‘radi va o‘zgartiradi." },
-        { q: "Boshqa CRMdan bazani qanday ko‘chiraman?", a: "Import 25 MB gacha va 15 000 qatorli XLSX hamda CSV fayllarni qabul qiladi. FitCRM tanish ustunlarni aniqlaydi, oldindan tekshiruvni ko‘rsatadi va qo‘llanmaydigan maydonlarni mijoz kartasida saqlaydi; xatolarni alohida fayl qilib yuklab olish mumkin." },
-        { q: "Telegram integratsiyasi nimalarni qila oladi?", a: "@BotFather bergan token bilan o‘z botingizni ulang — FitCRM webhook, buyruqlar va menyuni sozlaydi. Mijozlar bog‘langach, tarqatmalar, eslatmalar hamda jadval, QR-ruxsatnoma, abonementni uzaytirish va klubga murojaat qilish imkoniyatiga ega Mini App ishlaydi." },
+        { q: "Boshqa CRMdan bazani qanday ko‘chiraman?", a: "Import 25 MB gacha va 15 000 qatorli XLSX hamda CSV fayllarni qabul qiladi. Zalkins tanish ustunlarni aniqlaydi, oldindan tekshiruvni ko‘rsatadi va qo‘llanmaydigan maydonlarni mijoz kartasida saqlaydi; xatolarni alohida fayl qilib yuklab olish mumkin." },
+        { q: "Telegram integratsiyasi nimalarni qila oladi?", a: "@BotFather bergan token bilan o‘z botingizni ulang — Zalkins webhook, buyruqlar va menyuni sozlaydi. Mijozlar bog‘langach, tarqatmalar, eslatmalar hamda jadval, QR-ruxsatnoma, abonementni uzaytirish va klubga murojaat qilish imkoniyatiga ega Mini App ishlaydi." },
       ],
     },
     cta: {
@@ -319,7 +319,7 @@ export const messages = {
       reassurance: "14 kun bepul · kartasiz · istalgan vaqtda bekor qilish",
     },
     footer: {
-      brand: "FitCRM istalgan hajmdagi fitnes klublarni yaratish, boshqarish va kengaytirishda yordam beradi — bitta platformada.",
+      brand: "Zalkins istalgan hajmdagi fitnes klublarni yaratish, boshqarish va kengaytirishda yordam beradi — bitta platformada.",
       product: "Mahsulot", resources: "Resurslar", company: "Kompaniya",
       l: { features: "Imkoniyatlar", pricing: "Tariflar", security: "Xavfsizlik", faq: "FAQ", docs: "Hujjatlar", blog: "Blog", help: "Yordam", about: "Biz haqimizda", contacts: "Kontaktlar", terms: "Ommaviy oferta", privacy: "Maxfiylik", cookies: "Cookie siyosati", dpa: "Ma’lumotlarni qayta ishlash" },
       rights: "Barcha huquqlar himoyalangan.", status: "Barcha tizimlar ishlamoqda",

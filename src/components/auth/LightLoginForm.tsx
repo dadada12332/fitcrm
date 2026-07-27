@@ -142,7 +142,7 @@ export function LightLoginForm({ next }: { next?: string }) {
             <h1 className="text-[28px] font-bold mb-1.5" style={{ color: "#020617", letterSpacing: "-0.5px" }}>
               С возвращением! 👋
             </h1>
-            <p className="text-sm" style={{ color: "#94a3b8" }}>Войдите в свой аккаунт fitCRM</p>
+            <p className="text-sm" style={{ color: "#94a3b8" }}>Войдите в свой аккаунт Zalkins</p>
           </div>
 
           {step === "phone" && (
