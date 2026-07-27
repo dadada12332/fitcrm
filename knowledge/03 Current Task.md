@@ -45,6 +45,10 @@ Telegram и безопасность сотрудника собрать в од
   высоту 307 px, а активные сессии занимают отдельный ряд на всю ширину.
 - Authenticated browser QA при 1681 × 1420 подтвердил одинаковые координаты рядов и отсутствие
   horizontal overflow; TypeScript, focused ESLint, production build и Design QA прошли.
+- Equal-grid refinement опубликован commit `fa786cb` в production deployment
+  `dpl_CqfGgUXL1XLKWUnve7WY8W7pGaCf`; основной alias обновлён.
+- Production smoke `/profile` без сессии возвращает ожидаемый `307` на `/login`, а Vercel
+  error scan после публикации чистый.
 
 ## Готово
 
