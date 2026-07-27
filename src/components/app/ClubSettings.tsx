@@ -1099,7 +1099,7 @@ function PlanSection({ club }: { club: ClubData }) {
       )}
 
       <UiCard className="gap-0 overflow-hidden py-0">
-        <CardHeader className="grid-cols-1 border-b py-4 sm:grid-cols-[1fr_auto]">
+        <CardHeader className="grid-cols-1 border-b border-border py-4 sm:grid-cols-[1fr_auto]">
           <div className="flex items-start gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
               <Crown className="size-5" />
@@ -1166,7 +1166,7 @@ function PlanSection({ club }: { club: ClubData }) {
       </UiCard>
 
       <UiCard id="available-plans" className="gap-0 py-0">
-        <CardHeader className="grid-cols-1 border-b py-4 sm:grid-cols-[1fr_auto]">
+        <CardHeader className="grid-cols-1 border-b border-border py-4 sm:grid-cols-[1fr_auto]">
           <CardTitle>Доступные тарифы</CardTitle>
           <CardDescription className="col-start-1 row-start-2">Сравните возможности и выберите подходящий объём.</CardDescription>
           <CardAction className="col-span-2 col-start-1 row-start-3 mt-3 justify-self-start sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
@@ -1194,8 +1194,8 @@ function PlanSection({ club }: { club: ClubData }) {
                 return (
                   <div
                     key={pl.code}
-                    className={`flex flex-col rounded-xl border p-4 ${
-                      isCurrent ? "border-brand bg-brand/[0.03] ring-1 ring-brand/20" : "bg-card"
+                    className={`flex flex-col rounded-xl border border-border p-4 ${
+                      isCurrent ? "border-brand/40 bg-brand/[0.03] ring-1 ring-brand/10" : "bg-card"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1237,7 +1237,7 @@ function PlanSection({ club }: { club: ClubData }) {
                       </div>
                     </div>
 
-                    <ul className="mt-4 flex flex-1 flex-col gap-2 border-t pt-4">
+                    <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-border pt-4">
                       {pl.benefits.slice(0, 4).map((benefit) => (
                         <li key={benefit} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                           <Check className="mt-0.5 size-4 shrink-0 text-brand" />
@@ -1292,7 +1292,7 @@ function PlanSection({ club }: { club: ClubData }) {
                 Ещё {secondaryLimits.length}
               </Badge>
             </AccordionTrigger>
-            <AccordionContent className="border-t px-4 pb-4 pt-4">
+            <AccordionContent className="border-t border-border px-4 pb-4 pt-4">
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {secondaryLimits.map(({ key, label, icon: Icon, monthly }) => {
                   const used = usageByKey.get(key) ?? 0
@@ -1301,7 +1301,7 @@ function PlanSection({ club }: { club: ClubData }) {
                   const percent = limit === null ? 0 : limit <= 0 ? 100 : Math.min(100, (used / limit) * 100)
                   const unavailable = limit === 0
                   return (
-                    <div key={key} className="rounded-lg border bg-muted/20 p-3">
+                    <div key={key} className="rounded-lg border border-border bg-muted/20 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-2">
                           <Icon className="size-3.5 shrink-0 text-muted-foreground" />

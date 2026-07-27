@@ -1,74 +1,67 @@
-# Design QA — compact subscription screen
+# Design QA — subscription borders and locale control
 
-## Evidence
+- Source visual truth: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_HqyvB9/Снимок экрана 2026-07-27 в 04.49.14.png`
+- Implementation screenshot: `/Users/amiran/fitcrm/artifacts/subscription-role-lang-desktop-final.png`
+- Responsive screenshot: `/Users/amiran/fitcrm/artifacts/subscription-role-lang-mobile-final.png`
+- Combined comparison: `/Users/amiran/fitcrm/artifacts/subscription-border-design-qa-comparison-final.png`
+- Source pixels: 3840 × 2216; normalized to 1680 px width for comparison
+- Implementation pixels / CSS viewport: 1680 × 1050 at device scale 1
+- Mobile pixels / CSS viewport: 390 × 844 at device scale 1
+- State: authenticated owner, light theme, subscription tab, Russian locale
 
-- Source visual truth:
-  `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_JcNBLs/Снимок экрана 2026-07-27 в 04.30.15.png`
-- Browser-rendered desktop:
-  `/Users/amiran/fitcrm/artifacts/subscription-compact-desktop.png`
-- Browser-rendered mobile:
-  `/Users/amiran/fitcrm/artifacts/subscription-compact-mobile.png`
-- Combined full-view comparison:
-  `/Users/amiran/fitcrm/artifacts/subscription-compact-comparison.png`
-- Route/state: authenticated synthetic club owner at `/settings/subscription`, light theme.
-- Source pixels: `3840 × 2216`.
-- Desktop implementation pixels: `1681 × 1420`; CSS viewport `1681 × 1420`, DPR `1`.
-- Mobile implementation pixels: `609 × 1319`; responsive capability requested at
-  `390 × 844`, browser reported CSS viewport `487px` at DPR `0.8`.
-- Source was proportionally normalized to `1681px` width for the side-by-side comparison.
-  Business-vs-Trial content differs because the source and QA tenant have different current plans;
-  hierarchy and density were compared, not literal values.
+## Full-view comparison evidence
 
-## Full-view comparison
+The source showed near-black `currentColor` borders around the current plan, plan grid,
+benefit separators, and section dividers. The implementation uses the FitCRM semantic
+`border-border` token throughout. The resulting hierarchy now matches neighboring CRM
+screens: subtle Zinc boundaries, blue only for brand/selected states, and no heavy black
+boxes. Density, card geometry, typography, and content order are preserved.
 
-The source places ten large usage cards before plan selection, pushing the purchase decision below
-the fold. The implementation keeps the same subscription hierarchy and shared FitCRM surfaces, but
-compresses the current plan into a header plus five small cells, promotes the three plans directly
-below it, and moves six secondary limits into a collapsed disclosure. The complete decision area now
-fits in one desktop viewport without removing entitlement data.
+The mobile capture has no horizontal page overflow (`scrollWidth` equals `innerWidth` at
+390 px). The settings navigation remains horizontally scrollable by design.
 
-## Focused checks
+## Focused comparison evidence
 
-- Typography: existing CRM font stack and heading/body weights are preserved; prices, plan names and
-  current status remain visually dominant without oversized KPI numerals.
-- Spacing/layout: plan cards share equal height; the current-plan grid aligns on desktop and becomes
-  one date row plus a `2 × 2` capacity grid on mobile.
-- Colors/tokens: only `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`,
-  `border-border` and brand semantic utilities are used.
-- Images/assets: no raster or custom decorative assets are required; existing Lucide icons remain.
-- Copy/content: all ten limits, billing period controls, plan benefits and request actions remain
-  available. Secondary limits are discoverable under “Все лимиты тарифа”.
-- A separate focused crop was not needed: the high-resolution combined view keeps labels, values,
-  progress bars and buttons readable.
+A separate crop was not required: the affected borders occupy the full width of the
+current-plan and pricing regions and are clearly readable in the normalized combined
+comparison. The locale control was interaction-tested instead: the compact RU/UZ/EN pill
+opens a grouped menu and all three options switch the CRM shell without a framework error.
+
+## Required fidelity surfaces
+
+- Fonts and typography: unchanged from the product's existing Geist/CRM hierarchy; no
+  new type scale or weight introduced.
+- Spacing and layout rhythm: existing compact subscription layout preserved; mobile cards
+  stack without viewport overflow.
+- Colors and visual tokens: all affected borders and dividers use semantic design-system
+  tokens; the active plan uses a restrained brand border/ring.
+- Image quality and assets: no raster assets are used on this screen; existing Lucide icons
+  remain sharp and consistent.
+- Copy and content: subscription copy is unchanged; locale labels are Russian, O‘zbekcha,
+  and English.
 
 ## Comparison history
 
-1. Initial responsive pass found a P2 mobile overflow: the current price retained the desktop card
-   action column, and the five summary cells created an empty final grid cell.
-2. Fixed the header with explicit mobile row/column placement, made the expiry cell span both mobile
-   columns, and placed four primary limits in a balanced `2 × 2` grid.
-3. Post-fix mobile evidence shows no horizontal document overflow; desktop reports
-   `scrollWidth === innerWidth` (`1681px`).
+1. P1 — borders were near-black because bare `border`, `border-b`, and `border-t` used
+   `currentColor`.
+2. Fix — replaced them with `border-border`; selected plan uses
+   `border-brand/40 ring-brand/10`.
+3. Post-fix evidence — the desktop and mobile implementation captures show subtle borders,
+   correct selected-state emphasis, and no hidden controls or overflow.
 
 ## Findings
 
-- No actionable P0/P1/P2 visual mismatch remains.
-- P3: a dedicated narrow-phone shell audit could further tune the global settings tab bar, which is
-  outside this subscription component and intentionally remains horizontally scrollable.
+No actionable P0/P1/P2 visual findings remain for the requested subscription-border and
+language-control scope.
 
-## Interactions and runtime
+## Primary interactions tested
 
-- Opened and closed “Все лимиты тарифа”; all six secondary limits rendered.
-- Switched billing period between `1 мес` and `3 мес`.
-- No Next.js error overlay appeared and the tested interactions completed without browser-tool
-  exceptions from the application.
+- Open locale menu.
+- Switch Russian → English → O‘zbekcha → Russian.
+- Verify navigation and settings labels update.
+- Verify the route remains interactive and no framework error screen appears.
+- Verify desktop and mobile subscription layouts.
 
-## Implementation checklist
+## Final result
 
-- [x] Put available plans above secondary usage details.
-- [x] Keep primary capacity and expiry visible at a glance.
-- [x] Preserve access to every existing limit.
-- [x] Verify desktop and responsive layouts in the authenticated app.
-- [x] Verify disclosure and billing-period interactions.
-
-final result: passed
+passed

@@ -53,16 +53,10 @@ for (const integration of integrations ?? []) {
       }),
       api("setMyCommands", { commands: [
         { command: "start", description: "Главное меню" },
-        { command: "sub", description: "Мой абонемент" },
-        { command: "schedule", description: "Расписание клуба" },
-        { command: "qr", description: "QR-код для входа" },
+        { command: "menu", description: "Открыть FitCRM" },
         { command: "help", description: "Помощь" },
       ] }),
-      api("setChatMenuButton", { menu_button: {
-        type: "web_app",
-        text: "Открыть кабинет",
-        web_app: { url: `${appUrl}/tg/${club.id}` },
-      } }),
+      api("setChatMenuButton", { menu_button: { type: "commands" } }),
     ])
     if (!me.ok || !webhook.ok) throw new Error("Telegram rejected bot setup")
     const settings = (club.settings && typeof club.settings === "object") ? club.settings : {}

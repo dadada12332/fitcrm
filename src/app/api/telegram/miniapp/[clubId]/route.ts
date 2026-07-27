@@ -4,6 +4,8 @@ import { buildClickPayUrl, buildPaymePayUrl } from "@/lib/payment-links"
 import { createQrPass } from "@/lib/qr-pass"
 import { loadMiniAppSupport, sendMiniAppSupportMessage } from "@/lib/telegram/client-support"
 import type { ClientConversationCategory } from "@/lib/client-inbox"
+import { resolveTelegramActor } from "@/lib/telegram/actor"
+import { buildTelegramStaffMiniApp } from "@/lib/telegram/staff-miniapp"
 
 export const dynamic = "force-dynamic"
 
@@ -65,21 +67,37 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
   const auth = validateTelegramMiniAppInitData(body.initData ?? "", integration.bot_token)
   if (!auth) return fail("Откройте кабинет заново через Telegram", 401)
 
-  const { data: link } = await service.from("telegram_users")
-    .select("client_id, staff_id, role, preferences")
-    .eq("club_id", clubId).eq("telegram_id", auth.user.id).maybeSingle()
-  if (link?.staff_id || (link?.role && link.role !== "client")) {
-    return fail("Этот кабинет предназначен для клиентов. Отчёты владельца доступны в главном меню Telegram-бота.", 403)
-  }
-  if (!link?.client_id) return fail("Если вы клиент, привяжите номер через /start. Владельцу нужно привязать Telegram в CRM: Интеграции → Telegram.", 403)
+  const action = body.action ?? "bootstrap"
+  const actor = await resolveTelegramActor(clubId, auth.user.id)
+  if (!actor) return fail("Профиль не привязан или больше не активен. Откройте интеграцию Telegram в CRM и повторите привязку.", 403)
 
+  if (actor.kind === "staff") {
+    if (action !== "bootstrap") return fail("Это действие недоступно сотруднику", 403)
+    await service.from("telegram_users").update({
+      role: actor.role,
+      telegram_first_name: auth.user.first_name,
+      telegram_last_name: auth.user.last_name ?? null,
+      telegram_username: auth.user.username ?? null,
+      telegram_photo_url: auth.user.photo_url ?? null,
+      last_seen_at: new Date().toISOString(),
+    }).eq("club_id", clubId).eq("telegram_id", auth.user.id).eq("staff_id", actor.staffId)
+    const staffMiniApp = await buildTelegramStaffMiniApp(actor)
+    if (!staffMiniApp) return fail("Клуб не найден", 404)
+    await service.from("telegram_events").insert({
+      club_id: clubId,
+      telegram_id: auth.user.id,
+      event_type: "staff_miniapp_opened",
+      status: "received",
+      metadata: { staff_id: actor.staffId, role: actor.role, platform: "web_app" },
+    })
+    return Response.json(staffMiniApp, { headers: { "Cache-Control": "no-store" } })
+  }
+
+  const link = { client_id: actor.clientId }
   const { data: linkedClient } = await service.from("clients").select("id, full_name")
     .eq("id", link.client_id).eq("club_id", clubId).maybeSingle()
   if (!linkedClient) return fail("Связь с карточкой клиента недействительна. Привяжите номер заново", 403)
-
   const clientId = linkedClient.id
-  const action = body.action ?? "bootstrap"
-
   if (action === "bootstrap") {
     await service.from("telegram_users").update({
       telegram_first_name: auth.user.first_name,
@@ -251,7 +269,7 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
     subscriptions: subscriptions ?? [], visits: visits ?? [], classes: classRows,
     qrPass: qrPass?.value ?? null,
     qrExpiresAt: qrPass?.expiresAt ?? null,
-    preferences: link.preferences ?? { expiry_reminders: true, schedule_reminders: true },
+    preferences: actor.preferences ?? { expiry_reminders: true, schedule_reminders: true },
     providers: (providers ?? []).map((item) => item.provider),
     support,
     serverDate: today,

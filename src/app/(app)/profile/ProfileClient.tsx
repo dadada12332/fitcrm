@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckCircle2, Eye, EyeOff, Check, Camera, X } from "lucide-react"
+import { CheckCircle2, Eye, EyeOff, Check, Camera, Send, X } from "lucide-react"
 import { AVATAR_PRESETS, resolveAvatarBackground, type AvatarMeta } from "@/lib/avatar"
 import {
   updateProfileAction,
@@ -9,6 +9,8 @@ import {
   updatePasswordAction,
   updateEmailAction,
 } from "./actions"
+import { createTelegramStaffPairingAction } from "@/app/(app)/integrations/actions"
+import { Button, buttonVariants } from "@/components/ui/button"
 
 // ── design primitives ─────────────────────────────────────────────
 
@@ -171,6 +173,9 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
   const [showAvatarModal, setShowAvatarModal] = useState(false)
   const [pRes,  setPRes]  = useState<{ ok: boolean; msg: string } | null>(null)
   const [pPend, startP]   = useTransition()
+  const [tgPairingUrl, setTgPairingUrl] = useState("")
+  const [tgResult, setTgResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [tgPending, startTgPairing] = useTransition()
 
   // password
   const [curPwd,  setCurPwd]  = useState("")
@@ -216,6 +221,19 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
     })
   }
 
+  function pairTelegram() {
+    setTgResult(null)
+    startTgPairing(async () => {
+      const result = await createTelegramStaffPairingAction()
+      if (!result.ok || !result.pairingUrl) {
+        setTgResult({ ok: false, msg: result.error ?? "Не удалось создать ссылку" })
+        return
+      }
+      setTgPairingUrl(result.pairingUrl)
+      setTgResult({ ok: true, msg: "Одноразовая ссылка действует 15 минут" })
+    })
+  }
+
   return (
     <>
       {showAvatarModal && (
@@ -258,6 +276,35 @@ export function ProfileClient({ fullName, email, phone, avatarPreset, avatarUrl 
 
         {/* ── Right: forms ── */}
         <div className="flex-1 min-w-0 space-y-4">
+          <section className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Send className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">Telegram Mini App</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Привяжите Telegram к профилю. Состав Mini App автоматически зависит от вашей роли и прав в клубе.
+                </p>
+              </div>
+              <Button type="button" variant="outline" onClick={pairTelegram} disabled={tgPending}>
+                {tgPending ? "Создаю ссылку…" : "Подключить Telegram"}
+              </Button>
+            </div>
+            {(tgResult || tgPairingUrl) && (
+              <div className="mt-4 space-y-3 border-t border-border pt-4">
+                {tgResult && (
+                  <p className={`text-sm ${tgResult.ok ? "text-chart-2" : "text-destructive"}`}>{tgResult.msg}</p>
+                )}
+                {tgPairingUrl && (
+                  <a href={tgPairingUrl} target="_blank" rel="noreferrer" className={buttonVariants()}>
+                    <Send className="size-4" />
+                    Открыть Telegram
+                  </a>
+                )}
+              </div>
+            )}
+          </section>
 
           {/* Personal data */}
           <form onSubmit={saveProfile}

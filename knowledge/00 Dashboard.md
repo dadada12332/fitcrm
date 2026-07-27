@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
 - `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
-- `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

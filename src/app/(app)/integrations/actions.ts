@@ -283,7 +283,6 @@ async function getTelegramPairingCtx(): Promise<{ ctx?: TelegramPairingCtx; erro
 
   const cc = await getCurrentClub()
   if (!cc) return { error: "Клуб не найден" }
-  if (!can(cc.permissions, "telegram", "manage")) return { error: "Недостаточно прав" }
   const featureError = requirePlanFeature(cc, "telegram")
   if (featureError) return { error: featureError }
 

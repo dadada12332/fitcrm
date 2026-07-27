@@ -150,6 +150,14 @@ tags: [fitcrm, releases]
 
 ### Fixed
 
+- Экран подписки снова соответствует дизайн-системе: тяжёлые чёрные рамки заменены системными
+  границами, а выбранный тариф использует только мягкое brand-выделение.
+- Переключатель языка RU/UZ/EN больше не падает при открытии, работает без иконки и сохраняет
+  персональный язык сотрудника.
+- Telegram Mini App теперь распознаёт владельца и сотрудников по актуальной роли и permissions:
+  клиентские команды не показываются владельцу, тренер видит своё расписание, финансовые данные
+  недоступны ролям без соответствующего права.
+
 - Заголовок графика выручки теперь расположен над фильтрами периода, как на остальных экранах CRM;
   ссылки, пункты sidebar и активные кнопки снова показывают явный pointer-курсор.
 - Поставка и списание теперь атомарно меняют остаток и журнал движений; исправлено неверное enum-значение прихода, а удалённые товары больше не занимают тарифный лимит.
@@ -224,6 +232,7 @@ tags: [fitcrm, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
@@ -253,5 +262,4 @@ tags: [fitcrm, releases]
 - `fe68f58` · 2026-07-22 · fix: preserve upgrade button height
 - `057d003` · 2026-07-22 · style: strengthen plan upgrade call to action
 - `2f37b01` · 2026-07-22 · docs: record plan limit audit release [skip ci]
-- `f4f7cb2` · 2026-07-22 · feat: audit plan limits and add upgrade dialog
 <!-- AUTO:END changelog-candidates -->

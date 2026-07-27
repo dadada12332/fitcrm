@@ -6,6 +6,8 @@ import { getTelegramMiniAppUrl } from "@/lib/telegram/api"
 import { normalizeTelegramPhone } from "@/lib/telegram/identity"
 import { formatClubMoney, localeTag, normalizeAppLocale, translate, type AppLocale } from "@/lib/app-locale"
 import { zonedDayRange } from "@/lib/timezone"
+import { can, type RolePermissions } from "@/lib/permissions"
+import { resolveTelegramActor } from "@/lib/telegram/actor"
 
 // Vercel may reuse a function instance, so handlers are cached per club bot.
 const clubBots = new Map<string, Bot>()
@@ -23,14 +25,13 @@ export function getClubBot(token: string, clubId: string): Bot {
 
 // ── Types ─────────────────────────────────────────────────────────
 
-type UserRole = "client" | "owner" | "manager" | "admin" | "trainer"
-
 interface TgUser {
   club_id: string
   telegram_id: number
   client_id: string | null
   staff_id: string | null
-  role: UserRole
+  role: string
+  permissions: RolePermissions | null
   pending_action: string | null
   preferences: { expiry_reminders?: boolean; schedule_reminders?: boolean }
   client?: { id: string; full_name: string; club_id: string }
@@ -141,14 +142,16 @@ function tashkentDayOfWeek() {
   return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekday)
 }
 
-async function getTodaySchedule(clubId: string) {
-  const { data } = await createServiceClient()
+async function getTodaySchedule(clubId: string, staffId?: string) {
+  let query = createServiceClient()
     .from("schedules")
     .select("title, start_time, end_time, rooms(name)")
     .eq("club_id", clubId)
     .eq("day_of_week", tashkentDayOfWeek())
     .eq("is_active", true)
     .order("start_time")
+  if (staffId) query = query.eq("staff_id", staffId)
+  const { data } = await query
 
   if (!data?.length) return "📅 На сегодня занятий нет."
   let text = "📅 *Расписание на сегодня*\n\n"
@@ -166,54 +169,75 @@ async function reportRange(clubId: string, offsetDays: number) {
 }
 
 async function setChatMenuForUser(ctx: Context, tgUser: TgUser) {
-  try {
-    if (tgUser.role === "client") {
-      await ctx.api.setChatMenuButton({
-        chat_id: tgUser.telegram_id,
-        menu_button: {
-          type: "web_app",
-          text: "Открыть кабинет",
-          web_app: { url: getTelegramMiniAppUrl(tgUser.club_id) },
-        },
-      })
-      return
-    }
-    await ctx.api.setMyCommands(
+  const results = await Promise.allSettled([
+    ctx.api.setMyCommands(
       [
         { command: "start", description: "Главное меню" },
-        { command: "menu", description: "Панель клуба и отчёты" },
+        { command: "menu", description: tgUser.role === "client" ? "Личный кабинет" : "Рабочее пространство" },
         { command: "help", description: "Помощь" },
       ],
       { scope: { type: "chat", chat_id: tgUser.telegram_id } },
-    )
-    await ctx.api.setChatMenuButton({
+    ),
+    ctx.api.setChatMenuButton({
       chat_id: tgUser.telegram_id,
-      menu_button: { type: "commands" },
+      menu_button: {
+        type: "web_app",
+        text: tgUser.role === "client" ? "Открыть кабинет" : "Открыть FitCRM",
+        web_app: { url: getTelegramMiniAppUrl(tgUser.club_id) },
+      },
+    }),
+  ])
+  const failures = results.filter((result) => result.status === "rejected")
+  if (failures.length) {
+    await createServiceClient().from("telegram_events").insert({
+      club_id: tgUser.club_id,
+      telegram_id: tgUser.telegram_id,
+      event_type: "chat_menu_setup_failed",
+      status: "failed",
+      error_message: `${failures.length} Telegram menu operation(s) failed`,
     })
-  } catch {
-    // The inline menu remains usable even if Telegram rejects a cosmetic menu update.
   }
 }
 
 async function getLinkedUser(telegramId: number, clubId: string): Promise<TgUser | null> {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from("telegram_users")
-    .select("club_id, telegram_id, client_id, staff_id, role, pending_action, preferences, clients(id, full_name, club_id), staff(id, role, club_id, settings)")
-    .eq("club_id", clubId)
-    .eq("telegram_id", telegramId)
-    .maybeSingle()
-  if (!data) return null
+  const [actor, linkResult] = await Promise.all([
+    resolveTelegramActor(clubId, telegramId),
+    createServiceClient()
+      .from("telegram_users")
+      .select("pending_action")
+      .eq("club_id", clubId)
+      .eq("telegram_id", telegramId)
+      .maybeSingle(),
+  ])
+  if (!actor) return null
+  if (actor.kind === "client") {
+    return {
+      club_id: clubId,
+      telegram_id: telegramId,
+      client_id: actor.clientId,
+      staff_id: null,
+      role: "client",
+      permissions: null,
+      pending_action: linkResult.data?.pending_action ?? null,
+      preferences: actor.preferences,
+      client: { id: actor.clientId, full_name: actor.fullName, club_id: clubId },
+    }
+  }
   return {
-    club_id:        data.club_id,
-    telegram_id:    data.telegram_id,
-    client_id:      data.client_id,
-    staff_id:       data.staff_id,
-    role:           (data.role ?? "client") as UserRole,
-    pending_action: data.pending_action,
-    preferences:    (data.preferences as TgUser["preferences"]) ?? {},
-    client:         (data.clients as unknown as TgUser["client"]) ?? undefined,
-    staff:          (data.staff as unknown as TgUser["staff"]) ?? undefined,
+    club_id: clubId,
+    telegram_id: telegramId,
+    client_id: null,
+    staff_id: actor.staffId,
+    role: actor.role,
+    permissions: actor.permissions,
+    pending_action: linkResult.data?.pending_action ?? null,
+    preferences: actor.preferences,
+    staff: {
+      id: actor.staffId,
+      role: actor.role,
+      club_id: clubId,
+      settings: { full_name: actor.fullName },
+    },
   }
 }
 
@@ -244,37 +268,56 @@ function clientMenu(clubId: string) {
     .text("📞 Контакты", "contacts")
 }
 
-function ownerMenu() {
-  return new InlineKeyboard()
-    .text("📊 Отчёт сегодня", "report_today")
-    .text("📅 Отчёт вчера", "report_yesterday")
-    .row()
-    .text("👥 Клиенты", "stat_clients")
-    .text("💰 Касса", "stat_revenue")
-    .row()
-    .text("🔔 Уведомления", "notify_menu")
-    .text("🤖 Спросить AI", "ask_ai")
-}
-
-function adminMenu() {
-  return new InlineKeyboard()
-    .text("👤 Найти клиента",       "find_client")
-    .text("✅ Отметить посещение",  "mark_visit")
-    .row()
-    .text("📅 Расписание сегодня", "today_schedule")
-    .text("📊 Отчёт дня",          "report_today")
-}
-
-function trainerMenu() {
-  return new InlineKeyboard()
-    .text("📅 Мои занятия сегодня", "trainer_schedule")
-    .text("👥 Мои клиенты",         "trainer_clients")
-    .row()
-    .text("✅ Отметить посещение",  "mark_visit")
+function staffMenu(tgUser: TgUser) {
+  const permissions = tgUser.permissions
+  const keyboard = new InlineKeyboard()
+    .webApp("📱 Открыть рабочее пространство", getTelegramMiniAppUrl(tgUser.club_id))
+  if (!permissions) return keyboard
+  if (can(permissions, "dashboard", "view_finance") || can(permissions, "reports", "finance")) {
+    keyboard.row().text("📊 Отчёт сегодня", "report_today").text("💰 Касса", "stat_revenue")
+  }
+  if (can(permissions, "clients", "view")) {
+    keyboard.row().text("👤 Найти клиента", "find_client").text("👥 Клиенты", "stat_clients")
+  }
+  if (can(permissions, "schedule", "view")) {
+    keyboard.text(tgUser.role === "trainer" ? "📅 Мои занятия" : "📅 Расписание", tgUser.role === "trainer" ? "trainer_schedule" : "today_schedule")
+  }
+  if (can(permissions, "ai", "use")) {
+    keyboard.row().text("🤖 Спросить AI", "ask_ai")
+  }
+  return keyboard
 }
 
 function backBtn(cb = "staff_menu") {
   return new InlineKeyboard().text("⬅️ Назад", cb)
+}
+
+function canUseStaffCallback(tgUser: TgUser, callback: string) {
+  const permissions = tgUser.permissions
+  if (!permissions) return false
+  if (callback === "staff_menu" || callback === "menu") return true
+  if (callback === "report_today" || callback === "report_yesterday" || callback === "stat_revenue") {
+    return can(permissions, "dashboard", "view_finance")
+      || can(permissions, "payments", "view_revenue")
+      || can(permissions, "reports", "finance")
+  }
+  if (callback === "stat_clients" || callback === "find_client" || callback.startsWith("client_info:")) {
+    return can(permissions, "clients", "view")
+  }
+  if (callback === "notify_menu" || callback === "notify_all") {
+    return can(permissions, "telegram", "manage")
+  }
+  if (callback === "ask_ai") return can(permissions, "ai", "use")
+  // Check-in remains in the authenticated CRM until the Telegram entrypoint
+  // uses the same atomic validation path as the web application.
+  if (callback === "mark_visit" || callback.startsWith("do_visit:")) return false
+  if (callback === "today_schedule" || callback === "trainer_schedule") {
+    return can(permissions, "schedule", "view")
+  }
+  if (callback === "trainer_clients") {
+    return tgUser.role === "trainer" && can(permissions, "clients", "view")
+  }
+  return false
 }
 
 async function sendMenuForUser(ctx: Context, tgUser: TgUser) {
@@ -285,18 +328,10 @@ async function sendMenuForUser(ctx: Context, tgUser: TgUser) {
     await ctx.reply(`👋 Привет, *${name}*!\n\nВыберите раздел:`, {
       reply_markup: clientMenu(tgUser.club_id), parse_mode: "Markdown",
     })
-  } else if (role === "owner" || role === "manager") {
-    const name = tgUser.staff?.settings?.full_name?.split(" ")[0] ?? "шеф"
-    await ctx.reply(`👋 Привет, *${name}*! 🏆\n\nПанель управления клубом:`, {
-      reply_markup: ownerMenu(), parse_mode: "Markdown",
-    })
-  } else if (role === "admin") {
-    await ctx.reply(`👋 Привет, Администратор!\n\nБыстрые действия:`, {
-      reply_markup: adminMenu(), parse_mode: "Markdown",
-    })
-  } else if (role === "trainer") {
-    await ctx.reply(`👋 Привет! 💪\n\nВаш рабочий стол:`, {
-      reply_markup: trainerMenu(), parse_mode: "Markdown",
+  } else {
+    const name = tgUser.staff?.settings?.full_name?.split(" ")[0] ?? "коллега"
+    await ctx.reply(`👋 Привет, *${name}*!\n\nРабочее пространство сформировано по правам вашей роли.`, {
+      reply_markup: staffMenu(tgUser), parse_mode: "Markdown",
     })
   }
 }
@@ -436,6 +471,8 @@ function setupHandlers(bot: Bot, clubId: string) {
 
       await service.from("telegram_users").delete()
         .eq("club_id", clubId).eq("staff_id", staff.id).neq("telegram_id", telegramId)
+      await service.from("clients").update({ telegram_id: null })
+        .eq("club_id", clubId).eq("telegram_id", telegramId)
       const { error: linkError } = await service.from("telegram_users").upsert(
         {
           club_id: clubId,
@@ -460,7 +497,7 @@ function setupHandlers(bot: Bot, clubId: string) {
         status: "received",
         metadata: { staff_id: staff.id },
       })
-      await ctx.reply("✅ Telegram привязан к вашему профилю FitCRM.\n\nЗдесь доступны отчёты клуба и ежедневная сводка владельца. Для быстрого доступа используйте /menu.")
+      await ctx.reply("✅ Telegram привязан к вашему профилю FitCRM.\n\nНажмите «Открыть FitCRM» внизу: Mini App покажет рабочее пространство с данными и действиями вашей роли.")
       const linkedUser = await getLinkedUser(telegramId, clubId)
       if (linkedUser) await sendMenuForUser(ctx, linkedUser)
       return
@@ -518,7 +555,12 @@ function setupHandlers(bot: Bot, clubId: string) {
     if (!telegramId) return
     const tgUser = await getLinkedUser(telegramId, clubId)
     if (!tgUser) { await ctx.reply("Сначала войдите: /start"); return }
-    await ctx.reply(await getTodaySchedule(clubId), {
+    if (tgUser.role !== "client" && (!tgUser.permissions || !can(tgUser.permissions, "schedule", "view"))) {
+      await ctx.reply("У вашей роли нет доступа к расписанию.")
+      return
+    }
+    const scheduleStaffId = tgUser.role === "trainer" ? tgUser.staff_id ?? undefined : undefined
+    await ctx.reply(await getTodaySchedule(clubId, scheduleStaffId), {
       parse_mode: "Markdown",
       reply_markup: new InlineKeyboard().text("⬅️ Меню", tgUser.role === "client" ? "menu" : "staff_menu"),
     })
@@ -595,6 +637,8 @@ function setupHandlers(bot: Bot, clubId: string) {
     const matchedStaff = matchedStaffList[0]
 
     if (matchedStaff) {
+      await supabase.from("clients").update({ telegram_id: null })
+        .eq("club_id", clubId).eq("telegram_id", telegramId)
       const { error: upsertErr } = await supabase.from("telegram_users").upsert(
         {
           club_id: clubId, telegram_id: telegramId, staff_id: matchedStaff.id, client_id: null,
@@ -704,6 +748,10 @@ function setupHandlers(bot: Bot, clubId: string) {
     // Handle pending actions (multi-step flows)
     if (tgUser?.pending_action === "searching_client") {
       await setPendingAction(telegramId, clubId, null)
+      if (!tgUser.permissions || !can(tgUser.permissions, "clients", "view")) {
+        await ctx.reply("У вашей роли нет доступа к клиентам.")
+        return
+      }
       const query    = ctx.message.text?.trim() ?? ""
       const supabase = createServiceClient()
       const linkedClubId = tgUser.staff?.club_id
@@ -735,6 +783,10 @@ function setupHandlers(bot: Bot, clubId: string) {
 
     if (tgUser?.pending_action === "asking_ai") {
       await setPendingAction(telegramId, clubId, null)
+      if (!tgUser.permissions || !can(tgUser.permissions, "ai", "use")) {
+        await ctx.reply("У вашей роли нет доступа к AI-аналитике.")
+        return
+      }
       const question = ctx.message.text?.trim() ?? ""
       const linkedClubId = tgUser.staff?.club_id ?? ""
       if (linkedClubId !== clubId) return
@@ -785,14 +837,14 @@ function setupHandlers(bot: Bot, clubId: string) {
         role === "client"
           ? `👋 Привет, *${tgUser.client?.full_name?.split(" ")[0] ?? "друг"}*!\n\nВыберите раздел:`
           : `👋 Главное меню:`,
-        { reply_markup: role === "client" ? clientMenu(clubId) : role === "admin" ? adminMenu() : role === "trainer" ? trainerMenu() : ownerMenu(), parse_mode: "Markdown" }
+        { reply_markup: role === "client" ? clientMenu(clubId) : staffMenu(tgUser), parse_mode: "Markdown" }
       )
       return
     }
 
     if (data === "staff_menu") {
       await ctx.editMessageText("👋 Главное меню:", {
-        reply_markup: role === "admin" ? adminMenu() : role === "trainer" ? trainerMenu() : ownerMenu(),
+        reply_markup: staffMenu(tgUser),
         parse_mode: "Markdown",
       })
       return
@@ -969,6 +1021,12 @@ function setupHandlers(bot: Bot, clubId: string) {
     // ── STAFF/OWNER callbacks ──────────────────────────────────────
 
     if (!isStaff) return
+    if (!canUseStaffCallback(tgUser, data)) {
+      await ctx.editMessageText("У вашей роли нет доступа к этому действию.", {
+        reply_markup: staffMenu(tgUser),
+      })
+      return
+    }
 
     if (data === "report_today") {
       const { from, to } = await reportRange(clubId, 0)
@@ -1173,14 +1231,18 @@ function setupHandlers(bot: Bot, clubId: string) {
     }
 
     if (data === "today_schedule" || data === "trainer_schedule") {
-      const dayOfWeek = new Date().getDay()
-      const { data: schedules } = await supabase
+      const dayOfWeek = tashkentDayOfWeek()
+      let scheduleQuery = supabase
         .from("schedules")
         .select("title, start_time, end_time, rooms(name)")
         .eq("club_id", clubId)
         .eq("day_of_week", dayOfWeek)
         .eq("is_active", true)
         .order("start_time")
+      if (data === "trainer_schedule" && tgUser.staff_id) {
+        scheduleQuery = scheduleQuery.eq("staff_id", tgUser.staff_id)
+      }
+      const { data: schedules } = await scheduleQuery
 
       const back = backBtn("staff_menu")
       if (!schedules?.length) {

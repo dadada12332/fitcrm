@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import {
   Search, Bell,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
-  PanelLeft, SunMoon, Inbox, CheckCircle2, Loader2, ChevronRight, Languages, Check,
+  PanelLeft, SunMoon, Inbox, CheckCircle2, Loader2, ChevronRight, Check,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useTheme } from "next-themes"
@@ -16,6 +16,7 @@ import { Breadcrumbs } from "./Breadcrumbs"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
@@ -410,19 +411,20 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
               disabled={languagePending}
               aria-label={t("top.language")}
               title={t("top.language")}
-              className="flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="flex h-8 min-w-9 items-center justify-center rounded-full border border-border bg-card px-2.5 text-xs font-semibold text-foreground shadow-xs transition-colors hover:bg-muted disabled:opacity-50"
             >
-              <Languages className="size-4" />
-              <span className="hidden sm:inline">{APP_LOCALE_SHORT[locale]}</span>
+              {APP_LOCALE_SHORT[locale]}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-44">
-              <DropdownMenuLabel>{t("top.language")}</DropdownMenuLabel>
-              {(Object.keys(APP_LOCALE_LABELS) as AppLocale[]).map((item) => (
-                <DropdownMenuItem key={item} onClick={() => changeLanguage(item)}>
-                  <span className="flex-1">{APP_LOCALE_LABELS[item]}</span>
-                  {locale === item && <Check className="size-4 text-brand" />}
-                </DropdownMenuItem>
-              ))}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>{t("top.language")}</DropdownMenuLabel>
+                {(Object.keys(APP_LOCALE_LABELS) as AppLocale[]).map((item) => (
+                  <DropdownMenuItem key={item} onClick={() => changeLanguage(item)}>
+                    <span className="flex-1">{APP_LOCALE_LABELS[item]}</span>
+                    {locale === item && <Check className="size-4 text-brand" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
 

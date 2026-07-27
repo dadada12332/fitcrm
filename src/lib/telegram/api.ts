@@ -59,19 +59,17 @@ export async function registerClubTelegramBot(token: string, clubId: string) {
     callTelegramApi(token, "setMyCommands", {
       commands: [
         { command: "start", description: "Главное меню" },
-        { command: "sub", description: "Мой абонемент" },
-        { command: "schedule", description: "Расписание клуба" },
-        { command: "qr", description: "QR-код для входа" },
+        { command: "menu", description: "Открыть FitCRM" },
         { command: "help", description: "Помощь" },
       ],
     }),
     callTelegramApi(token, "setChatMenuButton", {
-      // The Mini App is client-only. A linked client receives its own Web App
-      // menu button from the bot handler; owners and unlinked users see commands.
+      // Linked clients and staff receive their own Web App button from the bot
+      // handler. The default remains commands for unlinked Telegram accounts.
       menu_button: { type: "commands" },
     }),
     callTelegramApi(token, "setMyDescription", {
-      description: "Личный кабинет вашего фитнес-клуба: абонемент, расписание, посещения, QR-код и уведомления.",
+      description: "FitCRM в Telegram: кабинет клиента и рабочее пространство команды клуба с доступом по роли.",
     }),
   ])
 

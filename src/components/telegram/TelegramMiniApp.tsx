@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  ArrowLeft, Bell, CalendarDays, Check, CheckCheck, ChevronRight, Clock3, CreditCard, Dumbbell,
-  Headphones, History, Home, LoaderCircle, MapPin, MessageCircle, QrCode, RefreshCw,
-  SendHorizontal, TicketCheck, UserRound,
+  Activity, ArrowLeft, Banknote, Bell, CalendarDays, Check, CheckCheck, ChevronRight, Clock3,
+  CreditCard, Dumbbell, Headphones, History, Home, LoaderCircle, MapPin, MessageCircle,
+  MessagesSquare, QrCode, RefreshCw, SendHorizontal, ShieldCheck, TicketCheck, UserRound,
+  UsersRound, WalletCards,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -54,7 +55,7 @@ type ClassItem = {
   bookingId: string | null
 }
 
-type MiniAppData = {
+type ClientMiniAppData = {
   club: { name: string; city: string | null }
   client: { id: string; crmFullName: string; telegramName: string; telegramFirstName: string; telegramPhotoUrl: string | null }
   subscriptions: Subscription[]
@@ -66,6 +67,51 @@ type MiniAppData = {
   providers: Array<"payme" | "click">
   serverDate: string
   support: MiniAppSupportData
+}
+
+type StaffMiniAppData = {
+  actor: {
+    kind: "staff"
+    role: string
+    roleName: string
+    fullName: string
+    permissions: {
+      clients: boolean
+      memberships: boolean
+      visits: boolean
+      checkin: boolean
+      schedule: boolean
+      payments: boolean
+      finance: boolean
+      inbox: boolean
+    }
+  }
+  club: { name: string; city: string | null; currency: string }
+  stats: {
+    clients?: number
+    activeMemberships?: number
+    expiringMemberships?: number
+    visitsToday?: number
+    revenueToday?: number
+    pendingPayments?: number
+    openConversations?: number
+    classesToday?: number
+  }
+  schedule: Array<{
+    id: string
+    title: string
+    startTime: string
+    endTime: string | null
+    trainerName: string | null
+    roomName: string | null
+  }>
+  serverDate: string
+}
+
+type MiniAppData = ClientMiniAppData | StaffMiniAppData
+
+function isStaffMiniAppData(data: MiniAppData): data is StaffMiniAppData {
+  return "actor" in data && data.actor.kind === "staff"
 }
 
 type MiniAppSupportMessage = {
@@ -228,17 +274,17 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   }, [goBack, tab])
 
   useEffect(() => {
-    if (!data?.qrPass) return
+    if (!data || isStaffMiniAppData(data) || !data.qrPass) return
     const pass = data.qrPass
     let active = true
     void import("qrcode").then(({ default: QRCode }) => QRCode.toDataURL(pass, { width: 480, margin: 2 }))
       .then((url) => { if (active) setQrImage({ pass, url }) })
       .catch(() => { if (active) setQrImage(null) })
     return () => { active = false }
-  }, [data?.qrPass])
+  }, [data])
 
   useEffect(() => {
-    if (tab !== "pass" || !data?.qrExpiresAt) return
+    if (tab !== "pass" || !data || isStaffMiniAppData(data) || !data.qrExpiresAt) return
     let active = true
     const tick = async () => {
       const remaining = Math.max(0, Math.ceil((new Date(data.qrExpiresAt!).getTime() - Date.now()) / 1000))
@@ -264,10 +310,10 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
     void tick()
     const timer = window.setInterval(() => void tick(), 1000)
     return () => { active = false; window.clearInterval(timer) }
-  }, [api, data?.qrExpiresAt, tab])
+  }, [api, data, tab])
 
   const refreshSupport = useCallback(async () => {
-    if (!data) return
+    if (!data || isStaffMiniAppData(data)) return
     try {
       const result = await api({ action: "support_load", conversationId: data.support.conversation?.id })
       setData((current) => current ? { ...current, support: result.support as MiniAppSupportData } : current)
@@ -277,13 +323,15 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   }, [api, data])
 
   useEffect(() => {
-    if (tab !== "support" || !data) return
+    if (tab !== "support" || !data || isStaffMiniAppData(data)) return
     const timer = window.setInterval(() => void refreshSupport(), 10_000)
     return () => window.clearInterval(timer)
   }, [data, refreshSupport, tab])
 
-  const activeSubscription = useMemo(() => data?.subscriptions.find((item) => item.status === "active")
-    ?? data?.subscriptions[0] ?? null, [data?.subscriptions])
+  const activeSubscription = useMemo(() => {
+    if (!data || isStaffMiniAppData(data)) return null
+    return data.subscriptions.find((item) => item.status === "active") ?? data.subscriptions[0] ?? null
+  }, [data])
 
   async function mutate(action: "book" | "cancel", id: string) {
     setBusy(`${action}:${id}`)
@@ -320,7 +368,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   }
 
   async function updatePreference(key: "expiry_reminders" | "schedule_reminders", checked: boolean) {
-    if (!data) return
+    if (!data || isStaffMiniAppData(data)) return
     const preferences = { ...data.preferences, [key]: checked }
     setData({ ...data, preferences })
     try {
@@ -333,7 +381,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   }
 
   async function sendSupportMessage(message: string, category?: SupportCategory) {
-    if (!data) return
+    if (!data || isStaffMiniAppData(data)) return
     setSupportBusy(true)
     setError(null)
     try {
@@ -356,7 +404,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   }
 
   function startNewSupportConversation() {
-    if (!data) return
+    if (!data || isStaffMiniAppData(data)) return
     setData({ ...data, support: { ...data.support, conversation: null } })
   }
 
@@ -374,6 +422,7 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
 
   if (loading) return <MiniAppLoading />
   if (!data) return <MiniAppError message={error ?? "Кабинет недоступен"} />
+  if (isStaffMiniAppData(data)) return <TelegramStaffMiniApp data={data} />
 
   return (
     <main className="min-h-[100dvh] bg-background text-foreground pb-[calc(76px+env(safe-area-inset-bottom))]">
@@ -429,7 +478,119 @@ export function TelegramMiniApp({ clubId }: { clubId: string }) {
   )
 }
 
-function HomeView({ data, subscription, onTab }: { data: MiniAppData; subscription: Subscription | null; onTab: (tab: Tab) => void }) {
+function TelegramStaffMiniApp({ data }: { data: StaffMiniAppData }) {
+  const { actor, stats } = data
+  const statItems = [
+    actor.permissions.finance && stats.revenueToday !== undefined
+      ? { label: "Выручка сегодня", value: new Intl.NumberFormat("ru-RU", {
+          style: "currency",
+          currency: data.club.currency,
+          maximumFractionDigits: 0,
+        }).format(stats.revenueToday), icon: Banknote }
+      : null,
+    actor.permissions.visits && stats.visitsToday !== undefined
+      ? { label: "Посещения", value: String(stats.visitsToday), icon: Activity }
+      : null,
+    actor.permissions.clients && stats.clients !== undefined
+      ? { label: "Клиенты", value: String(stats.clients), icon: UsersRound }
+      : null,
+    actor.permissions.memberships && stats.expiringMemberships !== undefined
+      ? { label: "Истекает за 7 дней", value: String(stats.expiringMemberships), icon: Clock3 }
+      : null,
+    actor.permissions.payments && stats.pendingPayments !== undefined
+      ? { label: "Ожидают оплаты", value: String(stats.pendingPayments), icon: WalletCards }
+      : null,
+    actor.permissions.inbox && stats.openConversations !== undefined
+      ? { label: "Обращения", value: String(stats.openConversations), icon: MessagesSquare }
+      : null,
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item))
+
+  return (
+    <main className="min-h-[100dvh] bg-background pb-[calc(24px+env(safe-area-inset-bottom))] text-foreground">
+      <div className="mx-auto w-full max-w-lg">
+        <header className="sticky top-0 z-20 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{data.club.name}</p>
+              <p className="truncate text-xs text-muted-foreground">Рабочее пространство</p>
+            </div>
+            <span className="rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium">
+              {actor.roleName}
+            </span>
+          </div>
+        </header>
+
+        <div className="space-y-6 px-4 py-5">
+          <section>
+            <p className="text-sm text-muted-foreground">Добрый день,</p>
+            <h1 className="mt-1 text-2xl font-semibold">{actor.fullName}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Здесь только данные и действия, доступные вашей роли в FitCRM.
+            </p>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <p className="font-semibold">Сводка на сегодня</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Данные обновляются при каждом открытии Mini App
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border">
+              {statItems.map(({ label, value, icon: Icon }) => (
+                <div key={label} className="min-h-24 bg-card p-3">
+                  <Icon size={17} className="text-muted-foreground" />
+                  <p className="mt-3 break-words text-lg font-semibold tabular-nums">{value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {actor.permissions.schedule && (
+            <section>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-semibold">
+                    {actor.role === "trainer" ? "Мои занятия сегодня" : "Расписание сегодня"}
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {stats.classesToday ?? data.schedule.length} занятий
+                  </p>
+                </div>
+                <CalendarDays size={19} className="text-muted-foreground" />
+              </div>
+              <div className="mt-3 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+                {data.schedule.length ? data.schedule.map((item) => (
+                  <div key={item.id} className="flex items-start gap-3 px-4 py-3">
+                    <div className="w-12 shrink-0 text-sm font-semibold">{shortTime(item.startTime)}</div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{item.title}</p>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {[item.trainerName, item.roomName].filter(Boolean).join(" · ") || "Без дополнительных деталей"}
+                      </p>
+                    </div>
+                  </div>
+                )) : <EmptyLine text="На сегодня занятий нет" />}
+              </div>
+            </section>
+          )}
+
+          <p className="text-center text-xs text-muted-foreground">
+            Права Mini App синхронизированы с ролью сотрудника в CRM
+          </p>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function HomeView({ data, subscription, onTab }: { data: ClientMiniAppData; subscription: Subscription | null; onTab: (tab: Tab) => void }) {
   const membership = membershipOf(subscription)
   const visitsLeft = subscription?.visits_total == null ? null : Math.max(0, subscription.visits_total - subscription.visits_used)
   const next = data.classes.slice(0, 2)
@@ -523,7 +684,7 @@ function ScheduleView({ classes, busy, onBook, onCancel }: { classes: ClassItem[
   )
 }
 
-function PassView({ data, qrUrl, seconds, refreshing }: { data: MiniAppData; qrUrl: string | null; seconds: number; refreshing: boolean }) {
+function PassView({ data, qrUrl, seconds, refreshing }: { data: ClientMiniAppData; qrUrl: string | null; seconds: number; refreshing: boolean }) {
   return (
     <div className="space-y-6 px-4 py-5">
       <div><h1 className="text-2xl font-semibold">QR-пропуск</h1><p className="mt-1 text-sm text-muted-foreground">Покажите код администратору на входе</p></div>
@@ -558,7 +719,7 @@ function PassView({ data, qrUrl, seconds, refreshing }: { data: MiniAppData; qrU
   )
 }
 
-function ProfileView({ data, subscription, busy, onRenew, onPreference, onSupport }: { data: MiniAppData; subscription: Subscription | null; busy: string | null; onRenew: (provider: "payme" | "click") => void; onPreference: (key: "expiry_reminders" | "schedule_reminders", checked: boolean) => void; onSupport: () => void }) {
+function ProfileView({ data, subscription, busy, onRenew, onPreference, onSupport }: { data: ClientMiniAppData; subscription: Subscription | null; busy: string | null; onRenew: (provider: "payme" | "click") => void; onPreference: (key: "expiry_reminders" | "schedule_reminders", checked: boolean) => void; onSupport: () => void }) {
   const membership = membershipOf(subscription)
   return (
     <div className="space-y-6 px-4 py-5">
