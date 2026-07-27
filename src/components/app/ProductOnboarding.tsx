@@ -87,6 +87,7 @@ export function ProductOnboarding({
   const [tourPending, setTourPending] = useState(showTour)
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null)
   const [offerOpen, setOfferOpen] = useState(false)
+  const [trialOfferHandled, setTrialOfferHandled] = useState(false)
   const [, startTransition] = useTransition()
   const step = TOUR_STEPS[stepIndex]
   const tourVisible = tourPending && pathname === "/dashboard"
@@ -155,13 +156,14 @@ export function ProductOnboarding({
   }, [finishTour, nextStep, stepIndex, tourVisible])
 
   useEffect(() => {
-    if (!trialOfferEligible || !offer || tourPending || offerOpen) return
+    if (!trialOfferEligible || !offer || tourPending || trialOfferHandled) return
     const timer = window.setTimeout(() => {
+      setTrialOfferHandled(true)
       setOfferOpen(true)
       startTransition(async () => { await markTrialOfferSeenAction() })
     }, 10_000)
     return () => window.clearTimeout(timer)
-  }, [offer, offerOpen, trialOfferEligible, tourPending])
+  }, [offer, trialOfferEligible, tourPending, trialOfferHandled])
 
   const panelStyle = useMemo(() => {
     if (!targetRect || typeof window === "undefined" || window.innerWidth < 768) return undefined

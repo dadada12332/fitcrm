@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: fa786cb · 2026-07-27T10:27:33+05:00 · fix: align profile card grid.
+- Последний commit: 0d44c53 · 2026-07-27T10:31:56+05:00 · docs: record profile grid deployment [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 96; последняя `20260724145500_renewal_and_class_attendance.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

@@ -28,6 +28,7 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
 - `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
 - `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
@@ -37,7 +38,6 @@ FitCRM — Next.js 16 + React 19 мультитенантная CRM для фи�
 - `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
-- `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
