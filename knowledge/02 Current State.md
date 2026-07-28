@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 1438b4f · 2026-07-28T13:04:56+05:00 · docs: record retention drawer release [skip ci].
+- Последний commit: d158896 · 2026-07-28T15:05:39+05:00 · feat: localize the complete CRM interface.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 97; последняя `20260727123000_rebrand_zalkins.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -70,7 +70,7 @@ FitCRM Bridge контроля доступа теперь поставляет�
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Production deployment `dpl_64VnPxv4cRztyHa9s7oqzeZd2MqK` для commit `499ca0f` имеет статус `READY`; alias `fitcrm-three.vercel.app` подтверждён. Юридические маршруты и `/register` прошли HTTP smoke, runtime errors после выпуска не обнаружены. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Полная локализация CRM опубликована в deployment `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho` для commit `d158896`; alias `fitcrm-three.vercel.app`, HTTP smoke и runtime error scan подтверждены. Юридические маршруты и `/register` ранее прошли HTTP smoke. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
 
 ## Риски и долг
 

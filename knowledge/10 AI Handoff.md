@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
 - `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
 - `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
-- `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

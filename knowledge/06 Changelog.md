@@ -253,6 +253,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
@@ -282,5 +283,4 @@ tags: [zalkins, releases]
 - `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
 - `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
 - `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
-- `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
 <!-- AUTO:END changelog-candidates -->

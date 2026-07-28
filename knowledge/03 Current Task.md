@@ -21,6 +21,9 @@ tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
   внутри них не остаётся смеси старого и нового языка.
 - Авторизованный browser QA прошёл цепочку RU → UZ → EN → RU на dashboard, clients, retention,
   settings, profile и notifications. TypeScript, focused ESLint и production build прошли.
+- Commit `d158896` опубликован в production deployment
+  `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho`; основной alias обновлён, HTTP smoke и runtime error scan
+  чистые.
 
 ## Retention expiring drawer — 2026-07-28
 
