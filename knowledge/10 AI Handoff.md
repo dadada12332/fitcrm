@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
 - `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
-- `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

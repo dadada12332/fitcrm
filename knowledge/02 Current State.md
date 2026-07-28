@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 4ef8d18 · 2026-07-28T18:27:47+05:00 · docs: record CRM announcements release [skip ci].
+- Последний commit: 32d031a · 2026-07-28T18:46:33+05:00 · fix: remove legacy CRM system banner.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 106; последняя `20260727123000_rebrand_zalkins.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
 - `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
 - `0447f4c` · 2026-07-28 · feat: harden platform admin operations
-- `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

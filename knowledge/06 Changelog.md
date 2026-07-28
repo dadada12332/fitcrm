@@ -271,6 +271,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
 - `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
@@ -300,5 +301,4 @@ tags: [zalkins, releases]
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 - `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
-- `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
 <!-- AUTO:END changelog-candidates -->

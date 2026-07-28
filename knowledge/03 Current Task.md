@@ -16,6 +16,10 @@ tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
   production уже сброшено в `null`.
 - Платформенные новости и технические уведомления доставляются только через новый центр
   уведомлений CRM, поэтому отдельная верхняя плашка больше не появится.
+- TypeScript, production build и smoke-проверки прошли. Авторизованный production QA
+  подтвердил отсутствие баннера и framework error overlay.
+- Commit `32d031a` опубликован в deployment `dpl_AJRW4GdFdJhFnKhQ7WfQJGedb6M2`;
+  основной alias обновлён.
 
 ## Платформенные уведомления внутри CRM — 2026-07-28
 
