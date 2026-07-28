@@ -19,6 +19,8 @@ tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
   использований, архивирование, quote при заявке и атомарное погашение при подтверждении.
 - Платформенные Telegram-рассылки получают сегмент владельцев, материализуют очередь,
   поддерживают отложенную отправку, отмену, idempotent claim и статистику доставки.
+  На текущем Vercel Hobby очередь запускается ежедневным Cron; для поминутной отложенной
+  отправки нужен Vercel Pro или внешний scheduler, сам защищённый endpoint уже готов.
 - Мониторинг выполняет параллельные живые проверки DB, Storage, API и Telegram, сохраняет
   историю service checks и реальные результаты Cron-задач.
 - Аналитика сохраняет ежедневные исторические снимки SaaS-метрик; графики больше не подменяют
@@ -29,6 +31,8 @@ tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
   `service_role`; добавлены покрывающие индексы внешних ключей.
 - Применены миграции `0087`–`0092`. TypeScript и production build прошли; авторизованный
   browser QA новых разделов подтверждает содержимое и отсутствие framework overlay.
+- Релиз опубликован коммитами `067fd44` и `603d317` в production deployment
+  `dpl_4nQEW2YfGp3kPjkChRhPT1qtJV5b`; alias, HTTP smoke и runtime error scan чистые.
 
 ## Полная локализация CRM — 2026-07-28
 

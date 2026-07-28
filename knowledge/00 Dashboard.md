@@ -12,7 +12,7 @@ tags: [fitcrm, operations]
 |---|---|
 | Версия package | `0.1.0` |
 | Окружение | Production + local; отдельные staging/preview не подтверждены |
-| Production | [fitcrm-three.vercel.app](https://fitcrm-three.vercel.app), состояние последнего deploy не проверено |
+| Production | [fitcrm-three.vercel.app](https://fitcrm-three.vercel.app), deployment `dpl_4nQEW2YfGp3kPjkChRhPT1qtJV5b` READY; smoke и error scan чистые |
 | Спринт | Production readiness и стабилизация |
 | Активная задача | [[Tasks/TASK-0006-pererabotat-ai-analitiku-po-dizain-sisteme]] |
 
@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
+- `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
 - `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
-- `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
-- `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

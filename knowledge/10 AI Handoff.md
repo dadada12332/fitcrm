@@ -31,6 +31,8 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
+- `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
 - `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
@@ -39,8 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 - `f12f58b` · 2026-07-28 · fix: soften retention queue divider
-- `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
-- `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

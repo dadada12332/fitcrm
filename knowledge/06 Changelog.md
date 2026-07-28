@@ -262,6 +262,8 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
+- `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
 - `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
@@ -290,6 +292,4 @@ tags: [zalkins, releases]
 - `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
-- `a7d8cb9` · 2026-07-24 · Align client profile layout
-- `31bb9b2` · 2026-07-24 · Redesign client profile actions
 <!-- AUTO:END changelog-candidates -->
