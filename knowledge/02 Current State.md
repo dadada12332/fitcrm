@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: e71d856 · 2026-07-27T18:29:14+05:00 · feat: refine Zalkins brand and mobile layout.
+- Последний commit: f12f58b · 2026-07-28T12:14:11+05:00 · fix: soften retention queue divider.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 97; последняя `20260727123000_rebrand_zalkins.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
 - `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
 - `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
-- `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
@@ -76,5 +76,5 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Production deploy, применённые миграции, регион Supabase, наличие провайдеров и точные пути из старых `FITCRM_*` документов.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-27 Asia/Tashkent
+2026-07-28 Asia/Tashkent
 <!-- AUTO:END updated-at -->

@@ -1,6 +1,6 @@
 ---
 type: dashboard
-updated: 2026-07-27
+updated: 2026-07-28
 tags: [fitcrm, operations]
 ---
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
 - `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
-- `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-27 Asia/Tashkent
+2026-07-28 Asia/Tashkent
 <!-- AUTO:END updated-at -->
