@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { cookies, headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { createServiceClient } from "@/lib/supabase/service"
-import { getPlatformAuth, logPlatformAction } from "@/lib/platform"
+import { logPlatformAction, requirePlatformPermission } from "@/lib/platform"
 import { getPlanByCode } from "@/lib/plans"
 
 function cookieDomain(host: string): string | undefined {
@@ -20,8 +20,7 @@ function cookieDomain(host: string): string | undefined {
 
 /** Войти в CRM клуба под режимом администратора платформы. */
 export async function impersonateClub(clubId: string) {
-  const auth = await getPlatformAuth()
-  if (!auth) throw new Error("forbidden")
+  await requirePlatformPermission("clubs.manage")
 
   const service = createServiceClient()
   const { data: club, error } = await service.from("clubs").select("name").eq("id", clubId).maybeSingle()
@@ -48,8 +47,7 @@ export async function impersonateClub(clubId: string) {
 }
 
 export async function extendTrial(clubId: string, days: number) {
-  const auth = await getPlatformAuth()
-  if (!auth) throw new Error("forbidden")
+  await requirePlatformPermission("clubs.manage")
   if (!Number.isInteger(days) || days < 1 || days > 365) return { error: "Срок должен быть от 1 до 365 дней" }
   const service = createServiceClient()
   const { data: club, error: clubError } = await service.from("clubs").select("trial_expires_at").eq("id", clubId).maybeSingle()
@@ -72,8 +70,7 @@ export async function extendTrial(clubId: string, days: number) {
 const ENUM_PLAN_CODES = ["trial", "starter", "standard", "business"]
 
 export async function changePlan(clubId: string, planCode: string) {
-  const auth = await getPlatformAuth()
-  if (!auth) throw new Error("forbidden")
+  await requirePlatformPermission("clubs.manage")
   const planRow = await getPlanByCode(planCode)
   if (!planRow) return { error: "Тариф не найден" }
   const service = createServiceClient()
@@ -101,8 +98,7 @@ export async function changePlan(clubId: string, planCode: string) {
 }
 
 export async function setClubStatus(clubId: string, status: "active" | "suspended") {
-  const auth = await getPlatformAuth()
-  if (!auth) throw new Error("forbidden")
+  await requirePlatformPermission("clubs.manage")
   const service = createServiceClient()
   const { data: updated, error } = await service.from("clubs").update({
     status,

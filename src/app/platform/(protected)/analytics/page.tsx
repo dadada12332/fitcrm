@@ -1,10 +1,11 @@
-import { getPlatformOverview, PLAN_LABELS } from "@/lib/platform"
+import { getPlatformDailyMetrics, getPlatformOverview, PLAN_LABELS } from "@/lib/platform"
 import { Panel, PageHeader, StatTile, fmtNum, fmtSum, PT } from "@/components/platform/parts"
+import { PlatformAnalyticsCharts } from "@/components/platform/PlatformAnalyticsCharts"
 
 export const dynamic = "force-dynamic"
 
 export default async function AnalyticsPage() {
-  const o = await getPlatformOverview()
+  const [o, history] = await Promise.all([getPlatformOverview(), getPlatformDailyMetrics(30)])
 
   const paidClubs = o.activeClubs
   const arpu = paidClubs > 0 ? o.mrr / paidClubs : 0
@@ -66,9 +67,17 @@ export default async function AnalyticsPage() {
         </Panel>
       </div>
 
+      <Panel className="mt-4 overflow-hidden">
+        <div className="border-b border-border px-4 py-3">
+          <span className="text-sm font-semibold text-foreground">Динамика за 30 дней</span>
+          <p className="mt-0.5 text-xs text-muted-foreground">Ежедневные снимки SaaS-метрик без подмены текущим срезом.</p>
+        </div>
+        <PlatformAnalyticsCharts data={history} />
+      </Panel>
+
       <p className="text-xs mt-4" style={{ color: PT.textMuted }}>
         MRR рассчитан по активным платным подпискам и зафиксированной цене каждого клуба.
-        Доля платных — текущий срез, а не конверсия когорты; полноценные conversion, retention, churn и LTV потребуют истории событий.
+        Доля платных — текущий срез. История MRR и активности фиксируется ежедневно; conversion, cohort retention, churn и LTV появятся после накопления достаточного окна.
       </p>
     </div>
   )

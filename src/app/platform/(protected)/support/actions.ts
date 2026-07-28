@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceClient } from "@/lib/supabase/service"
-import { getPlatformAuth, logPlatformAction } from "@/lib/platform"
+import { getPlatformAuth, logPlatformAction, requirePlatformPermission } from "@/lib/platform"
 import { revalidatePath } from "next/cache"
 
 export type PfStatus = "new" | "in_progress" | "needs_info" | "resolved" | "closed"
@@ -156,8 +156,7 @@ export async function pfGetTicketAction(id: string): Promise<{ ticket: PfTicketD
 
 // ── Ответ оператора ────────────────────────────────────────────────────────
 export async function pfReplyAction(ticketId: string, body: string, visibility: "public" | "internal" = "public"): Promise<{ ok: boolean; error?: string }> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { ok: false, error: "Нет доступа" }
+  const auth = await requirePlatformPermission("support.manage")
   const text = body.trim()
   if (!text) return { ok: false, error: "Пустое сообщение" }
   const db = createServiceClient()
@@ -196,8 +195,7 @@ const STATUS_LABEL: Record<PfStatus, string> = {
 }
 
 export async function pfSetStatusAction(ticketId: string, status: PfStatus): Promise<{ ok: boolean; error?: string }> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { ok: false }
+  await requirePlatformPermission("support.manage")
   const db = createServiceClient()
 
   const { data: ticket, error: ticketError } = await db.from("support_tickets").select("club_id").eq("id", ticketId).maybeSingle()

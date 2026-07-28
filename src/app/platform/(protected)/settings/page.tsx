@@ -1,10 +1,17 @@
-import { getPlatformAuth } from "@/lib/platform"
-import { Panel, PageHeader, PT } from "@/components/platform/parts"
+import { notFound } from "next/navigation"
+import { canPlatform, getPlatformAdmins, getPlatformAuth, getPlatformOperationalSettings } from "@/lib/platform"
+import { Panel, PageHeader } from "@/components/platform/parts"
+import { PlatformAdminsManager } from "@/components/platform/PlatformAdminsManager"
+import { PlatformOperationalSettings } from "@/components/platform/PlatformOperationalSettings"
 
 export const dynamic = "force-dynamic"
 
 export default async function SettingsPage() {
   const auth = await getPlatformAuth()
+  if (!auth || !canPlatform(auth, "settings.manage")) notFound()
+  const [admins, operational] = auth?.role === "super_admin"
+    ? await Promise.all([getPlatformAdmins(), getPlatformOperationalSettings()])
+    : [[], null]
 
   const rows = [
     { label: "Ваш email", value: auth?.email ?? "—" },
@@ -14,24 +21,43 @@ export default async function SettingsPage() {
   ]
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[800px] mx-auto">
-      <PageHeader title="Настройки платформы" subtitle="Параметры и информация об окружении" />
+    <div className="mx-auto max-w-[1000px] p-4 sm:p-6 lg:p-8">
+      <PageHeader title="Настройки платформы" subtitle="Доступ команды и параметры окружения" />
       <Panel>
-        <div className="px-4 h-12 flex items-center" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
+        <div className="flex h-12 items-center border-b border-border px-4">
           <span className="text-sm font-semibold text-foreground">Аккаунт и окружение</span>
         </div>
         <div className="p-2">
           {rows.map((r, i) => (
-            <div key={i} className="flex items-center justify-between px-2.5 py-3" style={{ borderBottom: i < rows.length - 1 ? `1px solid ${PT.panelBorder}` : "none" }}>
-              <span className="text-sm" style={{ color: PT.textMuted }}>{r.label}</span>
+            <div key={i} className={`flex items-center justify-between px-2.5 py-3 ${i < rows.length - 1 ? "border-b border-border" : ""}`}>
+              <span className="text-sm text-muted-foreground">{r.label}</span>
               <span className="text-sm text-foreground">{r.value}</span>
             </div>
           ))}
         </div>
       </Panel>
-      <p className="text-xs mt-4" style={{ color: PT.textMuted }}>
-        Управление списком администраторов платформы, тарифными ценами и глобальными фиче-флагами будет добавлено здесь.
-      </p>
+      {auth?.role === "super_admin" && (
+        <>
+        <Panel className="mt-4">
+          <div className="border-b border-border px-4 py-3">
+            <p className="text-sm font-semibold text-foreground">Администраторы платформы</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Назначение ролей и отзыв доступа к Platform.</p>
+          </div>
+          <div className="p-4">
+            <PlatformAdminsManager admins={admins} currentUserId={auth.userId} />
+          </div>
+        </Panel>
+        {operational && (
+          <Panel className="mt-4">
+            <div className="border-b border-border px-4 py-3">
+              <p className="text-sm font-semibold text-foreground">Операционное управление</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Регистрация и единое системное сообщение для всех клубов.</p>
+            </div>
+            <div className="p-4"><PlatformOperationalSettings initial={operational} /></div>
+          </Panel>
+        )}
+        </>
+      )}
     </div>
   )
 }

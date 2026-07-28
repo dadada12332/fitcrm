@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache"
 import { createServiceClient } from "@/lib/supabase/service"
-import { getPlatformAuth, logPlatformAction } from "@/lib/platform"
+import { logPlatformAction, requirePlatformPermission } from "@/lib/platform"
 
 /** Подтвердить заявку: активировать тариф клуба на N месяцев. */
 export async function approveBillingRequest(id: string): Promise<{ error?: string }> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "forbidden" }
+  const auth = await requirePlatformPermission("billing.manage")
   const service = createServiceClient()
 
   const { data, error } = await service.rpc("platform_approve_billing_request", {
@@ -21,6 +20,11 @@ export async function approveBillingRequest(id: string): Promise<{ error?: strin
     }
     if (error.message.includes("billing_plan_not_found")) return { error: "Тариф заявки не найден или архивирован" }
     if (error.message.includes("billing_club_not_found")) return { error: "Клуб заявки не найден" }
+    if (error.message.includes("promo_inactive")) return { error: "Промокод заявки уже отключён" }
+    if (error.message.includes("promo_not_started")) return { error: "Период действия промокода ещё не начался" }
+    if (error.message.includes("promo_expired")) return { error: "Срок действия промокода истёк" }
+    if (error.message.includes("promo_exhausted")) return { error: "Лимит использований промокода исчерпан" }
+    if (error.message.includes("promo_plan_mismatch")) return { error: "Промокод не действует для выбранного тарифа" }
     return { error: "Не удалось активировать подписку" }
   }
 
@@ -35,8 +39,7 @@ export async function approveBillingRequest(id: string): Promise<{ error?: strin
 }
 
 export async function rejectBillingRequest(id: string): Promise<{ error?: string }> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "forbidden" }
+  const auth = await requirePlatformPermission("billing.manage")
   const service = createServiceClient()
   const { data: req } = await service.from("platform_billing_requests").select("club_id, status").eq("id", id).maybeSingle()
   if (!req || req.status !== "pending") return { error: "Заявка уже обработана" }

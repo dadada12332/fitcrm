@@ -30,7 +30,7 @@ async function canInviteRole(clubId: string, actorRole: string, actorPermissions
 }
 
 /** Заявка клуба на оформление/продление тарифа. Подтверждает админ платформы. */
-export async function requestPlanAction(plan: string, months = 1): Promise<SaveResult> {
+export async function requestPlanAction(plan: string, months = 1, promoCode?: string): Promise<SaveResult> {
   // Цена берётся из БД (раздел «Тарифы» в Platform Admin) — без хардкода.
   const planRow = await getPlanByCode(plan)
   if (!planRow || planRow.is_trial || planRow.is_archived) return { error: "Неизвестный тариф" }
@@ -41,6 +41,28 @@ export async function requestPlanAction(plan: string, months = 1): Promise<SaveR
 
   const { data: { user } } = await supabase.auth.getUser()
   const service = createServiceClient()
+  const normalizedMonths = Math.max(1, Math.min(12, Math.floor(months)))
+  const baseAmount = planRow.price * normalizedMonths
+  type PromoQuote = { id: string; code: string; discount_amount: number; final_amount: number }
+  let promo: PromoQuote | null = null
+  if (promoCode?.trim()) {
+    const { data, error: promoError } = await service.rpc("platform_quote_promo", {
+      p_code: promoCode.trim(),
+      p_plan: plan,
+      p_months: normalizedMonths,
+      p_base_amount: baseAmount,
+    })
+    if (promoError) {
+      const message = promoError.message
+      if (message.includes("promo_not_found")) return { error: "Промокод не найден" }
+      if (message.includes("promo_inactive") || message.includes("promo_expired")) return { error: "Промокод больше не действует" }
+      if (message.includes("promo_not_started")) return { error: "Промокод ещё не начал действовать" }
+      if (message.includes("promo_exhausted")) return { error: "Лимит использований промокода исчерпан" }
+      if (message.includes("promo_plan_mismatch")) return { error: "Промокод не действует на этот тариф" }
+      return { error: "Не удалось проверить промокод" }
+    }
+    promo = data as PromoQuote
+  }
 
   // Одна активная заявка на клуб: старые pending отменяем.
   await service.from("platform_billing_requests")
@@ -50,8 +72,11 @@ export async function requestPlanAction(plan: string, months = 1): Promise<SaveR
   const { error } = await service.from("platform_billing_requests").insert({
     club_id: club.clubId,
     plan,
-    months: Math.max(1, months),
-    amount: planRow.price * Math.max(1, months),
+    months: normalizedMonths,
+    amount: promo?.final_amount ?? baseAmount,
+    promo_code_id: promo?.id ?? null,
+    promo_code: promo?.code ?? null,
+    discount_amount: promo?.discount_amount ?? 0,
     status: "pending",
     requested_by: user?.id ?? null,
     requested_email: user?.email ?? null,

@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import { fetchStatement } from "@/lib/acquiring/fetchers"
 import { ingestTransactions, runMatching } from "@/lib/reconcile"
+import { withPlatformCronRun } from "@/lib/platform-cron"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -14,6 +15,7 @@ export async function GET(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  return withPlatformCronRun("reconcile", async () => {
   const s = createServiceClient()
   const { data: creds } = await s.from("club_payment_credentials")
     .select("club_id, provider").eq("enabled", true)
@@ -38,4 +40,5 @@ export async function GET(req: Request) {
   }
 
   return Response.json({ ok: true, clubs: clubs.size, ingested })
+  })
 }

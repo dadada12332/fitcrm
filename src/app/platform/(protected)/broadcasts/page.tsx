@@ -1,14 +1,18 @@
-import { Send } from "lucide-react"
-import { ComingSoon } from "@/components/platform/parts"
+import { notFound } from "next/navigation"
+import { canPlatform, getPlatformAuth, getPlatformBroadcasts } from "@/lib/platform"
+import { PageHeader } from "@/components/platform/parts"
+import { PlatformBroadcastManager } from "@/components/platform/PlatformBroadcastManager"
 
 export const dynamic = "force-dynamic"
 
-export default function BroadcastsPage() {
+export default async function BroadcastsPage() {
+  const auth = await getPlatformAuth()
+  if (!auth || !canPlatform(auth, "broadcasts.manage")) notFound()
+  const broadcasts = await getPlatformBroadcasts()
   return (
-    <ComingSoon
-      title="Массовые рассылки"
-      icon={<Send className="w-7 h-7" style={{ color: "var(--brand)" }} />}
-      description="Отправка сообщений всем клубам или по сегменту: только Trial, только Premium, только просроченные, только Узбекистан. Интерфейс сегментации в разработке."
-    />
+    <div className="mx-auto max-w-[1200px] p-4 sm:p-6 lg:p-8">
+      <PageHeader title="Рассылки" subtitle="Сегменты владельцев, отложенная отправка и прозрачная статистика доставки" />
+      <PlatformBroadcastManager broadcasts={broadcasts} />
+    </div>
   )
 }

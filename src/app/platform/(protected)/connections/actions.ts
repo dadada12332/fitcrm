@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getPlatformAuth, logPlatformAction } from "@/lib/platform"
+import { logPlatformAction, requirePlatformPermission } from "@/lib/platform"
 import { createServiceClient } from "@/lib/supabase/service"
 import { encryptSecret, lastN } from "@/lib/crypto"
 import type { Provider } from "@/lib/payments-connect"
@@ -45,8 +45,7 @@ async function verifyRequest(requestId: string, clubId: string, provider?: Provi
 export async function activateConnectionAction(
   requestId: string, clubId: string, provider: Provider, creds: ClickCreds | PaymeCreds,
 ): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  const auth = await requirePlatformPermission("connections.manage")
 
   // Минимальная валидация обязательных секретов.
   if (provider === "click") {
@@ -92,8 +91,7 @@ export async function activateConnectionAction(
 
 /** Отклонить заявку. */
 export async function rejectConnectionAction(requestId: string, clubId: string): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  const auth = await requirePlatformPermission("connections.manage")
   const service = createServiceClient()
   const verified = await verifyRequest(requestId, clubId)
   if ("error" in verified) return { error: verified.error }
@@ -113,8 +111,7 @@ export async function rejectConnectionAction(requestId: string, clubId: string):
 
 /** Отключить приём оплат (выключить креды + пометить заявку отменённой). */
 export async function disableConnectionAction(requestId: string, clubId: string, provider: Provider): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  const auth = await requirePlatformPermission("connections.manage")
   const service = createServiceClient()
   const verified = await verifyRequest(requestId, clubId, provider, ["active"])
   if ("error" in verified) return { error: verified.error }

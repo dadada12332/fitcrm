@@ -36,10 +36,41 @@ export const PLAN_LABELS: Record<string, string> = {
   business: "Business",
 }
 
-// Супер-админ по email — резервный доступ, если колонка platform_role ещё не создана.
-const SUPER_ADMIN_EMAILS = ["opadasebe@gmail.com"]
-
 export type PlatformRole = "platform_admin" | "super_admin"
+
+export type PlatformPermission =
+  | "platform.view"
+  | "clubs.manage"
+  | "billing.manage"
+  | "connections.manage"
+  | "support.manage"
+  | "plans.manage"
+  | "promos.manage"
+  | "broadcasts.manage"
+  | "admins.manage"
+  | "settings.manage"
+
+const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRole, ReadonlySet<PlatformPermission>> = {
+  platform_admin: new Set([
+    "platform.view",
+    "clubs.manage",
+    "billing.manage",
+    "connections.manage",
+    "support.manage",
+  ]),
+  super_admin: new Set([
+    "platform.view",
+    "clubs.manage",
+    "billing.manage",
+    "connections.manage",
+    "support.manage",
+    "plans.manage",
+    "promos.manage",
+    "broadcasts.manage",
+    "admins.manage",
+    "settings.manage",
+  ]),
+}
 
 export type PlatformAuth = {
   userId: string
@@ -47,6 +78,16 @@ export type PlatformAuth = {
   fullName: string | null
   role: PlatformRole
 } | null
+
+export function canPlatform(auth: NonNullable<PlatformAuth>, permission: PlatformPermission): boolean {
+  return PLATFORM_ROLE_PERMISSIONS[auth.role].has(permission)
+}
+
+export async function requirePlatformPermission(permission: PlatformPermission): Promise<NonNullable<PlatformAuth>> {
+  const auth = await getPlatformAuth()
+  if (!auth || !canPlatform(auth, permission)) throw new Error("forbidden")
+  return auth
+}
 
 /** Проверка: текущий пользователь — админ платформы. Кешируется на запрос. */
 export const getPlatformAuth = cache(async (): Promise<PlatformAuth> => {
@@ -56,8 +97,6 @@ export const getPlatformAuth = cache(async (): Promise<PlatformAuth> => {
 
   const service = createServiceClient()
 
-  // Пробуем прочитать platform_role. Если колонки нет (миграция не применена) —
-  // падаем на резервный список email.
   let role: PlatformRole | null = null
   let fullName: string | null = null
   try {
@@ -71,13 +110,7 @@ export const getPlatformAuth = cache(async (): Promise<PlatformAuth> => {
     if (data?.platform_role === "platform_admin" || data?.platform_role === "super_admin") {
       role = data.platform_role
     }
-  } catch {
-    // колонка platform_role отсутствует — резервная проверка по email
-  }
-
-  if (!role && user.email && SUPER_ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-    role = "super_admin"
-  }
+  } catch {}
 
   if (!role) return null
   return { userId: user.id, email: user.email ?? "", fullName, role }
@@ -582,6 +615,178 @@ export async function getUsersList(opts: { search?: string; page?: number; pageS
   }
 }
 
+export async function getPlatformAdmins(): Promise<PlatformUserRow[]> {
+  const service = createServiceClient()
+  const { data, error } = await service
+    .from("users")
+    .select("id, email, full_name, platform_role, created_at")
+    .not("platform_role", "is", null)
+    .order("platform_role", { ascending: false })
+    .order("created_at", { ascending: true })
+  if (error) throw error
+
+  return (data ?? []).map((u) => ({
+    id: u.id,
+    email: u.email,
+    fullName: u.full_name,
+    platformRole: u.platform_role,
+    createdAt: u.created_at,
+    clubs: [],
+  }))
+}
+
+export async function findPlatformUserByEmail(email: string): Promise<PlatformUserRow | null> {
+  const service = createServiceClient()
+  const normalized = email.trim().toLowerCase()
+  const { data, error } = await service
+    .from("users")
+    .select("id, email, full_name, platform_role, created_at")
+    .ilike("email", normalized)
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  if (!data || data.email?.toLowerCase() !== normalized) return null
+  return {
+    id: data.id,
+    email: data.email,
+    fullName: data.full_name,
+    platformRole: data.platform_role,
+    createdAt: data.created_at,
+    clubs: [],
+  }
+}
+
+export type PlatformPromoRow = {
+  id: string
+  code: string
+  description: string
+  discountPct: number | null
+  freeDays: number | null
+  maxUses: number | null
+  usedCount: number
+  startsAt: string | null
+  expiresAt: string | null
+  planCodes: string[]
+  isActive: boolean
+  createdAt: string
+}
+
+export async function getPlatformPromoCodes(): Promise<PlatformPromoRow[]> {
+  const service = createServiceClient()
+  const { data, error } = await service
+    .from("platform_promo_codes")
+    .select("id, code, description, discount_pct, free_days, max_uses, used_count, starts_at, expires_at, plan_codes, is_active, created_at")
+    .order("created_at", { ascending: false })
+  if (error) throw error
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    code: row.code,
+    description: row.description,
+    discountPct: row.discount_pct,
+    freeDays: row.free_days,
+    maxUses: row.max_uses,
+    usedCount: row.used_count,
+    startsAt: row.starts_at,
+    expiresAt: row.expires_at,
+    planCodes: row.plan_codes ?? [],
+    isActive: row.is_active,
+    createdAt: row.created_at,
+  }))
+}
+
+export type PlatformBroadcastRow = {
+  id: string
+  title: string
+  body: string
+  audience: { kind: string; value?: string }
+  status: string
+  scheduledAt: string | null
+  recipientCount: number
+  deliveredCount: number
+  failedCount: number
+  createdAt: string
+  sentAt: string | null
+}
+
+export async function getPlatformBroadcasts(): Promise<PlatformBroadcastRow[]> {
+  const service = createServiceClient()
+  const { data, error } = await service
+    .from("platform_broadcasts")
+    .select("id, title, body, audience, status, scheduled_at, recipient_count, delivered_count, failed_count, created_at, sent_at")
+    .order("created_at", { ascending: false })
+    .limit(100)
+  if (error) throw error
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    body: row.body,
+    audience: (row.audience ?? { kind: "all" }) as { kind: string; value?: string },
+    status: row.status,
+    scheduledAt: row.scheduled_at,
+    recipientCount: row.recipient_count,
+    deliveredCount: row.delivered_count,
+    failedCount: row.failed_count,
+    createdAt: row.created_at,
+    sentAt: row.sent_at,
+  }))
+}
+
+export type PlatformDailyMetric = {
+  date: string
+  totalClubs: number
+  paidClubs: number
+  trialClubs: number
+  newClubs: number
+  totalClients: number
+  visits: number
+  payments: number
+  revenue: number
+  mrr: number
+}
+
+export async function getPlatformDailyMetrics(days = 30): Promise<PlatformDailyMetric[]> {
+  const service = createServiceClient()
+  const today = new Date().toISOString().slice(0, 10)
+  await service.rpc("platform_capture_daily_metrics", { p_date: today })
+  const since = new Date(Date.now() - Math.max(1, days - 1) * 86_400_000).toISOString().slice(0, 10)
+  const { data, error } = await service.from("platform_daily_metrics")
+    .select("metric_date, total_clubs, paid_clubs, trial_clubs, new_clubs, total_clients, visits, payments, revenue, mrr")
+    .gte("metric_date", since)
+    .order("metric_date", { ascending: true })
+  if (error) throw error
+  return (data ?? []).map((row) => ({
+    date: row.metric_date,
+    totalClubs: row.total_clubs,
+    paidClubs: row.paid_clubs,
+    trialClubs: row.trial_clubs,
+    newClubs: row.new_clubs,
+    totalClients: row.total_clients,
+    visits: row.visits,
+    payments: row.payments,
+    revenue: Number(row.revenue),
+    mrr: Number(row.mrr),
+  }))
+}
+
+export type PlatformOperationalSettings = {
+  registrationEnabled: boolean
+  maintenanceMessage: string
+  updatedAt: string | null
+}
+
+export async function getPlatformOperationalSettings(): Promise<PlatformOperationalSettings> {
+  const service = createServiceClient()
+  const { data, error } = await service.from("platform_operational_settings")
+    .select("registration_enabled, maintenance_message, updated_at")
+    .eq("id", 1).maybeSingle()
+  if (error || !data) return { registrationEnabled: true, maintenanceMessage: "", updatedAt: null }
+  return {
+    registrationEnabled: data.registration_enabled,
+    maintenanceMessage: data.maintenance_message ?? "",
+    updatedAt: data.updated_at,
+  }
+}
+
 // ── Платежи платформы (кросс-клубные) ─────────────────────────
 export type PlatformPaymentRow = {
   id: string
@@ -647,6 +852,8 @@ export type BillingRequest = {
   plan: string
   months: number
   amount: number | null
+  promoCode: string | null
+  discountAmount: number
   status: string
   requestedEmail: string | null
   createdAt: string
@@ -658,16 +865,18 @@ export async function getBillingRequests(): Promise<{ pending: BillingRequest[];
   try {
     const { data } = await service
       .from("platform_billing_requests")
-      .select("id, club_id, plan, months, amount, status, requested_email, created_at, resolved_at, clubs(name)")
+      .select("id, club_id, plan, months, amount, promo_code, discount_amount, status, requested_email, created_at, resolved_at, clubs(name)")
       .order("created_at", { ascending: false })
       .limit(100)
     const rows = ((data ?? []) as unknown as {
       id: string; club_id: string; plan: string; months: number; amount: number | null;
+      promo_code: string | null; discount_amount: number | null;
       status: string; requested_email: string | null; created_at: string; resolved_at: string | null;
       clubs: { name: string } | null
     }[]).map((r) => ({
       id: r.id, clubId: r.club_id, clubName: r.clubs?.name ?? "—", plan: r.plan, months: r.months,
-      amount: r.amount, status: r.status, requestedEmail: r.requested_email, createdAt: r.created_at, resolvedAt: r.resolved_at,
+      amount: r.amount, promoCode: r.promo_code, discountAmount: Number(r.discount_amount ?? 0),
+      status: r.status, requestedEmail: r.requested_email, createdAt: r.created_at, resolvedAt: r.resolved_at,
     }))
     return {
       pending: rows.filter((r) => r.status === "pending"),

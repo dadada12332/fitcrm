@@ -971,13 +971,14 @@ function PlanSection({ club }: { club: ClubData }) {
   const router = useRouter()
   const [pending, start] = useTransition()
   const [months, setMonths] = useState(1)
+  const [promoCode, setPromoCode] = useState("")
   const [err, setErr] = useState<string | null>(null)
   const req = club.pendingRequest
 
   function requestPlan(p: string) {
     setErr(null)
     start(async () => {
-      const res = await requestPlanAction(p, months)
+      const res = await requestPlanAction(p, months, promoCode)
       if (res.error) { setErr(res.error); return }
       router.refresh()
     })
@@ -1102,6 +1103,19 @@ function PlanSection({ club }: { club: ClubData }) {
 
         <CardContent className="py-4">
           {err && <p className="mb-4 text-sm text-destructive">{err}</p>}
+          <div className="mb-4 flex max-w-md items-end gap-2">
+            <label className="min-w-0 flex-1 space-y-1.5 text-xs font-medium text-foreground">
+              Промокод
+              <Input
+                value={promoCode}
+                onChange={(value) => setPromoCode(value.toUpperCase().slice(0, 32))}
+                placeholder="Если есть"
+              />
+            </label>
+            {promoCode && (
+              <UiButton type="button" variant="ghost" onClick={() => setPromoCode("")}>Очистить</UiButton>
+            )}
+          </div>
 
           {paidPlans.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">Тарифы временно недоступны</p>

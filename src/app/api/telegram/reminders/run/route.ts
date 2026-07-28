@@ -1,6 +1,7 @@
 import { Bot, InlineKeyboard } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
+import { withPlatformCronRun } from "@/lib/platform-cron"
 
 export const runtime = "nodejs"
 
@@ -29,6 +30,7 @@ export async function GET(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  return withPlatformCronRun("telegram_reminders", async () => {
   const supabase = createServiceClient()
   const { data: integrations, error: integrationsError } = await supabase
     .from("telegram_integrations")
@@ -218,4 +220,5 @@ export async function GET(req: Request) {
   }
 
   return Response.json({ ok: true, sent, failed, skipped })
+  })
 }

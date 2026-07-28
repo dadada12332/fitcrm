@@ -2,6 +2,7 @@ import { Bot, InlineKeyboard } from "grammy"
 import { formatClubMoney, localeTag, normalizeAppLocale, type AppLocale } from "@/lib/app-locale"
 import { createServiceClient } from "@/lib/supabase/service"
 import { hourInTimeZone, shiftDateKey, zonedDayRange } from "@/lib/timezone"
+import { withPlatformCronRun } from "@/lib/platform-cron"
 
 type ClubSettings = {
   timezone?: string
@@ -114,6 +115,7 @@ export async function GET(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  return withPlatformCronRun("telegram_daily_report", async () => {
   const supabase = createServiceClient()
   const now = new Date()
   const [{ data: clubs }, { data: integrations }, { data: recipients }] = await Promise.all([
@@ -273,4 +275,5 @@ export async function GET(req: Request) {
   }
 
   return Response.json({ ok: true, clubs: eligibleClubs, sent })
+  })
 }

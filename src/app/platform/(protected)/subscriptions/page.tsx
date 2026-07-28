@@ -47,6 +47,7 @@ export default async function SubscriptionsPage() {
                   </div>
                   <p className="text-[11px] mt-0.5" style={{ color: PT.textMuted }}>
                     {r.requestedEmail ?? "—"} · {timeAgo(r.createdAt)}
+                    {r.promoCode ? ` · промокод ${r.promoCode}${r.discountAmount > 0 ? ` (−${fmtSum(r.discountAmount)})` : ""}` : ""}
                   </p>
                 </div>
                 <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">

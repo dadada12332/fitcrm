@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ShieldAlert } from "lucide-react"
-import { getPlatformAuth, platformBase } from "@/lib/platform"
+import { canPlatform, getPlatformAuth, platformBase } from "@/lib/platform"
 import { createServiceClient } from "@/lib/supabase/service"
 import { PlatformShell, type NavItem } from "@/components/platform/PlatformShell"
 
@@ -45,16 +45,16 @@ export default async function PlatformProtectedLayout({ children }: { children: 
     { label: "Аналитика",      href: `${base}/analytics`,     icon: "BarChart3", section: "Обзор" },
     { label: "Клубы",          href: `${base}/clubs`,         icon: "Building2", section: "Управление" },
     { label: "Пользователи",   href: `${base}/users`,         icon: "Users", section: "Управление" },
-    { label: "Тарифы",         href: `${base}/plans`,         icon: "Tag", section: "Управление" },
+    ...(canPlatform(auth, "plans.manage") ? [{ label: "Тарифы", href: `${base}/plans`, icon: "Tag", section: "Управление" }] : []),
     { label: "Подписки",       href: `${base}/subscriptions`, icon: "CreditCard", section: "Финансы" },
     { label: "Приём оплат",    href: `${base}/connections`,   icon: "Plug", section: "Финансы" },
     { label: "Платежи клубов", href: `${base}/payments`,      icon: "Receipt", section: "Финансы" },
     { label: "Мониторинг",     href: `${base}/monitoring`,    icon: "Activity", section: "Система" },
     { label: "Логи",           href: `${base}/logs`,          icon: "ScrollText", section: "Система" },
     { label: "Поддержка",      href: `${base}/support`,       icon: "LifeBuoy", badge: supportAttention || undefined, section: "Коммуникации" },
-    { label: "Рассылки",       href: `${base}/broadcasts`,    icon: "Send", badgeLabel: "Скоро", section: "Коммуникации" },
-    { label: "Промокоды",      href: `${base}/promo`,         icon: "Ticket", badgeLabel: "Скоро", section: "Коммуникации" },
-    { label: "Настройки",      href: `${base}/settings`,      icon: "Settings", section: "Настройки" },
+    ...(canPlatform(auth, "broadcasts.manage") ? [{ label: "Рассылки", href: `${base}/broadcasts`, icon: "Send", section: "Коммуникации" }] : []),
+    ...(canPlatform(auth, "promos.manage") ? [{ label: "Промокоды", href: `${base}/promo`, icon: "Ticket", section: "Коммуникации" }] : []),
+    ...(canPlatform(auth, "settings.manage") ? [{ label: "Настройки", href: `${base}/settings`, icon: "Settings", section: "Настройки" }] : []),
   ]
 
   return (

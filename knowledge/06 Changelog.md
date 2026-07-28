@@ -39,6 +39,11 @@ tags: [zalkins, releases]
 
 ### Added
 
+- Platform Admin получил рабочее управление администраторами, granular роли
+  `platform_admin`/`super_admin`, полный lifecycle промокодов, сегментированные Telegram-
+  рассылки владельцам, историю Cron и service checks, ежедневные исторические SaaS-метрики,
+  отключение новых регистраций и системное сообщение для всей CRM.
+
 - Новый бренд Zalkins: единый строчный wordmark без отдельной эмблемы, синяя наклонная точка
   над `i`, компактная строчная `z` для favicon/app icon и общие компоненты логотипа для
   landing, auth, onboarding, CRM sidebar и Platform Admin.
@@ -257,6 +262,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
 - `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
@@ -286,5 +292,4 @@ tags: [zalkins, releases]
 - `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 - `a7d8cb9` · 2026-07-24 · Align client profile layout
 - `31bb9b2` · 2026-07-24 · Redesign client profile actions
-- `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
 <!-- AUTO:END changelog-candidates -->

@@ -77,7 +77,7 @@ function PasswordField({ label, name, placeholder }: { label: string; name: stri
   )
 }
 
-export function RegisterForm() {
+export function RegisterForm({ registrationPaused = false }: { registrationPaused?: boolean }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(signUpWithClub, {})
   const [agreed, setAgreed] = useState(false)
 
@@ -132,6 +132,11 @@ export function RegisterForm() {
           </div>
 
           <form action={action} autoComplete="off" className="flex flex-col gap-5" onKeyDown={(e) => { if (e.key === "Enter" && !agreed) e.preventDefault() }}>
+            {registrationPaused && (
+              <div role="alert" className="rounded-lg border border-border bg-muted/70 px-3 py-2.5 text-sm text-foreground">
+                Регистрация временно приостановлена. Попробуйте позже или обратитесь в поддержку.
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <Field label="Email" name="email" type="email" placeholder="you@example.com" autoFocus required />
               <PasswordField label="Пароль" name="password" />

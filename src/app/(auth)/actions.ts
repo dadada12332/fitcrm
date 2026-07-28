@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { LEGAL_VERSION } from "@/lib/legal"
+import { getPlatformOperationalSettings } from "@/lib/platform"
 
 export type AuthState = { error?: string; message?: string }
 
@@ -44,6 +45,10 @@ export async function resolvePostLoginRedirect(userId: string, client?: AuthClie
 
 /* ── Register owner + create club ── */
 export async function signUpWithClub(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const operational = await getPlatformOperationalSettings()
+  if (!operational.registrationEnabled) {
+    return { error: "Регистрация временно приостановлена. Попробуйте позже или обратитесь в поддержку" }
+  }
   const email = String(formData.get("email") ?? "").trim()
   const password = String(formData.get("password") ?? "")
   const confirmPassword = String(formData.get("confirmPassword") ?? "")
@@ -112,6 +117,10 @@ export async function signInWithGoogle(formData?: FormData) {
   const next = formData?.get("next") as string | undefined
   const acceptedLegal = formData?.get("acceptedLegal") === "on"
   if (acceptedLegal) {
+    const operational = await getPlatformOperationalSettings()
+    if (!operational.registrationEnabled) {
+      redirect("/register?error=registration_paused")
+    }
     const acceptedAt = new Date().toISOString()
     const cookieStore = await cookies()
     cookieStore.set("fitcrm_pending_legal", `${LEGAL_VERSION}|${acceptedAt}`, {

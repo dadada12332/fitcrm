@@ -1,10 +1,14 @@
 import { getPlans } from "@/lib/plans"
+import { notFound } from "next/navigation"
+import { canPlatform, getPlatformAuth } from "@/lib/platform"
 import { PageHeader } from "@/components/platform/parts"
 import { PlansManager } from "@/components/platform/PlansManager"
 
 export const dynamic = "force-dynamic"
 
 export default async function PlansPage() {
+  const auth = await getPlatformAuth()
+  if (!auth || !canPlatform(auth, "plans.manage")) notFound()
   const plans = await getPlans({ includeArchived: true })
   const active = plans.filter((p) => !p.is_archived).length
 

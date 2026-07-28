@@ -73,7 +73,33 @@ export default async function MonitoringPage() {
         })}
       </div>
 
-      <p className="mt-4 text-xs text-muted-foreground">Для подтверждённого аптайма Vercel, Telegram, AI и Cron требуется внешняя телеметрия и история запусков.</p>
+      <Panel className="mt-4 overflow-hidden">
+        <div className="border-b border-border px-4 py-3">
+          <p className="text-sm font-semibold text-foreground">Последние запуски Cron</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Фактический статус фоновых задач, а не только наличие расписания.</p>
+        </div>
+        {status.cronRuns.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">История появится после первого запуска задач.</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {status.cronRuns.map((run) => (
+              <div key={run.jobKey} className="grid gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_120px_170px] sm:items-center">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">{run.jobKey}</p>
+                  {run.errorMessage && <p className="mt-0.5 truncate text-xs text-destructive">{run.errorMessage}</p>}
+                </div>
+                <span className={cn("text-xs font-medium", run.status === "success" ? "text-chart-2" : run.status === "failed" ? "text-destructive" : "text-chart-3")}>
+                  {run.status === "success" ? "Успешно" : run.status === "failed" ? "Ошибка" : "Выполняется"}
+                  {run.durationMs != null ? ` · ${run.durationMs} ms` : ""}
+                </span>
+                <span className="text-xs text-muted-foreground sm:text-right">{new Date(run.startedAt).toLocaleString("ru-RU")}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
+
+      <p className="mt-4 text-xs text-muted-foreground">AI отмечается как настроенный без расходующего quota-запроса. Vercel требует отдельной интеграции Observability для независимого SLA.</p>
     </div>
   )
 }

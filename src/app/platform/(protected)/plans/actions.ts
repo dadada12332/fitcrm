@@ -2,7 +2,7 @@
 
 import { sanitizeSearchTerm } from "@/lib/search"
 import { revalidatePath } from "next/cache"
-import { getPlatformAuth } from "@/lib/platform"
+import { requirePlatformPermission } from "@/lib/platform"
 import { createServiceClient } from "@/lib/supabase/service"
 
 export type PlanPayload = {
@@ -52,8 +52,7 @@ async function logChange(service: any, planId: string, admin: { userId: string; 
 
 /** Создать пустой тариф (далее редактируется в drawer). */
 export async function createPlanAction(): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  const auth = await requirePlatformPermission("plans.manage")
   const service = createServiceClient()
 
   // Уникальные code/slug.
@@ -87,8 +86,7 @@ export async function createPlanAction(): Promise<Result> {
  *   'all'      — все клубы этого тарифа переходят на новую цену (снимаем фиксацию).
  */
 export async function savePlanAction(planId: string, p: PlanPayload, priceApplyMode?: "new_only" | "all"): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  const auth = await requirePlatformPermission("plans.manage")
   if (!p.name.trim()) return { error: "Название обязательно" }
   if (!p.code.trim()) return { error: "Код тарифа обязателен" }
   const service = createServiceClient()
@@ -166,8 +164,7 @@ export async function savePlanAction(planId: string, p: PlanPayload, priceApplyM
 
 /** Архивировать / вернуть из архива. */
 export async function archivePlanAction(planId: string, archived: boolean): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  const auth = await requirePlatformPermission("plans.manage")
   const service = createServiceClient()
   const { error } = await service.from("plans").update({ is_archived: archived, is_active: archived ? false : true, updated_at: new Date().toISOString() }).eq("id", planId)
   if (error) return { error: error.message }
@@ -178,8 +175,7 @@ export async function archivePlanAction(planId: string, archived: boolean): Prom
 
 /** Дублировать тариф со всеми фичами/лимитами/разделами. */
 export async function duplicatePlanAction(planId: string): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  const auth = await requirePlatformPermission("plans.manage")
   const service = createServiceClient()
   const { data: src } = await service.from("plans").select("*").eq("id", planId).single()
   if (!src) return { error: "Тариф не найден" }
@@ -220,8 +216,7 @@ export type PlanChangeLog = {
 
 /** История изменений тарифа. */
 export async function loadPlanHistoryAction(planId: string): Promise<PlanChangeLog[]> {
-  const auth = await getPlatformAuth()
-  if (!auth) return []
+  await requirePlatformPermission("plans.manage")
   const service = createServiceClient()
   const { data } = await service.from("plan_change_logs")
     .select("id, action, field, old_value, new_value, admin_email, created_at")
@@ -231,8 +226,7 @@ export async function loadPlanHistoryAction(planId: string): Promise<PlanChangeL
 
 /** Удалить тариф — только если им никто не пользуется. */
 export async function deletePlanAction(planId: string): Promise<Result> {
-  const auth = await getPlatformAuth()
-  if (!auth) return { error: "Нет прав" }
+  await requirePlatformPermission("plans.manage")
   const service = createServiceClient()
   const { count } = await service.from("clubs").select("id", { count: "exact", head: true }).eq("plan_id", planId)
   if ((count ?? 0) > 0) return { error: `Нельзя удалить: тариф используют ${count} клуб(ов). Архивируйте вместо удаления.` }
