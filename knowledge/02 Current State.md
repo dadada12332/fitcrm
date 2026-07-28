@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: f12f58b · 2026-07-28T12:14:11+05:00 · fix: soften retention queue divider.
+- Последний commit: afccf5e · 2026-07-28T13:01:22+05:00 · feat: process expiring memberships in drawer.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 97; последняя `20260727123000_rebrand_zalkins.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

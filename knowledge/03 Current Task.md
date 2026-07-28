@@ -19,6 +19,8 @@ tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
   немутирующим действиям.
 - Desktop `1920 × 1065`, mobile `390 × 844`, TypeScript, focused tests и production build
   прошли; browser console чистый, `design-qa.md` — `passed`.
+- Commit `afccf5e` опубликован в production deployment
+  `dpl_Dv9eSE2HfYYmVymNCMeYVCHzxvDQ`; основной alias обновлён, smoke и Vercel error scan чистые.
 
 ## Rebrand Zalkins 2026-07-27
 

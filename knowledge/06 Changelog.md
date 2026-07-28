@@ -248,6 +248,8 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
+- `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 - `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
@@ -276,6 +278,4 @@ tags: [zalkins, releases]
 - `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
 - `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
 - `df0517f` · 2026-07-24 · feat: group integration catalog sections
-- `dff8246` · 2026-07-23 · fix: expose bridge release download
-- `550b27e` · 2026-07-23 · feat: ship access control bridge
 <!-- AUTO:END changelog-candidates -->

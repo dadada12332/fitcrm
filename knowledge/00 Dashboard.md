@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
+- `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 - `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
 - `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
 - `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
-- `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
-- `fa786cb` · 2026-07-27 · fix: align profile card grid
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
