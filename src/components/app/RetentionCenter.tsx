@@ -182,7 +182,7 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
       )}
 
       <Card>
-        <CardHeader className="border-b">
+        <CardHeader className="border-b border-border">
           <CardTitle>Очередь удержания</CardTitle>
           <CardDescription>Скоринг детерминированный: срок абонемента, посещаемость, задолженность и недавнее истечение.</CardDescription>
         </CardHeader>

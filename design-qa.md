@@ -1,24 +1,22 @@
-# Mobile TopBar actions — Design QA
+# Retention queue divider — Design QA
 
 ## Target
 
-- Reference: `Снимок экрана 2026-07-27 в 18.17.04.png`.
-- Keep the sidebar toggle isolated on the left.
-- Align search, language, theme and notifications to the right edge on mobile.
+- Reference: `Снимок экрана 2026-07-27 в 18.36.41.png`.
+- Replace the visually black divider below the retention queue header with the standard CRM
+  border token.
 
 ## Verified surfaces
 
-- Authenticated CRM dashboard.
-- Mobile viewport: `390 × 844`.
-- TopBar layout and document horizontal overflow.
+- Authenticated `/retention` screen at `1280 px`.
+- Queue header, surrounding card border and content transition.
+- Document horizontal overflow.
 
 ## Comparison
 
-- Before: the hidden mobile breadcrumb did not reserve flex space, so the action group followed
-  the sidebar toggle immediately.
-- After: the action group uses `margin-left: auto`; its measured bounds are `x=214…374` inside a
-  `390 px` header with `16 px` side padding.
-- The sidebar toggle remains at `x=16…57`, preserving the intended split alignment.
+- Before: `border-b` inherited a dark default border color and read as a black rule.
+- After: `border-border` resolves to `rgb(228, 228, 231)` in the current light theme.
+- Divider remains `1 px` and aligns with the card's neutral outline.
 
 ## Findings
 
@@ -26,12 +24,12 @@
 - P1: none.
 - P2: none.
 - P3: none.
-- Horizontal overflow: none (`scrollWidth = innerWidth = 390`).
+- Horizontal overflow: none (`scrollWidth = innerWidth = 1280`).
 
 ## Evidence
 
-- `artifacts/mobile-topbar-actions-right.png`
-- `artifacts/mobile-topbar-reference-vs-result.png`
+- `artifacts/retention-divider-light.png`
+- `artifacts/retention-divider-comparison.png`
 
 ## Final result
 

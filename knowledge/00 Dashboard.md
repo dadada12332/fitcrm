@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
 - `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
 - `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
-- `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
