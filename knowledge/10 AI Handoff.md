@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
 - `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
 - `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
 - `067fd44` · 2026-07-28 · feat: complete platform admin operations
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
-- `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

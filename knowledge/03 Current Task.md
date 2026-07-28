@@ -20,6 +20,9 @@ tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
   `user_id`.
 - Применены миграции `0093`–`0094`; временная QA-запись удалена. TypeScript, focused ESLint,
   164 unit/integration теста и production build прошли.
+- End-to-end production QA подтвердил доставку владельцу и сохранение `read_at`; временное
+  уведомление после проверки удалено. Релиз `7c3a1b4` опубликован в deployment
+  `dpl_BjphKBXRiwTp5aQf6gTJnRhiqHFp`, основной alias и smoke-проверки чистые.
 
 ## Полная реализация Platform Admin — 2026-07-28
 
