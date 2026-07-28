@@ -789,19 +789,17 @@ export async function getPlatformDailyMetrics(days = 30): Promise<PlatformDailyM
 
 export type PlatformOperationalSettings = {
   registrationEnabled: boolean
-  maintenanceMessage: string
   updatedAt: string | null
 }
 
 export async function getPlatformOperationalSettings(): Promise<PlatformOperationalSettings> {
   const service = createServiceClient()
   const { data, error } = await service.from("platform_operational_settings")
-    .select("registration_enabled, maintenance_message, updated_at")
+    .select("registration_enabled, updated_at")
     .eq("id", 1).maybeSingle()
-  if (error || !data) return { registrationEnabled: true, maintenanceMessage: "", updatedAt: null }
+  if (error || !data) return { registrationEnabled: true, updatedAt: null }
   return {
     registrationEnabled: data.registration_enabled,
-    maintenanceMessage: data.maintenance_message ?? "",
     updatedAt: data.updated_at,
   }
 }

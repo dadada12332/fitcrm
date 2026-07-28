@@ -6,7 +6,6 @@ import { AppShell } from "@/components/app/AppShell"
 import { DiagnosticsProvider } from "@/components/app/DiagnosticsProvider"
 import { RealtimeProvider } from "@/components/app/RealtimeProvider"
 import { getProductOnboardingData } from "@/lib/product-onboarding"
-import { getPlatformOperationalSettings } from "@/lib/platform"
 import { getUnreadPlatformAnnouncementCount } from "@/lib/platform-announcements"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -31,9 +30,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     else if (club.plan !== "trial" && planExp !== null && planExp < now) lockReason = "plan"
   }
 
-  const [stats, operational, platformUnread] = await Promise.all([
+  const [stats, platformUnread] = await Promise.all([
     getSidebarStats(club.clubId, user.id, club.trialExpiresAt, user.user_metadata),
-    getPlatformOperationalSettings(),
     getUnreadPlatformAnnouncementCount(club.clubId, user.id),
   ])
   const productOnboarding = await getProductOnboardingData({
@@ -62,7 +60,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       impersonating={club.impersonating}
       lockReason={lockReason}
       productOnboarding={productOnboarding}
-      systemMessage={operational.maintenanceMessage}
     >
       <DiagnosticsProvider />
       <RealtimeProvider clubId={club.clubId} />

@@ -34,7 +34,6 @@ type Props = {
   impersonating?: boolean
   lockReason?: LockReason
   productOnboarding: ProductOnboardingData
-  systemMessage?: string
   children: React.ReactNode
 }
 
@@ -75,7 +74,7 @@ function LockScreen({ reason, clubName }: { reason: "suspended" | "trial" | "pla
   )
 }
 
-export function AppShell({ clubId, clubName, plan, email, stats, permissions, planAccess, locale, currency, timezone, role, impersonating, lockReason, productOnboarding, systemMessage, children }: Props) {
+export function AppShell({ clubId, clubName, plan, email, stats, permissions, planAccess, locale, currency, timezone, role, impersonating, lockReason, productOnboarding, children }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
@@ -120,11 +119,6 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
       <AppTranslationLayer locale={locale} />
       <PlanLimitUpgradeDialog />
       <div className="flex h-dvh flex-col overflow-hidden">
-      {systemMessage && (
-        <div className="flex min-h-10 shrink-0 items-center justify-center border-b border-brand/20 bg-brand/5 px-4 py-2 text-center text-sm font-medium text-foreground">
-          {systemMessage}
-        </div>
-      )}
       {impersonating && (
         <div
           className="flex items-center gap-3 px-4 h-11 shrink-0"

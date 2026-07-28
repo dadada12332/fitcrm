@@ -51,7 +51,7 @@ export default async function SettingsPage() {
           <Panel className="mt-4">
             <div className="border-b border-border px-4 py-3">
               <p className="text-sm font-semibold text-foreground">Операционное управление</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Регистрация и единое системное сообщение для всех клубов.</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Управление доступностью регистрации новых клубов.</p>
             </div>
             <div className="p-4"><PlatformOperationalSettings initial={operational} /></div>
           </Panel>

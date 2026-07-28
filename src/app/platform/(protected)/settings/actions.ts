@@ -58,16 +58,13 @@ export async function removePlatformAdminAction(targetUserId: string): Promise<R
 
 export async function savePlatformOperationalSettingsAction(input: {
   registrationEnabled: boolean
-  maintenanceMessage: string
 }): Promise<Result> {
   const auth = await requirePlatformPermission("settings.manage")
-  const maintenanceMessage = input.maintenanceMessage.trim()
-  if (maintenanceMessage.length > 240) return { error: "Сообщение не должно превышать 240 символов" }
   const service = createServiceClient()
   const { error } = await service.from("platform_operational_settings").upsert({
     id: 1,
     registration_enabled: input.registrationEnabled,
-    maintenance_message: maintenanceMessage || null,
+    maintenance_message: null,
     updated_by: auth.userId,
     updated_at: new Date().toISOString(),
   })
