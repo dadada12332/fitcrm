@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
 - `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
 - `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
-- `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

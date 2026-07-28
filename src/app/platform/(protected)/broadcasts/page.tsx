@@ -11,7 +11,7 @@ export default async function BroadcastsPage() {
   const broadcasts = await getPlatformBroadcasts()
   return (
     <div className="mx-auto max-w-[1200px] p-4 sm:p-6 lg:p-8">
-      <PageHeader title="Рассылки" subtitle="Сегменты владельцев, отложенная отправка и прозрачная статистика доставки" />
+      <PageHeader title="Рассылки" subtitle="Новости и важные сообщения для владельцев прямо внутри CRM" />
       <PlatformBroadcastManager broadcasts={broadcasts} />
     </div>
   )

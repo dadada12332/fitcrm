@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { createServiceClient } from "@/lib/supabase/service"
 import { logPlatformAction, platformBase, requirePlatformPermission } from "@/lib/platform"
+import type { PlatformAnnouncementCategory } from "@/lib/platform-announcements"
 
 type Audience = { kind: "all" | "plan" | "status"; value?: string }
 type Result = { ok?: boolean; error?: string; recipients?: number }
@@ -17,9 +18,10 @@ async function resolveOwnerRecipients(audience: Audience) {
   const db = createServiceClient()
   const [{ data: clubs, error: clubsError }, { data: owners, error: ownersError }] = await Promise.all([
     db.from("clubs").select("id, plan, status, trial_expires_at, plan_expires_at").neq("status", "deleted"),
-    db.from("telegram_users")
-      .select("telegram_id, club_id, staff:staff_id(role, is_active)")
-      .not("staff_id", "is", null),
+    db.from("staff")
+      .select("id, user_id, club_id, role, is_active")
+      .eq("role", "owner")
+      .eq("is_active", true),
   ])
   if (clubsError || ownersError) throw clubsError ?? ownersError
   const now = Date.now()
@@ -34,11 +36,11 @@ async function resolveOwnerRecipients(audience: Audience) {
     return true
   }).map((club) => club.id))
 
-  return (owners ?? []).flatMap((owner) => {
-    const staff = owner.staff as unknown as { role: string; is_active: boolean } | null
-    if (!staff?.is_active || staff.role !== "owner" || !eligible.has(owner.club_id)) return []
-    return [{ club_id: owner.club_id, telegram_id: Number(owner.telegram_id) }]
-  })
+  return (owners ?? []).flatMap((owner) => (
+    eligible.has(owner.club_id)
+      ? [{ club_id: owner.club_id, staff_id: owner.id, user_id: owner.user_id }]
+      : []
+  ))
 }
 
 async function refresh() {
@@ -49,6 +51,7 @@ async function refresh() {
 export async function createPlatformBroadcastAction(input: {
   title: string
   body: string
+  category: PlatformAnnouncementCategory
   audience: Audience
   scheduledAt: string | null
 }): Promise<Result> {
@@ -57,33 +60,46 @@ export async function createPlatformBroadcastAction(input: {
   const body = input.body.trim()
   if (title.length < 3 || title.length > 120) return { error: "Заголовок: от 3 до 120 символов" }
   if (body.length < 3 || body.length > 4000) return { error: "Сообщение: от 3 до 4000 символов" }
+  if (!["news", "maintenance", "update", "important"].includes(input.category)) return { error: "Некорректный тип уведомления" }
   if (!validAudience(input.audience)) return { error: "Некорректная аудитория" }
   const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : new Date()
   if (Number.isNaN(scheduledAt.getTime())) return { error: "Некорректная дата отправки" }
+  const publishNow = scheduledAt.getTime() <= Date.now()
 
   const db = createServiceClient()
   const recipients = await resolveOwnerRecipients(input.audience)
-  if (!recipients.length) return { error: "В выбранной аудитории нет владельцев с подключённым Telegram" }
+  if (!recipients.length) return { error: "В выбранной аудитории нет активных владельцев клубов" }
 
   const { data: campaign, error } = await db.from("platform_broadcasts").insert({
     title,
     body,
+    category: input.category,
     audience: input.audience,
-    status: "scheduled",
+    status: publishNow ? "sent" : "scheduled",
     scheduled_at: scheduledAt.toISOString(),
     recipient_count: recipients.length,
+    delivered_count: publishNow ? recipients.length : 0,
     created_by: auth.userId,
+    sent_at: publishNow ? new Date().toISOString() : null,
   }).select("id").single()
   if (error || !campaign) return { error: "Не удалось создать рассылку" }
 
   const { error: deliveriesError } = await db.from("platform_broadcast_deliveries").insert(
-    recipients.map((recipient) => ({ broadcast_id: campaign.id, ...recipient })),
+    recipients.map((recipient) => ({
+      broadcast_id: campaign.id,
+      ...recipient,
+      status: publishNow ? "delivered" : "queued",
+      delivered_at: publishNow ? new Date().toISOString() : null,
+    })),
   )
   if (deliveriesError) {
     await db.from("platform_broadcasts").delete().eq("id", campaign.id)
     return { error: "Не удалось сформировать список получателей" }
   }
-  await logPlatformAction({ action: "platform_broadcast_schedule", meta: { broadcastId: campaign.id, recipients: recipients.length, audience: input.audience } })
+  await logPlatformAction({
+    action: publishNow ? "platform_announcement_publish" : "platform_announcement_schedule",
+    meta: { broadcastId: campaign.id, recipients: recipients.length, audience: input.audience, category: input.category },
+  })
   await refresh()
   return { ok: true, recipients: recipients.length }
 }

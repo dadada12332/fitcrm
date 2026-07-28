@@ -7,6 +7,7 @@ import { DiagnosticsProvider } from "@/components/app/DiagnosticsProvider"
 import { RealtimeProvider } from "@/components/app/RealtimeProvider"
 import { getProductOnboardingData } from "@/lib/product-onboarding"
 import { getPlatformOperationalSettings } from "@/lib/platform"
+import { getUnreadPlatformAnnouncementCount } from "@/lib/platform-announcements"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getAuthUser()
@@ -30,9 +31,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     else if (club.plan !== "trial" && planExp !== null && planExp < now) lockReason = "plan"
   }
 
-  const [stats, operational] = await Promise.all([
+  const [stats, operational, platformUnread] = await Promise.all([
     getSidebarStats(club.clubId, user.id, club.trialExpiresAt, user.user_metadata),
     getPlatformOperationalSettings(),
+    getUnreadPlatformAnnouncementCount(club.clubId, user.id),
   ])
   const productOnboarding = await getProductOnboardingData({
     clubId: club.clubId,
@@ -50,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       clubName={club.clubName}
       plan={club.plan}
       email={user.email ?? ""}
-      stats={stats}
+      stats={{ ...stats, notificationCount: stats.notificationCount + platformUnread }}
       permissions={club.permissions}
       planAccess={club.planAccess}
       locale={club.locale}

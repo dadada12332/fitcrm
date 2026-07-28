@@ -3,6 +3,12 @@
 import { sanitizeSearchTerm } from "@/lib/search"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentClub } from "@/lib/club"
+import { getAuthUser } from "@/lib/auth"
+import {
+  getPlatformAnnouncements,
+  markPlatformAnnouncementRead,
+  type PlatformAnnouncementCategory,
+} from "@/lib/platform-announcements"
 
 export type GlobalSearchResult = {
   id: string
@@ -14,13 +20,16 @@ export type GlobalSearchResult = {
 
 export type AppNotification = {
   id: string
-  type: "expiring" | "expired" | "pending"
-  clientId: string
+  type: "expiring" | "expired" | "pending" | "platform"
+  clientId: string | null
   clientName: string
   title: string
   detail: string
   membershipName: string | null
   eventDate: string | null
+  body?: string
+  category?: PlatformAnnouncementCategory
+  unread?: boolean
 }
 
 export async function globalSearchAction(query: string): Promise<GlobalSearchResult[]> {
@@ -55,6 +64,8 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
   const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return []
+  const user = await getAuthUser()
+  if (!user) return []
 
   const { clubId } = club
   const now  = new Date()
@@ -62,7 +73,7 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
   const ago7 = new Date(now); ago7.setDate(now.getDate() - 7)
 
   const subscriptionQuery = club.permissions.clients.view || club.permissions.memberships.view
-  const [expiringRes, expiredRes, pendingRes] = await Promise.all([
+  const [expiringRes, expiredRes, pendingRes, platformAnnouncements] = await Promise.all([
     subscriptionQuery ? supabase
       .from("subscriptions")
       .select("id, expires_at, clients(id, full_name), memberships(name)")
@@ -88,9 +99,22 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(10) : Promise.resolve({ data: [] }),
+    getPlatformAnnouncements(clubId, user.id),
   ])
 
-  const result: AppNotification[] = []
+  const result: AppNotification[] = platformAnnouncements.map((announcement) => ({
+    id: `platform-${announcement.deliveryId}`,
+    type: "platform",
+    clientId: null,
+    clientName: "Zalkins",
+    title: announcement.title,
+    detail: announcement.category,
+    membershipName: null,
+    eventDate: announcement.publishedAt,
+    body: announcement.body,
+    category: announcement.category,
+    unread: announcement.readAt === null,
+  }))
 
   for (const sub of expiredRes.data ?? []) {
     const client = Array.isArray(sub.clients) ? sub.clients[0] : sub.clients
@@ -141,6 +165,19 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
   }
 
   return result
+}
+
+export async function markPlatformAnnouncementReadAction(notificationId: string) {
+  const club = await getCurrentClub()
+  const user = await getAuthUser()
+  if (!club || !user || !notificationId.startsWith("platform-")) return { error: "Уведомление не найдено" }
+  const deliveryId = notificationId.slice("platform-".length)
+  try {
+    await markPlatformAnnouncementRead(club.clubId, user.id, deliveryId)
+    return { ok: true }
+  } catch {
+    return { error: "Не удалось отметить уведомление прочитанным" }
+  }
 }
 
 // ── Заявки клуба (для 2-й вкладки уведомлений) ───────────────────────

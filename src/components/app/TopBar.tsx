@@ -5,11 +5,19 @@ import { useRouter } from "next/navigation"
 import {
   Search, Bell,
   X, AlertTriangle, Clock, CreditCard as CardIcon,
-  PanelLeft, SunMoon, Inbox, CheckCircle2, Loader2, ChevronRight, Check,
+  PanelLeft, SunMoon, Inbox, CheckCircle2, Loader2, ChevronRight, Check, Megaphone,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useTheme } from "next-themes"
-import { globalSearchAction, getNotificationsAction, getRequestsAction, type GlobalSearchResult, type AppNotification, type AppRequest } from "@/app/(app)/actions"
+import {
+  globalSearchAction,
+  getNotificationsAction,
+  getRequestsAction,
+  markPlatformAnnouncementReadAction,
+  type GlobalSearchResult,
+  type AppNotification,
+  type AppRequest,
+} from "@/app/(app)/actions"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Breadcrumbs } from "./Breadcrumbs"
@@ -170,7 +178,15 @@ function NotificationTabButton({
   )
 }
 
-function NotificationsPanel({ onClose }: { onClose: () => void }) {
+function NotificationsPanel({
+  onClose,
+  onPlatformRead,
+  onPlatformReadFailed,
+}: {
+  onClose: () => void
+  onPlatformRead: () => void
+  onPlatformReadFailed: () => void
+}) {
   const [tab, setTab] = useState<"notifs" | "requests">("notifs")
   const [notifs, setNotifs] = useState<AppNotification[] | null>(null)
   const [requests, setRequests] = useState<AppRequest[] | null>(null)
@@ -185,12 +201,18 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
   }, [])
 
   const counts = {
+    platform: notifs?.filter((n) => n.type === "platform").length ?? 0,
     expired: notifs?.filter((n) => n.type === "expired").length ?? 0,
     expiring: notifs?.filter((n) => n.type === "expiring").length ?? 0,
     pending: notifs?.filter((n) => n.type === "pending").length ?? 0,
   }
 
   const notificationMeta = (type: AppNotification["type"]) => {
+    if (type === "platform") return {
+      icon: <Megaphone className="size-4" />,
+      iconClass: "bg-brand/10 text-brand",
+      badgeClass: "bg-brand/10 text-brand",
+    }
     if (type === "expired") return {
       icon: <AlertTriangle className="size-4" />,
       iconClass: "bg-destructive/10 text-destructive",
@@ -242,8 +264,9 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-3 border-b border-border bg-card px-5 py-4 sm:px-6">
+                <div className="grid grid-cols-4 border-b border-border bg-card px-5 py-4 sm:px-6">
                   {[
+                    { label: "От Zalkins", value: counts.platform, className: "text-brand" },
                     { label: "Истекли", value: counts.expired, className: "text-destructive" },
                     { label: "Истекают", value: counts.expiring, className: "text-brand" },
                     { label: "Платежи", value: counts.pending, className: "text-foreground" },
@@ -264,10 +287,49 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
                     {notifs.map((n) => {
                       const meta = notificationMeta(n.type)
                       const eventDate = fmtNotificationDate(n.eventDate, n.type)
+                      if (n.type === "platform") {
+                        return (
+                          <button
+                            key={n.id}
+                            type="button"
+                            onClick={() => {
+                              if (!n.unread) return
+                              setNotifs((current) => current?.map((item) => item.id === n.id ? { ...item, unread: false } : item) ?? [])
+                              onPlatformRead()
+                              start(async () => {
+                                const result = await markPlatformAnnouncementReadAction(n.id)
+                                if (result.error) {
+                                  setNotifs((current) => current?.map((item) => item.id === n.id ? { ...item, unread: true } : item) ?? [])
+                                  onPlatformReadFailed()
+                                  toast.error(result.error)
+                                }
+                              })
+                            }}
+                            className="group flex w-full items-start gap-3 border-b border-border px-4 py-3.5 text-left transition-colors last:border-b-0 hover:bg-muted/60"
+                          >
+                            <div className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg ${meta.iconClass}`}>
+                              {meta.icon}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-3">
+                                <p className="text-sm font-semibold text-foreground">{n.title}</p>
+                                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${meta.badgeClass}`}>
+                                  {n.category === "maintenance" ? "Технические работы" : n.category === "update" ? "Обновление" : n.category === "important" ? "Важно" : "Новость"}
+                                </span>
+                              </div>
+                              {n.body && <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-foreground/85">{n.body}</p>}
+                              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                                {eventDate && <span>{eventDate}</span>}
+                                {n.unread && <span className="inline-flex items-center gap-1 font-medium text-brand"><span className="size-1.5 rounded-full bg-brand" />Новое</span>}
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      }
                       return (
                         <Link
                           key={n.id}
-                          href={`/clients/${n.clientId}`}
+                          href={`/clients/${n.clientId ?? ""}`}
                           onClick={onClose}
                           prefetch={false}
                           className="group flex items-start gap-3 border-b border-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-muted/60"
@@ -341,7 +403,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
   const [searchOpen, setSearchOpen]   = useState(false)
   const [notifOpen, setNotifOpen]     = useState(false)
-  const [notifCount] = useState(initialNotificationCount)
+  const [notifCount, setNotifCount] = useState(initialNotificationCount)
   const notifRef = useRef<HTMLDivElement>(null)
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const { resolvedTheme, setTheme } = useTheme()
@@ -453,7 +515,13 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
                 </span>
               )}
             </button>
-            {notifOpen && <NotificationsPanel onClose={() => setNotifOpen(false)} />}
+            {notifOpen && (
+              <NotificationsPanel
+                onClose={() => setNotifOpen(false)}
+                onPlatformRead={() => setNotifCount((count) => Math.max(0, count - 1))}
+                onPlatformReadFailed={() => setNotifCount((count) => count + 1)}
+              />
+            )}
           </div>
 
         </div>

@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
 - `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
 - `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
-- `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

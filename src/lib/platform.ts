@@ -698,11 +698,13 @@ export type PlatformBroadcastRow = {
   id: string
   title: string
   body: string
+  category: "news" | "maintenance" | "update" | "important"
   audience: { kind: string; value?: string }
   status: string
   scheduledAt: string | null
   recipientCount: number
   deliveredCount: number
+  readCount: number
   failedCount: number
   createdAt: string
   sentAt: string | null
@@ -712,19 +714,36 @@ export async function getPlatformBroadcasts(): Promise<PlatformBroadcastRow[]> {
   const service = createServiceClient()
   const { data, error } = await service
     .from("platform_broadcasts")
-    .select("id, title, body, audience, status, scheduled_at, recipient_count, delivered_count, failed_count, created_at, sent_at")
+    .select("id, title, body, category, audience, status, scheduled_at, recipient_count, delivered_count, failed_count, created_at, sent_at")
     .order("created_at", { ascending: false })
     .limit(100)
   if (error) throw error
+  const ids = (data ?? []).map((row) => row.id)
+  const { data: deliveries, error: deliveriesError } = ids.length
+    ? await service
+      .from("platform_broadcast_deliveries")
+      .select("broadcast_id, read_at")
+      .not("staff_id", "is", null)
+      .in("broadcast_id", ids)
+    : { data: [], error: null }
+  if (deliveriesError) throw deliveriesError
+  const readCountByCampaign = new Map<string, number>()
+  for (const delivery of deliveries ?? []) {
+    if (!delivery.read_at) continue
+    readCountByCampaign.set(delivery.broadcast_id, (readCountByCampaign.get(delivery.broadcast_id) ?? 0) + 1)
+  }
+  const now = Date.now()
   return (data ?? []).map((row) => ({
     id: row.id,
     title: row.title,
     body: row.body,
+    category: row.category as PlatformBroadcastRow["category"],
     audience: (row.audience ?? { kind: "all" }) as { kind: string; value?: string },
-    status: row.status,
+    status: row.status === "scheduled" && row.scheduled_at && new Date(row.scheduled_at).getTime() <= now ? "sent" : row.status,
     scheduledAt: row.scheduled_at,
     recipientCount: row.recipient_count,
     deliveredCount: row.delivered_count,
+    readCount: readCountByCampaign.get(row.id) ?? 0,
     failedCount: row.failed_count,
     createdAt: row.created_at,
     sentAt: row.sent_at,

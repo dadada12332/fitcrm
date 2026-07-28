@@ -40,9 +40,13 @@ tags: [zalkins, releases]
 ### Added
 
 - Platform Admin получил рабочее управление администраторами, granular роли
-  `platform_admin`/`super_admin`, полный lifecycle промокодов, сегментированные Telegram-
-  рассылки владельцам, историю Cron и service checks, ежедневные исторические SaaS-метрики,
-  отключение новых регистраций и системное сообщение для всей CRM.
+  `platform_admin`/`super_admin`, полный lifecycle промокодов, внутренние CRM-уведомления
+  владельцам, историю Cron и service checks, ежедневные исторические SaaS-метрики, отключение
+  новых регистраций и системное сообщение для всей CRM.
+
+- Рассылки Platform Admin переведены из Telegram во внутренний центр уведомлений CRM.
+  Суперадминистратор выбирает тип, аудиторию и время публикации; владельцы читают сообщение
+  в колокольчике CRM, а история показывает количество прочтений.
 
 - Новый бренд Zalkins: единый строчный wordmark без отдельной эмблемы, синяя наклонная точка
   над `i`, компактная строчная `z` для favicon/app icon и общие компоненты логотипа для
@@ -262,6 +266,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
 - `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
 - `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
@@ -291,5 +296,4 @@ tags: [zalkins, releases]
 - `a2e8f9a` · 2026-07-27 · feat: localize CRM settings and add owner Telegram reports
 - `fc6c4a6` · 2026-07-24 · docs: record legal release [skip ci]
 - `499ca0f` · 2026-07-24 · Add legal compliance and polish public experience
-- `871a2fb` · 2026-07-24 · Harden CRM permissions and operational flows
 <!-- AUTO:END changelog-candidates -->

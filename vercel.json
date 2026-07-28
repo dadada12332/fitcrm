@@ -15,10 +15,6 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/broadcasts/platform/run",
-      "schedule": "30 3 * * *"
-    },
-    {
       "path": "/api/cron/platform-metrics",
       "schedule": "50 23 * * *"
     }
