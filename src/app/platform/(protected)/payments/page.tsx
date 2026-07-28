@@ -19,7 +19,7 @@ export default async function PlatformPaymentsPage({ searchParams }: { searchPar
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
-      <PageHeader title="Платежи" subtitle="Все оплаты по всем клубам платформы" />
+      <PageHeader title="Платежи клубов" subtitle="Операционные оплаты клиентов во всех клубах — не выручка Zalkins от подписок" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
         <StatTile label="Выручка клубов за 30д" value={fmtSum(result.sum)} accent="var(--chart-2)" />

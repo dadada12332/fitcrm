@@ -12,9 +12,9 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: d158896 · 2026-07-28T15:05:39+05:00 · feat: localize the complete CRM interface.
+- Последний commit: e057828 · 2026-07-28T15:09:57+05:00 · docs: record complete localization release [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 97; последняя `20260727123000_rebrand_zalkins.sql`.
+- Миграции в Git: 98; последняя `20260727123000_rebrand_zalkins.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 

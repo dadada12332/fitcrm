@@ -8,7 +8,7 @@ const sql = migrationFiles.map((file) => readFileSync(path.join(migrationsDir, f
 
 describe("database security migrations", () => {
   it("keeps migration numbering unique", () => {
-    const numbers = migrationFiles.map((file) => file.slice(0, 4))
+    const numbers = migrationFiles.map((file) => file.split("_", 1)[0])
     expect(new Set(numbers).size).toBe(numbers.length)
   })
 

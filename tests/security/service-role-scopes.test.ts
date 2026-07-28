@@ -43,11 +43,14 @@ describe("service-role payment tenant scopes", () => {
 
   it("keeps post-payment reads and mutations inside the payment club", () => {
     const source = read("src/lib/payment-confirm.ts")
+    const migrations = read("supabase/migrations/20260724133500_service_payment_confirmation_rpc.sql")
 
-    expect(source).toContain('.eq("id", pay.pending_membership_id).eq("club_id", clubId)')
-    expect(source).toContain('.eq("id", pay.subscription_id).eq("club_id", clubId)')
+    expect(source).toContain('s.rpc("confirm_paid_membership"')
+    expect(source).toContain("p_club_id: clubId")
+    expect(migrations).toContain("from public, anon, authenticated")
+    expect(migrations).toContain("to service_role")
     expect(source).toContain('.eq("id", clientId).eq("club_id", clubId)')
-    expect(source.match(/\.eq\("id", paymentId\)\.eq\("club_id", clubId\)/g)?.length).toBeGreaterThanOrEqual(3)
+    expect(source.match(/\.eq\("id", paymentId\)\.eq\("club_id", clubId\)/g)?.length).toBeGreaterThanOrEqual(2)
   })
 
   it("scopes scheduled broadcast mutations to the queued club", () => {

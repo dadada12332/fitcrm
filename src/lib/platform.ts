@@ -87,11 +87,11 @@ export const getPlatformAuth = cache(async (): Promise<PlatformAuth> => {
 export type HealthTier = { score: number; label: string; color: string }
 
 export function healthTier(score: number): HealthTier {
-  if (score >= 80) return { score, label: "Отлично", color: "#22c55e" }
-  if (score >= 60) return { score, label: "Хорошо", color: "#84cc16" }
-  if (score >= 40) return { score, label: "Средне", color: "#f59e0b" }
-  if (score >= 20) return { score, label: "Риск", color: "#f97316" }
-  return { score, label: "Критично", color: "#ef4444" }
+  if (score >= 80) return { score, label: "Отлично", color: "var(--chart-2)" }
+  if (score >= 60) return { score, label: "Хорошо", color: "var(--chart-2)" }
+  if (score >= 40) return { score, label: "Средне", color: "var(--chart-3)" }
+  if (score >= 20) return { score, label: "Риск", color: "var(--chart-3)" }
+  return { score, label: "Критично", color: "var(--destructive)" }
 }
 
 /**
@@ -173,8 +173,8 @@ export async function getPlatformOverview(): Promise<PlatformOverview> {
     service.from("clients").select("id", { count: "exact", head: true }),
     service.from("visits").select("id", { count: "exact", head: true }).gte("checked_in_at", isoToday),
     service.from("visits").select("id", { count: "exact", head: true }).gte("checked_in_at", iso30),
-    service.from("payments").select("amount, status, created_at").gte("created_at", isoToday),
-    service.from("payments").select("amount, status, created_at").gte("created_at", iso30),
+    service.rpc("platform_payment_totals", { p_since: isoToday }),
+    service.rpc("platform_payment_totals", { p_since: iso30 }),
     getPlansMap(),
   ])
 
@@ -209,9 +209,11 @@ export async function getPlatformOverview(): Promise<PlatformOverview> {
     }
   }
 
-  const paymentsToday = (paymentsTodayRes.data ?? []).filter((p) => p.status === "paid")
-  const payments30 = (payments30Res.data ?? []).filter((p) => p.status === "paid")
-  const revenue30 = payments30.reduce((s, p) => s + Number(p.amount ?? 0), 0)
+  if (paymentsTodayRes.error) throw paymentsTodayRes.error
+  if (payments30Res.error) throw payments30Res.error
+  const paymentsToday = Array.isArray(paymentsTodayRes.data) ? paymentsTodayRes.data[0] : paymentsTodayRes.data
+  const payments30 = Array.isArray(payments30Res.data) ? payments30Res.data[0] : payments30Res.data
+  const revenue30 = Number(payments30?.paid_sum ?? 0)
 
   // «Требует внимания»: истёкшие + приостановленные
   const attentionClubs = expiredClubs + suspendedClubs
@@ -227,8 +229,8 @@ export async function getPlatformOverview(): Promise<PlatformOverview> {
     totalClients: clientsRes.count ?? 0,
     visitsToday: visitsTodayRes.count ?? 0,
     visits30: visits30Res.count ?? 0,
-    paymentsToday: paymentsToday.length,
-    paymentsToday30: payments30.length,
+    paymentsToday: Number(paymentsToday?.paid_count ?? 0),
+    paymentsToday30: Number(payments30?.paid_count ?? 0),
     revenue30,
     mrr,
     arr: mrr * 12,
@@ -604,8 +606,10 @@ export async function getPlatformPayments(opts: { page?: number; pageSize?: numb
 
   // Сумма оплаченных за 30 дней (для шапки).
   const iso30 = new Date(Date.now() - 30 * 86_400_000).toISOString()
-  const { data: sumData } = await service.from("payments").select("amount").eq("status", "paid").gte("created_at", iso30)
-  const sum = (sumData ?? []).reduce((s, p) => s + Number(p.amount ?? 0), 0)
+  const { data: totalData, error: totalError } = await service.rpc("platform_payment_totals", { p_since: iso30 })
+  if (totalError) throw totalError
+  const totalRow = Array.isArray(totalData) ? totalData[0] : totalData
+  const sum = Number(totalRow?.paid_sum ?? 0)
 
   return {
     rows: ((data ?? []) as unknown as { id: string; amount: number; provider: string; status: string; created_at: string; clubs: { name: string } | null; clients: { full_name: string } | null }[])

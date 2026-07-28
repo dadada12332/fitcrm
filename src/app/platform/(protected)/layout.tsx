@@ -48,12 +48,12 @@ export default async function PlatformProtectedLayout({ children }: { children: 
     { label: "Тарифы",         href: `${base}/plans`,         icon: "Tag", section: "Управление" },
     { label: "Подписки",       href: `${base}/subscriptions`, icon: "CreditCard", section: "Финансы" },
     { label: "Приём оплат",    href: `${base}/connections`,   icon: "Plug", section: "Финансы" },
-    { label: "Платежи",        href: `${base}/payments`,      icon: "Receipt", section: "Финансы" },
+    { label: "Платежи клубов", href: `${base}/payments`,      icon: "Receipt", section: "Финансы" },
     { label: "Мониторинг",     href: `${base}/monitoring`,    icon: "Activity", section: "Система" },
     { label: "Логи",           href: `${base}/logs`,          icon: "ScrollText", section: "Система" },
     { label: "Поддержка",      href: `${base}/support`,       icon: "LifeBuoy", badge: supportAttention || undefined, section: "Коммуникации" },
-    { label: "Рассылки",       href: `${base}/broadcasts`,    icon: "Send", section: "Коммуникации" },
-    { label: "Промокоды",      href: `${base}/promo`,         icon: "Ticket", section: "Коммуникации" },
+    { label: "Рассылки",       href: `${base}/broadcasts`,    icon: "Send", badgeLabel: "Скоро", section: "Коммуникации" },
+    { label: "Промокоды",      href: `${base}/promo`,         icon: "Ticket", badgeLabel: "Скоро", section: "Коммуникации" },
     { label: "Настройки",      href: `${base}/settings`,      icon: "Settings", section: "Настройки" },
   ]
 

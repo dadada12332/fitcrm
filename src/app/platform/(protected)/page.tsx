@@ -1,31 +1,31 @@
 import Link from "next/link"
 import {
-  CheckCircle2, TrendingUp, Building2, AlertTriangle,
+  CheckCircle2, CircleHelp, TrendingUp, Building2, AlertTriangle,
   Flame, CreditCard, UserPlus, Clock, ArrowRight,
 } from "lucide-react"
 import { getPlatformOverview, getLiveEvents, getAttentionClubs, platformBase } from "@/lib/platform"
+import { getPlatformSystemStatus, type PlatformServiceState } from "@/lib/platform-monitoring"
 import { Panel, StatTile, fmtNum, fmtSum, timeAgo, PT } from "@/components/platform/parts"
 
 export const dynamic = "force-dynamic"
 
-const SERVICES = [
-  { name: "Supabase", ok: true },
-  { name: "Vercel", ok: true },
-  { name: "Telegram", ok: true },
-  { name: "AI", ok: true },
-  { name: "SMS", ok: true },
-  { name: "Cron", ok: true },
-]
+const SERVICE_DOT: Record<PlatformServiceState, string> = {
+  verified: "var(--chart-2)",
+  configured: "var(--chart-3)",
+  "not-configured": "var(--muted-foreground)",
+  error: "var(--destructive)",
+}
 
 export default async function CommandCenterPage() {
-  const [o, events, attention, base] = await Promise.all([
+  const [o, events, attention, base, system] = await Promise.all([
     getPlatformOverview(),
     getLiveEvents(18),
     getAttentionClubs(8),
     platformBase(),
+    getPlatformSystemStatus(),
   ])
 
-  const allOk = SERVICES.every((s) => s.ok)
+  const hasErrors = system.errors > 0
   const now = new Date()
 
   return (
@@ -41,25 +41,29 @@ export default async function CommandCenterPage() {
       </div>
 
       {/* System status bar */}
-      <Panel className="px-4 py-3 mb-4 flex items-center gap-4 flex-wrap" style={{ background: allOk ? "color-mix(in srgb, var(--chart-2) 6%, transparent)" : "color-mix(in srgb, var(--destructive) 6%, transparent)", borderColor: allOk ? "color-mix(in srgb, var(--chart-2) 25%, transparent)" : "color-mix(in srgb, var(--destructive) 25%, transparent)" }}>
+      <Panel className="mb-4 flex flex-wrap items-center gap-4 px-4 py-3" style={{ background: hasErrors ? "color-mix(in srgb, var(--destructive) 6%, transparent)" : "color-mix(in srgb, var(--chart-3) 6%, transparent)", borderColor: hasErrors ? "color-mix(in srgb, var(--destructive) 25%, transparent)" : "color-mix(in srgb, var(--chart-3) 25%, transparent)" }}>
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5" style={{ color: allOk ? "var(--chart-2)" : "var(--destructive)" }} />
+          {hasErrors
+            ? <AlertTriangle className="size-5 text-destructive" />
+            : <CircleHelp className="size-5 text-chart-3" />}
           <span className="text-sm font-semibold text-foreground">
-            {allOk ? "Все системы работают" : "Есть проблемы"}
+            {hasErrors
+              ? `Ошибок живых проверок: ${system.errors}`
+              : `${system.verified} проверено · ${system.configured} настроено · ${system.notConfigured} не подключено`}
           </span>
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
-          {SERVICES.map((s) => (
-            <span key={s.name} className="inline-flex items-center gap-1.5 h-6 px-2 rounded-md text-[11px]" style={{ background: PT.panel, color: PT.textSoft, border: `1px solid ${PT.panelBorder}` }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.ok ? "var(--chart-2)" : "var(--destructive)" }} />
-              {s.name}
+          {system.services.map((service) => (
+            <span key={service.key} title={service.note} className="inline-flex h-6 items-center gap-1.5 rounded-md border border-border bg-card px-2 text-[11px] text-muted-foreground">
+              <span className="size-1.5 rounded-full" style={{ background: SERVICE_DOT[service.state] }} />
+              {service.name}
             </span>
           ))}
         </div>
       </Panel>
 
       {/* Hero metrics */}
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
         <HeroCard
           icon={<TrendingUp className="w-5 h-5" style={{ color: "var(--chart-2)" }} />}
           label="MRR" value={fmtSum(o.mrr)} sub={`ARR ${fmtSum(o.arr)}`} tint="color-mix(in srgb, var(--chart-2) 8%, transparent)" border="color-mix(in srgb, var(--chart-2) 20%, transparent)"

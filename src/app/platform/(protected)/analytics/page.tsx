@@ -8,16 +8,16 @@ export default async function AnalyticsPage() {
 
   const paidClubs = o.activeClubs
   const arpu = paidClubs > 0 ? o.mrr / paidClubs : 0
-  const trialConv = (o.trialClubs + paidClubs) > 0 ? (paidClubs / (o.trialClubs + paidClubs)) * 100 : 0
+  const paidShare = (o.trialClubs + paidClubs) > 0 ? (paidClubs / (o.trialClubs + paidClubs)) * 100 : 0
   const avgClients = o.totalClubs > 0 ? o.totalClients / o.totalClubs : 0
-  const ltv = arpu * 12 // упрощённо: ARPU × 12 мес
+  const revenue12 = arpu * 12
 
   const metrics = [
     { label: "MRR", value: fmtSum(o.mrr), accent: "var(--chart-2)" },
     { label: "ARR", value: fmtSum(o.arr), accent: "var(--chart-2)" },
     { label: "ARPU", value: fmtSum(arpu) },
-    { label: "LTV (≈12 мес)", value: fmtSum(ltv) },
-    { label: "Trial → Paid", value: `${trialConv.toFixed(1)}%`, accent: "var(--brand)" },
+    { label: "Оценка выручки 12м", value: fmtSum(revenue12) },
+    { label: "Доля платных клубов", value: `${paidShare.toFixed(1)}%`, accent: "var(--brand)" },
     { label: "Активных клубов", value: fmtNum(paidClubs) },
     { label: "Trial-клубов", value: fmtNum(o.trialClubs) },
     { label: "Ср. клиентов/клуб", value: avgClients.toFixed(1) },
@@ -67,8 +67,8 @@ export default async function AnalyticsPage() {
       </div>
 
       <p className="text-xs mt-4" style={{ color: PT.textMuted }}>
-        MRR рассчитан по активным платным подпискам (Starter $29 / Standard $59 / Business $99).
-        Графики роста (когорты, retention, churn во времени) появятся после накопления истории событий.
+        MRR рассчитан по активным платным подпискам и зафиксированной цене каждого клуба.
+        Доля платных — текущий срез, а не конверсия когорты; полноценные conversion, retention, churn и LTV потребуют истории событий.
       </p>
     </div>
   )

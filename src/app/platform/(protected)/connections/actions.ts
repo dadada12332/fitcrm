@@ -26,6 +26,21 @@ function buildStored(provider: Provider, creds: ClickCreds | PaymeCreds): { secr
   }
 }
 
+async function verifyRequest(requestId: string, clubId: string, provider?: Provider, allowedStatuses: string[] = ["new"]) {
+  const service = createServiceClient()
+  const { data, error } = await service
+    .from("payment_connection_requests")
+    .select("id, club_id, provider, status")
+    .eq("id", requestId)
+    .eq("club_id", clubId)
+    .maybeSingle()
+  if (error) return { error: "Не удалось проверить заявку" }
+  if (!data) return { error: "Заявка не найдена для выбранного клуба" }
+  if (provider && data.provider !== provider) return { error: "Провайдер заявки не совпадает" }
+  if (!allowedStatuses.includes(data.status)) return { error: "Заявка уже обработана" }
+  return { request: data }
+}
+
 /** Активировать подключение: зашифровать креды, включить, перевести заявку в active. */
 export async function activateConnectionAction(
   requestId: string, clubId: string, provider: Provider, creds: ClickCreds | PaymeCreds,
@@ -43,6 +58,8 @@ export async function activateConnectionAction(
   }
 
   const service = createServiceClient()
+  const verified = await verifyRequest(requestId, clubId, provider)
+  if ("error" in verified) return { error: verified.error }
   const { secret, meta } = buildStored(provider, creds)
   const secret_enc = encryptSecret(secret)
 
@@ -51,10 +68,22 @@ export async function activateConnectionAction(
   }, { onConflict: "club_id,provider" })
   if (e1) return { error: e1.message }
 
-  const { error: e2 } = await service.from("payment_connection_requests")
+  const { data: resolved, error: e2 } = await service.from("payment_connection_requests")
     .update({ status: "active", resolved_at: new Date().toISOString(), resolved_by: auth.userId })
     .eq("id", requestId)
+    .eq("club_id", clubId)
+    .eq("provider", provider)
+    .eq("status", "new")
+    .select("id")
+    .maybeSingle()
   if (e2) return { error: e2.message }
+  if (!resolved) {
+    await service.from("club_payment_credentials")
+      .update({ enabled: false, updated_at: new Date().toISOString() })
+      .eq("club_id", clubId)
+      .eq("provider", provider)
+    return { error: "Заявка уже обработана другим администратором" }
+  }
 
   await logPlatformAction({ action: "payment_connect_activate", clubId, meta: { provider } })
   revalidatePath("/platform/connections")
@@ -66,10 +95,17 @@ export async function rejectConnectionAction(requestId: string, clubId: string):
   const auth = await getPlatformAuth()
   if (!auth) return { error: "Нет прав" }
   const service = createServiceClient()
-  const { error } = await service.from("payment_connection_requests")
+  const verified = await verifyRequest(requestId, clubId)
+  if ("error" in verified) return { error: verified.error }
+  const { data: updated, error } = await service.from("payment_connection_requests")
     .update({ status: "rejected", resolved_at: new Date().toISOString(), resolved_by: auth.userId })
     .eq("id", requestId)
+    .eq("club_id", clubId)
+    .eq("status", "new")
+    .select("id")
+    .maybeSingle()
   if (error) return { error: error.message }
+  if (!updated) return { error: "Заявка уже обработана" }
   await logPlatformAction({ action: "payment_connect_reject", clubId })
   revalidatePath("/platform/connections")
   return { ok: true }
@@ -80,8 +116,26 @@ export async function disableConnectionAction(requestId: string, clubId: string,
   const auth = await getPlatformAuth()
   if (!auth) return { error: "Нет прав" }
   const service = createServiceClient()
-  await service.from("club_payment_credentials").update({ enabled: false, updated_at: new Date().toISOString() }).eq("club_id", clubId).eq("provider", provider)
-  await service.from("payment_connection_requests").update({ status: "cancelled", resolved_at: new Date().toISOString(), resolved_by: auth.userId }).eq("id", requestId)
+  const verified = await verifyRequest(requestId, clubId, provider, ["active"])
+  if ("error" in verified) return { error: verified.error }
+  const { data: credential, error: credentialError } = await service.from("club_payment_credentials")
+    .update({ enabled: false, updated_at: new Date().toISOString(), updated_by: auth.userId })
+    .eq("club_id", clubId)
+    .eq("provider", provider)
+    .select("id")
+    .maybeSingle()
+  if (credentialError) return { error: credentialError.message }
+  if (!credential) return { error: "Подключение не найдено" }
+  const { data: updated, error: requestError } = await service.from("payment_connection_requests")
+    .update({ status: "cancelled", resolved_at: new Date().toISOString(), resolved_by: auth.userId })
+    .eq("id", requestId)
+    .eq("club_id", clubId)
+    .eq("provider", provider)
+    .eq("status", "active")
+    .select("id")
+    .maybeSingle()
+  if (requestError) return { error: requestError.message }
+  if (!updated) return { error: "Заявка уже обработана" }
   await logPlatformAction({ action: "payment_connect_disable", clubId, meta: { provider } })
   revalidatePath("/platform/connections")
   return { ok: true }

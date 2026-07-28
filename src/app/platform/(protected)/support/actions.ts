@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceClient } from "@/lib/supabase/service"
-import { getPlatformAuth } from "@/lib/platform"
+import { getPlatformAuth, logPlatformAction } from "@/lib/platform"
 import { revalidatePath } from "next/cache"
 
 export type PfStatus = "new" | "in_progress" | "needs_info" | "resolved" | "closed"
@@ -161,18 +161,30 @@ export async function pfReplyAction(ticketId: string, body: string, visibility: 
   const text = body.trim()
   if (!text) return { ok: false, error: "Пустое сообщение" }
   const db = createServiceClient()
+  const { data: ticket, error: ticketError } = await db
+    .from("support_tickets")
+    .select("status, club_id")
+    .eq("id", ticketId)
+    .maybeSingle()
+  if (ticketError || !ticket) return { ok: false, error: "Обращение не найдено" }
 
-  await db.from("support_messages").insert({
+  const { error: messageError } = await db.from("support_messages").insert({
     ticket_id: ticketId,
     author_type: "agent",
     author_id: auth.userId,
     body: text,
     visibility,
   })
+  if (messageError) return { ok: false, error: "Не удалось отправить сообщение" }
   // публичный ответ переводит новое обращение «в работу»
   if (visibility === "public") {
-    const { data: t } = await db.from("support_tickets").select("status").eq("id", ticketId).maybeSingle()
-    if (t?.status === "new") await db.from("support_tickets").update({ status: "in_progress" }).eq("id", ticketId)
+    if (ticket.status === "new") {
+      const { error: updateError } = await db.from("support_tickets").update({ status: "in_progress" }).eq("id", ticketId)
+      if (updateError) return { ok: false, error: "Ответ отправлен, но статус не обновился" }
+    }
+    await logPlatformAction({ action: "support_reply", clubId: ticket.club_id, meta: { ticketId, visibility } })
+  } else {
+    await logPlatformAction({ action: "support_internal_note", clubId: ticket.club_id, meta: { ticketId } })
   }
   revalidatePath("/platform/support")
   return { ok: true }
@@ -183,22 +195,26 @@ const STATUS_LABEL: Record<PfStatus, string> = {
   new: "Новый", in_progress: "В работе", needs_info: "Требуются данные", resolved: "Решено", closed: "Закрыт",
 }
 
-export async function pfSetStatusAction(ticketId: string, status: PfStatus): Promise<{ ok: boolean }> {
+export async function pfSetStatusAction(ticketId: string, status: PfStatus): Promise<{ ok: boolean; error?: string }> {
   const auth = await getPlatformAuth()
   if (!auth) return { ok: false }
   const db = createServiceClient()
 
-  // системное событие в ленту (до апдейта, чтобы last_message_at корректно перекрылся отметкой)
-  await db.from("support_messages").insert({
-    ticket_id: ticketId,
-    author_type: "system",
-    body: `Статус изменён: ${STATUS_LABEL[status]}`,
-  })
+  const { data: ticket, error: ticketError } = await db.from("support_tickets").select("club_id").eq("id", ticketId).maybeSingle()
+  if (ticketError || !ticket) return { ok: false, error: "Обращение не найдено" }
 
   const patch: Record<string, unknown> = { status, agent_last_read_at: new Date().toISOString() }
   if (status === "resolved") patch.resolved_at = new Date().toISOString()
   if (status === "closed") patch.closed_at = new Date().toISOString()
-  await db.from("support_tickets").update(patch).eq("id", ticketId)
+  const { data: updated, error } = await db.from("support_tickets").update(patch).eq("id", ticketId).select("id").maybeSingle()
+  if (error || !updated) return { ok: false, error: "Не удалось изменить статус" }
+  const { error: messageError } = await db.from("support_messages").insert({
+    ticket_id: ticketId,
+    author_type: "system",
+    body: `Статус изменён: ${STATUS_LABEL[status]}`,
+  })
+  if (messageError) return { ok: false, error: "Статус изменён, но событие не записалось в историю" }
+  await logPlatformAction({ action: "support_status_change", clubId: ticket.club_id, meta: { ticketId, status } })
   revalidatePath("/platform/support")
   return { ok: true }
 }

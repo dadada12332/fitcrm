@@ -6,6 +6,24 @@ tags: [fitcrm, risks]
 
 # Known Issues
 
+## ISSUE-0009 — Platform Admin не завершён как операционная консоль
+
+- Severity: P2
+- Status: open
+- Module: platform
+- Environment: all
+- Symptoms: `Рассылки` и `Промокоды` остаются заглушками, `Настройки` не управляют
+  администраторами и feature flags, у `platform_admin`/`super_admin` нет granular matrix.
+- Expected: все видимые разделы имеют рабочие сценарии, destructive/high-risk операции
+  разделены по платформенным разрешениям и записываются в аудит.
+- Actual: основные read/operate сценарии клубов, тарифов, подписок, оплат, мониторинга,
+  логов и поддержки работают; незавершённые разделы явно помечены `Скоро`.
+- Cause: продуктовый scope и модель полномочий пока не утверждены.
+- Workaround: использовать только реализованные разделы; доступ к Platform выдавать
+  минимальному числу доверенных администраторов.
+- Task: следующий этап Platform Admin после утверждения permission matrix и каналов рассылки.
+- Last checked: 2026-07-28.
+
 ## Launch blockers — 2026-07-20
 
 - Supabase custom SMTP отсутствует: email confirmation/recovery нельзя считать production-ready.

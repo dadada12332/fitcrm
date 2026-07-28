@@ -228,6 +228,10 @@ tags: [zalkins, releases]
 
 ### Security
 
+- Platform Admin получил точные финансовые агрегаты, атомарное одобрение подписок и строгую
+  сверку заявок подключения оплат по request/club/provider; служебные RPC закрыты для API-ролей.
+- Командный центр Platform больше не показывает ложный зелёный статус: подтверждённые,
+  сконфигурированные и неподключённые сервисы разделены явно.
 - События СКУД изолированы по клубу, а секреты и сырые payload доступны только server-side; дедупликация использует fingerprint, проходы защищены reservation/anti-passback и создают посещение вместе со списанием визита в одной транзакции.
 
 - Клиентские обращения связываются только через подтверждённый `client_id`; прямые authenticated-записи в inbox-таблицы запрещены, а действия сотрудников защищены модульными permissions.
@@ -253,6 +257,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
@@ -282,5 +287,4 @@ tags: [zalkins, releases]
 - `31bb9b2` · 2026-07-24 · Redesign client profile actions
 - `7c62e94` · 2026-07-24 · fix: align Google Calendar with CRM design system
 - `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
-- `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
 <!-- AUTO:END changelog-candidates -->

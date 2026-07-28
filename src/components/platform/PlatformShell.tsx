@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { BrandMark } from "@/components/brand/BrandLogo"
 
-export type NavItem = { label: string; href: string; icon: string; badge?: number; section?: string }
+export type NavItem = { label: string; href: string; icon: string; badge?: number; badgeLabel?: string; section?: string }
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard, Building2, Users, CreditCard, Receipt, BarChart3,
@@ -76,6 +76,10 @@ export function PlatformShell({
                 {item.badge ? (
                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground">
                     {item.badge}
+                  </span>
+                ) : item.badgeLabel ? (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {item.badgeLabel}
                   </span>
                 ) : null}
               </Link>

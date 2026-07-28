@@ -24,7 +24,8 @@ export async function impersonateClub(clubId: string) {
   if (!auth) throw new Error("forbidden")
 
   const service = createServiceClient()
-  const { data: club } = await service.from("clubs").select("name").eq("id", clubId).maybeSingle()
+  const { data: club, error } = await service.from("clubs").select("name").eq("id", clubId).maybeSingle()
+  if (error || !club) throw new Error("club not found")
 
   const host = (await headers()).get("host") ?? ""
   const isLocal = host.startsWith("localhost") || /^127\./.test(host)
@@ -49,15 +50,23 @@ export async function impersonateClub(clubId: string) {
 export async function extendTrial(clubId: string, days: number) {
   const auth = await getPlatformAuth()
   if (!auth) throw new Error("forbidden")
+  if (!Number.isInteger(days) || days < 1 || days > 365) return { error: "Срок должен быть от 1 до 365 дней" }
   const service = createServiceClient()
-  const { data: club } = await service.from("clubs").select("trial_expires_at").eq("id", clubId).maybeSingle()
+  const { data: club, error: clubError } = await service.from("clubs").select("trial_expires_at").eq("id", clubId).maybeSingle()
+  if (clubError || !club) return { error: "Клуб не найден" }
   const base = club?.trial_expires_at && new Date(club.trial_expires_at) > new Date()
     ? new Date(club.trial_expires_at)
     : new Date()
   base.setDate(base.getDate() + days)
-  await service.from("clubs").update({ trial_expires_at: base.toISOString(), plan: "trial" }).eq("id", clubId)
+  const { data: updated, error } = await service.from("clubs")
+    .update({ trial_expires_at: base.toISOString(), plan: "trial" })
+    .eq("id", clubId)
+    .select("id")
+    .maybeSingle()
+  if (error || !updated) return { error: "Не удалось продлить Trial" }
   await logPlatformAction({ action: "extend_trial", clubId, meta: { days } })
   revalidatePath(`/platform/clubs/${clubId}`)
+  return {}
 }
 
 const ENUM_PLAN_CODES = ["trial", "starter", "standard", "business"]
@@ -66,7 +75,7 @@ export async function changePlan(clubId: string, planCode: string) {
   const auth = await getPlatformAuth()
   if (!auth) throw new Error("forbidden")
   const planRow = await getPlanByCode(planCode)
-  if (!planRow) throw new Error("unknown plan")
+  if (!planRow) return { error: "Тариф не найден" }
   const service = createServiceClient()
 
   const update: Record<string, unknown> = {
@@ -84,19 +93,23 @@ export async function changePlan(clubId: string, planCode: string) {
     const exp = new Date(); exp.setDate(exp.getDate() + 30)
     update.plan_expires_at = exp.toISOString()
   }
-  await service.from("clubs").update(update).eq("id", clubId)
+  const { data: updated, error } = await service.from("clubs").update(update).eq("id", clubId).select("id").maybeSingle()
+  if (error || !updated) return { error: "Не удалось изменить тариф" }
   await logPlatformAction({ action: "change_plan", clubId, meta: { plan: planCode, price: planRow.price } })
   revalidatePath(`/platform/clubs/${clubId}`)
+  return {}
 }
 
 export async function setClubStatus(clubId: string, status: "active" | "suspended") {
   const auth = await getPlatformAuth()
   if (!auth) throw new Error("forbidden")
   const service = createServiceClient()
-  await service.from("clubs").update({
+  const { data: updated, error } = await service.from("clubs").update({
     status,
     suspended_at: status === "suspended" ? new Date().toISOString() : null,
-  }).eq("id", clubId)
+  }).eq("id", clubId).select("id").maybeSingle()
+  if (error || !updated) return { error: "Не удалось изменить статус клуба" }
   await logPlatformAction({ action: status === "suspended" ? "suspend" : "unsuspend", clubId })
   revalidatePath(`/platform/clubs/${clubId}`)
+  return {}
 }
