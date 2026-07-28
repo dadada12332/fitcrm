@@ -15,12 +15,31 @@ export default async function RetentionPage() {
   const supabase = await createClient()
   const [clients, membershipsResult] = await Promise.all([
     getClientsForExport(supabase, club.clubId, {}),
-    supabase.from("memberships").select("name, price").eq("club_id", club.clubId),
+    supabase
+      .from("memberships")
+      .select("id, name, price, duration_days, visits_limit")
+      .eq("club_id", club.clubId)
+      .eq("is_active", true)
+      .order("price", { ascending: true }),
   ])
 
   const membershipPrices = Object.fromEntries(
     (membershipsResult.data ?? []).map((membership) => [membership.name, Number(membership.price ?? 0)]),
   )
 
-  return <RetentionCenter data={buildRetentionData(clients, membershipPrices)} />
+  const memberships = (membershipsResult.data ?? []).map((membership) => ({
+    id: membership.id,
+    name: membership.name,
+    price: Number(membership.price ?? 0),
+    durationDays: Number(membership.duration_days ?? 30),
+    visitsLimit: membership.visits_limit == null ? null : Number(membership.visits_limit),
+  }))
+
+  return (
+    <RetentionCenter
+      data={buildRetentionData(clients, membershipPrices)}
+      memberships={memberships}
+      canExtend={club.permissions.clients.extend}
+    />
+  )
 }

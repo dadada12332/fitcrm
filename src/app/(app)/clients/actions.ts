@@ -301,7 +301,7 @@ export async function renewSubscriptionAction(
     const { error } = await service.from("subscriptions")
       .update({ expires_at: newExpires, visits_total: newTotal, status: "active" }).eq("id", existing.id)
     if (error) return { error: error.message }
-    revalidatePath(`/clients/${clientId}`); revalidatePath("/clients")
+    revalidatePath(`/clients/${clientId}`); revalidatePath("/clients"); revalidatePath("/retention")
     return { ok: true, mode: "extend" }
   }
 
@@ -313,6 +313,6 @@ export async function renewSubscriptionAction(
     visits_total: visitsLimit, visits_used: 0, starts_at: todayStr, expires_at: expires, status: "active",
   })
   if (error) return { error: error.message }
-  revalidatePath(`/clients/${clientId}`); revalidatePath("/clients")
+  revalidatePath(`/clients/${clientId}`); revalidatePath("/clients"); revalidatePath("/retention")
   return { ok: true, mode: "replace" }
 }

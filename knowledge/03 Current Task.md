@@ -1,11 +1,24 @@
 ---
 type: current-task
 status: complete
-updated: 2026-07-27
-tags: [zalkins, tasks, profile, navigation, subscription, ui, brand]
+updated: 2026-07-28
+tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
 ---
 
 # Current Task
+
+## Retention expiring drawer — 2026-07-28
+
+- Кнопка `Истекающие` и предупреждение о скором окончании абонементов больше не уводят
+  пользователя на экран клиентов: оба действия открывают правый drawer поверх `/retention`.
+- В drawer доступны поиск по имени/телефону, звонок, копирование номера, AI-разбор и
+  подтверждение продления с выбором активного тарифа.
+- Продление использует существующий permission-checked Server Action; после успеха клиент
+  исчезает из локальной очереди, а `/retention` ревалидируется.
+- Пользователь без права `clients.extend` видит понятное ограничение, но сохраняет доступ к
+  немутирующим действиям.
+- Desktop `1920 × 1065`, mobile `390 × 844`, TypeScript, focused tests и production build
+  прошли; browser console чистый, `design-qa.md` — `passed`.
 
 ## Rebrand Zalkins 2026-07-27
 

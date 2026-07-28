@@ -10,6 +10,7 @@ export type RetentionCandidate = {
   membership: string | null
   source: string | null
   status: ClientRow["status"]
+  expiresAt?: string | null
   daysLeft: number | null
   lastVisit: string | null
   inactiveDays: number | null
@@ -130,6 +131,7 @@ export function buildRetentionData(
       membership: row.membership,
       source: row.source,
       status: row.status,
+      expiresAt: row.expiresAt,
       daysLeft: row.daysLeft,
       lastVisit: row.lastVisit,
       inactiveDays,

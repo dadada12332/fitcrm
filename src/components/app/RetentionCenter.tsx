@@ -19,6 +19,10 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { RetentionAiDrawer } from "@/components/app/RetentionAiDrawer"
+import {
+  ExpiringMembershipsDrawer,
+  type RetentionMembershipOption,
+} from "@/components/app/ExpiringMembershipsDrawer"
 import { analyzeRetentionAction } from "@/app/(app)/retention/actions"
 import type { RetentionCandidate, RetentionData, RetentionLevel, RetentionReason } from "@/lib/retention"
 import type { RetentionAiAnalysis, RetentionAiFilter, RetentionAiScope } from "@/lib/retention-ai"
@@ -94,7 +98,15 @@ function CandidateCard({ item, onAnalyze }: { item: RetentionCandidate; onAnalyz
   )
 }
 
-export function RetentionCenter({ data }: { data: RetentionData }) {
+export function RetentionCenter({
+  data,
+  memberships,
+  canExtend,
+}: {
+  data: RetentionData
+  memberships: RetentionMembershipOption[]
+  canExtend: boolean
+}) {
   const { money } = useAppLocale()
   const [filter, setFilter] = useState<Filter>("all")
   const [query, setQuery] = useState("")
@@ -102,6 +114,7 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
   const [aiScope, setAiScope] = useState<RetentionAiScope>({ kind: "portfolio", filter: "all" })
   const [aiAnalysis, setAiAnalysis] = useState<RetentionAiAnalysis | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
+  const [expiringOpen, setExpiringOpen] = useState(false)
   const [aiPending, startAiTransition] = useTransition()
   const aiRequestId = useRef(0)
 
@@ -147,9 +160,9 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
           <p className="mt-1 text-sm text-muted-foreground">Клиенты с риском оттока, приоритет действий и выручка, которую ещё можно сохранить</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/clients?status=expiring" className={buttonVariants({ variant: "outline" })}>
+          <Button type="button" variant="outline" onClick={() => setExpiringOpen(true)}>
             <CalendarClock data-icon="inline-start" /> Истекающие
-          </Link>
+          </Button>
           <Button type="button" onClick={() => runAiAnalysis({ kind: "portfolio", filter })}>
             <Sparkles /> Разобрать с AI
           </Button>
@@ -172,13 +185,18 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
       </div>
 
       {data.summary.expiring7 > 0 && (
-        <div className="flex gap-3 rounded-xl border border-border bg-card p-4">
+        <button
+          type="button"
+          onClick={() => setExpiringOpen(true)}
+          className="flex w-full gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/30"
+        >
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-foreground">{data.summary.expiring7} клиентов нужно обработать до окончания абонемента</p>
             <p className="mt-1 text-xs text-muted-foreground">Продление до даты окончания обычно проще, чем возвращение уже ушедшего клиента.</p>
           </div>
-        </div>
+          <ArrowRight className="mt-1 size-4 shrink-0 text-muted-foreground" />
+        </button>
       )}
 
       <Card>
@@ -259,6 +277,14 @@ export function RetentionCenter({ data }: { data: RetentionData }) {
         error={aiError}
         onRetry={() => runAiAnalysis(aiScope)}
         onRefresh={() => runAiAnalysis(aiScope, true)}
+      />
+      <ExpiringMembershipsDrawer
+        open={expiringOpen}
+        onOpenChange={setExpiringOpen}
+        candidates={data.candidates}
+        memberships={memberships}
+        canExtend={canExtend}
+        onAnalyze={(clientId) => runAiAnalysis({ kind: "client", clientId })}
       />
     </div>
   )

@@ -486,7 +486,9 @@ function validate() {
 }
 
 function sync() {
-  createDaily(args.includes("--force"));
+  // A full sync is the canonical end-of-task workflow, so it must never keep
+  // writing into yesterday's note or skip non-code work.
+  createDaily(true);
   updateRepositoryState();
   updateDashboard();
   updateKanban();
