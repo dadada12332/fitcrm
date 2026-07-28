@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { TrendingUp, BarChart2 } from "lucide-react"
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
+import { useAppLocale } from "./ClubContext"
 
 type Props = {
   todayVisits: number
@@ -10,9 +11,38 @@ type Props = {
   attendanceChangePct: number
 }
 
+const RADIAL_COPY = {
+  ru: {
+    attendance: "Посещаемость",
+    increased: "выросла",
+    decreased: "снизилась",
+    activeToday: "активных клиентов сегодня",
+  },
+  uz: {
+    attendance: "Davomat",
+    increased: "oshdi",
+    decreased: "kamaydi",
+    activeToday: "faol mijozdan bugun",
+  },
+  en: {
+    attendance: "Attendance",
+    increased: "increased",
+    decreased: "decreased",
+    activeToday: "active clients today",
+  },
+} as const
+
+const MONTH_NAMES = {
+  ru: ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"],
+  uz: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"],
+  en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+} as const
+
 export function DashboardVisitRadial({ todayVisits, activeClients, attendanceChangePct }: Props) {
+  const { locale } = useAppLocale()
   const pct = activeClients > 0 ? Math.min(100, Math.round((todayVisits / activeClients) * 100)) : 0
   const up = attendanceChangePct >= 0
+  const copy = RADIAL_COPY[locale]
 
   // Donut data: filled vs remainder
   const data = [
@@ -21,8 +51,7 @@ export function DashboardVisitRadial({ todayVisits, activeClients, attendanceCha
   ]
 
   const now = new Date()
-  const monthStart = new Date(now.getFullYear(), 0, 1)
-  const monthRange = `${monthStart.toLocaleDateString("ru-RU", { month: "long" })} – ${new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString("ru-RU", { month: "long", year: "numeric" })}`
+  const monthRange = `${MONTH_NAMES[locale][0]} – ${MONTH_NAMES[locale][now.getMonth()]} ${now.getFullYear()}${locale === "ru" ? " г." : ""}`
 
   return (
     <div
@@ -104,12 +133,13 @@ export function DashboardVisitRadial({ todayVisits, activeClients, attendanceCha
         <div className="flex flex-col items-center gap-1 px-6 pb-6 pt-6" style={{ borderTop: "1px solid var(--border)" }}>
           <div className="flex items-center gap-1 justify-center w-full">
             <p className="text-[14px] font-medium text-center" style={{ color: "var(--on-dark)", lineHeight: "20px", letterSpacing: "-0.084px" }}>
-              {up ? `Посещаемость выросла на ${Math.abs(attendanceChangePct).toFixed(0)}%` : `Посещаемость снизилась на ${Math.abs(attendanceChangePct).toFixed(0)}%`}
+              {copy.attendance} {up ? copy.increased : copy.decreased} {locale === "en" ? "by " : ""}
+              {Math.abs(attendanceChangePct).toFixed(0)}%
             </p>
             <TrendingUp className="w-4 h-4 flex-shrink-0" style={{ color: up ? "#16a34a" : "#dc2626" }} />
           </div>
           <p className="text-[14px] font-normal text-center w-full" style={{ color: "var(--gray-muted)", lineHeight: "20px" }}>
-            {todayVisits} из {activeClients} активных клиентов сегодня
+            {todayVisits} {locale === "ru" ? "из" : locale === "en" ? "of" : "/"} {activeClients} {copy.activeToday}
           </p>
         </div>
       </div>

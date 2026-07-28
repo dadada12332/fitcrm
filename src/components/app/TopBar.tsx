@@ -352,6 +352,8 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
 
   function changeLanguage(nextLocale: AppLocale) {
     if (nextLocale === locale) return
+    setSearchOpen(false)
+    setNotifOpen(false)
     startLanguageTransition(async () => {
       const result = await saveUserLocaleAction(nextLocale)
       if (result.error) {

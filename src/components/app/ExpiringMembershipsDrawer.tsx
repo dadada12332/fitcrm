@@ -33,6 +33,7 @@ import {
 import type { RetentionCandidate } from "@/lib/retention"
 import { toast } from "@/lib/use-action"
 import { useAppLocale } from "./ClubContext"
+import type { AppLocale } from "@/lib/app-locale"
 
 export type RetentionMembershipOption = {
   id: string
@@ -42,17 +43,34 @@ export type RetentionMembershipOption = {
   visitsLimit: number | null
 }
 
-function dueLabel(daysLeft: number | null) {
-  if (daysLeft === null) return "Дата не указана"
-  if (daysLeft <= 0) return "Истекает сегодня"
+function dueLabel(daysLeft: number | null, locale: AppLocale) {
+  if (daysLeft === null) {
+    return locale === "en" ? "Date not specified" : locale === "uz" ? "Sana ko‘rsatilmagan" : "Дата не указана"
+  }
+  if (daysLeft <= 0) {
+    return locale === "en" ? "Expires today" : locale === "uz" ? "Bugun tugaydi" : "Истекает сегодня"
+  }
+  if (locale === "en") return `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`
+  if (locale === "uz") return `${daysLeft} kun qoldi`
   if (daysLeft === 1) return "Остался 1 день"
   if (daysLeft < 5) return `Осталось ${daysLeft} дня`
   return `Осталось ${daysLeft} дней`
 }
 
-function formatDate(value: string | null | undefined) {
-  if (!value) return "Дата не указана"
-  return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(`${value}T00:00:00`))
+const DRAWER_MONTH_NAMES = {
+  ru: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
+  uz: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"],
+  en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+} as const
+
+function formatDate(value: string | null | undefined, locale: AppLocale) {
+  if (!value) {
+    return locale === "en" ? "Date not specified" : locale === "uz" ? "Sana ko‘rsatilmagan" : "Дата не указана"
+  }
+  const date = new Date(`${value}T00:00:00`)
+  const day = date.getDate()
+  const month = DRAWER_MONTH_NAMES[locale][date.getMonth()]
+  return locale === "en" ? `${month} ${day}` : `${day} ${month}`
 }
 
 export function ExpiringMembershipsDrawer({
@@ -70,7 +88,7 @@ export function ExpiringMembershipsDrawer({
   canExtend: boolean
   onAnalyze: (clientId: string) => void
 }) {
-  const { money } = useAppLocale()
+  const { locale, money } = useAppLocale()
   const router = useRouter()
   const [query, setQuery] = useState("")
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
@@ -200,11 +218,11 @@ export function ExpiringMembershipsDrawer({
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-foreground">{candidate.name}</p>
                           <p className="mt-1 truncate text-xs text-muted-foreground">
-                            {candidate.membership ?? "Без абонемента"} · до {formatDate(candidate.expiresAt)}
+                            {candidate.membership ?? "Без абонемента"} · до {formatDate(candidate.expiresAt, locale)}
                           </p>
                         </div>
                         <Badge variant={candidate.daysLeft !== null && candidate.daysLeft <= 3 ? "destructive" : "secondary"}>
-                          {dueLabel(candidate.daysLeft)}
+                          {dueLabel(candidate.daysLeft, locale)}
                         </Badge>
                       </div>
 

@@ -9,6 +9,7 @@ import { TopBar } from "./TopBar"
 import { ClubProvider } from "./ClubContext"
 import { ProductOnboarding } from "./ProductOnboarding"
 import { PlanLimitUpgradeDialog } from "./PlanLimitUpgradeDialog"
+import { AppTranslationLayer } from "./AppTranslationLayer"
 import { signOut } from "@/app/(auth)/actions"
 import type { SidebarStats } from "@/lib/sidebar"
 import type { RolePermissions } from "@/lib/permissions"
@@ -107,6 +108,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
   if (showLock && lockReason) {
     return (
       <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess, locale, currency, timezone }}>
+        <AppTranslationLayer locale={locale} />
         <LockScreen reason={lockReason} clubName={clubName} />
       </ClubProvider>
     )
@@ -114,6 +116,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
 
   return (
     <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess, locale, currency, timezone }}>
+      <AppTranslationLayer locale={locale} />
       <PlanLimitUpgradeDialog />
       {impersonating && (
         <div

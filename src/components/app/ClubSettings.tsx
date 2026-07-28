@@ -344,7 +344,7 @@ function BasicSection({ club }: { club: ClubData }) {
               <p><span className="text-muted-foreground">{t("settings.botLanguage")}:</span> {APP_LOCALE_LABELS[communicationLanguage]}</p>
             </div>
           </div>
-          <div className="rounded-xl border bg-muted/30 p-4">
+          <div className="rounded-xl border bg-muted/30 p-4" data-app-no-translate>
             <div className="mb-3 flex items-center gap-2">
               <div className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
                 <Bot className="size-4" />

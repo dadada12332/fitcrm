@@ -10,6 +10,11 @@ tags: [zalkins, releases]
 
 ### Changed
 
+- Переключатель RU/UZ/EN теперь меняет весь интерфейс CRM, включая бизнес-модули, таблицы,
+  drawer/dialog, уведомления, динамические подписи, даты, placeholders и accessibility labels.
+  Пользовательские названия клубов, клиентов и сотрудников сохраняются без машинного перевода,
+  а язык Telegram-приветствия остаётся отдельной настройкой клуба.
+
 - Левый маркетинговый блок login собран в единый CRM snapshot с KPI, активностью и быстрыми
   действиями.
 - Существующая правая стеклянная карточка сохранена и дополнена контекстом сверху, а также
@@ -94,8 +99,8 @@ tags: [zalkins, releases]
 
 - Основные настройки клуба теперь подтверждают фактическую запись, а сохранённые валюта, часовой
   пояс, контакты и рабочие часы применяются в CRM и Telegram-боте.
-- Сотрудники могут выбрать язык интерфейса RU/UZ/EN глобально; язык хранится в профиле сотрудника,
-  отдельно от языка клиентских сообщений клуба.
+- Сотрудники могут выбрать язык интерфейса RU/UZ/EN глобально; язык хранится в профиле сотрудника
+  и применяется ко всей CRM отдельно от языка клиентских сообщений клуба.
 - Telegram-приветствие и раздел контактов используют единый профиль клуба с адресом, телефоном,
   email, сайтом и рабочими часами; редактор приветствия получил соответствующие переменные.
 - Команда `/start` повторно показывает актуальную карточку клуба даже уже привязанному
@@ -248,6 +253,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 - `f12f58b` · 2026-07-28 · fix: soften retention queue divider
@@ -277,5 +283,4 @@ tags: [zalkins, releases]
 - `d09144f` · 2026-07-24 · docs: record Google Calendar release [skip ci]
 - `694842c` · 2026-07-24 · feat: add controlled Google Calendar workspace
 - `e8de0e4` · 2026-07-24 · feat: add Google Calendar integration
-- `df0517f` · 2026-07-24 · feat: group integration catalog sections
 <!-- AUTO:END changelog-candidates -->
