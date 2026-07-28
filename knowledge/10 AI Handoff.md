@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
-- `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 - `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
-- `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

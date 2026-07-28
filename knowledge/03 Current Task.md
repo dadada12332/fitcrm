@@ -29,6 +29,9 @@ tags: [zalkins, tasks, profile, navigation, subscription, retention, ui, brand]
   `service_role`, лишний API execute у четырёх trigger helpers отозван.
 - TypeScript, focused ESLint, 164 теста и production build прошли. Авторизованный browser QA
   командного центра и мониторинга подтверждает честные статусы без framework errors.
+- Commit `0447f4c` опубликован в production deployment
+  `dpl_8hekMQbcyJvE4miPS4tmJaFUHRDy`; основной alias обновлён, HTTP smoke и runtime error scan
+  чистые.
 
 ## Полная локализация CRM — 2026-07-28
 
