@@ -33,7 +33,7 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
   }
 
   const service = createServiceClient()
-  const [clubResult, user, pendingResult, connectionsResult, dbPlans, rolesResult, clientsResult] = await Promise.all([
+  const [clubResult, user, pendingResult, connectionsResult, dbPlans, rolesResult, clientsResult, compensationResult] = await Promise.all([
     supabase
       .from("clubs")
       .select("id, name, plan, trial_expires_at, plan_expires_at, plan_price_locked, settings, staff!inner(id, role, user_id, is_active, users(id, email, full_name))")
@@ -59,6 +59,18 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     allowedTabs.subscription
       ? supabase.from("clients").select("id", { count: "exact", head: true }).eq("club_id", club.clubId)
       : Promise.resolve({ count: 0 }),
+    allowedTabs.subscription
+      ? service.from("platform_club_compensations")
+        .select("id, value, reason, expires_at")
+        .eq("club_id", club.clubId)
+        .eq("benefit_type", "discount_pct")
+        .eq("status", "active")
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .order("value", { ascending: false })
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
   const clubRow = clubResult.data
 
@@ -172,6 +184,14 @@ export async function SettingsView({ tab, staffId, staffName }: { tab?: string; 
     planPriceLocked: (clubRow as any).plan_price_locked ?? null,
     clientCount: clientsResult.count ?? 0,
     planUsage,
+    activeCompensation: compensationResult.data
+      ? {
+        id: compensationResult.data.id,
+        discountPct: Number(compensationResult.data.value),
+        reason: compensationResult.data.reason,
+        expiresAt: compensationResult.data.expires_at,
+      }
+      : null,
   }
 
   const initialRoles = tab === "roles" ? rolesResult.roles : undefined

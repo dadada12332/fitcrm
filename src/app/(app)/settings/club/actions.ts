@@ -64,6 +64,21 @@ export async function requestPlanAction(plan: string, months = 1, promoCode?: st
     promo = data as PromoQuote
   }
 
+  const amountAfterPromo = promo?.final_amount ?? baseAmount
+  const { data: compensation } = await service.from("platform_club_compensations")
+    .select("id, value")
+    .eq("club_id", club.clubId)
+    .eq("benefit_type", "discount_pct")
+    .eq("status", "active")
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .order("value", { ascending: false })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle()
+  const compensationDiscount = compensation
+    ? Math.round(amountAfterPromo * Number(compensation.value)) / 100
+    : 0
+
   // Одна активная заявка на клуб: старые pending отменяем.
   await service.from("platform_billing_requests")
     .update({ status: "cancelled", resolved_at: new Date().toISOString() })
@@ -73,10 +88,12 @@ export async function requestPlanAction(plan: string, months = 1, promoCode?: st
     club_id: club.clubId,
     plan,
     months: normalizedMonths,
-    amount: promo?.final_amount ?? baseAmount,
+    amount: Math.max(0, amountAfterPromo - compensationDiscount),
     promo_code_id: promo?.id ?? null,
     promo_code: promo?.code ?? null,
     discount_amount: promo?.discount_amount ?? 0,
+    compensation_id: compensation?.id ?? null,
+    compensation_discount_amount: compensationDiscount,
     status: "pending",
     requested_by: user?.id ?? null,
     requested_email: user?.email ?? null,

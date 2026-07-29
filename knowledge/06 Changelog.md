@@ -39,6 +39,11 @@ tags: [zalkins, releases]
 
 ### Added
 
+- В Platform Admin раздел `Промокоды` получил вкладку `Компенсации клубам`: можно выбрать
+  один или несколько клубов, сразу начислить бесплатные дни либо выдать скидку на следующую
+  покупку тарифа. Владелец получает CRM-уведомление и видит пересчитанные цены в подписке;
+  применённая скидка списывается атомарно при подтверждении оплаты.
+
 - Platform Admin получил рабочее управление администраторами, granular роли
   `platform_admin`/`super_admin`, полный lifecycle промокодов, внутренние CRM-уведомления
   владельцам, историю Cron и service checks, ежедневные исторические SaaS-метрики, отключение
@@ -271,6 +276,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
@@ -300,5 +306,4 @@ tags: [zalkins, releases]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 - `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
-- `0fb2e25` · 2026-07-27 · chore: ignore local Codex credentials
 <!-- AUTO:END changelog-candidates -->

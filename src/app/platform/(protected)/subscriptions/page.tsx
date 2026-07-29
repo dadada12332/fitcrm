@@ -48,6 +48,7 @@ export default async function SubscriptionsPage() {
                   <p className="text-[11px] mt-0.5" style={{ color: PT.textMuted }}>
                     {r.requestedEmail ?? "—"} · {timeAgo(r.createdAt)}
                     {r.promoCode ? ` · промокод ${r.promoCode}${r.discountAmount > 0 ? ` (−${fmtSum(r.discountAmount)})` : ""}` : ""}
+                    {r.compensationDiscountAmount > 0 ? ` · компенсация −${fmtSum(r.compensationDiscountAmount)}` : ""}
                   </p>
                 </div>
                 <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">

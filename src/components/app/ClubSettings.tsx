@@ -7,7 +7,7 @@ import {
   Crown, Check, X, Plus, ArrowRight,
   MessageCircle,
   Pencil, Trash2, Users, Building2, Package, ShieldCheck,
-  Plug, Bot, Send, Upload, Download, CalendarDays, Clock3,
+  Plug, Bot, Send, Upload, Download, CalendarDays, Clock3, Gift,
 } from "lucide-react"
 import {
   Card as UiCard,
@@ -82,6 +82,12 @@ export type ClubData = {
   paymentConnections?: Record<string, "new" | "active">
   clientCount: number
   planUsage?: PlanUsageForClient[]
+  activeCompensation?: {
+    id: string
+    discountPct: number
+    reason: string
+    expiresAt: string | null
+  } | null
 }
 
 export type PlanUsageForClient = {
@@ -1103,6 +1109,22 @@ function PlanSection({ club }: { club: ClubData }) {
 
         <CardContent className="py-4">
           {err && <p className="mb-4 text-sm text-destructive">{err}</p>}
+          {club.activeCompensation && (
+            <div className="mb-4 flex items-start gap-3 rounded-lg border border-brand/20 bg-brand/5 p-3">
+              <Gift className="mt-0.5 size-4 shrink-0 text-brand" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">
+                  Компенсация −{club.activeCompensation.discountPct}% применится автоматически
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {club.activeCompensation.reason}
+                  {club.activeCompensation.expiresAt
+                    ? ` · использовать до ${new Date(club.activeCompensation.expiresAt).toLocaleDateString("ru-RU")}`
+                    : ""}
+                </p>
+              </div>
+            </div>
+          )}
           <div className="mb-4 flex max-w-md items-end gap-2">
             <label className="min-w-0 flex-1 space-y-1.5 text-xs font-medium text-foreground">
               Промокод
@@ -1125,6 +1147,9 @@ function PlanSection({ club }: { club: ClubData }) {
                 const isCurrent = pl.code === plan
                 const requested = req?.plan === pl.code
                 const total = pl.price * months
+                const compensatedTotal = club.activeCompensation
+                  ? Math.max(0, total - Math.round(total * club.activeCompensation.discountPct) / 100)
+                  : total
                 return (
                   <div
                     key={pl.code}
@@ -1152,8 +1177,13 @@ function PlanSection({ club }: { club: ClubData }) {
                     </div>
 
                     <div className="mt-4">
+                      {club.activeCompensation && (
+                        <p className="text-xs tabular-nums text-muted-foreground line-through">
+                          {fmtPlanPrice(total, pl.currency, false)}
+                        </p>
+                      )}
                       <p className="text-2xl font-semibold tracking-tight text-foreground">
-                        {fmtPlanPrice(total, pl.currency, false)}
+                        {fmtPlanPrice(compensatedTotal, pl.currency, false)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {months === 1 ? "за месяц" : `за ${months} месяца · ${fmtMoney(pl.price, pl.currency)} / мес`}

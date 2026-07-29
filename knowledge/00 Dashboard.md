@@ -1,6 +1,6 @@
 ---
 type: dashboard
-updated: 2026-07-28
+updated: 2026-07-29
 tags: [fitcrm, operations]
 ---
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
 - `067fd44` · 2026-07-28 · feat: complete platform admin operations
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
-- `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-28 Asia/Tashkent
+2026-07-29 Asia/Tashkent
 <!-- AUTO:END updated-at -->

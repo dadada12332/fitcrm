@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `58d1002` · 2026-07-28 · docs: record platform admin hardening release [skip ci]
 - `0447f4c` · 2026-07-28 · feat: harden platform admin operations
 - `e057828` · 2026-07-28 · docs: record complete localization release [skip ci]
-- `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
@@ -76,5 +76,5 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Production deploy, применённые миграции, регион Supabase, наличие провайдеров и точные пути из старых `FITCRM_*` документов.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-28 Asia/Tashkent
+2026-07-29 Asia/Tashkent
 <!-- AUTO:END updated-at -->

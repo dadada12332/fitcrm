@@ -694,6 +694,84 @@ export async function getPlatformPromoCodes(): Promise<PlatformPromoRow[]> {
   }))
 }
 
+export type PlatformCompensationClub = {
+  id: string
+  name: string
+  plan: string
+  status: string
+}
+
+export type PlatformClubCompensationRow = {
+  id: string
+  clubId: string
+  clubName: string
+  benefitType: "free_days" | "discount_pct"
+  value: number
+  reason: string
+  status: "active" | "applied" | "cancelled" | "expired"
+  expiresAt: string | null
+  appliedAt: string | null
+  createdAt: string
+}
+
+export async function getPlatformCompensationData(): Promise<{
+  clubs: PlatformCompensationClub[]
+  compensations: PlatformClubCompensationRow[]
+}> {
+  const service = createServiceClient()
+  const [{ data: clubs, error: clubsError }, { data: compensations, error: compensationsError }] = await Promise.all([
+    service
+      .from("clubs")
+      .select("id, name, plan, status")
+      .neq("status", "deleted")
+      .order("name"),
+    service
+      .from("platform_club_compensations")
+      .select("id, club_id, benefit_type, value, reason, status, expires_at, applied_at, created_at, clubs(name)")
+      .order("created_at", { ascending: false })
+      .limit(100),
+  ])
+  if (clubsError) throw clubsError
+  if (compensationsError) throw compensationsError
+
+  return {
+    clubs: (clubs ?? []).map((club) => ({
+      id: club.id,
+      name: club.name,
+      plan: club.plan,
+      status: club.status,
+    })),
+    compensations: ((compensations ?? []) as unknown as Array<{
+      id: string
+      club_id: string
+      benefit_type: "free_days" | "discount_pct"
+      value: number
+      reason: string
+      status: "active" | "applied" | "cancelled" | "expired"
+      expires_at: string | null
+      applied_at: string | null
+      created_at: string
+      clubs: { name: string } | null
+    }>).map((row) => {
+      const status = row.status === "active" && row.expires_at && new Date(row.expires_at).getTime() <= Date.now()
+        ? "expired"
+        : row.status
+      return {
+        id: row.id,
+        clubId: row.club_id,
+        clubName: row.clubs?.name ?? "Удалённый клуб",
+        benefitType: row.benefit_type,
+        value: row.value,
+        reason: row.reason,
+        status,
+        expiresAt: row.expires_at,
+        appliedAt: row.applied_at,
+        createdAt: row.created_at,
+      }
+    }),
+  }
+}
+
 export type PlatformBroadcastRow = {
   id: string
   title: string
@@ -871,6 +949,7 @@ export type BillingRequest = {
   amount: number | null
   promoCode: string | null
   discountAmount: number
+  compensationDiscountAmount: number
   status: string
   requestedEmail: string | null
   createdAt: string
@@ -882,17 +961,19 @@ export async function getBillingRequests(): Promise<{ pending: BillingRequest[];
   try {
     const { data } = await service
       .from("platform_billing_requests")
-      .select("id, club_id, plan, months, amount, promo_code, discount_amount, status, requested_email, created_at, resolved_at, clubs(name)")
+      .select("id, club_id, plan, months, amount, promo_code, discount_amount, compensation_discount_amount, status, requested_email, created_at, resolved_at, clubs(name)")
       .order("created_at", { ascending: false })
       .limit(100)
     const rows = ((data ?? []) as unknown as {
       id: string; club_id: string; plan: string; months: number; amount: number | null;
       promo_code: string | null; discount_amount: number | null;
+      compensation_discount_amount: number | null;
       status: string; requested_email: string | null; created_at: string; resolved_at: string | null;
       clubs: { name: string } | null
     }[]).map((r) => ({
       id: r.id, clubId: r.club_id, clubName: r.clubs?.name ?? "—", plan: r.plan, months: r.months,
       amount: r.amount, promoCode: r.promo_code, discountAmount: Number(r.discount_amount ?? 0),
+      compensationDiscountAmount: Number(r.compensation_discount_amount ?? 0),
       status: r.status, requestedEmail: r.requested_email, createdAt: r.created_at, resolvedAt: r.resolved_at,
     }))
     return {
