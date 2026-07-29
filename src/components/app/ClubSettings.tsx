@@ -7,7 +7,7 @@ import {
   Crown, Check, X, Plus, ArrowRight,
   MessageCircle,
   Pencil, Trash2, Users, Building2, Package, ShieldCheck,
-  Plug, Bot, Send, Upload, Download, CalendarDays, Clock3, Gift,
+  Plug, Bot, Send, Upload, Download, CalendarDays, Clock3, Gift, Loader2, Tag,
 } from "lucide-react"
 import {
   Card as UiCard,
@@ -35,10 +35,12 @@ import {
   updateStaffRoleAction,
   removeStaffAction,
   requestPlanAction,
+  quotePlanPromoAction,
   cancelPlanRequestAction,
   requestPaymentConnectionAction,
   cancelPaymentConnectionAction,
 } from "@/app/(app)/settings/club/actions"
+import type { PromoPreview } from "@/app/(app)/settings/club/actions"
 import { saveTelegramSettingsAction } from "@/app/(app)/integrations/actions"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { getBranchesAction, switchBranchAction } from "@/app/(app)/actions"
@@ -978,8 +980,53 @@ function PlanSection({ club }: { club: ClubData }) {
   const [pending, start] = useTransition()
   const [months, setMonths] = useState(1)
   const [promoCode, setPromoCode] = useState("")
+  const [promoPreview, setPromoPreview] = useState<PromoPreview | null>(null)
+  const [promoChecking, setPromoChecking] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const req = club.pendingRequest
+
+  useEffect(() => {
+    const code = promoCode.trim()
+    if (!code) return
+
+    let cancelled = false
+    const timer = window.setTimeout(async () => {
+      setPromoChecking(true)
+      const result = await quotePlanPromoAction(code, months)
+      if (cancelled) return
+      setPromoChecking(false)
+      setPromoPreview(result.quote ?? null)
+      setPromoError(result.error ?? null)
+    }, 450)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [promoCode, months])
+
+  function changePromoCode(value: string) {
+    setPromoCode(value.toUpperCase().slice(0, 32))
+    setPromoPreview(null)
+    setPromoError(null)
+    setPromoChecking(Boolean(value.trim()))
+  }
+
+  function clearPromoCode() {
+    setPromoCode("")
+    setPromoPreview(null)
+    setPromoError(null)
+    setPromoChecking(false)
+  }
+
+  function changeMonths(value: string) {
+    setMonths(Number(value))
+    if (!promoCode.trim()) return
+    setPromoPreview(null)
+    setPromoError(null)
+    setPromoChecking(true)
+  }
 
   function requestPlan(p: string) {
     setErr(null)
@@ -1097,7 +1144,7 @@ function PlanSection({ club }: { club: ClubData }) {
           <CardTitle>Доступные тарифы</CardTitle>
           <CardDescription className="col-start-1 row-start-2">Сравните возможности и выберите подходящий объём.</CardDescription>
           <CardAction className="col-span-2 col-start-1 row-start-3 mt-3 justify-self-start sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
-            <Tabs value={String(months)} onValueChange={(value) => setMonths(Number(value))}>
+            <Tabs value={String(months)} onValueChange={changeMonths}>
               <TabsList>
                 {MONTHS_OPTIONS.map((option) => (
                   <TabsTab key={option.m} value={String(option.m)}>{option.label}</TabsTab>
@@ -1130,14 +1177,48 @@ function PlanSection({ club }: { club: ClubData }) {
               Промокод
               <Input
                 value={promoCode}
-                onChange={(value) => setPromoCode(value.toUpperCase().slice(0, 32))}
+                onChange={changePromoCode}
                 placeholder="Если есть"
               />
             </label>
             {promoCode && (
-              <UiButton type="button" variant="ghost" onClick={() => setPromoCode("")}>Очистить</UiButton>
+              <UiButton type="button" variant="ghost" onClick={clearPromoCode}>Очистить</UiButton>
             )}
           </div>
+          {promoCode && (
+            <div className={`mb-4 flex max-w-2xl items-start gap-3 rounded-lg border p-3 ${
+              promoError
+                ? "border-destructive/20 bg-destructive/5"
+                : promoPreview
+                  ? "border-brand/20 bg-brand/5"
+                  : "border-border bg-muted/30"
+            }`}>
+              <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md ${
+                promoError ? "bg-destructive/10 text-destructive" : "bg-brand/10 text-brand"
+              }`}>
+                {promoChecking ? <Loader2 className="size-4 animate-spin" /> : <Tag className="size-4" />}
+              </div>
+              <div className="min-w-0">
+                <p className={`text-sm font-medium ${promoError ? "text-destructive" : "text-foreground"}`}>
+                  {promoChecking
+                    ? "Проверяем промокод…"
+                    : promoError
+                      ? promoError
+                      : promoPreview
+                        ? `Промокод ${promoPreview.code} применён`
+                        : "Введите промокод полностью"}
+                </p>
+                {promoPreview && !promoChecking && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {[
+                      promoPreview.discountPct ? `Скидка ${promoPreview.discountPct}% — цены ниже уже пересчитаны` : null,
+                      promoPreview.freeDays ? `+${promoPreview.freeDays} дн. после подтверждения оплаты` : null,
+                    ].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {paidPlans.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">Тарифы временно недоступны</p>
@@ -1147,9 +1228,12 @@ function PlanSection({ club }: { club: ClubData }) {
                 const isCurrent = pl.code === plan
                 const requested = req?.plan === pl.code
                 const total = pl.price * months
+                const promoPrice = promoPreview?.prices[pl.code]?.finalAmount ?? total
                 const compensatedTotal = club.activeCompensation
-                  ? Math.max(0, total - Math.round(total * club.activeCompensation.discountPct) / 100)
-                  : total
+                  ? Math.max(0, promoPrice - Math.round(promoPrice * club.activeCompensation.discountPct) / 100)
+                  : promoPrice
+                const priceChanged = compensatedTotal !== total
+                const promoUnavailable = Boolean(promoPreview && !promoPreview.prices[pl.code])
                 return (
                   <div
                     key={pl.code}
@@ -1177,7 +1261,7 @@ function PlanSection({ club }: { club: ClubData }) {
                     </div>
 
                     <div className="mt-4">
-                      {club.activeCompensation && (
+                      {priceChanged && (
                         <p className="text-xs tabular-nums text-muted-foreground line-through">
                           {fmtPlanPrice(total, pl.currency, false)}
                         </p>
@@ -1220,8 +1304,18 @@ function PlanSection({ club }: { club: ClubData }) {
                           <Clock3 className="size-4" /> Заявка отправлена
                         </UiButton>
                       ) : (
-                        <UiButton className="w-full" onClick={() => requestPlan(pl.code)} disabled={pending}>
-                          {pending ? "Отправляем..." : plan === "trial" ? "Оформить тариф" : "Перейти на тариф"}
+                        <UiButton
+                          className="w-full"
+                          onClick={() => requestPlan(pl.code)}
+                          disabled={pending || promoChecking || Boolean(promoCode && !promoPreview) || promoUnavailable}
+                        >
+                          {promoUnavailable
+                            ? "Промокод не действует"
+                            : pending
+                              ? "Отправляем..."
+                              : plan === "trial"
+                                ? "Оформить тариф"
+                                : "Перейти на тариф"}
                           {!pending && <ArrowRight className="size-4" />}
                         </UiButton>
                       )}

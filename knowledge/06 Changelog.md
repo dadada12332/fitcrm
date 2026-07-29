@@ -53,6 +53,12 @@ tags: [zalkins, releases]
   Суперадминистратор выбирает тип, аудиторию и время публикации; владельцы читают сообщение
   в колокольчике CRM, а история показывает количество прочтений.
 
+### Changed
+
+- Промокод на экране подписки теперь автоматически проверяется после ввода: CRM показывает
+  скидку и бесплатные дни, сразу пересчитывает цены тарифов и не позволяет отправить заявку
+  с неподтверждённым или неподходящим кодом.
+
 ### Removed
 
 - Удалена устаревшая верхняя системная плашка CRM и её настройка в Platform Admin. Новости и
@@ -276,6 +282,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
 - `a7467db` · 2026-07-29 · feat: add targeted club compensations
 - `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
@@ -305,5 +312,4 @@ tags: [zalkins, releases]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
 - `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
-- `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
 <!-- AUTO:END changelog-candidates -->

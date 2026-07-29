@@ -11,6 +11,17 @@ import { requireIntegrationSlot, requirePlanFeature, requirePlanSection, require
 import { APP_LOCALES, normalizeAppLocale, type AppLocale } from "@/lib/app-locale"
 
 export type SaveResult = { ok?: boolean; error?: string }
+export type PromoPreview = {
+  code: string
+  discountPct: number | null
+  freeDays: number
+  prices: Record<string, {
+    baseAmount: number
+    discountAmount: number
+    finalAmount: number
+  }>
+}
+export type PromoPreviewResult = { quote?: PromoPreview; error?: string }
 type WorkingDay = { open: string; close: string; closed: boolean }
 
 function permissionsAreSubset(target: unknown, actor: unknown): boolean {
@@ -27,6 +38,85 @@ async function canInviteRole(clubId: string, actorRole: string, actorPermissions
   const { data } = await createServiceClient().from("club_roles")
     .select("permissions").eq("club_id", clubId).eq("key", role).maybeSingle()
   return Boolean(data?.permissions && permissionsAreSubset(data.permissions, actorPermissions))
+}
+
+function promoErrorMessage(message: string): string {
+  if (message.includes("promo_not_found")) return "Промокод не найден"
+  if (message.includes("promo_inactive") || message.includes("promo_expired")) return "Промокод больше не действует"
+  if (message.includes("promo_not_started")) return "Промокод ещё не начал действовать"
+  if (message.includes("promo_exhausted")) return "Лимит использований промокода исчерпан"
+  if (message.includes("promo_plan_mismatch")) return "Промокод не действует на доступные тарифы"
+  return "Не удалось проверить промокод"
+}
+
+/** Проверяет промокод и возвращает пересчитанные цены до создания заявки. */
+export async function quotePlanPromoAction(promoCode: string, months = 1): Promise<PromoPreviewResult> {
+  const code = promoCode.trim().toUpperCase().slice(0, 32)
+  if (!code) return { error: "Введите промокод" }
+
+  const club = await getCurrentClub()
+  if (!club) return { error: "Не авторизован" }
+  if (!can(club.permissions, "settings", "subscription")) return { error: "Недостаточно прав" }
+
+  const service = createServiceClient()
+  const normalizedMonths = Math.max(1, Math.min(12, Math.floor(months)))
+  const { data: plans, error: plansError } = await service
+    .from("plans")
+    .select("code, price")
+    .eq("is_trial", false)
+    .eq("is_archived", false)
+    .eq("is_active", true)
+    .order("sort_order")
+  if (plansError) return { error: "Не удалось загрузить тарифы" }
+  if (!plans?.length) return { error: "Тарифы временно недоступны" }
+
+  const results = await Promise.all(plans.map(async (item) => {
+    const baseAmount = Number(item.price) * normalizedMonths
+    const { data, error } = await service.rpc("platform_quote_promo", {
+      p_code: code,
+      p_plan: item.code,
+      p_months: normalizedMonths,
+      p_base_amount: baseAmount,
+    })
+    return { plan: item.code, baseAmount, data, error }
+  }))
+
+  const fatalError = results.find(({ error }) => error && !error.message.includes("promo_plan_mismatch"))?.error
+  if (fatalError) return { error: promoErrorMessage(fatalError.message) }
+
+  type RpcQuote = {
+    code: string
+    discount_pct: number | null
+    discount_amount: number
+    free_days: number
+    final_amount: number
+  }
+  const validQuotes = results.filter((item) => !item.error && item.data) as Array<{
+    plan: string
+    baseAmount: number
+    data: RpcQuote
+    error: null
+  }>
+  if (!validQuotes.length) return { error: "Промокод не действует на доступные тарифы" }
+
+  const first = validQuotes[0].data
+  const prices = Object.fromEntries(validQuotes.map(({ plan, baseAmount, data }) => [
+    plan,
+    {
+      baseAmount,
+      discountAmount: Number(data.discount_amount),
+      finalAmount: Number(data.final_amount),
+    },
+  ]))
+
+  return {
+    quote: {
+      code: first.code,
+      discountPct: first.discount_pct === null ? null : Number(first.discount_pct),
+      freeDays: Number(first.free_days),
+      prices,
+    },
+  }
 }
 
 /** Заявка клуба на оформление/продление тарифа. Подтверждает админ платформы. */
@@ -53,13 +143,7 @@ export async function requestPlanAction(plan: string, months = 1, promoCode?: st
       p_base_amount: baseAmount,
     })
     if (promoError) {
-      const message = promoError.message
-      if (message.includes("promo_not_found")) return { error: "Промокод не найден" }
-      if (message.includes("promo_inactive") || message.includes("promo_expired")) return { error: "Промокод больше не действует" }
-      if (message.includes("promo_not_started")) return { error: "Промокод ещё не начал действовать" }
-      if (message.includes("promo_exhausted")) return { error: "Лимит использований промокода исчерпан" }
-      if (message.includes("promo_plan_mismatch")) return { error: "Промокод не действует на этот тариф" }
-      return { error: "Не удалось проверить промокод" }
+      return { error: promoErrorMessage(promoError.message) }
     }
     promo = data as PromoQuote
   }

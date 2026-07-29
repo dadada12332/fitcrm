@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: a7467db · 2026-07-29T11:02:19+05:00 · feat: add targeted club compensations.
+- Последний commit: 0b1978e · 2026-07-29T11:07:54+05:00 · docs: record club compensation release [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 107; последняя `20260729054204_platform_club_compensations.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

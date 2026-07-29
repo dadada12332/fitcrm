@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
 - `a7467db` · 2026-07-29 · feat: add targeted club compensations
 - `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
 - `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
 - `603d317` · 2026-07-28 · fix: use hobby-compatible platform cron
-- `067fd44` · 2026-07-28 · feat: complete platform admin operations
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
