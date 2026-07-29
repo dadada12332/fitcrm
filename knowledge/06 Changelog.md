@@ -282,6 +282,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `770d370` · 2026-07-29 · fix: preview promo discounts in subscription
 - `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
 - `a7467db` · 2026-07-29 · feat: add targeted club compensations
 - `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
@@ -311,5 +312,4 @@ tags: [zalkins, releases]
 - `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
 - `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
-- `e602832` · 2026-07-27 · feat: compact subscription overview
 <!-- AUTO:END changelog-candidates -->
