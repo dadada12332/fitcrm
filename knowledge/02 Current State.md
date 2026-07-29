@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: b43c287 · 2026-07-28T18:50:57+05:00 · docs: record legacy banner removal [skip ci].
+- Последний commit: a7467db · 2026-07-29T11:02:19+05:00 · feat: add targeted club compensations.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 107; последняя `20260729054204_platform_club_compensations.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

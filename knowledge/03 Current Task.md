@@ -25,6 +25,9 @@ tags: [zalkins, tasks, platform, promo, compensation, billing, notifications]
   отклонение несуществующего клуба проверены, TypeScript и production build прошли.
 - Локальный browser QA подтверждает оба таба, список клубов, пустую историю и отсутствие
   framework overlay; временный QA-суперадминистратор удалён.
+- Commit `a7467db` опубликован в production deployment
+  `dpl_EajbMqwdJHJkc5hZ9aUbVn6W44GH`; основной alias отвечает `200`, защищённые маршруты
+  корректно перенаправляют на соответствующий login, runtime error scan чистый.
 
 ## Удаление устаревшей системной плашки — 2026-07-28
 

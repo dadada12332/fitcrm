@@ -276,6 +276,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `a7467db` · 2026-07-29 · feat: add targeted club compensations
 - `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
@@ -305,5 +306,4 @@ tags: [zalkins, releases]
 - `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 - `e602832` · 2026-07-27 · feat: compact subscription overview
 - `24c1ec5` · 2026-07-27 · docs: record redirect-loop incident [skip ci]
-- `5a34a27` · 2026-07-27 · fix: stop dashboard onboarding redirect loop
 <!-- AUTO:END changelog-candidates -->
