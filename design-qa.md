@@ -1,36 +1,35 @@
-# Language switcher border removal — Design QA
+# Dashboard visit chart border — Design QA
 
 ## Target
 
-- Source visual truth: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_tTQNph/Снимок экрана 2026-07-30 в 11.37.15.png`.
-- Implementation: authenticated local `/dashboard`.
-- Goal: remove the capsule border, card background and shadow from the `RU` language trigger
-  without changing its position, label or dropdown behavior.
+- Source visual truth: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_SZnTYH/Снимок экрана 2026-07-30 в 12.14.43.png`.
+- Implementation: authenticated production `/dashboard`.
+- Goal: remove the doubled side and bottom borders from the visit chart while preserving the
+  existing card composition.
 
 ## Viewport and evidence
 
-- Source pixels: `112 × 61`.
-- Implementation screenshot: `artifacts/language-switcher-borderless-dashboard-local.png`.
+- Source pixels: `472 × 498`.
+- Implementation screenshot: `artifacts/dashboard-chart-border-fixed-production.png`.
 - Implementation viewport: `1280 × 720` CSS px at density `1`.
-- Focused comparison: `artifacts/language-switcher-reference-vs-borderless.png`.
-- State: light theme, Russian locale, language menu closed.
-- A focused comparison is required because the requested change affects a 40 × 32 px control.
+- Focused comparison: `artifacts/dashboard-chart-border-comparison.png`.
+- Normalization: both focused card regions were cropped to `395 × 451` px.
+- State: light theme, Russian locale, empty visit chart.
 
 ## Required fidelity surfaces
 
-- Typography: existing 12 px semibold locale label is preserved.
-- Spacing and layout: the trigger remains 40 × 32 px in the existing top-bar action group.
-- Colors and tokens: the resting state is transparent; the existing token-based muted hover
-  state remains.
-- Image quality and assets: no assets changed; existing icons remain sharp and untouched.
-- Copy and content: the `RU` label and all three language options are unchanged.
+- Typography: headings, labels and numeric values are unchanged.
+- Spacing and layout: the card remains `395px` wide and keeps the original section heights.
+- Colors and tokens: the remaining outline uses the design-system `border-border` token.
+- Image quality and assets: the Recharts radial remains sharp and unchanged.
+- Copy and content: all dashboard copy and values are preserved.
 
-## Interaction verification
+## Interaction and browser verification
 
-- Computed border width: `0px`.
-- Computed box shadow: `none`.
-- Computed background: transparent.
-- The dropdown still opens and shows Russian, Uzbek and English.
+- `/dashboard` loaded successfully with an authenticated owner test account.
+- Computed inner borders: left `0px`, right `0px`, bottom `0px`.
+- Computed outer borders: left `1px`, right `1px`, bottom `1px`.
+- Computed outer border color: `rgb(228, 228, 231)` (`border-border`).
 - Browser console errors: none.
 
 ## Findings
@@ -42,11 +41,11 @@
 
 ## Comparison history
 
-- Initial source finding: the outlined capsule made the locale control visually heavier than the
-  adjacent icon-only actions.
-- Fix: removed `border`, `bg-card`, `shadow-xs` and the pill radius from the trigger.
-- Post-fix evidence: the focused comparison shows a plain `RU` label aligned with the theme and
-  notification actions, while preserving the same hit area.
+- Initial finding: the body rendered its own left, right and bottom border inside an already
+  bordered card, making the sides and lower edge appear thicker.
+- Fix: removed the inner body border and shadow, leaving one token-based outline on the outer card.
+- Post-fix evidence: the focused comparison shows a uniform one-pixel perimeter with no doubled
+  side or bottom edges.
 
 ## Final result
 
