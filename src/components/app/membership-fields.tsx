@@ -35,11 +35,22 @@ export function DurationField({ initialDays = 30 }: { initialDays?: number }) {
   return (
     <div className="flex flex-col gap-2">
       <input type="hidden" name="duration_days" value={days || "0"} />
-      <select value={mode} onChange={(e) => setMode(e.target.value as typeof mode)} className={inputCls} style={inputStyle}>
-        <option value="month">Месяц (30 дней)</option>
-        <option value="year">Год (365 дней)</option>
-        <option value="custom">Своё число</option>
-      </select>
+      <div className="relative">
+        <select
+          value={mode}
+          onChange={(e) => setMode(e.target.value as typeof mode)}
+          className={`${inputCls} appearance-none pr-10`}
+          style={inputStyle}
+        >
+          <option value="month">Месяц (30 дней)</option>
+          <option value="year">Год (365 дней)</option>
+          <option value="custom">Своё число</option>
+        </select>
+        <ChevronDown
+          aria-hidden="true"
+          className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+      </div>
       {mode === "custom" && (
         <input
           type="number" min="1" value={custom} autoFocus
