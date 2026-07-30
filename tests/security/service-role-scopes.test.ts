@@ -12,7 +12,7 @@ describe("service-role payment tenant scopes", () => {
       source.indexOf("type ClubRow"),
     )
     const localeQuery = source.slice(
-      source.indexOf("async function resolveStaffLocale"),
+      source.indexOf("async function resolveStaffSettings"),
       source.indexOf("async function resolvePermissions"),
     )
 
@@ -25,9 +25,13 @@ describe("service-role payment tenant scopes", () => {
 
   it("scopes Click payment mutations to the callback club", () => {
     const source = read("src/app/api/pay/click/[clubId]/route.ts")
+    const migration = read("supabase/migrations/20260730100035_audit_security_billing_payment_hardening.sql")
 
-    expect(source.match(/from\("payments"\)\.update\(/g)).toHaveLength(2)
-    expect(source.match(/\.eq\("club_id", clubId\)/g)?.length).toBeGreaterThanOrEqual(3)
+    expect(source).toContain("confirmProviderPayment(")
+    expect(source.match(/\.eq\("club_id", clubId\)/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(migration).toContain("where id = p_payment_id")
+    expect(migration).toContain("and club_id = p_club_id")
+    expect(migration).toContain("for update")
   })
 
   it("scopes every Payme transaction lookup and mutation to the callback club", () => {
@@ -37,20 +41,25 @@ describe("service-role payment tenant scopes", () => {
       .map((line, index) => line.includes('from("payme_transactions")') ? lines.slice(index, index + 5).join("\n") : null)
       .filter((query): query is string => query !== null)
 
-    expect(transactionQueries).toHaveLength(9)
+    expect(transactionQueries.length).toBeGreaterThanOrEqual(5)
     for (const query of transactionQueries) expect(query).toContain('"club_id", clubId')
+    expect(source).toContain('service.rpc("create_payme_transaction"')
+    expect(source).toContain('service.rpc("perform_payme_transaction"')
+    expect(source).toContain('service.rpc("cancel_payme_transaction"')
   })
 
   it("keeps post-payment reads and mutations inside the payment club", () => {
     const source = read("src/lib/payment-confirm.ts")
-    const migrations = read("supabase/migrations/20260724133500_service_payment_confirmation_rpc.sql")
+    const migrations = read("supabase/migrations/20260730100035_audit_security_billing_payment_hardening.sql")
 
-    expect(source).toContain('s.rpc("confirm_paid_membership"')
+    expect(source).toContain('service.rpc("confirm_provider_payment"')
     expect(source).toContain("p_club_id: clubId")
     expect(migrations).toContain("from public, anon, authenticated")
     expect(migrations).toContain("to service_role")
     expect(source).toContain('.eq("id", clientId).eq("club_id", clubId)')
-    expect(source.match(/\.eq\("id", paymentId\)\.eq\("club_id", clubId\)/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(source).toContain('.eq("id", paymentId)')
+    expect(source).toContain('.eq("club_id", clubId)')
+    expect(migrations).toContain("private.confirm_paid_membership(p_club_id, p_payment_id)")
   })
 
   it("scopes scheduled broadcast mutations to the queued club", () => {

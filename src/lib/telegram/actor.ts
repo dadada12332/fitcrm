@@ -1,8 +1,10 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import {
+  applyStaffPermissionOverrides,
   getDefaultPermissions,
   mergePermissions,
   type RolePermissions,
+  type StaffPermissionOverrides,
 } from "@/lib/permissions"
 import { applyPlanToPermissions } from "@/lib/plan-access"
 import { getPlanAccessByCode } from "@/lib/plans"
@@ -75,9 +77,15 @@ export async function resolveTelegramActor(
           base,
           (roleRow?.permissions as Partial<RolePermissions> | null) ?? {},
         )
+    const settings = (staff.settings as {
+      full_name?: string
+      permissions?: StaffPermissionOverrides
+    } | null) ?? {}
     const planAccess = await getPlanAccessByCode(club?.plan ?? "")
-    const permissions = applyPlanToPermissions(rolePermissions, planAccess)
-    const settings = (staff.settings as { full_name?: string } | null) ?? {}
+    const permissions = applyPlanToPermissions(
+      applyStaffPermissionOverrides(rolePermissions, settings.permissions),
+      planAccess,
+    )
 
     return {
       kind: "staff",

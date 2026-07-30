@@ -24,6 +24,15 @@ export type ClubRole = {
   staffCount: number
 }
 
+export type StaffPermissionOverrides = {
+  clients?: boolean
+  visits?: boolean
+  payments?: boolean
+  inventory?: boolean
+  finance?: boolean
+  settings?: boolean
+}
+
 const ALL_TRUE_PERMS: RolePermissions = {
   dashboard:   { view: true,  view_finance: true  },
   clients:     { view: true,  create: true,  edit: true,  delete: true,  freeze: true,  extend: true,  export: true  },
@@ -131,6 +140,67 @@ export function mergePermissions(base: RolePermissions, partial: Partial<RolePer
       result[mod] = { ...base[mod], ...partial[mod] } as never
     }
   }
+  return result
+}
+
+/**
+ * Coarse per-employee switches are applied after the employee's role.
+ * `false` removes the whole area. `true` grants entry/view access only; the
+ * role still decides whether the employee can create, edit, refund or export.
+ * This keeps the switches useful without turning them into a privilege
+ * escalation shortcut.
+ */
+export function applyStaffPermissionOverrides(
+  base: RolePermissions,
+  overrides?: StaffPermissionOverrides | null,
+): RolePermissions {
+  if (!overrides) return base
+
+  const result: RolePermissions = {
+    ...base,
+    dashboard: { ...base.dashboard },
+    clients: { ...base.clients },
+    memberships: { ...base.memberships },
+    payments: { ...base.payments },
+    visits: { ...base.visits },
+    schedule: { ...base.schedule },
+    warehouse: { ...base.warehouse },
+    staff: { ...base.staff },
+    reports: { ...base.reports },
+    inbox: { ...base.inbox },
+    ai: { ...base.ai },
+    telegram: { ...base.telegram },
+    settings: { ...base.settings },
+  }
+
+  const setArea = <K extends keyof RolePermissions>(
+    key: K,
+    enabled: boolean,
+    entryAction: keyof RolePermissions[K],
+  ) => {
+    const current = result[key] as Record<string, boolean>
+    result[key] = Object.fromEntries(
+      Object.keys(current).map((action) => [
+        action,
+        enabled ? (action === entryAction ? true : current[action]) : false,
+      ]),
+    ) as RolePermissions[K]
+  }
+
+  if (overrides.clients !== undefined) setArea("clients", overrides.clients, "view")
+  if (overrides.visits !== undefined) setArea("visits", overrides.visits, "view")
+  if (overrides.payments !== undefined) setArea("payments", overrides.payments, "view")
+  if (overrides.inventory !== undefined) setArea("warehouse", overrides.inventory, "view")
+  if (overrides.settings !== undefined) {
+    setArea("settings", overrides.settings, "general")
+  }
+  if (overrides.finance !== undefined) {
+    result.dashboard.view_finance = overrides.finance
+    result.payments.view_revenue = overrides.finance
+    result.reports.finance = overrides.finance
+    if (overrides.finance) result.reports.view = true
+  }
+
   return result
 }
 

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { can, getDefaultPermissions, mergePermissions } from "../../src/lib/permissions"
+import {
+  applyStaffPermissionOverrides,
+  can,
+  getDefaultPermissions,
+  mergePermissions,
+} from "../../src/lib/permissions"
 
 function allPermissionValues(value: object): boolean[] {
   return Object.values(value).flatMap((entry) =>
@@ -37,5 +42,34 @@ describe("role permissions", () => {
     const manager = getDefaultPermissions("manager")
 
     expect(can(manager, "payments", "unknown")).toBe(false)
+  })
+
+  it("applies individual staff restrictions after the role", () => {
+    const manager = getDefaultPermissions("manager")
+    const restricted = applyStaffPermissionOverrides(manager, {
+      clients: false,
+      visits: false,
+      payments: false,
+    })
+
+    expect(allPermissionValues(restricted.clients)).not.toContain(true)
+    expect(allPermissionValues(restricted.visits)).not.toContain(true)
+    expect(allPermissionValues(restricted.payments)).not.toContain(true)
+    expect(manager.clients.view).toBe(true)
+  })
+
+  it("an individual switch grants entry but not destructive actions", () => {
+    const trainer = getDefaultPermissions("trainer")
+    const result = applyStaffPermissionOverrides(trainer, {
+      payments: true,
+      inventory: true,
+      finance: true,
+    })
+
+    expect(result.payments.view).toBe(true)
+    expect(result.payments.refund).toBe(false)
+    expect(result.warehouse.view).toBe(true)
+    expect(result.warehouse.writeoff).toBe(false)
+    expect(result.reports.finance).toBe(true)
   })
 })

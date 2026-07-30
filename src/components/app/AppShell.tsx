@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldCheck, ArrowLeft, Lock, CreditCard, LifeBuoy, LogOut } from "lucide-react"
+import { ShieldCheck, ArrowLeft, Lock, CreditCard, LifeBuoy, LogOut, X } from "lucide-react"
 import { Sidebar } from "./Sidebar"
 import { TopBar } from "./TopBar"
 import { ClubProvider } from "./ClubContext"
@@ -16,6 +16,7 @@ import type { RolePermissions } from "@/lib/permissions"
 import type { ProductOnboardingData } from "@/lib/product-onboarding"
 import type { PlanAccess } from "@/lib/plan-access"
 import type { AppLocale } from "@/lib/app-locale"
+import { Button } from "@/components/ui/button"
 
 type LockReason = "suspended" | "trial" | "plan" | null
 
@@ -77,6 +78,8 @@ function LockScreen({ reason, clubName }: { reason: "suspended" | "trial" | "pla
 export function AppShell({ clubId, clubName, plan, email, stats, permissions, planAccess, locale, currency, timezone, role, impersonating, lockReason, productOnboarding, children }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
   const pathname = usePathname()
 
   // Разрешённые при блокировке страницы: оплата (подписка) и поддержка — чтобы
@@ -98,8 +101,56 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
     document.documentElement.lang = locale
   }, [locale])
 
+  useEffect(() => {
+    if (!mobileOpen) return
+    const drawer = drawerRef.current
+    if (!drawer) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    const focusable = () => Array.from(
+      drawer.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => !element.hasAttribute("hidden"))
+    ;(focusable()[0] ?? drawer).focus()
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        setMobileOpen(false)
+        return
+      }
+      if (event.key !== "Tab") return
+      const items = focusable()
+      if (!items.length) {
+        event.preventDefault()
+        drawer.focus()
+        return
+      }
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener("keydown", onKeyDown)
+      previousFocusRef.current?.focus()
+    }
+  }, [mobileOpen])
+
   const handleMenuToggle = () => {
-    if (window.innerWidth < 1024) setMobileOpen((v) => !v)
+    if (window.innerWidth < 1024) {
+      if (!mobileOpen) previousFocusRef.current = document.activeElement as HTMLElement | null
+      setMobileOpen((v) => !v)
+    }
     else setCollapsed((v) => !v)
   }
 
@@ -144,12 +195,32 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
 
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div
+            <button
+              type="button"
+              aria-label="Закрыть меню"
               className="absolute inset-0 z-0 bg-black/50"
               style={{ backdropFilter: "blur(2px)" }}
               onClick={() => setMobileOpen(false)}
             />
-            <div className="absolute left-0 top-0 bottom-0 z-10 p-2 transition-transform" style={{ width: 300 }}>
+            <div
+              ref={drawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Навигация CRM"
+              tabIndex={-1}
+              className="absolute bottom-0 left-0 top-0 z-10 p-2 outline-none transition-transform"
+              style={{ width: 300 }}
+            >
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label="Закрыть меню"
+                onClick={() => setMobileOpen(false)}
+                className="absolute right-4 top-4 z-20 shadow-sm"
+              >
+                <X className="size-4" />
+              </Button>
               <Sidebar {...sidebarProps} collapsed={false} mobile />
             </div>
           </div>

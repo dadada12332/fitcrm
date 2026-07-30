@@ -2,12 +2,14 @@
 
 import { useCallback, useSyncExternalStore } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Cookie, X } from "lucide-react"
 
 const NOTICE_KEY = "fitcrm_cookie_notice_v1"
 const NOTICE_EVENT = "fitcrm:cookie-notice"
 
 export function CookieNotice() {
+  const pathname = usePathname()
   const subscribe = useCallback((onStoreChange: () => void) => {
     window.addEventListener("storage", onStoreChange)
     window.addEventListener(NOTICE_EVENT, onStoreChange)
@@ -35,7 +37,9 @@ export function CookieNotice() {
     window.dispatchEvent(new Event(NOTICE_EVENT))
   }
 
-  if (!visible) return null
+  // Telegram Mini App is an embedded product surface with its own fixed
+  // navigation. The site-wide notice must never cover its controls.
+  if (!visible || pathname === "/tg" || pathname.startsWith("/tg/")) return null
 
   return (
     <section

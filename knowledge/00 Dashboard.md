@@ -41,14 +41,14 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
+- `f20a71a` · 2026-07-30 · fix: align membership duration chevron
+- `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
+- `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
+- `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
 - `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 - `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
-- `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
-- `770d370` · 2026-07-29 · fix: preview promo discounts in subscription
-- `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
-- `a7467db` · 2026-07-29 · feat: add targeted club compensations
-- `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

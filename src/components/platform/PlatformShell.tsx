@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
@@ -31,8 +31,54 @@ export function PlatformShell({
 }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const { resolvedTheme, setTheme } = useTheme()
   const home = base || "/"
+
+  useEffect(() => {
+    if (!mobileOpen) return
+    const drawer = drawerRef.current
+    if (!drawer) return
+    const menuTrigger = menuTriggerRef.current
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    const focusable = () => Array.from(
+      drawer.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    )
+    ;(focusable()[0] ?? drawer).focus()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        setMobileOpen(false)
+        return
+      }
+      if (event.key !== "Tab") return
+      const items = focusable()
+      if (!items.length) {
+        event.preventDefault()
+        drawer.focus()
+        return
+      }
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener("keydown", onKeyDown)
+      menuTrigger?.focus()
+    }
+  }, [mobileOpen])
 
   const isActive = (href: string) => {
     if (href === home) return pathname === home
@@ -133,14 +179,23 @@ export function PlatformShell({
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} aria-label="Закрыть меню" />
-          <div className="absolute inset-y-0 left-0 w-[min(300px,86vw)] shadow-2xl">{renderSidebar(true)}</div>
+          <button type="button" className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} aria-label="Закрыть меню" />
+          <div
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Навигация платформы"
+            tabIndex={-1}
+            className="absolute inset-y-0 left-0 w-[min(300px,86vw)] shadow-2xl outline-none"
+          >
+            {renderSidebar(true)}
+          </div>
         </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-4 lg:hidden">
-          <Button type="button" variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Открыть меню платформы">
+          <Button ref={menuTriggerRef} type="button" variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Открыть меню платформы">
             <Menu className="size-5" />
           </Button>
           <BrandMark appIcon className="size-7" />

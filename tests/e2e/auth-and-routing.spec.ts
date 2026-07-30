@@ -41,6 +41,16 @@ test("health endpoint reports the database status without authentication", async
   expect(await response.json()).toEqual(expect.objectContaining({ status: "ok", database: "reachable" }))
 })
 
+test("access-control callback reaches API-key auth without a CRM session", async ({ request }) => {
+  const response = await request.post(
+    "/api/access-control/00000000-0000-0000-0000-000000000000/decision",
+    { data: {} },
+  )
+
+  expect(response.status()).toBe(401)
+  expect(await response.json()).toEqual({ allowed: false, reasonCode: "unauthorized" })
+})
+
 test("access bridge release downloads without an authenticated session", async ({ request }) => {
   const response = await request.get("/downloads/fitcrm-access-bridge.zip", { maxRedirects: 0 })
 

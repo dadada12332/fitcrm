@@ -7,6 +7,25 @@ tags: [zalkins, tasks, ui, navigation, localization]
 
 # Current Task
 
+## Ремедиация полного аудита — 2026-07-30
+
+- Исправлены согласованные пункты аудита 1–6 и 8–10; полная локализация из пункта 7
+  намеренно не менялась.
+- Production migration закрыла self-escalation `platform_role`, изменение владельцем
+  platform-only полей клуба и перевела Click/Payme fulfillment на атомарные
+  идемпотентные RPC.
+- Индивидуальные staff permissions применяются одинаково в CRM и Telegram actor; неизвестные
+  и более широкие права отклоняются.
+- Access-control callbacks доходят до собственного API-key gate, cookie notice не мешает
+  Telegram Mini App, mobile drawers получили focus management и Escape-close.
+- Next.js обновлён до `16.2.12`, безопасно заменяемые production-зависимости обновлены.
+- Добавлен шифрованный backup pipeline и runbook. Для фактического ежедневного off-site
+  запуска остаётся инфраструктурная настройка секретов/хранилища; PITR требует решения по
+  платному плану Supabase.
+- Проверки: 171 unit/security тест пройден, 1 skipped; TypeScript, scoped ESLint и production
+  build успешны; access-control E2E matrix — 36 passed, полный Playwright — 38 passed,
+  6 skipped.
+
 ## Настраиваемый лимит заморозки абонемента — 2026-07-30
 
 - Добавить в создание и редактирование абонемента явный выбор количества доступных дней
@@ -218,6 +237,24 @@ Telegram и безопасность сотрудника собрать в од
 - Сделать поиск TopBar шире и отделить его от языка, темы и уведомлений.
 - Выровнять trailing badge дополнительных лимитов тарифа.
 - Пересобрать профиль вокруг реальных задач сотрудника и дизайн-системы FitCRM.
+
+## Полный аудит CRM и Platform Admin — 2026-07-30
+
+- Провести независимые owner, staff/RBAC, database/RLS, security, Platform Admin,
+  integrations, UX/i18n и динамические production-safe проверки.
+- Прогнать unit/integration, Bridge, E2E, production build, lint и dependency audit.
+- Проверить базовую cross-tenant изоляцию двумя временными QA-клубами с полной очисткой.
+- Сопоставить продукт с Glofox, Mindbody, GymMaster, PushPress, Virtuagym, PerfectGym и
+  YCLIENTS.
+- Зафиксировать полный приоритетный backlog в `FULL_AUDIT_2026-07-30.md`.
+- Критический release blocker: авторизованный пользователь может изменить собственный
+  `users.platform_role` и получить Platform Admin/all-club scope.
+- Второй критический billing blocker: владелец может напрямую изменить platform-only поля
+  `clubs`, включая тариф, статус и сроки.
+- Платёжные callback требуют атомарного подтверждения и idempotency до масштабирования.
+- Production backup/PITR отсутствует; необходим off-site DB + Storage backup и restore drill.
+- Следующая реализационная задача: закрыть P0 единым security hardening пакетом с migration,
+  regression tests и повторным pentest.
 - Сравнить смену пароля в профиле и настройках клуба, оставить один безопасный сценарий.
 - Проверить tenant scopes для service-role операций профиля, responsive layout, типы, тесты,
   production build и браузерный сценарий.

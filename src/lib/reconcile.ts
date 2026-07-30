@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service"
-import { afterPaymentPaid } from "@/lib/payment-confirm"
+import { confirmProviderPayment, sendPaymentReceipt } from "@/lib/payment-confirm"
 
 // Строка выписки эквайринга (то, что отдаёт провайдер — подставляется фетчером).
 export type StatementRow = {
@@ -170,13 +170,26 @@ export async function confirmMatch(clubId: string, txnId: string, paymentId: str
   if (!pay) return { error: "Платёж не найден" }
   if (round(pay.amount) !== round(tx.amount)) return { error: "Суммы не совпадают" }
 
-  await s.from("payments").update({
-    status: "paid", paid_at: tx.paid_at, provider: tx.provider, tx_id: tx.id,
-  }).eq("id", paymentId).eq("club_id", clubId)
+  if (tx.provider !== "click" && tx.provider !== "payme") {
+    return { error: "Неизвестный провайдер" }
+  }
+  let confirmation
+  try {
+    confirmation = await confirmProviderPayment(
+      clubId,
+      paymentId,
+      tx.provider,
+      tx.id,
+      tx.paid_at,
+    )
+  } catch {
+    return { error: "Не удалось атомарно подтвердить платёж" }
+  }
 
-  await s.from("acquiring_transactions").update({
+  const { error: matchError } = await s.from("acquiring_transactions").update({
     match_status: "confirmed", matched_payment_id: paymentId, matched_at: new Date().toISOString(),
   }).eq("id", txnId).eq("club_id", clubId)
+  if (matchError) return { error: matchError.message }
 
   // Запомнить отпечаток карты за клиентом — повторные оплаты будут матчиться авто.
   if (tx.card_mask && pay.client_id) {
@@ -186,7 +199,7 @@ export async function confirmMatch(clubId: string, txnId: string, paymentId: str
     )
   }
 
-  await afterPaymentPaid(clubId, paymentId) // активация абонемента + чек в Telegram
+  await sendPaymentReceipt(clubId, confirmation)
   return { ok: true }
 }
 

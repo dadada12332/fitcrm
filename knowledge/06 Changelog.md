@@ -285,6 +285,11 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
+- `f20a71a` · 2026-07-30 · fix: align membership duration chevron
+- `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
+- `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
+- `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
 - `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 - `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
@@ -310,9 +315,4 @@ tags: [zalkins, releases]
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
 - `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
-- `b244330` · 2026-07-27 · docs: record trial offer hotfix deployment [skip ci]
-- `f70c7a4` · 2026-07-27 · fix: stop repeated trial upgrade prompt
-- `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
-- `fa786cb` · 2026-07-27 · fix: align profile card grid
-- `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
 <!-- AUTO:END changelog-candidates -->

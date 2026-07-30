@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { getClubCredentials } from "@/lib/club-credentials"
 import { createServiceClient } from "@/lib/supabase/service"
-import { afterPaymentPaid } from "@/lib/payment-confirm"
+import { confirmProviderPayment, sendPaymentReceipt } from "@/lib/payment-confirm"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -53,8 +53,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
   if (md5(signBase) !== sign_string) return fail(E.SIGN, "SIGN CHECK FAILED")
 
   const service = createServiceClient()
-  const { data: payment } = await service.from("payments")
-    .select("id, amount, status").eq("id", merchant_trans_id).eq("club_id", clubId).maybeSingle()
+  const { data: payment, error: paymentError } = await service.from("payments")
+    .select("id, amount, status, provider, tx_id").eq("id", merchant_trans_id).eq("club_id", clubId).maybeSingle()
+  if (paymentError) return fail(E.BAD_REQUEST, "Temporary database error")
   if (!payment) return fail(E.NOT_FOUND, "Order not found")
   if (Math.round(Number(amount)) !== Math.round(Number(payment.amount))) return fail(E.AMOUNT, "Incorrect amount")
 
@@ -63,7 +64,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
     if (payment.status === "paid") return fail(E.ALREADY_PAID, "Already paid")
     // Помечаем начало оплаты; merchant_prepare_id — стабильное число (эхо в complete, входит в подпись).
     const prepareId = String(Math.floor(Date.now() / 1000))
-    await service.from("payments").update({ provider: "click", tx_id: click_trans_id }).eq("id", payment.id).eq("club_id", clubId)
+    const { error: prepareError } = await service
+      .from("payments")
+      .update({ provider: "click", tx_id: click_trans_id })
+      .eq("id", payment.id)
+      .eq("club_id", clubId)
+    if (prepareError) return fail(E.BAD_REQUEST, "Temporary database error")
     return NextResponse.json({ click_trans_id, merchant_trans_id, merchant_prepare_id: prepareId, error: E.OK, error_note: "Success" })
   }
 
@@ -71,9 +77,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
   if (action === "1") {
     // Click отменил транзакцию на своей стороне
     if (p.error && Number(p.error) < 0) return fail(E.CANCELLED, "Transaction cancelled", merchant_prepare_id)
-    if (payment.status === "paid") return fail(E.ALREADY_PAID, "Already paid", merchant_prepare_id)
-    await service.from("payments").update({ status: "paid", paid_at: new Date().toISOString(), provider: "click", tx_id: click_trans_id }).eq("id", payment.id).eq("club_id", clubId)
-    await afterPaymentPaid(clubId, payment.id)   // активация абонемента + чек в Telegram
+    if (payment.status === "paid") {
+      if (payment.provider === "click" && payment.tx_id === click_trans_id) {
+        return NextResponse.json({
+          click_trans_id,
+          merchant_trans_id,
+          merchant_confirm_id: merchant_prepare_id,
+          error: E.OK,
+          error_note: "Success",
+        })
+      }
+      return fail(E.ALREADY_PAID, "Already paid", merchant_prepare_id)
+    }
+    try {
+      const confirmation = await confirmProviderPayment(
+        clubId,
+        payment.id,
+        "click",
+        click_trans_id,
+      )
+      await sendPaymentReceipt(clubId, confirmation)
+    } catch {
+      return fail(E.BAD_REQUEST, "Temporary database error", merchant_prepare_id)
+    }
     return NextResponse.json({ click_trans_id, merchant_trans_id, merchant_confirm_id: merchant_prepare_id, error: E.OK, error_note: "Success" })
   }
 

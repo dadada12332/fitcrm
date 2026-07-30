@@ -121,7 +121,6 @@ export async function addStaffAction(data: {
 export async function updateStaffBasicAction(staffId: string, data: {
   name: string; phone: string; dob: string; hiredAt: string; role: string
 }): Promise<R> {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
@@ -161,7 +160,6 @@ export async function updateStaffBasicAction(staffId: string, data: {
 export async function updateStaffSalaryAction(staffId: string, data: {
   salaryType: string; salaryFixed: number; salaryPercent: number
 }): Promise<R> {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
@@ -195,7 +193,6 @@ export async function updateStaffSalaryAction(staffId: string, data: {
 }
 
 export async function payStaffAction(staffId: string, amount: number, note: string): Promise<R> {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
@@ -224,11 +221,30 @@ export async function payStaffAction(staffId: string, amount: number, note: stri
 }
 
 export async function updateStaffPermissionsAction(staffId: string, permissions: Record<string, boolean>): Promise<R> {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }
   if (!can(club.permissions, "settings", "roles")) return { error: "Недостаточно прав" }
+  const allowedKeys = ["clients", "visits", "payments", "inventory", "finance", "settings"] as const
+  if (
+    Object.keys(permissions).some((key) => !allowedKeys.includes(key as typeof allowedKeys[number]))
+    || Object.values(permissions).some((value) => typeof value !== "boolean")
+  ) {
+    return { error: "Некорректный набор прав" }
+  }
+  if (club.role !== "owner") {
+    const actorCanEnable: Record<typeof allowedKeys[number], boolean> = {
+      clients: can(club.permissions, "clients", "view"),
+      visits: can(club.permissions, "visits", "view"),
+      payments: can(club.permissions, "payments", "view"),
+      inventory: can(club.permissions, "warehouse", "view"),
+      finance: can(club.permissions, "reports", "finance"),
+      settings: can(club.permissions, "settings", "general"),
+    }
+    if (allowedKeys.some((key) => permissions[key] === true && !actorCanEnable[key])) {
+      return { error: "Нельзя выдать права шире собственных" }
+    }
+  }
 
   const { data: staffRow } = await createServiceClient()
     .from("staff")
@@ -298,7 +314,6 @@ export async function updateStaffRoleAction(staffId: string, roleKey: string): P
 }
 
 export async function updateStaffStatusAction(staffId: string, status: string): Promise<R> {
-  const supabase = await createClient()
   const club = await getCurrentClub()
   if (!club) return { error: "Не авторизован" }
   if (requirePlanSection(club, "staff")) return { error: "Раздел недоступен на текущем тарифе" }

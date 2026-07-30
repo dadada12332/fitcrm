@@ -1,54 +1,76 @@
 import { createServiceClient } from "@/lib/supabase/service"
 
+export type PaymentConfirmation = {
+  payment_id?: string
+  client_id?: string | null
+  amount?: number | string | null
+  membership_name?: string | null
+  expires_at?: string | null
+  newly_confirmed?: boolean
+}
+
 /**
- * Пост-обработка успешной оплаты (вызывается из эндпоинтов приёма после статуса paid):
- *  1) если платёж «помнит» абонемент (pending_membership_id) и подписки ещё нет —
- *     создаём активную подписку и привязываем к платежу;
- *  2) отправляем чек клиенту в Telegram (если привязан бот и telegram_id).
- * Идемпотентно и «мягко» — любые ошибки не роняют подтверждение оплаты.
+ * The database RPC owns the whole confirmation transaction: paid state,
+ * inventory, stock movements and membership activation. Throwing here is
+ * intentional: provider callbacks must not acknowledge a payment before the
+ * database commit succeeds.
  */
-export async function afterPaymentPaid(clubId: string, paymentId: string): Promise<void> {
-  try {
-    const s = createServiceClient()
-    const { data: pay } = await s.from("payments")
-      .select("id, client_id, amount, subscription_id, pending_membership_id, pending_items")
-      .eq("id", paymentId).eq("club_id", clubId).maybeSingle()
-    if (!pay) return
+export async function confirmProviderPayment(
+  clubId: string,
+  paymentId: string,
+  provider: "click" | "payme",
+  transactionId: string,
+  paidAt = new Date().toISOString(),
+): Promise<PaymentConfirmation> {
+  const service = createServiceClient()
+  const { data, error } = await service.rpc("confirm_provider_payment", {
+    p_club_id: clubId,
+    p_payment_id: paymentId,
+    p_provider: provider,
+    p_tx_id: transactionId,
+    p_paid_at: paidAt,
+  })
+  if (error) throw error
+  return (data as PaymentConfirmation | null) ?? {}
+}
 
-    let membershipName: string | null = null
-    let expiresAt: string | null = null
+/**
+ * Compatibility entry point used by reconciliation. It resolves the already
+ * recorded provider transaction and runs the same atomic RPC.
+ */
+export async function afterPaymentPaid(clubId: string, paymentId: string): Promise<PaymentConfirmation> {
+  const service = createServiceClient()
+  const { data: payment, error: paymentError } = await service
+    .from("payments")
+    .select("provider, tx_id, paid_at")
+    .eq("id", paymentId)
+    .eq("club_id", clubId)
+    .maybeSingle()
+  if (paymentError) throw paymentError
+  if (!payment?.tx_id || (payment.provider !== "click" && payment.provider !== "payme")) {
+    throw new Error("Provider transaction is missing")
+  }
+  return confirmProviderPayment(
+    clubId,
+    paymentId,
+    payment.provider,
+    payment.tx_id,
+    payment.paid_at ?? new Date().toISOString(),
+  )
+}
 
-    // 0) Онлайн-продажа товаров: списываем остаток и пишем движения sale (только сейчас, после оплаты).
-    //    Идемпотентно — после обработки очищаем pending_items.
-    if (Array.isArray(pay.pending_items) && pay.pending_items.length) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      for (const it of pay.pending_items as any[]) {
-        await s.rpc("decrement_inventory", { p_product_id: it.product_id, p_qty: Number(it.qty), p_club_id: clubId })
-        await s.from("stock_movements").insert({
-          club_id: clubId, product_id: it.product_id, type: "sale",
-          qty: Number(it.qty), unit_price: Number(it.unit_price ?? 0),
-          client_id: pay.client_id ?? null, payment_id: paymentId,
-        })
-      }
-      await s.from("payments").update({ pending_items: null }).eq("id", paymentId).eq("club_id", clubId)
-    }
-
-    // 1) Активировать абонемент атомарно и идемпотентно только после оплаты.
-    const { data: confirmation, error: confirmationError } = await s.rpc("confirm_paid_membership", {
-      p_club_id: clubId,
-      p_payment_id: paymentId,
-    })
-    if (confirmationError) throw confirmationError
-    const confirmed = confirmation as {
-      membership_name?: string | null
-      expires_at?: string | null
-    } | null
-    membershipName = confirmed?.membership_name ?? null
-    expiresAt = confirmed?.expires_at ?? null
-
-    // 2) Чек в Telegram.
-    if (pay.client_id) await sendReceipt(clubId, pay.client_id, Number(pay.amount), membershipName, expiresAt)
-  } catch { /* не роняем подтверждение оплаты */ }
+export async function sendPaymentReceipt(
+  clubId: string,
+  confirmation: PaymentConfirmation,
+): Promise<void> {
+  if (!confirmation.newly_confirmed || !confirmation.client_id) return
+  await sendReceipt(
+    clubId,
+    confirmation.client_id,
+    Number(confirmation.amount ?? 0),
+    confirmation.membership_name ?? null,
+    confirmation.expires_at ?? null,
+  )
 }
 
 async function sendReceipt(clubId: string, clientId: string, amount: number, membership: string | null, expires: string | null): Promise<void> {

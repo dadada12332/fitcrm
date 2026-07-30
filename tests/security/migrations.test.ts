@@ -50,6 +50,26 @@ describe("database security migrations", () => {
     expect(sql).toContain("user_club_ids")
   })
 
+  it("protects platform roles and club billing fields from direct Data API updates", () => {
+    expect(sql).toContain("users_protect_platform_role")
+    expect(sql).toContain("platform_role_service_only")
+    expect(sql).toContain("drop policy if exists users_self_delete")
+    expect(sql).toContain("clubs_protect_platform_fields")
+    expect(sql).toContain("club_platform_fields_service_only")
+  })
+
+  it("keeps provider confirmation and Payme lifecycle RPCs service-only", () => {
+    for (const rpc of [
+      "confirm_provider_payment",
+      "create_payme_transaction",
+      "perform_payme_transaction",
+      "cancel_payme_transaction",
+    ]) {
+      expect(sql).toContain(rpc)
+      expect(sql).toContain("to service_role")
+    }
+  })
+
   it("revokes anonymous execution and runs tenant readers as invoker", () => {
     expect(sql).toContain("0055: prevent public and cross-tenant execution")
     expect(sql).toContain("alter function public.clients_page")

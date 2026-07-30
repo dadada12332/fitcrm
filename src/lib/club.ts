@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getAuthUser } from "@/lib/auth"
 import { cookies } from "next/headers"
-import type { RolePermissions } from "@/lib/permissions"
-import { getDefaultPermissions, mergePermissions } from "@/lib/permissions"
+import type { RolePermissions, StaffPermissionOverrides } from "@/lib/permissions"
+import { applyStaffPermissionOverrides, getDefaultPermissions, mergePermissions } from "@/lib/permissions"
 import { applyPlanToPermissions, type PlanAccess } from "@/lib/plan-access"
 import { normalizeAppLocale, type AppLocale } from "@/lib/app-locale"
 
@@ -100,17 +100,27 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
 
     if (!fallback) return null
     const fb = fallback.clubs as unknown as ClubRow | null
-    const permissions = await resolvePermissions(supabase, fallback.club_id, fallback.role)
+    const staffSettings = await resolveStaffSettings(uid, fallback.club_id)
+    const permissions = await resolvePermissions(
+      supabase,
+      fallback.club_id,
+      fallback.role,
+      staffSettings.permissions,
+    )
     const planAccess = embeddedPlanAccess(fb?.plans)
-    const staffLocale = await resolveStaffLocale(uid, fallback.club_id)
-    return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess, staffLocale)
+    return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess, staffSettings.locale)
   }
 
   const club = data.clubs as unknown as ClubRow | null
-  const permissions = await resolvePermissions(supabase, data.club_id, data.role)
+  const staffSettings = await resolveStaffSettings(uid, data.club_id)
+  const permissions = await resolvePermissions(
+    supabase,
+    data.club_id,
+    data.role,
+    staffSettings.permissions,
+  )
   const planAccess = embeddedPlanAccess(club?.plans)
-  const staffLocale = await resolveStaffLocale(uid, data.club_id)
-  return clubResult(data.club_id, data.role, club, permissions, planAccess, staffLocale)
+  return clubResult(data.club_id, data.role, club, permissions, planAccess, staffSettings.locale)
 })
 
 type ClubRow = {
@@ -168,7 +178,12 @@ function clubResult(
   }
 }
 
-async function resolveStaffLocale(userId: string, clubId: string): Promise<unknown> {
+type ResolvedStaffSettings = {
+  locale?: unknown
+  permissions?: StaffPermissionOverrides
+}
+
+async function resolveStaffSettings(userId: string, clubId: string): Promise<ResolvedStaffSettings> {
   // `staff.settings` is intentionally unavailable through the authenticated
   // Data API because it can contain private staff metadata. The RLS-scoped
   // membership query above resolves the tenant first; this service-role read
@@ -183,9 +198,12 @@ async function resolveStaffLocale(userId: string, clubId: string): Promise<unkno
       .eq("is_active", true)
       .maybeSingle()
     const settings = (data?.settings as Record<string, unknown> | null) ?? {}
-    return settings.locale
+    return {
+      locale: settings.locale,
+      permissions: settings.permissions as StaffPermissionOverrides | undefined,
+    }
   } catch {
-    return undefined
+    return {}
   }
 }
 
@@ -193,6 +211,7 @@ async function resolvePermissions(
   supabase: Awaited<ReturnType<typeof createClient>>,
   clubId: string,
   role: string,
+  staffOverrides?: StaffPermissionOverrides,
 ): Promise<RolePermissions> {
   // Owner always gets full permissions regardless of DB settings
   if (role === "owner") return getDefaultPermissions("owner")
@@ -205,10 +224,13 @@ async function resolvePermissions(
     .maybeSingle()
 
   if (data?.permissions) {
-    return mergePermissions(
-      getDefaultPermissions(role),
-      data.permissions as Partial<RolePermissions>,
+    return applyStaffPermissionOverrides(
+      mergePermissions(
+        getDefaultPermissions(role),
+        data.permissions as Partial<RolePermissions>,
+      ),
+      staffOverrides,
     )
   }
-  return getDefaultPermissions(role)
+  return applyStaffPermissionOverrides(getDefaultPermissions(role), staffOverrides)
 }

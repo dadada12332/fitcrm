@@ -13,7 +13,8 @@ describe("Telegram role-aware Mini App", () => {
     expect(actor).toContain('.eq("is_active", true)')
     expect(actor).toContain('.eq("id", link.client_id)')
     expect(actor).toContain("getDefaultPermissions(staff.role)")
-    expect(actor).toContain("applyPlanToPermissions(rolePermissions, planAccess)")
+    expect(actor).toContain("applyStaffPermissionOverrides(rolePermissions, settings.permissions)")
+    expect(actor).toContain("applyPlanToPermissions(")
   })
 
   it("returns a staff workspace only after Telegram initData validation", () => {

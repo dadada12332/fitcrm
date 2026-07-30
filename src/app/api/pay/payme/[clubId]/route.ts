@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getClubCredentials } from "@/lib/club-credentials"
 import { createServiceClient } from "@/lib/supabase/service"
-import { afterPaymentPaid } from "@/lib/payment-confirm"
+import { sendPaymentReceipt, type PaymentConfirmation } from "@/lib/payment-confirm"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -43,7 +43,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
   async function resolvePayment(): Promise<{ payment?: { id: string; amount: number; status: string }; code?: number; message?: string }> {
     const paymentId = prm?.account?.[accountField]
     if (!paymentId) return { code: PE.ACCOUNT, message: "Неверный идентификатор заказа" }
-    const { data: payment } = await service.from("payments").select("id, amount, status").eq("id", paymentId).eq("club_id", clubId).maybeSingle()
+    const { data: payment, error: paymentError } = await service.from("payments").select("id, amount, status").eq("id", paymentId).eq("club_id", clubId).maybeSingle()
+    if (paymentError) return { code: PE.CANT_PERFORM, message: "Временная ошибка базы данных" }
     if (!payment) return { code: PE.ACCOUNT, message: "Заказ не найден" }
     return { payment }
   }
@@ -62,7 +63,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
 
     case "CreateTransaction": {
       const txId = String(prm?.id ?? "")
-      const { data: existing } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      const { data: existing, error: existingError } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      if (existingError) return err(id, PE.CANT_PERFORM, "Временная ошибка базы данных")
       if (existing) {
         if (existing.state === 1) return ok(id, { create_time: Number(existing.create_time), transaction: existing.id, state: 1 })
         return err(id, PE.CANT_PERFORM, "Транзакция в недопустимом состоянии")
@@ -71,50 +73,69 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
       if (r.code) return err(id, r.code, r.message!)
       if (!checkAmount(r.payment!.amount)) return err(id, PE.AMOUNT, "Неверная сумма")
       if (r.payment!.status === "paid") return err(id, PE.CANT_PERFORM, "Заказ уже оплачен")
-      // Другая активная транзакция на этот платёж?
-      const { data: active } = await service.from("payme_transactions").select("id").eq("payment_id", r.payment!.id).eq("club_id", clubId).in("state", [1, 2]).neq("id", txId).limit(1).maybeSingle()
-      if (active) return err(id, PE.ACCOUNT, "Заказ уже обрабатывается")
-
       const createTime = Number(prm?.time) || now
-      await service.from("payme_transactions").insert({
-        id: txId, club_id: clubId, payment_id: r.payment!.id, amount: Number(prm?.amount) || 0, state: 1, create_time: createTime,
+      const { data: created, error: createError } = await service.rpc("create_payme_transaction", {
+        p_club_id: clubId,
+        p_payment_id: r.payment!.id,
+        p_tx_id: txId,
+        p_amount: Number(prm?.amount) || 0,
+        p_create_time: createTime,
       })
-      await service.from("payments").update({ provider: "payme" }).eq("id", r.payment!.id).eq("club_id", clubId)
-      return ok(id, { create_time: createTime, transaction: txId, state: 1 })
+      if (createError) return err(id, PE.CANT_PERFORM, "Временная ошибка базы данных")
+      const result = created as { create_time?: number; transaction?: string; state?: number } | null
+      if (result?.state !== 1) return err(id, PE.CANT_PERFORM, "Транзакция в недопустимом состоянии")
+      return ok(id, {
+        create_time: Number(result.create_time ?? createTime),
+        transaction: result.transaction ?? txId,
+        state: 1,
+      })
     }
 
     case "PerformTransaction": {
       const txId = String(prm?.id ?? "")
-      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      const { data: tx, error: txError } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      if (txError) return err(id, PE.CANT_PERFORM, "Временная ошибка базы данных")
       if (!tx) return err(id, PE.TX_NOT_FOUND, "Транзакция не найдена")
       if (tx.state === 2) return ok(id, { transaction: tx.id, perform_time: Number(tx.perform_time), state: 2 })
       if (tx.state !== 1) return err(id, PE.CANT_PERFORM, "Транзакция в недопустимом состоянии")
       const performTime = now
-      await service.from("payme_transactions").update({ state: 2, perform_time: performTime }).eq("id", txId).eq("club_id", clubId)
-      if (tx.payment_id) {
-        await service.from("payments").update({ status: "paid", paid_at: new Date().toISOString(), provider: "payme", tx_id: txId }).eq("id", tx.payment_id).eq("club_id", clubId)
-        await afterPaymentPaid(clubId, tx.payment_id)   // активация абонемента + чек в Telegram
-      }
+      const { data: confirmation, error: performError } = await service.rpc("perform_payme_transaction", {
+        p_club_id: clubId,
+        p_tx_id: txId,
+        p_perform_time: performTime,
+      })
+      if (performError) return err(id, PE.CANT_PERFORM, "Временная ошибка подтверждения оплаты")
+      await sendPaymentReceipt(clubId, (confirmation as PaymentConfirmation | null) ?? {})
       return ok(id, { transaction: txId, perform_time: performTime, state: 2 })
     }
 
     case "CancelTransaction": {
       const txId = String(prm?.id ?? "")
       const reason = prm?.reason ?? null
-      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      const { data: tx, error: txError } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      if (txError) return err(id, PE.CANT_PERFORM, "Временная ошибка базы данных")
       if (!tx) return err(id, PE.TX_NOT_FOUND, "Транзакция не найдена")
       if (tx.state < 0) return ok(id, { transaction: tx.id, cancel_time: Number(tx.cancel_time), state: tx.state })
       const cancelTime = now
-      const newState = tx.state === 2 ? -2 : -1
-      await service.from("payme_transactions").update({ state: newState, cancel_time: cancelTime, reason }).eq("id", txId).eq("club_id", clubId)
-      // Отмена после проведения — возвращаем платёж в неоплаченный (refunded).
-      if (tx.state === 2 && tx.payment_id) await service.from("payments").update({ status: "refunded" }).eq("id", tx.payment_id).eq("club_id", clubId)
-      return ok(id, { transaction: txId, cancel_time: cancelTime, state: newState })
+      const { data: cancelled, error: cancelError } = await service.rpc("cancel_payme_transaction", {
+        p_club_id: clubId,
+        p_tx_id: txId,
+        p_cancel_time: cancelTime,
+        p_reason: reason,
+      })
+      if (cancelError) return err(id, PE.CANT_PERFORM, "Временная ошибка базы данных")
+      const result = cancelled as { transaction?: string; cancel_time?: number; state?: number } | null
+      return ok(id, {
+        transaction: result?.transaction ?? txId,
+        cancel_time: Number(result?.cancel_time ?? cancelTime),
+        state: result?.state ?? (tx.state === 2 ? -2 : -1),
+      })
     }
 
     case "CheckTransaction": {
       const txId = String(prm?.id ?? "")
-      const { data: tx } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      const { data: tx, error: txError } = await service.from("payme_transactions").select("*").eq("id", txId).eq("club_id", clubId).maybeSingle()
+      if (txError) return err(id, PE.CANT_PERFORM, "Временная ошибка базы данных")
       if (!tx) return err(id, PE.TX_NOT_FOUND, "Транзакция не найдена")
       return ok(id, {
         create_time: Number(tx.create_time), perform_time: Number(tx.perform_time), cancel_time: Number(tx.cancel_time),
@@ -125,7 +146,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ clu
     case "GetStatement": {
       const from = Number(prm?.from) || 0
       const to = Number(prm?.to) || now
-      const { data: txs } = await service.from("payme_transactions").select("*").eq("club_id", clubId).gte("create_time", from).lte("create_time", to)
+      const { data: txs, error: statementError } = await service.from("payme_transactions").select("*").eq("club_id", clubId).gte("create_time", from).lte("create_time", to)
+      if (statementError) return err(id, PE.CANT_PERFORM, "Временная ошибка базы данных")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const transactions = (txs ?? []).map((t: any) => ({
         id: t.id, time: Number(t.create_time), amount: Number(t.amount),
