@@ -54,15 +54,9 @@ export function DashboardVisitRadial({ todayVisits, activeClients, attendanceCha
   const monthRange = `${MONTH_NAMES[locale][0]} – ${MONTH_NAMES[locale][now.getMonth()]} ${now.getFullYear()}${locale === "ru" ? " г." : ""}`
 
   return (
-    <div
-      className="flex w-full flex-col overflow-hidden lg:w-[395px] lg:shrink-0"
-      style={{ border: "1px solid var(--border)", borderRadius: 8, background: "var(--card)" }}
-    >
+    <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border bg-card lg:w-[395px] lg:shrink-0">
       {/* Tab header */}
-      <div
-        className="flex items-center justify-between px-3 h-[45px]"
-        style={{ borderBottom: "1px solid var(--border)" }}
-      >
+      <div className="flex h-[45px] items-center justify-between border-b border-border px-3">
         <div className="flex items-center gap-2">
           <BarChart2 className="w-4 h-4" style={{ color: "var(--gray-muted)" }} />
           <span className="text-xs font-normal" style={{ color: "var(--gray-muted)" }}>График</span>
@@ -77,10 +71,7 @@ export function DashboardVisitRadial({ todayVisits, activeClients, attendanceCha
       </div>
 
       {/* Card body */}
-      <div
-        className="flex flex-col overflow-hidden rounded-b-lg"
-        style={{ border: "1px solid var(--border)", borderTop: "none", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}
-      >
+      <div className="flex flex-col overflow-hidden">
         {/* Title */}
         <div className="flex flex-col items-center justify-center gap-0 px-6 pt-6 pb-0">
           <p className="text-[16px] font-medium text-center" style={{ color: "var(--on-dark)", lineHeight: "24px" }}>
