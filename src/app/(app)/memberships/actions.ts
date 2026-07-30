@@ -29,7 +29,7 @@ function parseMembershipForm(formData: FormData): { error?: string; data?: Membe
   const durationDays = Number(formData.get("duration_days") ?? 0)
   const visitsRaw = String(formData.get("visits_limit") ?? "").trim().toLowerCase()
   const status = String(formData.get("status") ?? "active")
-  const freezeOn = String(formData.get("freeze_allowed") ?? "") === "on"
+  const freezeDaysAllowed = Number(formData.get("freeze_days_allowed") ?? 0)
   const description = String(formData.get("description") ?? "").trim()
   const validUntilRaw = String(formData.get("valid_until") ?? "").trim()
   const pricePerDayRaw = String(formData.get("price_per_day") ?? "").trim().toLowerCase()
@@ -38,7 +38,13 @@ function parseMembershipForm(formData: FormData): { error?: string; data?: Membe
 
   if (!name) return { error: "Введите название абонемента" }
   if (!Number.isFinite(price) || price < 0) return { error: "Некорректная цена" }
-  if (!Number.isFinite(durationDays) || durationDays <= 0) return { error: "Некорректный срок (дней)" }
+  if (!Number.isInteger(durationDays) || durationDays <= 0) return { error: "Некорректный срок (дней)" }
+  if (!Number.isInteger(freezeDaysAllowed) || freezeDaysAllowed < 0) {
+    return { error: "Некорректное количество дней заморозки" }
+  }
+  if (freezeDaysAllowed > durationDays) {
+    return { error: "Дней заморозки не может быть больше срока абонемента" }
+  }
 
   const isUnlim = visitsRaw === "" || visitsRaw === "unlim" || visitsRaw === "∞"
   const visitsLimit = isUnlim ? null : Number(visitsRaw)
@@ -71,7 +77,7 @@ function parseMembershipForm(formData: FormData): { error?: string; data?: Membe
       visits_limit: visitsLimit,
       is_active: status === "active",
       archived: status === "archived",
-      freeze_days_allowed: freezeOn ? 30 : 0,
+      freeze_days_allowed: freezeDaysAllowed,
       description: description || null,
       valid_until: validUntil,
       price_per_day: pricePerDay,
@@ -105,7 +111,7 @@ export async function updateMembershipAction(_prev: MembershipFormState, formDat
   const price = Number(formData.get("price") ?? 0)
   const durationDays = Number(formData.get("duration_days") ?? 0)
   const status = String(formData.get("status") ?? "active")
-  const freezeOn = String(formData.get("freeze_allowed") ?? "") === "on"
+  const freezeDaysAllowed = Number(formData.get("freeze_days_allowed") ?? 0)
   const description = String(formData.get("description") ?? "").trim()
   const validUntilRaw = String(formData.get("valid_until") ?? "").trim()
   const availableDaysRaw = String(formData.get("available_days") ?? "").trim()
@@ -113,7 +119,13 @@ export async function updateMembershipAction(_prev: MembershipFormState, formDat
 
   if (!name) return { error: "Введите название абонемента" }
   if (!Number.isFinite(price) || price < 0) return { error: "Некорректная цена" }
-  if (!Number.isFinite(durationDays) || durationDays <= 0) return { error: "Некорректный срок (дней)" }
+  if (!Number.isInteger(durationDays) || durationDays <= 0) return { error: "Некорректный срок (дней)" }
+  if (!Number.isInteger(freezeDaysAllowed) || freezeDaysAllowed < 0) {
+    return { error: "Некорректное количество дней заморозки" }
+  }
+  if (freezeDaysAllowed > durationDays) {
+    return { error: "Дней заморозки не может быть больше срока абонемента" }
+  }
 
   let validUntil: string | null = null
   if (validUntilRaw) {
@@ -137,7 +149,7 @@ export async function updateMembershipAction(_prev: MembershipFormState, formDat
       duration_days: durationDays,
       is_active: status === "active",
       archived: status === "archived",
-      freeze_days_allowed: freezeOn ? 30 : 0,
+      freeze_days_allowed: freezeDaysAllowed,
       description: description || null,
       valid_until: validUntil,
       available_days: availableDaysRaw ? availableDaysRaw.split(",").filter(Boolean) : [],

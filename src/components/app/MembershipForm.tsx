@@ -29,6 +29,7 @@ export function MembershipForm() {
       <Input name="name" placeholder="Название (напр. «Безлимит 1 мес»)" required />
       <Input name="price" type="number" min="0" step="1000" placeholder={`Цена, ${currency}`} required />
       <Input name="duration_days" type="number" min="1" placeholder="Срок, дней (30)" required />
+      <Input name="freeze_days_allowed" type="number" min="0" defaultValue="30" placeholder="Дней заморозки (0 = недоступна)" required />
       <Input name="visits_limit" type="number" min="1" placeholder="Лимит визитов (пусто = безлимит)" />
 
       {state.error && <p className="text-sm" style={{ color: "#f87171" }}>{state.error}</p>}

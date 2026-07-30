@@ -12,9 +12,9 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: ae299d3 · 2026-07-30T11:50:30+05:00 · fix: simplify language switcher chrome.
+- Последний commit: 86287ca · 2026-07-30T11:54:06+05:00 · docs: record language switcher release [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 107; последняя `20260729054204_platform_club_compensations.sql`.
+- Миграции в Git: 108; последняя `20260730120813_membership_freeze_allowance_constraint.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 

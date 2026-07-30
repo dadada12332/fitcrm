@@ -1,13 +1,12 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useEffect } from "react"
 import { toast } from "@/lib/use-action"
 import { X } from "lucide-react"
 import { updateMembershipAction, type MembershipFormState } from "@/app/(app)/memberships/actions"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter, SheetClose } from "@/components/ui/sheet"
-import { Switch } from "@/components/ui/switch"
 import { DateField } from "@/components/ui/date-field"
-import { inputCls, inputStyle, Label, DurationField, AvailableDays, AvailableTime } from "./membership-fields"
+import { inputCls, inputStyle, Label, DurationField, FreezeDaysField, AvailableDays, AvailableTime } from "./membership-fields"
 import { membershipStatus, type MembershipRow } from "@/lib/memberships"
 import { MoneyInput } from "./MoneyInput"
 
@@ -18,7 +17,6 @@ function isoToMask(iso: string | null): string {
 }
 
 export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onClose: () => void }) {
-  const [freeze, setFreeze] = useState(row.freezeAllowed)
   const [state, formAction, pending] = useActionState<MembershipFormState, FormData>(updateMembershipAction, {})
 
   useEffect(() => {
@@ -58,17 +56,16 @@ export function EditMembershipDrawer({ row, onClose }: { row: MembershipRow; onC
                 <DateField name="valid_until" defaultValue={isoToMask(row.validUntil)} className={`${inputCls} pr-9`} style={inputStyle} />
               </div>
 
-              {/* Подкарточка: количество дней + заморозка */}
-              <div className="rounded-lg p-4 flex flex-col gap-3" style={{ border: "1px solid var(--border)" }}>
+              {/* Подкарточка: срок и доступный лимит заморозки */}
+              <div className="grid gap-4 rounded-lg border border-border p-4 sm:grid-cols-2">
                 <div>
                   <Label required>Количество дней</Label>
                   <DurationField initialDays={row.durationDays} />
                 </div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <Switch checked={freeze} onCheckedChange={setFreeze} />
-                  <input type="hidden" name="freeze_allowed" value={freeze ? "on" : "off"} />
-                  <span className="text-sm" style={{ color: "var(--on-dark-soft)" }}>Можно замораживать</span>
-                </label>
+                <div>
+                  <Label required>Дней заморозки</Label>
+                  <FreezeDaysField initialDays={row.freezeDaysAllowed} />
+                </div>
               </div>
 
               <div>

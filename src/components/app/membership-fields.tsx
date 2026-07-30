@@ -52,6 +52,26 @@ export function DurationField({ initialDays = 30 }: { initialDays?: number }) {
   )
 }
 
+/** Сколько дней из общего срока клиент сможет использовать для заморозки. */
+export function FreezeDaysField({ initialDays = 30 }: { initialDays?: number }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <input
+        type="number"
+        name="freeze_days_allowed"
+        min="0"
+        step="1"
+        required
+        defaultValue={initialDays}
+        placeholder="0"
+        className={inputCls}
+        style={inputStyle}
+      />
+      <p className="text-xs text-muted-foreground">0 — заморозка недоступна</p>
+    </div>
+  )
+}
+
 /** Инпут-триггер, по клику снизу выпадает панель с контентом. */
 function PopoverField({ summary, children }: { summary: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)

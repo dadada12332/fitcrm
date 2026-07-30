@@ -39,6 +39,9 @@ tags: [zalkins, releases]
 
 ### Added
 
+- При создании и редактировании тарифа владелец теперь указывает точное количество дней
+  заморозки. Лимит показывается в карточке абонемента и не может превышать общий срок тарифа.
+
 - В Platform Admin раздел `Промокоды` получил вкладку `Компенсации клубам`: можно выбрать
   один или несколько клубов, сразу начислить бесплатные дни либо выдать скидку на следующую
   покупку тарифа. Владелец получает CRM-уведомление и видит пересчитанные цены в подписке;
@@ -282,6 +285,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 - `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
 - `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
 - `770d370` · 2026-07-29 · fix: preview promo discounts in subscription
@@ -311,5 +315,4 @@ tags: [zalkins, releases]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
 - `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
 - `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
-- `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 <!-- AUTO:END changelog-candidates -->

@@ -15,7 +15,7 @@ export type MembershipRow = {
   // доп. поля для формы редактирования
   description: string | null
   pricePerDay: number | null
-  freezeAllowed: boolean
+  freezeDaysAllowed: number
   availableDays: string[]
   availableTime: string[]
   validUntil: string | null // ISO YYYY-MM-DD
@@ -132,7 +132,7 @@ export async function getMembershipsData(supabase: SupabaseClient, clubId: strin
     activeClients: activeByMembership[m.id] ?? 0,
     description: m.description ?? null,
     pricePerDay: m.price_per_day !== null && m.price_per_day !== undefined ? Number(m.price_per_day) : null,
-    freezeAllowed: (m.freeze_days_allowed ?? 0) > 0,
+    freezeDaysAllowed: m.freeze_days_allowed ?? 0,
     availableDays: m.available_days ?? [],
     availableTime: m.available_time ?? [],
     validUntil: m.valid_until ?? null,

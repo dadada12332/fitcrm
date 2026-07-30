@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, Users, Clock, CheckCircle2, Download } from "lucide-react"
+import { Search, Users, Clock, CheckCircle2, Download, Snowflake } from "lucide-react"
 import { pluralDays, membershipStatus, statusMeta, type MembershipRow } from "@/lib/memberships"
 import { MembershipRowMenu } from "./MembershipRowMenu"
 import { downloadCSV } from "@/lib/csv"
@@ -199,6 +199,12 @@ export function MembershipsCards({ rows, canExport, canManage = false }: { rows:
                     <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
                       <Users className="w-4 h-4 flex-shrink-0" />
                       <span>Клиентов — <strong style={{ color: "var(--on-dark)" }}>{row.activeClients}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: "var(--on-dark-soft)" }}>
+                      <Snowflake className="w-4 h-4 flex-shrink-0" />
+                      <span>Заморозка — <strong style={{ color: "var(--on-dark)" }}>
+                        {row.freezeDaysAllowed > 0 ? pluralDays(row.freezeDaysAllowed) : "недоступна"}
+                      </strong></span>
                     </div>
                   </div>
 
