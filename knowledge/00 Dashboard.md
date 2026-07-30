@@ -1,6 +1,6 @@
 ---
 type: dashboard
-updated: 2026-07-29
+updated: 2026-07-30
 tags: [fitcrm, operations]
 ---
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
 - `770d370` · 2026-07-29 · fix: preview promo discounts in subscription
 - `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
 - `a7467db` · 2026-07-29 · feat: add targeted club compensations
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
 - `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
-- `ae3e899` · 2026-07-28 · docs: record platform admin completion [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-29 Asia/Tashkent
+2026-07-30 Asia/Tashkent
 <!-- AUTO:END updated-at -->

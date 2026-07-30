@@ -1,56 +1,52 @@
-# Retention expiring drawer — Design QA
+# Language switcher border removal — Design QA
 
 ## Target
 
-- Reference: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_H4OmLF/Снимок экрана 2026-07-28 в 12.37.52.png`.
-- Route: authenticated `/retention`.
-- Goal: replace the navigation from `Истекающие` with an in-context right drawer where the
-  operator can find a client, call or copy the phone, run AI analysis and renew a membership.
+- Source visual truth: `/var/folders/lb/xkrtj8910d98wdwc_pflc1s80000gn/T/TemporaryItems/NSIRD_screencaptureui_tTQNph/Снимок экрана 2026-07-30 в 11.37.15.png`.
+- Implementation: authenticated local `/dashboard`.
+- Goal: remove the capsule border, card background and shadow from the `RU` language trigger
+  without changing its position, label or dropdown behavior.
 
-## Viewports and state
+## Viewport and evidence
 
-- Reference: `3840 × 2130`, normalized to `1920 × 1065` for comparison.
-- Desktop implementation: `1920 × 1065`, drawer open, first renewal form expanded.
-- Mobile implementation: `390 × 844`, drawer open.
-- The source shows the closed retention screen, so it is used to verify the shell and design
-  language. The drawer is the intentional interaction extension requested in the brief.
+- Source pixels: `112 × 61`.
+- Implementation screenshot: `artifacts/language-switcher-borderless-dashboard-local.png`.
+- Implementation viewport: `1280 × 720` CSS px at density `1`.
+- Focused comparison: `artifacts/language-switcher-reference-vs-borderless.png`.
+- State: light theme, Russian locale, language menu closed.
+- A focused comparison is required because the requested change affects a 40 × 32 px control.
 
-## Visual comparison
+## Required fidelity surfaces
 
-- Full comparison: `artifacts/retention-expiring-drawer-comparison.png`.
-- Desktop result: `artifacts/retention-expiring-drawer-final.png`.
-- Mobile result: `artifacts/retention-expiring-drawer-mobile.png`.
-
-## Required surfaces
-
-- Typography: the existing application font, weights and tabular numeric styles are preserved.
-- Layout: the drawer is anchored to the right, keeps the retention queue visible and becomes
-  full-width on mobile.
-- Spacing: summary, search, client cards and inline renewal use the existing CRM card rhythm.
-- Color: only system tokens are used (`bg-card`, `bg-muted`, `border-border`, semantic
-  destructive badges); no raw colors were added.
-- Assets: no new raster or generated assets; existing Lucide icons are used.
-- Copy: concise Russian workflow copy focused on completing renewals without leaving the page.
+- Typography: existing 12 px semibold locale label is preserved.
+- Spacing and layout: the trigger remains 40 × 32 px in the existing top-bar action group.
+- Colors and tokens: the resting state is transparent; the existing token-based muted hover
+  state remains.
+- Image quality and assets: no assets changed; existing icons remain sharp and untouched.
+- Copy and content: the `RU` label and all three language options are unchanged.
 
 ## Interaction verification
 
-- `Истекающие` and the warning banner open the same drawer.
-- Search by client name and phone works.
-- Inline renewal opens, selects a tariff, can be cancelled and submits through the canonical
-  permission-checked Server Action.
-- Call, copy phone and AI analysis actions remain available in context.
-- The route stays `/retention`; successful renewal removes the client from the queue and refreshes
-  server data.
-- Fresh browser console errors: none.
+- Computed border width: `0px`.
+- Computed box shadow: `none`.
+- Computed background: transparent.
+- The dropdown still opens and shows Russian, Uzbek and English.
+- Browser console errors: none.
 
 ## Findings
 
-- First pass exposed a Base UI button semantics warning for the phone link; fixed with
-  `nativeButton={false}` and rechecked.
 - P0: none.
 - P1: none.
 - P2: none.
 - P3: none.
+
+## Comparison history
+
+- Initial source finding: the outlined capsule made the locale control visually heavier than the
+  adjacent icon-only actions.
+- Fix: removed `border`, `bg-card`, `shadow-xs` and the pill radius from the trigger.
+- Post-fix evidence: the focused comparison shows a plain `RU` label aligned with the theme and
+  notification actions, while preserving the same hit area.
 
 ## Final result
 

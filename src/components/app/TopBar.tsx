@@ -475,7 +475,7 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
               disabled={languagePending}
               aria-label={t("top.language")}
               title={t("top.language")}
-              className="flex h-8 min-w-10 items-center justify-center rounded-full border border-border bg-card px-2.5 text-xs font-semibold text-foreground shadow-xs transition-colors hover:bg-muted disabled:opacity-50"
+              className="flex h-8 min-w-10 items-center justify-center rounded-md px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50"
             >
               {APP_LOCALE_SHORT[locale]}
             </DropdownMenuTrigger>

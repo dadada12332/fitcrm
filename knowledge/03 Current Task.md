@@ -1,11 +1,19 @@
 ---
 type: current-task
 status: complete
-updated: 2026-07-29
-tags: [zalkins, tasks, platform, promo, compensation, billing, notifications]
+updated: 2026-07-30
+tags: [zalkins, tasks, ui, navigation, localization]
 ---
 
 # Current Task
+
+## Переключатель языка без обводки — 2026-07-30
+
+- В глобальной `TopBar` удалены постоянная рамка, карточный фон и тень вокруг кода языка.
+- Сохранены размеры hit area, muted hover/focus-состояние, доступное имя и выпадающее меню
+  русского, узбекского и английского.
+- TypeScript и focused ESLint прошли; авторизованный local browser QA подтвердил `0px`
+  border, отсутствие тени и ошибок консоли. Сравнительный `design-qa.md` — `passed`.
 
 ## Адресные компенсации клубам — 2026-07-29
 

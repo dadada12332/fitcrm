@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 770d370 · 2026-07-29T11:30:25+05:00 · fix: preview promo discounts in subscription.
+- Последний commit: ae4f9c7 · 2026-07-29T11:33:48+05:00 · docs: record promo preview fix [skip ci].
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 107; последняя `20260729054204_platform_club_compensations.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

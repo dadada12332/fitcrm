@@ -282,6 +282,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
 - `770d370` · 2026-07-29 · fix: preview promo discounts in subscription
 - `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
 - `a7467db` · 2026-07-29 · feat: add targeted club compensations
@@ -311,5 +312,4 @@ tags: [zalkins, releases]
 - `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
 - `2579503` · 2026-07-27 · docs: record Telegram workspace release [skip ci]
 - `d332e23` · 2026-07-27 · feat: add role-aware Telegram workspace
-- `d5e9312` · 2026-07-27 · docs: record compact subscription release [skip ci]
 <!-- AUTO:END changelog-candidates -->
