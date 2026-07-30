@@ -285,6 +285,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 - `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
 - `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
@@ -314,5 +315,4 @@ tags: [zalkins, releases]
 - `0d44c53` · 2026-07-27 · docs: record profile grid deployment [skip ci]
 - `fa786cb` · 2026-07-27 · fix: align profile card grid
 - `45221e7` · 2026-07-27 · docs: record profile navigation release [skip ci]
-- `f2ea391` · 2026-07-27 · feat: polish navigation and account profile
 <!-- AUTO:END changelog-candidates -->

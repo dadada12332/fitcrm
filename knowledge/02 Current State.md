@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 86287ca · 2026-07-30T11:54:06+05:00 · docs: record language switcher release [skip ci].
+- Последний commit: 0791937 · 2026-07-30T12:14:02+05:00 · feat: configure membership freeze allowance.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 108; последняя `20260730120813_membership_freeze_allowance_constraint.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

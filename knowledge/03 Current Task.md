@@ -23,6 +23,9 @@ tags: [zalkins, tasks, ui, navigation, localization]
   browser QA подтвердил создание тарифа `30 / 12 дней`, отказ для `31 / 30`, отображение в
   карточке и отсутствие ошибок консоли.
 - TypeScript, focused ESLint, 164 теста и production build прошли.
+- Commit `0791937` опубликован в production deployment
+  `dpl_F4VW2k6CAgavwT4evKyWmhBJsXbg`; основной alias и health-check отвечают корректно,
+  production runtime error scan чистый.
 
 ## Переключатель языка без обводки — 2026-07-30
 

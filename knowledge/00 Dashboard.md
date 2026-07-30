@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 - `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
 - `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
 - `a7467db` · 2026-07-29 · feat: add targeted club compensations
 - `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
-- `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
