@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 86e7cd6 · 2026-07-30T12:53:20+05:00 · docs: record membership chevron QA [skip ci].
+- Последний commit: 0470167 · 2026-07-30T16:03:17+05:00 · fix: harden platform billing and access flows.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 109; последняя `20260730120813_membership_freeze_allowance_constraint.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.

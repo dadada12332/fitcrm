@@ -285,6 +285,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
 - `f20a71a` · 2026-07-30 · fix: align membership duration chevron
 - `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
@@ -314,5 +315,4 @@ tags: [zalkins, releases]
 - `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 - `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 - `e6401a2` · 2026-07-27 · docs: record Zalkins production release [skip ci]
-- `2d09c57` · 2026-07-27 · feat: rebrand product as Zalkins
 <!-- AUTO:END changelog-candidates -->

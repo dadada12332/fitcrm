@@ -31,6 +31,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
 - `f20a71a` · 2026-07-30 · fix: align membership duration chevron
 - `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
@@ -40,7 +41,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 - `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
 - `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
-- `770d370` · 2026-07-29 · fix: preview promo discounts in subscription
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

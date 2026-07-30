@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
 - `f20a71a` · 2026-07-30 · fix: align membership duration chevron
 - `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
 - `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
-- `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
