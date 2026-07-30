@@ -14,6 +14,9 @@ tags: [zalkins, tasks, ui, navigation, localization]
   русского, узбекского и английского.
 - TypeScript и focused ESLint прошли; авторизованный local browser QA подтвердил `0px`
   border, отсутствие тени и ошибок консоли. Сравнительный `design-qa.md` — `passed`.
+- Commit `ae299d3` опубликован в production deployment
+  `dpl_A2KjZUUgCbP1dSfvXnAfz2YFuVWH`; основной alias и health-check отвечают `200`,
+  production runtime error scan чистый.
 
 ## Адресные компенсации клубам — 2026-07-29
 

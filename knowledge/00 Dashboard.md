@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
 - `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
 - `770d370` · 2026-07-29 · fix: preview promo discounts in subscription
 - `0b1978e` · 2026-07-29 · docs: record club compensation release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `b43c287` · 2026-07-28 · docs: record legacy banner removal [skip ci]
 - `32d031a` · 2026-07-28 · fix: remove legacy CRM system banner
 - `4ef8d18` · 2026-07-28 · docs: record CRM announcements release [skip ci]
-- `7c3a1b4` · 2026-07-28 · feat: deliver platform announcements in CRM
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои

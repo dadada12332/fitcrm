@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: ae4f9c7 · 2026-07-29T11:33:48+05:00 · docs: record promo preview fix [skip ci].
+- Последний commit: ae299d3 · 2026-07-30T11:50:30+05:00 · fix: simplify language switcher chrome.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 107; последняя `20260729054204_platform_club_compensations.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
