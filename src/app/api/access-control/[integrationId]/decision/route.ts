@@ -27,6 +27,13 @@ export async function POST(
     if (!integration) return Response.json({ allowed: false, reasonCode: "unauthorized" }, { status: 401 })
     const event = await parseNormalizedAccessEvent(request, "access_request")
     const decision = await processNormalizedAccessEvent(integration, event)
+    if (decision.reasonCode === "platform_subscription_locked") {
+      return Response.json({
+        allowed: false,
+        reasonCode: decision.reasonCode,
+        reasonMessage: decision.reasonMessage,
+      }, { status: 402 })
+    }
     if (decision.reasonCode === "storage_error" || decision.reasonCode === "processing_error") {
       return Response.json({
         allowed: false,

@@ -65,7 +65,7 @@ describe("service-role payment tenant scopes", () => {
   it("scopes scheduled broadcast mutations to the queued club", () => {
     const source = read("src/app/api/broadcasts/run/route.ts")
 
-    expect(source.match(/\.eq\("id", b\.id\)\.eq\("club_id", b\.club_id\)/g)).toHaveLength(2)
+    expect(source.match(/\.eq\("id", b\.id\)\.eq\("club_id", b\.club_id\)/g)).toHaveLength(3)
   })
 
   it("validates Telegram visit clients against the staff club", () => {

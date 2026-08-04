@@ -36,15 +36,17 @@ export function ClubActions({ clubId, status, plan, plans }: { clubId: string; s
         Войти как владелец
       </button>
 
-      <button
-        disabled={pending}
-        onClick={() => act(() => extendTrial(clubId, 14), "Trial продлён на 14 дней")}
-        className={btn}
-        style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: PT.text }}
-      >
-        <CalendarPlus className="w-4 h-4" style={{ color: "var(--chart-2)" }} />
-        Продлить Trial +14д
-      </button>
+      {plan === "trial" && (
+        <button
+          disabled={pending}
+          onClick={() => act(() => extendTrial(clubId, 14), "Trial продлён на 14 дней")}
+          className={btn}
+          style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: PT.text }}
+        >
+          <CalendarPlus className="w-4 h-4" style={{ color: "var(--chart-2)" }} />
+          Продлить Trial +14д
+        </button>
+      )}
 
       <div className="relative">
         <button
@@ -63,9 +65,11 @@ export function ClubActions({ clubId, status, plan, plans }: { clubId: string; s
             {plans.map((p) => (
               <button
                 key={p.code}
+                disabled={pending || p.code === plan}
                 onClick={() => { setPlanOpen(false); act(() => changePlan(clubId, p.code), `Тариф изменён: ${p.name}`) }}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors hover:bg-muted/60"
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors hover:bg-muted/60 disabled:cursor-default disabled:hover:bg-transparent"
                 style={{ color: p.code === plan ? "var(--brand)" : PT.text }}
+                aria-current={p.code === plan ? "true" : undefined}
               >
                 <span>{p.name}</span>
                 <span className="flex items-center gap-1.5">

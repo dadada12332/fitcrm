@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { CreditCard, Inbox } from "lucide-react"
 import { getBillingRequests, platformBase, PLAN_LABELS } from "@/lib/platform"
-import { Panel, PageHeader, PlanBadge, fmtSum, timeAgo, PT } from "@/components/platform/parts"
+import { Panel, PageHeader, PlanBadge, timeAgo, PT } from "@/components/platform/parts"
 import { BillingActions } from "@/components/platform/BillingActions"
+import { fmtMoney } from "@/lib/money"
 
 export const dynamic = "force-dynamic"
 
@@ -10,6 +11,23 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   approved: { label: "Подтверждено", color: "var(--chart-2)" },
   rejected: { label: "Отклонено", color: "var(--destructive)" },
   cancelled: { label: "Отменено", color: "var(--muted-foreground)" },
+}
+
+const PERIOD_LABEL: Record<string, string> = {
+  monthly: "месяц",
+  quarterly: "квартал",
+  yearly: "год",
+}
+
+function formatQuotedMoney(value: number | null, currency: string | null): string {
+  if (value == null || !Number.isFinite(value)) return "—"
+  if (!currency) return `${value.toLocaleString("ru-RU")} · валюта не зафиксирована`
+  return fmtMoney(value, currency)
+}
+
+function formatQuotedUnitPrice(unitPrice: number | null, currency: string | null, period: string | null): string {
+  if (unitPrice == null || !currency || !period) return "Цена, валюта или период не зафиксированы"
+  return `${fmtMoney(unitPrice, currency)} / ${PERIOD_LABEL[period] ?? period}`
 }
 
 export default async function SubscriptionsPage() {
@@ -47,12 +65,19 @@ export default async function SubscriptionsPage() {
                   </div>
                   <p className="text-[11px] mt-0.5" style={{ color: PT.textMuted }}>
                     {r.requestedEmail ?? "—"} · {timeAgo(r.createdAt)}
-                    {r.promoCode ? ` · промокод ${r.promoCode}${r.discountAmount > 0 ? ` (−${fmtSum(r.discountAmount)})` : ""}` : ""}
-                    {r.compensationDiscountAmount > 0 ? ` · компенсация −${fmtSum(r.compensationDiscountAmount)}` : ""}
+                    {r.promoCode ? ` · промокод ${r.promoCode}${r.discountAmount > 0 ? ` (−${formatQuotedMoney(r.discountAmount, r.quotedCurrency)})` : ""}` : ""}
+                    {r.compensationDiscountAmount > 0 ? ` · компенсация −${formatQuotedMoney(r.compensationDiscountAmount, r.quotedCurrency)}` : ""}
+                  </p>
+                  <p className={`mt-1 text-xs ${r.quotedUnitPrice == null || !r.quotedCurrency || !r.quotedPeriod ? "text-destructive" : "text-foreground"}`}>
+                    Цена тарифа: <span className="font-medium tabular-nums">{formatQuotedUnitPrice(r.quotedUnitPrice, r.quotedCurrency, r.quotedPeriod)}</span>
+                    {r.quotedCurrency && <span className="text-muted-foreground"> · валюта {r.quotedCurrency}</span>}
                   </p>
                 </div>
                 <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-                  <span className="text-sm font-semibold tabular-nums" style={{ color: "var(--chart-2)" }}>{r.amount != null ? fmtSum(r.amount) : "—"}</span>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold tabular-nums" style={{ color: "var(--chart-2)" }}>{formatQuotedMoney(r.amount, r.quotedCurrency)}</p>
+                    <p className="text-[10px] text-muted-foreground">Итого по заявке</p>
+                  </div>
                   <BillingActions id={r.id} />
                 </div>
               </div>
@@ -76,7 +101,12 @@ export default async function SubscriptionsPage() {
                 <div key={r.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-2.5 py-2.5 sm:flex sm:items-center" style={{ borderBottom: `1px solid ${PT.panelBorder}` }}>
                   <Link href={`${base}/clubs/${r.clubId}`} className="min-w-0 truncate text-sm text-foreground hover:text-brand sm:flex-1">{r.clubName}</Link>
                   <span className="text-xs font-medium sm:order-3" style={{ color: st.color }}>{st.label}</span>
-                  <span className="truncate text-xs sm:order-2" style={{ color: PT.textSoft }}>{PLAN_LABELS[r.plan] ?? r.plan} · {r.months} мес</span>
+                  <span className="truncate text-xs sm:order-2" style={{ color: PT.textSoft }}>
+                    {PLAN_LABELS[r.plan] ?? r.plan} · {r.months} мес · {formatQuotedMoney(r.amount, r.quotedCurrency)}
+                    {r.quotedUnitPrice != null && r.quotedCurrency && r.quotedPeriod
+                      ? ` · ${formatQuotedUnitPrice(r.quotedUnitPrice, r.quotedCurrency, r.quotedPeriod)}`
+                      : ""}
+                  </span>
                   <span className="text-right text-[11px] sm:order-4" style={{ color: PT.textMuted }}>{timeAgo(r.resolvedAt ?? r.createdAt)}</span>
                 </div>
               )

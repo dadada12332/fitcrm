@@ -33,7 +33,9 @@ function functionFacts(file: string): Map<string, FunctionFacts> {
     const visit = (child: ts.Node) => {
       if (ts.isCallExpression(child) && ts.isIdentifier(child.expression)) {
         calls.add(child.expression.text)
-        if (child.expression.text === "getCurrentClub") hasClubLookup = true
+        if (child.expression.text === "getCurrentClub" || child.expression.text === "getCurrentClubForRecovery") {
+          hasClubLookup = true
+        }
         if (child.expression.text === "can") hasPermissionGuard = true
       }
       if (ts.isPropertyAccessExpression(child)) {

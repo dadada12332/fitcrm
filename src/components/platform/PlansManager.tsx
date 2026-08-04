@@ -188,7 +188,11 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
   const [history, setHistory] = useState<PlanChangeLog[] | null>(null)
   const set = <K extends keyof PlanPayload>(k: K, v: PlanPayload[K]) => setF((p) => ({ ...p, [k]: v }))
 
-  const priceChanged = Number(f.price) !== Number(plan.price) && !f.is_trial
+  const commercialTermsChanged = !f.is_trial && (
+    Number(f.price) !== Number(plan.price)
+    || f.currency !== plan.currency
+    || f.period !== plan.period
+  )
 
   async function doSave(mode?: "new_only" | "all") {
     setAskPrice(false)
@@ -199,8 +203,8 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
     onSaved()
   }
   function save() {
-    // Изменилась цена и тариф уже используют клубы → спросить, как применять (grandfather).
-    if (priceChanged && plan.clubCount > 0) { setAskPrice(true); return }
+    // Любое изменение коммерческих условий требует единого grandfather-решения.
+    if (commercialTermsChanged && plan.clubCount > 0) { setAskPrice(true); return }
     doSave()
   }
   async function openHistory() {
@@ -284,9 +288,10 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
                   <Select value={f.currency} onChange={(v) => set("currency", v)} options={[["USD", "USD ($)"], ["UZS", "UZS (сум)"]]} />
                 </Field>
                 <Field label="Период">
-                  <Select value={f.period} onChange={(v) => set("period", v)} options={[["monthly", "Месяц"], ["quarterly", "Квартал"], ["yearly", "Год"]]} />
+                  <Select value={f.period} onChange={(v) => set("period", v)} options={[["monthly", "Месяц"]]} />
                 </Field>
               </div>
+              <p className="text-xs" style={{ color: PT.textMuted }}>Оформление и продление сейчас работают только помесячно; скидка за 3/12 месяцев задаётся в заявке.</p>
               <div className="rounded-lg p-3 text-xs" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}`, color: PT.textSoft }}>
                 Предпросмотр: <span className="text-foreground font-semibold">{fmtMoney(f.price, f.currency)}</span> / {PERIOD_LABELS[f.period]}
                 {f.old_price != null && <span className="line-through ml-2" style={{ color: PT.textMuted }}>{fmtMoney(f.old_price, f.currency)}</span>}
@@ -371,18 +376,18 @@ function PlanEditor({ plan, onClose, onSaved }: { plan: FullPlan; onClose: () =>
         {askPrice && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 p-5" onClick={() => setAskPrice(false)}>
             <div className="w-full max-w-sm rounded-lg p-5" style={{ background: PT.panel, border: `1px solid ${PT.panelBorder}` }} onClick={(e) => e.stopPropagation()}>
-              <p className="text-base font-semibold text-foreground mb-1">Изменение цены</p>
+              <p className="text-base font-semibold text-foreground mb-1">Изменение условий тарифа</p>
               <p className="text-sm mb-4" style={{ color: PT.textSoft }}>
                 Тариф используют <span className="text-foreground font-medium">{plan.clubCount}</span> клуб(ов).
-                Цена меняется с <span className="line-through" style={{ color: PT.textMuted }}>{fmtMoney(plan.price, f.currency)}</span> на <span className="text-foreground font-medium">{fmtMoney(f.price, f.currency)}</span>.
+                Условия меняются с <span className="line-through" style={{ color: PT.textMuted }}>{fmtMoney(plan.price, plan.currency)} / {plan.period}</span> на <span className="text-foreground font-medium">{fmtMoney(f.price, f.currency)} / {f.period}</span>.
               </p>
               <button onClick={() => doSave("new_only")} className="w-full text-left rounded-lg p-3 mb-2 transition-colors hover:bg-muted/60" style={{ border: `1px solid ${PT.panelBorder}` }}>
                 <p className="text-sm font-medium text-foreground">Только для новых клиентов</p>
-                <p className="text-xs mt-0.5" style={{ color: PT.textMuted }}>Текущие клубы сохранят старую цену (grandfather pricing)</p>
+                <p className="text-xs mt-0.5" style={{ color: PT.textMuted }}>Текущие клубы сохранят прежние цену, валюту и период</p>
               </button>
               <button onClick={() => doSave("all")} className="w-full text-left rounded-lg p-3 mb-3 transition-colors hover:bg-muted/60" style={{ border: `1px solid ${PT.panelBorder}` }}>
                 <p className="text-sm font-medium text-foreground">Применить ко всем клубам</p>
-                <p className="text-xs mt-0.5" style={{ color: PT.textMuted }}>Все {plan.clubCount} клуб(ов) перейдут на новую цену</p>
+                <p className="text-xs mt-0.5" style={{ color: PT.textMuted }}>Все {plan.clubCount} клуб(ов) перейдут на новые условия</p>
               </button>
               <button onClick={() => setAskPrice(false)} className="w-full h-9 rounded-lg text-sm font-medium" style={{ color: PT.textSoft }}>Отмена</button>
             </div>

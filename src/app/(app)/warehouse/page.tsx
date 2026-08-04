@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getPosProducts, getInventoryStats, getRecentMovements } from "@/lib/inventory"
 import { createServiceClient } from "@/lib/supabase/service"
 import { WarehouseSwitcher } from "@/components/app/WarehouseSwitcher"
@@ -9,7 +9,7 @@ export const metadata = { title: "Склад — Zalkins" }
 
 export default async function WarehousePage() {
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.warehouse.view) redirect("/dashboard")
   const canViewCost = club.permissions.warehouse.view_cost_price

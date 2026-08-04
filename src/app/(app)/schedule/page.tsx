@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getScheduleData, type ScheduleView } from "@/lib/schedule"
 import { ScheduleToolbar } from "@/components/app/ScheduleToolbar"
 import { ScheduleKPIs } from "@/components/app/ScheduleKPIs"
@@ -16,7 +16,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
   const view: ScheduleView = sp.view === "week" || sp.view === "month" ? sp.view : "day"
 
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.schedule.view) redirect("/dashboard")
   const [data, clientsRes, trainers] = await Promise.all([

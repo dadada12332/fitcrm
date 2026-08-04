@@ -177,28 +177,13 @@ export async function createClubCompensationAction(input: CompensationPayload): 
       })
     }
   } else {
-    const { data: previous } = await service.from("platform_club_compensations")
-      .select("id")
-      .in("club_id", clubIds)
-      .eq("benefit_type", "discount_pct")
-      .eq("status", "active")
-    for (const item of previous ?? []) {
-      const { error } = await service.rpc("platform_cancel_club_compensation", {
-        p_compensation_id: item.id,
-        p_admin_id: auth.userId,
-      })
-      if (error) return { error: "Не удалось заменить предыдущую компенсацию" }
-    }
-
-    const { error } = await service.from("platform_club_compensations").insert(clubIds.map((clubId) => ({
-      club_id: clubId,
-      benefit_type: "discount_pct",
-      value: input.value,
-      reason,
-      status: "active",
-      expires_at: expiresAt?.toISOString() ?? null,
-      created_by: auth.userId,
-    })))
+    const { error } = await service.rpc("platform_replace_club_discount_compensations", {
+      p_club_ids: clubIds,
+      p_value: input.value,
+      p_reason: reason,
+      p_expires_at: expiresAt?.toISOString() ?? null,
+      p_admin_id: auth.userId,
+    })
     if (error) return { error: "Не удалось создать компенсацию" }
     for (const clubId of clubIds) {
       await notifyCompensatedClub({

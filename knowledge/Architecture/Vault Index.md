@@ -26,6 +26,8 @@ updated: 2026-07-18
 - [[Daily/2026-07-28]]
 - [[Daily/2026-07-29]]
 - [[Daily/2026-07-30]]
+- [[Daily/2026-08-03]]
+- [[Daily/2026-08-04]]
 
 ## Database
 
@@ -123,6 +125,7 @@ updated: 2026-07-18
 ## UX
 
 - [[UX/Recommended Obsidian Plugins]]
+- [[UX/Subscription Renewal Audit 2026-08-04]]
 
 ## Weekly
 

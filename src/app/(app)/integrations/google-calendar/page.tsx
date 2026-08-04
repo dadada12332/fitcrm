@@ -4,7 +4,7 @@ import {
   GoogleCalendarIntegration,
   type GoogleCalendarPageData,
 } from "@/components/app/GoogleCalendarIntegration"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import {
   getGoogleCalendarConfig,
   listGoogleCalendarEvents,
@@ -21,7 +21,7 @@ export default async function GoogleCalendarPage({
 }: {
   searchParams: Promise<{ oauth?: string; month?: string }>
 }) {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/login")
   if (!club.permissions.settings.integrations) redirect("/dashboard")
 

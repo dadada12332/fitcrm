@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getVisitsKPI, getVisitsPage, VISITS_PAGE_SIZE } from "@/lib/visits"
 import { VisitsQuickCheckin } from "@/components/app/VisitsQuickCheckin"
 import { VisitsTable } from "@/components/app/VisitsTable"
@@ -14,7 +14,7 @@ export default async function VisitsPage({
   searchParams: Promise<Record<string, string | undefined>>
 }) {
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.visits.view) redirect("/dashboard")
 

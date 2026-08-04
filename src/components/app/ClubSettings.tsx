@@ -8,6 +8,7 @@ import {
   MessageCircle,
   Pencil, Trash2, Users, Building2, Package, ShieldCheck,
   Plug, Bot, Send, Upload, Download, CalendarDays, Clock3, Gift, Loader2, Tag,
+  AlertTriangle,
 } from "lucide-react"
 import {
   Card as UiCard,
@@ -17,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Button as UiButton } from "@/components/ui/button"
+import { Button as UiButton, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs"
 import {
@@ -54,14 +55,18 @@ import {
   translate,
   type AppLocale,
 } from "@/lib/app-locale"
+import type { PlatformSubscriptionState } from "@/lib/platform-subscription"
+import { cn } from "@/lib/utils"
 
 export type ClubData = {
   generatedAt: number
   id: string
   name: string
+  planId: string | null
   plan: string
   trialExpiresAt: string | null
   planExpiresAt: string | null
+  subscriptionState: PlatformSubscriptionState
   currentRole: string
   settings: {
     address?: string
@@ -77,9 +82,12 @@ export type ClubData = {
     finance?: { methods: string[] }
   }
   staffList: { id: string; name: string; role: string; email: string; isMe: boolean }[]
-  pendingRequest?: { plan: string; months: number; amount: number | null; createdAt: string } | null
+  pendingRequest?: { plan: string; months: number; amount: number | null; currency?: string | null; createdAt: string } | null
   plans?: PlanForClient[]
   planPriceLocked?: number | null
+  planCurrencyLocked?: string | null
+  planPeriodLocked?: string | null
+  planCapacityError?: string | null
   /** Статус подключения платёжек: провайдер → статус последней заявки (new/active). */
   paymentConnections?: Record<string, "new" | "active">
   clientCount: number
@@ -99,6 +107,7 @@ export type PlanUsageForClient = {
 
 /** Тариф для отображения в CRM (данные из раздела «Тарифы» Platform Admin). */
 export type PlanForClient = {
+  id: string
   code: string
   name: string
   price: number
@@ -943,6 +952,12 @@ function fmtPlanPrice(price: number, currency: string, isTrial: boolean): string
   if (isTrial || price === 0) return "Бесплатно"
   return fmtMoney(price, currency)
 }
+
+function planPeriodLabel(period: string, compact = false): string {
+  if (period === "yearly") return compact ? "год" : "за год"
+  if (period === "quarterly") return compact ? "квартал" : "за квартал"
+  return compact ? "мес" : "за месяц"
+}
 const fmtLimit = (n: number | null) => (n == null ? "∞" : n.toLocaleString("ru-RU"))
 
 const PLAN_LIMIT_META = [
@@ -960,22 +975,28 @@ const PLAN_LIMIT_META = [
 
 const PRIMARY_PLAN_LIMIT_KEYS = new Set(["clients", "staff", "branches", "ai_requests"])
 
-function formatPlanDate(value: string | null) {
+function formatPlanDate(value: string | null, timeZone: string) {
   if (!value) return "Без даты окончания"
-  return new Date(value).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone,
+  })
 }
 
 function PlanSection({ club }: { club: ClubData }) {
   const plan   = club.plan
   const plans  = club.plans ?? []
-  const current = plans.find((p) => p.code === plan)
+  const isAssignedPlan = (candidate: PlanForClient) => club.planId
+    ? candidate.id === club.planId
+    : candidate.code === plan
+  const current = plans.find(isAssignedPlan)
   const paidPlans = plans.filter((p) => !p.isTrial && p.isActive)
-  const expiresAt = club.planExpiresAt ?? club.trialExpiresAt
-  const daysLeft = club.planExpiresAt
-    ? Math.ceil((new Date(club.planExpiresAt).getTime() - club.generatedAt) / 86_400_000)
-    : club.trialExpiresAt
-      ? Math.ceil((new Date(club.trialExpiresAt).getTime() - club.generatedAt) / 86_400_000)
-      : null
+  const subscription = club.subscriptionState
+  const expiresAt = subscription.expiresAt
+  const daysLeft = subscription.daysLeft
+  const timeZone = club.settings.timezone || "Asia/Tashkent"
   const router = useRouter()
   const [pending, start] = useTransition()
   const [months, setMonths] = useState(1)
@@ -985,6 +1006,7 @@ function PlanSection({ club }: { club: ClubData }) {
   const [promoError, setPromoError] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const req = club.pendingRequest
+  const capacityAvailable = !club.planCapacityError
 
   useEffect(() => {
     const code = promoCode.trim()
@@ -1037,14 +1059,40 @@ function PlanSection({ club }: { club: ClubData }) {
     })
   }
   function cancelRequest() {
-    start(async () => { await cancelPlanRequestAction(); router.refresh() })
+    setErr(null)
+    start(async () => {
+      const res = await cancelPlanRequestAction()
+      if (res.error) { setErr(res.error); return }
+      router.refresh()
+    })
   }
 
   const usageByKey = new Map((club.planUsage ?? []).map((item) => [item.key, item.used]))
   const currentPrice = club.planPriceLocked ?? current?.price ?? 0
-  const currentCurrency = current?.currency ?? "UZS"
+  const currentCurrency = club.planCurrencyLocked?.trim() || current?.currency || "UZS"
+  const currentPeriod = club.planPeriodLocked?.trim() || current?.period || "monthly"
   const primaryLimits = PLAN_LIMIT_META.filter(({ key }) => PRIMARY_PLAN_LIMIT_KEYS.has(key))
   const secondaryLimits = PLAN_LIMIT_META.filter(({ key }) => !PRIMARY_PLAN_LIMIT_KEYS.has(key))
+  const planName = current?.name ?? PLAN_LABELS[plan] ?? plan
+  const statusBadge = subscription.kind === "expired"
+    ? <Badge variant="destructive">Подписка истекла</Badge>
+    : subscription.kind === "trial_expired"
+      ? <Badge variant="destructive">Пробный период истёк</Badge>
+      : subscription.isExpiring
+        ? <Badge variant="outline" className="border-brand/30 text-brand">Истекает скоро</Badge>
+        : subscription.isTrial
+          ? <Badge variant="secondary">Пробный период</Badge>
+          : subscription.kind === "unlimited"
+            ? <Badge variant="secondary">Бессрочный тариф</Badge>
+            : <Badge variant="secondary">Текущий тариф</Badge>
+
+  const periodDescription = subscription.isExpired
+    ? `${subscription.isTrial ? "Пробный период завершился" : "Подписка истекла"}${expiresAt ? ` ${formatPlanDate(expiresAt, timeZone)}` : ""}`
+    : daysLeft !== null
+      ? `Действует до ${formatPlanDate(expiresAt, timeZone)}`
+      : subscription.kind === "unlimited"
+        ? "Тариф без даты окончания"
+        : "Без даты окончания"
 
   return (
     <div className="space-y-5 pb-8">
@@ -1062,13 +1110,48 @@ function PlanSection({ club }: { club: ClubData }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground">
-              Заявка отправлена: {plans.find((x) => x.code === req.plan)?.name ?? PLAN_LABELS[req.plan] ?? req.plan} · {req.months} мес{req.amount != null ? ` · ${fmtMoney(req.amount, current?.currency ?? "UZS")}` : ""}
+              {subscription.isExpired && req.plan === plan ? "Заявка на продление отправлена" : "Заявка отправлена"}: {plans.find((x) => x.code === req.plan)?.name ?? PLAN_LABELS[req.plan] ?? req.plan} · {req.months} мес{req.amount != null ? ` · ${fmtMoney(req.amount, req.currency || currentCurrency)}` : ""}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Ожидает подтверждения. Менеджер свяжется для оплаты.</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {subscription.isExpired
+                ? "Ожидает подтверждения оплаты. Доступ восстановится сразу после одобрения."
+                : "Ожидает подтверждения. Менеджер свяжется для оплаты."}
+            </p>
           </div>
           <UiButton variant="outline" onClick={cancelRequest} disabled={pending}>
             Отменить
           </UiButton>
+        </div>
+      )}
+
+      {subscription.isExpired && !req && (
+        <div className="flex flex-col gap-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4 sm:flex-row sm:items-center">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+            <AlertTriangle className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">
+              {subscription.isTrial ? "Пробный период завершён" : `Подписка ${planName} истекла`}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Выберите срок ниже и отправьте заявку. Данные клуба сохранены, доступ вернётся после подтверждения оплаты.
+            </p>
+          </div>
+          <a href="#available-plans" className={cn(buttonVariants({ variant: "outline" }), "shrink-0")}>
+            {subscription.isTrial ? "Выбрать тариф" : "Выбрать срок продления"}
+          </a>
+        </div>
+      )}
+
+      {!capacityAvailable && (
+        <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-4">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Текущие лимиты временно недоступны</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Продлить текущий тариф можно. Переход на другой тариф включится после проверки фактического использования.
+            </p>
+          </div>
         </div>
       )}
 
@@ -1080,23 +1163,17 @@ function PlanSection({ club }: { club: ClubData }) {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <CardTitle className="text-lg">{current?.name ?? PLAN_LABELS[plan] ?? plan}</CardTitle>
-                <Badge variant="secondary">Текущий тариф</Badge>
+                <CardTitle className="text-lg">{planName}</CardTitle>
+                {statusBadge}
               </div>
-              <CardDescription className="mt-1">
-                {daysLeft !== null
-                  ? daysLeft > 0
-                    ? `Действует до ${formatPlanDate(expiresAt)}`
-                    : "Срок действия тарифа истёк"
-                  : "Тариф без даты окончания"}
-              </CardDescription>
+              <CardDescription className="mt-1">{periodDescription}</CardDescription>
             </div>
           </div>
           <CardAction className="col-start-1 row-span-1 row-start-2 mt-2 justify-self-start text-left sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:text-right">
             <p className="text-lg font-semibold text-foreground">
               {fmtPlanPrice(currentPrice, currentCurrency, plan === "trial" || !!current?.isTrial)}
             </p>
-            <p className="text-xs text-muted-foreground">за месяц</p>
+            <p className="text-xs text-muted-foreground">{planPeriodLabel(currentPeriod)}</p>
           </CardAction>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-px bg-border p-0 sm:grid-cols-[0.8fr_repeat(4,1fr)]">
@@ -1104,7 +1181,7 @@ function PlanSection({ club }: { club: ClubData }) {
             <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Осталось</p>
-              <p className="mt-0.5 text-base font-semibold tabular-nums text-foreground">
+              <p className={`mt-0.5 text-base font-semibold tabular-nums ${subscription.isExpired ? "text-destructive" : "text-foreground"}`}>
                 {daysLeft === null ? "Без срока" : `${Math.max(0, daysLeft)} дн.`}
               </p>
             </div>
@@ -1112,6 +1189,7 @@ function PlanSection({ club }: { club: ClubData }) {
           {primaryLimits.map(({ key, label, icon: Icon, monthly }) => {
             const used = usageByKey.get(key)
               ?? (key === "clients" ? club.clientCount : key === "staff" ? club.staffList.length : 0)
+            const usageAvailable = monthly || capacityAvailable
             const limit = current?.limits[key] ?? null
             const percent = limit === null ? 0 : limit <= 0 ? 100 : Math.min(100, (used / limit) * 100)
             return (
@@ -1121,17 +1199,17 @@ function PlanSection({ club }: { club: ClubData }) {
                   <span className="text-xs">{label}</span>
                 </div>
                 <p className="mt-1 text-sm font-semibold tabular-nums text-foreground">
-                  {used.toLocaleString("ru-RU")}
+                  {usageAvailable ? used.toLocaleString("ru-RU") : "—"}
                   <span className="font-normal text-muted-foreground"> / {fmtLimit(limit)}</span>
                 </p>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-brand transition-[width]"
-                    style={{ width: limit === null ? "3%" : `${percent}%`, opacity: limit === null ? 0.35 : 1 }}
+                    style={{ width: usageAvailable ? (limit === null ? "3%" : `${percent}%`) : "0%", opacity: limit === null ? 0.35 : 1 }}
                   />
                 </div>
                 <p className="mt-1 text-[10px] text-muted-foreground">
-                  {monthly ? "за месяц" : "всего в клубе"}
+                  {usageAvailable ? (monthly ? "за месяц" : "всего в клубе") : "данные недоступны"}
                 </p>
               </div>
             )
@@ -1225,26 +1303,45 @@ function PlanSection({ club }: { club: ClubData }) {
           ) : (
             <div className="grid items-stretch gap-3 lg:grid-cols-3">
               {paidPlans.map((pl) => {
-                const isCurrent = pl.code === plan
+                const isAssigned = isAssignedPlan(pl)
+                const isCurrent = isAssigned && !subscription.isExpired && !subscription.isTrial
+                const isExpiredPlan = isAssigned && subscription.kind === "expired"
+                const isUnlimitedAssigned = isAssigned && subscription.kind === "unlimited"
                 const requested = req?.plan === pl.code
-                const total = pl.price * months
+                const unitPrice = isAssigned ? currentPrice : pl.price
+                const currency = isAssigned ? currentCurrency : pl.currency
+                const period = isAssigned ? currentPeriod : pl.period
+                const total = unitPrice * months
                 const promoPrice = promoPreview?.prices[pl.code]?.finalAmount ?? total
                 const compensatedTotal = club.activeCompensation
                   ? Math.max(0, promoPrice - Math.round(promoPrice * club.activeCompensation.discountPct) / 100)
                   : promoPrice
                 const priceChanged = compensatedTotal !== total
                 const promoUnavailable = Boolean(promoPreview && !promoPreview.prices[pl.code])
+                const capacityUnavailable = !isAssigned && !capacityAvailable
+                const limitBlockers = PLAN_LIMIT_META.filter(({ key, monthly }) => {
+                  if (monthly || !capacityAvailable) return false
+                  const limit = pl.limits[key]
+                  const used = usageByKey.get(key) ?? 0
+                  return limit != null && used > limit
+                }).map(({ label }) => label)
                 return (
                   <div
-                    key={pl.code}
-                    className={`flex flex-col rounded-xl border border-border p-4 ${
-                      isCurrent ? "border-brand/40 bg-brand/[0.03] ring-1 ring-brand/10" : "bg-card"
+                    key={pl.id}
+                    className={`flex flex-col rounded-xl border p-4 ${
+                      isExpiredPlan
+                        ? "border-destructive/30 bg-destructive/[0.02] ring-1 ring-destructive/10"
+                        : isCurrent
+                          ? "border-brand/40 bg-brand/[0.03] ring-1 ring-brand/10"
+                          : "border-border bg-card"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className={`flex size-10 items-center justify-center rounded-lg text-sm font-semibold ${
-                          isCurrent ? "bg-brand/10 text-brand" : "bg-muted text-foreground"
+                          isExpiredPlan
+                            ? "bg-destructive/10 text-destructive"
+                            : isCurrent ? "bg-brand/10 text-brand" : "bg-muted text-foreground"
                         }`}>
                           {pl.name.charAt(0)}
                         </div>
@@ -1253,7 +1350,9 @@ function PlanSection({ club }: { club: ClubData }) {
                           <p className="mt-0.5 text-xs text-muted-foreground">{pl.subtitle || "Тариф Zalkins"}</p>
                         </div>
                       </div>
-                      {isCurrent ? (
+                      {isExpiredPlan ? (
+                        <Badge variant="destructive">Истёк</Badge>
+                      ) : isCurrent ? (
                         <Badge variant="outline" className="border-brand/30 text-brand">Текущий</Badge>
                       ) : pl.isPopular ? (
                         <Badge variant="secondary">Популярный</Badge>
@@ -1263,14 +1362,16 @@ function PlanSection({ club }: { club: ClubData }) {
                     <div className="mt-4">
                       {priceChanged && (
                         <p className="text-xs tabular-nums text-muted-foreground line-through">
-                          {fmtPlanPrice(total, pl.currency, false)}
+                          {fmtPlanPrice(total, currency, false)}
                         </p>
                       )}
                       <p className="text-2xl font-semibold tracking-tight text-foreground">
-                        {fmtPlanPrice(compensatedTotal, pl.currency, false)}
+                        {fmtPlanPrice(compensatedTotal, currency, false)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {months === 1 ? "за месяц" : `за ${months} месяца · ${fmtMoney(pl.price, pl.currency)} / мес`}
+                        {months === 1
+                          ? planPeriodLabel(period)
+                          : `за ${months} месяца · ${fmtMoney(unitPrice, currency)} / ${planPeriodLabel(period, true)}`}
                       </p>
                     </div>
 
@@ -1294,12 +1395,16 @@ function PlanSection({ club }: { club: ClubData }) {
                       ))}
                     </ul>
 
+                    {(capacityUnavailable || (limitBlockers.length > 0 && !isAssigned)) && (
+                      <p className="mt-3 rounded-lg bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                        {capacityUnavailable
+                          ? "Переход временно недоступен: не удалось проверить текущие лимиты"
+                          : `Нельзя перейти: превышен лимит «${limitBlockers.join(", ")}»`}
+                      </p>
+                    )}
+
                     <div className="mt-4">
-                      {isCurrent ? (
-                        <UiButton className="w-full" variant="secondary" disabled>
-                          <Check className="size-4" /> Текущий тариф
-                        </UiButton>
-                      ) : requested ? (
+                      {requested ? (
                         <UiButton className="w-full" variant="secondary" disabled>
                           <Clock3 className="size-4" /> Заявка отправлена
                         </UiButton>
@@ -1307,16 +1412,26 @@ function PlanSection({ club }: { club: ClubData }) {
                         <UiButton
                           className="w-full"
                           onClick={() => requestPlan(pl.code)}
-                          disabled={pending || promoChecking || Boolean(promoCode && !promoPreview) || promoUnavailable}
+                          disabled={Boolean(req) || pending || promoChecking || Boolean(promoCode && !promoPreview) || promoUnavailable || capacityUnavailable || isUnlimitedAssigned || (!isAssigned && limitBlockers.length > 0)}
                         >
                           {promoUnavailable
                             ? "Промокод не действует"
+                            : req
+                              ? "Сначала отмените заявку"
+                            : capacityUnavailable
+                              ? "Проверка лимитов недоступна"
+                            : !isAssigned && limitBlockers.length > 0
+                              ? "Сначала сократите лимиты"
                             : pending
                               ? "Отправляем..."
+                              : isUnlimitedAssigned
+                                ? "Бессрочный доступ"
+                              : isAssigned
+                                ? `Продлить ${pl.name}`
                               : plan === "trial"
                                 ? "Оформить тариф"
                                 : "Перейти на тариф"}
-                          {!pending && <ArrowRight className="size-4" />}
+                          {!pending && !isUnlimitedAssigned && <ArrowRight className="size-4" />}
                         </UiButton>
                       )}
                     </div>
@@ -1354,6 +1469,7 @@ function PlanSection({ club }: { club: ClubData }) {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {secondaryLimits.map(({ key, label, icon: Icon, monthly }) => {
                   const used = usageByKey.get(key) ?? 0
+                  const usageAvailable = monthly || capacityAvailable
                   const limit = current?.limits[key] ?? null
                   const remaining = limit === null ? null : Math.max(0, limit - used)
                   const percent = limit === null ? 0 : limit <= 0 ? 100 : Math.min(100, (used / limit) * 100)
@@ -1366,17 +1482,19 @@ function PlanSection({ club }: { club: ClubData }) {
                           <p className="truncate text-xs font-medium text-foreground">{label}</p>
                         </div>
                         <p className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
-                          {used.toLocaleString("ru-RU")} / {fmtLimit(limit)}
+                          {usageAvailable ? used.toLocaleString("ru-RU") : "—"} / {fmtLimit(limit)}
                         </p>
                       </div>
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full bg-brand transition-[width]"
-                          style={{ width: limit === null ? "3%" : `${percent}%`, opacity: limit === null ? 0.35 : 1 }}
+                          style={{ width: usageAvailable ? (limit === null ? "3%" : `${percent}%`) : "0%", opacity: limit === null ? 0.35 : 1 }}
                         />
                       </div>
                       <p className="mt-1.5 text-[10px] text-muted-foreground">
-                        {unavailable
+                        {!usageAvailable
+                          ? "Данные недоступны"
+                          : unavailable
                           ? "Не входит в тариф"
                           : remaining === null
                             ? "Без ограничений"

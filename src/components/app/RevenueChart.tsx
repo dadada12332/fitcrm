@@ -16,6 +16,8 @@ const PERIODS: { key: PeriodKey; label: string }[] = [
   { key: "Год",     label: "Год"     },
 ]
 
+const CHART_FONT_FAMILY = "var(--font-sans), Inter, system-ui, sans-serif"
+
 export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodStat> }) {
   const { money } = useAppLocale()
   const [period, setPeriod] = useState<PeriodKey>("7Д")
@@ -30,17 +32,17 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
     >
       {/* Header */}
       <div
-        className="flex flex-col items-start gap-3 px-4 py-4"
+        className="flex flex-col items-start gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
         style={{ borderBottom: "1px solid var(--border)" }}
       >
         <p
-          className="text-[20px] font-medium tracking-[-0.12px]"
+          className="shrink-0 text-[20px] font-medium tracking-[-0.12px]"
           style={{ color: "var(--on-dark)", lineHeight: "28px" }}
         >
           Выручка · {periodLabel}
         </p>
 
-        <div className="w-full overflow-x-auto">
+        <div className="w-full overflow-x-auto sm:w-auto">
           <div className="grid w-full grid-cols-5 gap-0.5 rounded-md bg-muted p-0.5 sm:inline-flex sm:w-auto">
             {PERIODS.map((p) => (
               <button
@@ -88,7 +90,7 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12, fill: "var(--gray-muted)", fontFamily: "Inter" }}
+              tick={{ fontSize: 12, fill: "var(--gray-muted)", fontFamily: CHART_FONT_FAMILY }}
               width={48}
               tickFormatter={(v) =>
                 v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M`
@@ -101,11 +103,12 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
               dataKey="label"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12, fill: "var(--gray-muted)", fontFamily: "Inter" }}
+              tick={{ fontSize: 12, fill: "var(--gray-muted)", fontFamily: CHART_FONT_FAMILY }}
               interval="preserveStartEnd"
             />
 
             <Tooltip
+              wrapperStyle={{ fontFamily: CHART_FONT_FAMILY }}
               formatter={(v, name) => [
                 money(Number(v)),
                 name === "value" ? "Текущий" : "Прошлый"
@@ -117,7 +120,7 @@ export function RevenueChart({ periods }: { periods: Record<PeriodKey, PeriodSta
                 borderRadius: 8,
                 fontSize: 12,
                 boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                fontFamily: "Inter",
+                fontFamily: CHART_FONT_FAMILY,
               }}
               labelStyle={{ color: "var(--gray-muted)", fontWeight: 500 }}
               itemStyle={{ color: "var(--on-dark)", fontWeight: 600 }}

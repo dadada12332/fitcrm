@@ -34,7 +34,7 @@ import { saveUserLocaleAction } from "@/app/(app)/settings/club/actions"
 import { useAppLocale } from "./ClubContext"
 import { toast } from "sonner"
 
-type Props = { clubName: string; email: string; initialNotificationCount: number; onToggleSidebar?: () => void }
+type Props = { clubName: string; email: string; initialNotificationCount: number; onToggleSidebar?: () => void; recoveryOnly?: boolean }
 
 // ── Global Search ────────────────────────────────────────────────
 function GlobalSearch({ onClose }: { onClose: () => void }) {
@@ -201,7 +201,7 @@ function NotificationsPanel({
   }, [])
 
   const counts = {
-    platform: notifs?.filter((n) => n.type === "platform").length ?? 0,
+    platform: notifs?.filter((n) => n.type === "platform" || n.type === "club_subscription").length ?? 0,
     expired: notifs?.filter((n) => n.type === "expired").length ?? 0,
     expiring: notifs?.filter((n) => n.type === "expiring").length ?? 0,
     pending: notifs?.filter((n) => n.type === "pending").length ?? 0,
@@ -210,6 +210,11 @@ function NotificationsPanel({
   const notificationMeta = (type: AppNotification["type"]) => {
     if (type === "platform") return {
       icon: <Megaphone className="size-4" />,
+      iconClass: "bg-brand/10 text-brand",
+      badgeClass: "bg-brand/10 text-brand",
+    }
+    if (type === "club_subscription") return {
+      icon: <CardIcon className="size-4" />,
       iconClass: "bg-brand/10 text-brand",
       badgeClass: "bg-brand/10 text-brand",
     }
@@ -326,6 +331,29 @@ function NotificationsPanel({
                           </button>
                         )
                       }
+                      if (n.type === "club_subscription") {
+                        return (
+                          <Link
+                            key={n.id}
+                            href="/settings/subscription"
+                            onClick={onClose}
+                            className="group flex items-start gap-3 border-b border-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-muted/60"
+                          >
+                            <div className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg ${meta.iconClass}`}>
+                              {meta.icon}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-3">
+                                <p className="text-sm font-semibold text-foreground">{n.title}</p>
+                                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${meta.badgeClass}`}>Подписка</span>
+                              </div>
+                              {n.body && <p className="mt-1 text-sm leading-5 text-foreground/85">{n.body}</p>}
+                              {eventDate && <p className="mt-2 text-xs text-muted-foreground">{eventDate}</p>}
+                            </div>
+                            <ChevronRight className="mt-2.5 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                          </Link>
+                        )
+                      }
                       return (
                         <Link
                           key={n.id}
@@ -400,7 +428,7 @@ function NotificationsPanel({
 }
 
 // ── TopBar ───────────────────────────────────────────────────────
-export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
+export function TopBar({ initialNotificationCount, onToggleSidebar, recoveryOnly = false }: Props) {
   const [searchOpen, setSearchOpen]   = useState(false)
   const [notifOpen, setNotifOpen]     = useState(false)
   const [notifCount, setNotifCount] = useState(initialNotificationCount)
@@ -428,11 +456,11 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setSearchOpen(true) }
+      if (!recoveryOnly && (e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setSearchOpen(true) }
     }
     document.addEventListener("keydown", fn)
     return () => document.removeEventListener("keydown", fn)
-  }, [])
+  }, [recoveryOnly])
 
   return (
     <>
@@ -462,13 +490,13 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
         <div className="ml-auto flex shrink-0 items-center gap-1">
 
           {/* Search */}
-          <button onClick={() => { setSearchOpen(true); setNotifOpen(false) }}
+          {!recoveryOnly && <button onClick={() => { setSearchOpen(true); setNotifOpen(false) }}
             className="mr-2 flex h-9 w-9 items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:w-52 lg:w-64 2xl:w-80"
             aria-label={t("top.search")}>
             <Search className="size-4 shrink-0" />
             <span className="hidden flex-1 text-left sm:inline">{t("top.search")}</span>
             <span className="hidden shrink-0 rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground lg:inline-flex">⌘K</span>
-          </button>
+          </button>}
 
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -503,7 +531,7 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
           </button>
 
           {/* Bell */}
-          <div ref={notifRef} className="relative">
+          {!recoveryOnly && <div ref={notifRef} className="relative">
             <button onClick={() => { setNotifOpen((v) => !v) }}
               aria-label={t("top.notifications")}
               className="relative flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
@@ -522,12 +550,12 @@ export function TopBar({ initialNotificationCount, onToggleSidebar }: Props) {
                 onPlatformReadFailed={() => setNotifCount((count) => count + 1)}
               />
             )}
-          </div>
+          </div>}
 
         </div>
       </header>
 
-      {searchOpen && <GlobalSearch onClose={closeSearch} />}
+      {!recoveryOnly && searchOpen && <GlobalSearch onClose={closeSearch} />}
     </>
   )
 }

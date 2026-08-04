@@ -1,6 +1,6 @@
 ---
 type: dashboard
-updated: 2026-07-30
+updated: 2026-08-04
 tags: [fitcrm, operations]
 ---
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
 - `f20a71a` · 2026-07-30 · fix: align membership duration chevron
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
 - `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
 - `0791937` · 2026-07-30 · feat: configure membership freeze allowance
-- `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-30 Asia/Tashkent
+2026-08-04 Asia/Tashkent
 <!-- AUTO:END updated-at -->

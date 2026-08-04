@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceClient } from "@/lib/supabase/service"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForRecovery } from "@/lib/club"
 import { getAuthUser } from "@/lib/auth"
 import { retrieveKnowledge } from "@/lib/knowledge"
 import { revalidatePath } from "next/cache"
@@ -54,7 +54,7 @@ export type TicketDetail = {
 
 // ── Список обращений ───────────────────────────────────────────────────────
 export async function listTicketsAction(): Promise<{ tickets: TicketListItem[]; error?: string }> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { tickets: [], error: "Клуб не найден" }
   const db = createServiceClient()
 
@@ -100,7 +100,7 @@ export async function listTicketsAction(): Promise<{ tickets: TicketListItem[]; 
 
 // ── Один тикет с перепиской ────────────────────────────────────────────────
 export async function getTicketAction(id: string): Promise<{ ticket: TicketDetail | null; error?: string }> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { ticket: null, error: "Клуб не найден" }
   const db = createServiceClient()
 
@@ -169,7 +169,7 @@ export async function createTicketAction(input: {
   source?: "user" | "ai_escalation"
   attachments?: AttachmentInput[]
 }): Promise<{ id: string | null; error?: string }> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { id: null, error: "Клуб не найден" }
   const user = await getAuthUser()
   const db = createServiceClient()
@@ -212,7 +212,7 @@ const ALLOWED_MIME = /^(image\/|video\/|application\/pdf|application\/vnd\.openx
 const MAX_FILE = 20 * 1024 * 1024
 
 export async function uploadSupportFileAction(formData: FormData): Promise<{ file: AttachmentInput | null; error?: string }> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { file: null, error: "Клуб не найден" }
   const file = formData.get("file") as File | null
   if (!file) return { file: null, error: "Файл не выбран" }
@@ -237,7 +237,7 @@ async function insertAttachments(db: any, messageId: string, atts: AttachmentInp
 
 // ── Отправить сообщение в тикет ────────────────────────────────────────────
 export async function sendTicketMessageAction(ticketId: string, body: string, attachments?: AttachmentInput[]): Promise<{ ok: boolean; error?: string }> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { ok: false, error: "Клуб не найден" }
   const user = await getAuthUser()
   const db = createServiceClient()
@@ -274,7 +274,7 @@ export async function sendTicketMessageAction(ticketId: string, body: string, at
 
 // ── Оценка после закрытия ──────────────────────────────────────────────────
 export async function rateTicketAction(ticketId: string, rating: number, comment?: string): Promise<{ ok: boolean }> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { ok: false }
   const db = createServiceClient()
   await db
@@ -296,7 +296,7 @@ export async function askSupportAction(history: SupportChatTurn[]): Promise<{
   links: { id: string; title: string }[]
   error?: string
 }> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { reply: "", links: [], error: "Не авторизован" }
   const key = process.env.GEMINI_API_KEY
   if (!key) return { reply: "", links: [], error: "no_key" }   // UI откатится на локальный ответчик

@@ -370,6 +370,7 @@ export type ClubRow = {
   city: string | null
   ownerEmail: string | null
   ownerName: string | null
+  planId: string | null
   plan: string
   status: string
   createdAt: string
@@ -404,7 +405,7 @@ export async function getClubsList(opts: {
 
   let q = service
     .from("clubs")
-    .select("id, name, city, owner_id, plan, status, trial_expires_at, plan_expires_at, created_at", { count: "exact" })
+    .select("id, name, city, owner_id, plan_id, plan, status, trial_expires_at, plan_expires_at, created_at", { count: "exact" })
     .order("created_at", { ascending: false })
 
   if (opts.search && opts.search.trim()) q = q.ilike("name", `%${opts.search.trim()}%`)
@@ -465,6 +466,7 @@ export async function getClubsList(opts: {
       city: c.city,
       ownerEmail: owner?.email ?? null,
       ownerName: owner?.full_name ?? null,
+      planId: c.plan_id ?? null,
       plan: c.plan ?? "trial",
       status: (c as { status?: string }).status ?? "active",
       createdAt: c.created_at,
@@ -496,7 +498,7 @@ export async function getClubDetail(clubId: string): Promise<ClubDetail | null> 
   const service = createServiceClient()
   const { data: club } = await service
     .from("clubs")
-    .select("id, name, city, owner_id, plan, status, trial_expires_at, plan_expires_at, created_at, admin_notes, plan_price_locked")
+    .select("id, name, city, owner_id, plan_id, plan, status, trial_expires_at, plan_expires_at, created_at, admin_notes, plan_price_locked")
     .eq("id", clubId)
     .maybeSingle()
   if (!club) return null
@@ -544,6 +546,7 @@ export async function getClubDetail(clubId: string): Promise<ClubDetail | null> 
     city: club.city,
     ownerEmail: owner?.email ?? null,
     ownerName: owner?.full_name ?? null,
+    planId: club.plan_id ?? null,
     plan: club.plan ?? "trial",
     status: (club as { status?: string }).status ?? "active",
     createdAt: club.created_at,
@@ -945,8 +948,12 @@ export type BillingRequest = {
   clubId: string
   clubName: string
   plan: string
+  quotedPlanId: string | null
   months: number
   amount: number | null
+  quotedUnitPrice: number | null
+  quotedCurrency: string | null
+  quotedPeriod: string | null
   promoCode: string | null
   discountAmount: number
   compensationDiscountAmount: number
@@ -961,18 +968,24 @@ export async function getBillingRequests(): Promise<{ pending: BillingRequest[];
   try {
     const { data } = await service
       .from("platform_billing_requests")
-      .select("id, club_id, plan, months, amount, promo_code, discount_amount, compensation_discount_amount, status, requested_email, created_at, resolved_at, clubs(name)")
+      .select("id, club_id, plan, months, amount, quoted_plan_id, quoted_unit_price, quoted_currency, quoted_period, promo_code, discount_amount, compensation_discount_amount, status, requested_email, created_at, resolved_at, clubs(name)")
       .order("created_at", { ascending: false })
       .limit(100)
     const rows = ((data ?? []) as unknown as {
       id: string; club_id: string; plan: string; months: number; amount: number | null;
+      quoted_plan_id: string | null; quoted_unit_price: number | null; quoted_currency: string | null; quoted_period: string | null;
       promo_code: string | null; discount_amount: number | null;
       compensation_discount_amount: number | null;
       status: string; requested_email: string | null; created_at: string; resolved_at: string | null;
       clubs: { name: string } | null
     }[]).map((r) => ({
       id: r.id, clubId: r.club_id, clubName: r.clubs?.name ?? "—", plan: r.plan, months: r.months,
-      amount: r.amount, promoCode: r.promo_code, discountAmount: Number(r.discount_amount ?? 0),
+      amount: r.amount == null ? null : Number(r.amount),
+      quotedPlanId: r.quoted_plan_id,
+      quotedUnitPrice: r.quoted_unit_price == null ? null : Number(r.quoted_unit_price),
+      quotedCurrency: r.quoted_currency?.trim().toUpperCase() || null,
+      quotedPeriod: r.quoted_period?.trim().toLowerCase() || null,
+      promoCode: r.promo_code, discountAmount: Number(r.discount_amount ?? 0),
       compensationDiscountAmount: Number(r.compensation_discount_amount ?? 0),
       status: r.status, requestedEmail: r.requested_email, createdAt: r.created_at, resolvedAt: r.resolved_at,
     }))

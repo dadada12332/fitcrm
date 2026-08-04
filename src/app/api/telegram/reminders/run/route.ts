@@ -2,6 +2,7 @@ import { Bot, InlineKeyboard } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { withPlatformCronRun } from "@/lib/platform-cron"
+import { resolveAuthoritativeClubSubscription, type ClubSubscriptionRow } from "@/lib/platform-subscription-server"
 
 export const runtime = "nodejs"
 
@@ -42,12 +43,14 @@ export async function GET(req: Request) {
 
   const { data: clubs, error: clubsError } = await supabase
     .from("clubs")
-    .select("id, name, settings, plan")
+    .select("id, name, settings, plan, status, trial_expires_at, plan_expires_at, plans(code, is_trial)")
     .in("id", clubIds)
 
   if (clubsError) return Response.json({ error: "Could not load Telegram integrations" }, { status: 500 })
 
-  const planCodes = [...new Set((clubs ?? []).map((club) => club.plan).filter(Boolean))]
+  const planCodes = [...new Set((clubs ?? []).map((club) =>
+    resolveAuthoritativeClubSubscription(club as unknown as ClubSubscriptionRow).planCode,
+  ).filter(Boolean))]
   const { data: plans } = planCodes.length
     ? await supabase.from("plans").select("code, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value)").in("code", planCodes)
     : { data: [] }
@@ -58,7 +61,9 @@ export async function GET(req: Request) {
   let skipped = 0
 
   for (const club of clubs ?? []) {
-    const plan = planByCode.get(club.plan)
+    const lifecycle = resolveAuthoritativeClubSubscription(club as unknown as ClubSubscriptionRow)
+    if (lifecycle.isLocked) { skipped++; continue }
+    const plan = planByCode.get(lifecycle.planCode)
     const automationEnabled = plan?.plan_features?.some((item) => item.feature_key === "telegram_automation" && item.enabled)
     if (!automationEnabled) { skipped++; continue }
     const telegramLimit = plan?.plan_limits?.find((item) => item.limit_key === "telegram_messages")?.limit_value

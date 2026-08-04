@@ -1,24 +1,44 @@
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 import { Building2 } from "lucide-react"
 
-export default async function SelectClubPage() {
+export default async function SelectClubPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ club?: string; next?: string }>
+}) {
+  const params = await searchParams
+  const safeNext = params.next === "/settings/subscription" ? params.next : "/dashboard"
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
   const { data: clubs } = await supabase
     .from("staff")
-    .select("club_id, role, clubs(id, name, plan)")
+    .select("club_id, role")
     .eq("user_id", user.id)
     .eq("is_active", true)
 
   if (!clubs || clubs.length === 0) redirect("/onboarding")
+  const { data: clubRows } = await createServiceClient()
+    .from("clubs")
+    .select("id, name, plan")
+    .in("id", clubs.map((membership) => membership.club_id))
+  const clubById = new Map((clubRows ?? []).map((club) => [club.id, club]))
+  const requestedClub = params.club
+    ? clubs.find((membership) => membership.club_id === params.club)
+    : null
+  if (requestedClub) {
+    const cookieStore = await cookies()
+    cookieStore.set("selected_club_id", requestedClub.club_id, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" })
+    redirect(safeNext)
+  }
   if (clubs.length === 1) {
     const cookieStore = await cookies()
     cookieStore.set("selected_club_id", clubs[0].club_id, { path: "/", maxAge: 60 * 60 * 24 * 365 })
-    redirect("/dashboard")
+    redirect(safeNext)
   }
 
   return (
@@ -33,7 +53,7 @@ export default async function SelectClubPage() {
 
         <div className="grid gap-3">
           {clubs.map((s) => {
-            const club = s.clubs as unknown as { id: string; name: string; plan: string } | null
+            const club = clubById.get(s.club_id) ?? null
             if (!club) return null
             return (
               <form key={s.club_id} action={async () => {
@@ -41,7 +61,7 @@ export default async function SelectClubPage() {
                 const { cookies: getCookies } = await import("next/headers")
                 const cookieStore = await getCookies()
                 cookieStore.set("selected_club_id", s.club_id, { path: "/", maxAge: 60 * 60 * 24 * 365 })
-                redirect("/dashboard")
+                redirect(safeNext)
               }}>
                 <button type="submit"
                   className="w-full text-left flex items-center gap-4 p-4 rounded-xl transition-all hover:shadow-md bg-white border border-[#e2e8f0] hover:border-[#0f172a]">

@@ -3,6 +3,7 @@ import { formatClubMoney, localeTag, normalizeAppLocale, type AppLocale } from "
 import { createServiceClient } from "@/lib/supabase/service"
 import { hourInTimeZone, shiftDateKey, zonedDayRange } from "@/lib/timezone"
 import { withPlatformCronRun } from "@/lib/platform-cron"
+import { resolveAuthoritativeClubSubscription, type ClubSubscriptionRow } from "@/lib/platform-subscription-server"
 
 type ClubSettings = {
   timezone?: string
@@ -119,7 +120,7 @@ export async function GET(req: Request) {
   const supabase = createServiceClient()
   const now = new Date()
   const [{ data: clubs }, { data: integrations }, { data: recipients }] = await Promise.all([
-    supabase.from("clubs").select("id, name, settings"),
+    supabase.from("clubs").select("id, name, settings, plan, status, trial_expires_at, plan_expires_at, plans(code, is_trial)"),
     supabase.from("telegram_integrations").select("club_id, bot_token"),
     supabase
       .from("telegram_users")
@@ -143,6 +144,7 @@ export async function GET(req: Request) {
   let eligibleClubs = 0
 
   for (const club of clubs) {
+    if (resolveAuthoritativeClubSubscription(club as unknown as ClubSubscriptionRow).isLocked) continue
     const settings = ((club.settings as Record<string, unknown> | null) ?? {}) as ClubSettings
     const timeZone = safeTimeZone(settings.timezone)
 

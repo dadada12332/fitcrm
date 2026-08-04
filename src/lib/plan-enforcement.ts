@@ -53,10 +53,11 @@ export async function consumeMonthlyLimitOnce(club: Club, key: LimitKey, reserva
 
 export async function requireIntegrationSlot(club: Club): Promise<string | null> {
   const service = createServiceClient()
-  const [telegram, instagram, payments] = await Promise.all([
+  const [telegram, instagram, accessControl, payments] = await Promise.all([
     service.from("telegram_integrations").select("club_id", { count: "exact", head: true }).eq("club_id", club.clubId),
     service.from("integration_connections").select("id", { count: "exact", head: true }).eq("club_id", club.clubId),
+    service.from("access_control_integrations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId),
     service.from("payment_connection_requests").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).in("status", ["new", "active"]),
   ])
-  return requireRecordLimit(club, "integrations", (telegram.count ?? 0) + (instagram.count ?? 0) + (payments.count ?? 0))
+  return requireRecordLimit(club, "integrations", (telegram.count ?? 0) + (instagram.count ?? 0) + (accessControl.count ?? 0) + (payments.count ?? 0))
 }

@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getStaffPageData } from "@/lib/staff"
 import { StaffClient } from "@/components/app/StaffClient"
 
 export default async function StaffPage() {
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.staff.view) redirect("/dashboard")
 

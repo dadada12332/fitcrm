@@ -1,7 +1,7 @@
 ---
 type: current-state
 status: active
-updated: 2026-07-29
+updated: 2026-08-04
 tags: [zalkins, operations]
 ---
 
@@ -12,9 +12,9 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 0470167 · 2026-07-30T16:03:17+05:00 · fix: harden platform billing and access flows.
+- Последний commit: 508ac53 · 2026-07-30T16:07:00+05:00 · docs: record audit remediation release [skip ci].
 - Working tree: есть незакоммиченные изменения.
-- Миграции в Git: 109; последняя `20260730120813_membership_freeze_allowance_constraint.sql`.
+- Миграции в Git: 111; последняя `20260804110824_platform_billing_renewal_contract.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
 <!-- AUTO:END repository-state -->
 
@@ -32,6 +32,14 @@ Platform Admin объединяет публичные промокоды и а�
 Бесплатные дни сразу продлевают срок выбранных клубов, а процентная компенсация автоматически
 уменьшает следующую заявку на тариф и погашается атомарно при её подтверждении. Компенсации
 видны владельцу в подписке и сопровождаются внутренним CRM-уведомлением.
+
+Новый lifecycle подписки подготовлен локально, но ещё не опубликован в production. Назначенный
+план и состояние оплаченного периода теперь разделены: истёкший Business остаётся видимым как
+истёкший, получает явное продление того же тарифа и не маскируется статусом «текущий». За 7 дней
+CRM показывает постоянный баннер; рубежи 7/3/1/0 дней и overdue обрабатывает идемпотентный Cron
+с CRM- и Telegram-уведомлениями. После окончания доступен recovery-контур «Подписка» +
+«Поддержка», а данные клуба не удаляются. Pending-заявка имеет отдельное состояние и хранит
+неизменяемый коммерческий снимок. Подробный flow и локальные screenshots: [[UX/Subscription Renewal Audit 2026-08-04]].
 
 Основные настройки клуба сохраняются с подтверждением обновлённой строки и служат единым
 источником валюты, часового пояса, контактов и рабочих часов. Telegram-приветствие и контакты
@@ -71,6 +79,10 @@ FitCRM Bridge контроля доступа теперь поставляет�
   history, operational settings, ежедневные SaaS-метрики и покрывающие FK-индексы.
 - `20260729054204_platform_club_compensations.sql` добавляет service-only адресные компенсации,
   мгновенное продление днями и атомарное погашение скидки при подтверждении биллинга.
+- Миграции `20260804103933_platform_billing_renewal_hardening.sql` и
+  `20260804110824_platform_billing_renewal_contract.sql` подготовлены и проверены локально, но
+  до rollout не считаются применёнными. Обязательный порядок: expand с временной заморозкой
+  approval → совместимый app deploy → contract, снимающий freeze и включающий DB lifecycle gates.
 - Bot tokens вынесены из публично читаемой `clubs` в service-only `telegram_integrations`; открытых `clubs.tg_token` в production — `0`.
 - Supabase Cron обрабатывает scheduled broadcasts каждые 5 минут; Vercel daily cron отвечает за reminders/report.
 - Supabase Cron каждые 10 минут повторяет pending/failed ответы клиентского inbox; сообщения остаются сохранёнными даже при временной недоступности Telegram.
@@ -79,7 +91,7 @@ FitCRM Bridge контроля доступа теперь поставляет�
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Внутренние CRM-уведомления Platform опубликованы в deployment `dpl_BjphKBXRiwTp5aQf6gTJnRhiqHFp` для commit `7c3a1b4`; alias `fitcrm-three.vercel.app`, HTTP smoke, runtime error scan и end-to-end delivery/read QA подтверждены. Полная локализация CRM ранее опубликована в deployment `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho`. Юридические маршруты и `/register` ранее прошли HTTP smoke. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Внутренние CRM-уведомления Platform опубликованы в deployment `dpl_BjphKBXRiwTp5aQf6gTJnRhiqHFp` для commit `7c3a1b4`; alias `fitcrm-three.vercel.app`, HTTP smoke, runtime error scan и end-to-end delivery/read QA подтверждены. Полная локализация CRM ранее опубликована в deployment `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho`. Юридические маршруты и `/register` ранее прошли HTTP smoke. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе. Новый renewal lifecycle на 2026-08-04 находится в pre-deploy состоянии: локальные и rollback-проверки успешны, production deployment и применение двух новых миграций ещё не подтверждены.
 
 ## Риски и долг
 
@@ -98,6 +110,10 @@ FitCRM Bridge контроля доступа теперь поставляет�
 - Growth health score, recovery rates и expected impact являются прозрачными сценарными assumptions, а не ML-прогнозом или обещанием результата.
 - На диске `E:` Next.js/Playwright зафиксировал slow filesystem benchmark 288 ms; функциональные тесты прошли, но dev feedback loop может быть медленнее.
 - Нет автоматического CI, error monitoring и production-like staging.
+- Telegram reminder delivery имеет остаточную Low-вероятность повторной отправки: если Telegram
+  уже принял сообщение, а фиксация результата в БД завершилась ошибкой, lease может быть
+  подобран повторно. Текущая семантика at-least-once приемлема; для строгого exactly-once нужен
+  отдельный outbox/статус `delivery_unknown`.
 - Supabase Free не даёт managed daily backups и leaked-password protection; custom SMTP/CAPTCHA не настроены.
 - Full ESLint baseline: 122 errors и 45 warnings; TypeScript, build и runtime tests проходят.
 - Sigur/ZKTeco/Hikvision не проверены на реальном контроллере: автоматическое открытие нельзя включать до vendor-specific contract-теста; cloud-контур явно помечен Beta.

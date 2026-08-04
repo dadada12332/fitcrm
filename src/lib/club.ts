@@ -7,6 +7,7 @@ import type { RolePermissions, StaffPermissionOverrides } from "@/lib/permission
 import { applyStaffPermissionOverrides, getDefaultPermissions, mergePermissions } from "@/lib/permissions"
 import { applyPlanToPermissions, type PlanAccess } from "@/lib/plan-access"
 import { normalizeAppLocale, type AppLocale } from "@/lib/app-locale"
+import { resolvePlatformSubscription } from "@/lib/platform-subscription"
 
 const CLUB_SELECT = "name, plan, status, trial_expires_at, plan_expires_at, settings, plans(code, name, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value), plan_sections(section_key, enabled))"
 
@@ -26,7 +27,7 @@ export type CurrentClub = {
   impersonating?: boolean
 } | null
 
-export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub> => {
+const resolveCurrentClub = cache(async (userId?: string): Promise<CurrentClub> => {
   const supabase = await createClient()
 
   let uid = userId
@@ -59,7 +60,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
             clubId: impersonateId,
             role: "owner",
             clubName: club.name,
-            plan: club.plan ?? "",
+            plan: planAccess?.code ?? club.plan ?? "",
             status: club.status ?? "active",
             trialExpiresAt: club.trial_expires_at ?? null,
             planExpiresAt: club.plan_expires_at ?? null,
@@ -81,7 +82,7 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
 
   let query = supabase
     .from("staff")
-    .select(`club_id, role, clubs(${CLUB_SELECT})`)
+    .select("club_id, role")
     .eq("user_id", uid)
     .eq("is_active", true)
 
@@ -92,14 +93,15 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
   if (!data) {
     const { data: fallback } = await supabase
       .from("staff")
-      .select(`club_id, role, clubs(${CLUB_SELECT})`)
+      .select("club_id, role")
       .eq("user_id", uid)
       .eq("is_active", true)
       .limit(1)
       .maybeSingle()
 
     if (!fallback) return null
-    const fb = fallback.clubs as unknown as ClubRow | null
+    const fb = await loadClubRow(fallback.club_id)
+    if (!fb) return null
     const staffSettings = await resolveStaffSettings(uid, fallback.club_id)
     const permissions = await resolvePermissions(
       supabase,
@@ -111,7 +113,8 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
     return clubResult(fallback.club_id, fallback.role, fb, permissions, planAccess, staffSettings.locale)
   }
 
-  const club = data.clubs as unknown as ClubRow | null
+  const club = await loadClubRow(data.club_id)
+  if (!club) return null
   const staffSettings = await resolveStaffSettings(uid, data.club_id)
   const permissions = await resolvePermissions(
     supabase,
@@ -123,6 +126,37 @@ export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub
   return clubResult(data.club_id, data.role, club, permissions, planAccess, staffSettings.locale)
 })
 
+/**
+ * Full tenant context for Server Component pages. Protected pages may read it
+ * while rendering, but AppLayoutFrame must discard their children before the
+ * Flight payload is returned whenever the platform subscription is locked.
+ */
+export const getCurrentClubForPage = resolveCurrentClub
+
+/**
+ * Explicit billing/support recovery context. Keep this allowlist narrow: it
+ * bypasses the platform-subscription lock, not authentication or tenant RLS.
+ */
+export const getCurrentClubForRecovery = resolveCurrentClub
+
+/**
+ * Default context for Server Actions and Route Handlers. A club with an
+ * expired/suspended platform subscription cannot use ordinary CRM endpoints;
+ * billing and support flows must opt into getCurrentClubForRecovery().
+ */
+export const getCurrentClub = cache(async (userId?: string): Promise<CurrentClub> => {
+  const club = await resolveCurrentClub(userId)
+  if (!club || club.impersonating) return club
+
+  const subscription = resolvePlatformSubscription({
+    plan: club.plan,
+    status: club.status,
+    trialExpiresAt: club.trialExpiresAt,
+    planExpiresAt: club.planExpiresAt,
+  })
+  return subscription.isLocked ? null : club
+})
+
 type ClubRow = {
   name: string
   plan: string
@@ -131,6 +165,15 @@ type ClubRow = {
   plan_expires_at: string | null
   settings: Record<string, unknown> | null
   plans: EmbeddedPlan | null
+}
+
+async function loadClubRow(clubId: string): Promise<ClubRow | null> {
+  const { data } = await createServiceClient()
+    .from("clubs")
+    .select(CLUB_SELECT)
+    .eq("id", clubId)
+    .maybeSingle()
+  return (data as unknown as ClubRow | null) ?? null
 }
 
 type EmbeddedPlan = {
@@ -166,7 +209,7 @@ function clubResult(
     clubId,
     role,
     clubName: club?.name ?? "Клуб",
-    plan: club?.plan ?? "",
+    plan: planAccess?.code ?? club?.plan ?? "",
     status: club?.status ?? "active",
     trialExpiresAt: club?.trial_expires_at ?? null,
     planExpiresAt: club?.plan_expires_at ?? null,

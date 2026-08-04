@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service"
 import { getRecipientsDataset, filterByAudience, sendBroadcast } from "@/lib/broadcast"
+import { getClubOperationalSubscription } from "@/lib/platform-subscription-server"
 
 // Обработчик запланированных рассылок.
 // Vercel Cron sends Authorization: Bearer CRON_SECRET.
@@ -25,6 +26,12 @@ export async function GET(req: Request) {
 
   let processed = 0
   for (const b of due) {
+    const lifecycle = await getClubOperationalSubscription(b.club_id, supabase)
+    if (!lifecycle || lifecycle.isLocked) {
+      await supabase.from("broadcasts").update({ status: "failed" })
+        .eq("id", b.id).eq("club_id", b.club_id).eq("status", "scheduled")
+      continue
+    }
     const { data: claimed } = await supabase
       .from("broadcasts")
       .update({ status: "processing" })
@@ -36,11 +43,11 @@ export async function GET(req: Request) {
     if (!claimed) continue
 
     const [{ data: club }, { data: integration }] = await Promise.all([
-      supabase.from("clubs").select("name, plan").eq("id", b.club_id).single(),
+      supabase.from("clubs").select("name").eq("id", b.club_id).single(),
       supabase.from("telegram_integrations").select("bot_token").eq("club_id", b.club_id).maybeSingle(),
     ])
     const { data: plan } = await supabase.from("plans").select("name, plan_features(feature_key, enabled), plan_limits(limit_key, limit_value)")
-      .eq("code", club?.plan ?? "").maybeSingle()
+      .eq("code", lifecycle.planCode).maybeSingle()
     const broadcastsEnabled = plan?.plan_features?.some((item) => item.feature_key === "broadcasts" && item.enabled)
     const token = integration?.bot_token as string | null
     if (!token || !broadcastsEnabled) {

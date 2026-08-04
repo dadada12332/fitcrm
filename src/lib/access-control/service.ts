@@ -16,6 +16,7 @@ import {
   normalizeCredentialUid,
   vendorResultAllowsProcessing,
 } from "@/lib/access-control/utils"
+import { clubHasOperationalPlatformAccess } from "@/lib/platform-subscription-server"
 
 export { hashWebhookKey, isAccessControlProvider, normalizeCredentialUid } from "@/lib/access-control/utils"
 
@@ -262,6 +263,7 @@ function decisionMessage(reasonCode: string, fallback: string) {
     invalid_tenant_reference: "Некорректная связь с клубом",
     idempotency_conflict: "ID события уже использован для другого прохода",
     expired_access_decision: "Решение о допуске устарело",
+    platform_subscription_locked: "Подписка клуба истекла",
   }
   return messages[reasonCode] ?? fallback
 }
@@ -290,6 +292,15 @@ export async function processNormalizedAccessEvent(
       updated_at: new Date().toISOString(),
     }).eq("id", integration.id).eq("club_id", integration.club_id)
     return { allowed: true, reasonCode: "heartbeat", reasonMessage: "Соединение активно" }
+  }
+
+  const isSafeExit = event.eventType === "passage" && event.direction === "exit"
+  if (!isSafeExit && !(await clubHasOperationalPlatformAccess(integration.club_id, service))) {
+    return {
+      allowed: false,
+      reasonCode: "platform_subscription_locked",
+      reasonMessage: "Подписка клуба истекла",
+    }
   }
 
   if (!event.credentialUid) {

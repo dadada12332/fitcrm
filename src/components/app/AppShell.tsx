@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldCheck, ArrowLeft, Lock, CreditCard, LifeBuoy, LogOut, X } from "lucide-react"
+import { ShieldCheck, ArrowLeft, Lock, CreditCard, LifeBuoy, LogOut, X, AlertTriangle, ArrowRight } from "lucide-react"
 import { Sidebar } from "./Sidebar"
 import { TopBar } from "./TopBar"
 import { ClubProvider } from "./ClubContext"
@@ -16,7 +16,9 @@ import type { RolePermissions } from "@/lib/permissions"
 import type { ProductOnboardingData } from "@/lib/product-onboarding"
 import type { PlanAccess } from "@/lib/plan-access"
 import type { AppLocale } from "@/lib/app-locale"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import type { PlatformSubscriptionState } from "@/lib/platform-subscription"
 
 type LockReason = "suspended" | "trial" | "plan" | null
 
@@ -34,7 +36,10 @@ type Props = {
   role: string
   impersonating?: boolean
   lockReason?: LockReason
+  subscriptionState: PlatformSubscriptionState
+  canManageSubscription: boolean
   productOnboarding: ProductOnboardingData
+  recoveryOnly?: boolean
   children: React.ReactNode
 }
 
@@ -44,29 +49,56 @@ const LOCK_COPY: Record<"suspended" | "trial" | "plan", { title: string; text: s
   plan:      { title: "Подписка истекла", text: "Срок действия тарифа закончился. Продлите подписку, чтобы вернуть доступ к CRM." },
 }
 
-function LockScreen({ reason, clubName }: { reason: "suspended" | "trial" | "plan"; clubName: string }) {
+const PLAN_LABELS: Record<string, string> = {
+  trial: "Пробный",
+  starter: "Starter",
+  standard: "Standard",
+  business: "Business",
+}
+
+function LockScreen({
+  reason,
+  clubName,
+  plan,
+  canManageSubscription,
+}: {
+  reason: "suspended" | "trial" | "plan"
+  clubName: string
+  plan: string
+  canManageSubscription: boolean
+}) {
   const copy = LOCK_COPY[reason]
+  const renewalLabel = reason === "trial"
+    ? "Выбрать тариф"
+    : `Продлить ${PLAN_LABELS[plan] ?? plan}`
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "#0b1120" }}>
-      <div className="w-full max-w-md text-center">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: reason === "suspended" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)", border: `1px solid ${reason === "suspended" ? "rgba(239,68,68,0.35)" : "rgba(245,158,11,0.35)"}` }}>
-          <Lock className="w-8 h-8" style={{ color: reason === "suspended" ? "#f87171" : "#fbbf24" }} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-7 text-center shadow-xl sm:p-8">
+        <div className={`mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl border ${
+          reason === "suspended"
+            ? "border-destructive/25 bg-destructive/10 text-destructive"
+            : "border-brand/25 bg-brand/10 text-brand"
+        }`}>
+          <Lock className="size-8" />
         </div>
-        <p className="text-xs uppercase tracking-wide mb-2" style={{ color: "#475569" }}>{clubName}</p>
-        <h1 className="text-2xl font-semibold text-white mb-2">{copy.title}</h1>
-        <p className="text-sm mb-8" style={{ color: "#94a3b8" }}>{copy.text}</p>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{clubName}</p>
+        <h1 className="mb-2 text-2xl font-semibold text-foreground">{copy.title}</h1>
+        <p className="mb-8 text-sm leading-6 text-muted-foreground">
+          {copy.text}
+          {!canManageSubscription && reason !== "suspended" ? " Владелец клуба уже может отправить заявку на продление." : ""}
+        </p>
         <div className="flex flex-col gap-2.5">
-          {reason !== "suspended" && (
-            <Link href="/settings?tab=subscription" className="inline-flex items-center justify-center gap-2 h-11 rounded-lg text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg,#2563eb,#1d4ed8)" }}>
-              <CreditCard className="w-4 h-4" /> Оформить подписку
+          {reason !== "suspended" && canManageSubscription && (
+            <Link href="/settings/subscription" className={cn(buttonVariants({ size: "lg" }), "h-11 gap-2")}>
+              <CreditCard className="size-4" /> {renewalLabel}
             </Link>
           )}
-          <Link href="/support" className="inline-flex items-center justify-center gap-2 h-11 rounded-lg text-sm font-medium" style={{ background: "#1e293b", color: "#e2e8f0", border: "1px solid #334155" }}>
-            <LifeBuoy className="w-4 h-4" /> Написать в поддержку
+          <Link href="/support" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-11 gap-2")}>
+            <LifeBuoy className="size-4" /> Написать в поддержку
           </Link>
           <form action={signOut}>
-            <button type="submit" className="inline-flex items-center justify-center gap-2 h-10 text-sm w-full" style={{ color: "#64748b" }}>
-              <LogOut className="w-3.5 h-3.5" /> Выйти
+            <button type="submit" className="inline-flex h-10 w-full items-center justify-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+              <LogOut className="size-3.5" /> Выйти
             </button>
           </form>
         </div>
@@ -75,7 +107,47 @@ function LockScreen({ reason, clubName }: { reason: "suspended" | "trial" | "pla
   )
 }
 
-export function AppShell({ clubId, clubName, plan, email, stats, permissions, planAccess, locale, currency, timezone, role, impersonating, lockReason, productOnboarding, children }: Props) {
+function SubscriptionNotice({
+  state,
+  plan,
+  timeZone,
+  canManageSubscription,
+}: {
+  state: PlatformSubscriptionState
+  plan: string
+  timeZone: string
+  canManageSubscription: boolean
+}) {
+  if (!state.isExpiring) return null
+  const date = state.expiresAt
+    ? new Date(state.expiresAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone })
+    : null
+  const isTrial = state.isTrial
+  return (
+    <div className="shrink-0 border-b border-brand/20 bg-brand/5 px-4 py-2.5 lg:px-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-brand sm:mt-0" />
+          <p className="text-sm text-foreground">
+            <span className="font-medium">
+              {isTrial ? "Пробный период" : `Подписка ${PLAN_LABELS[plan] ?? plan}`}
+              {state.daysLeft === 1 ? " закончится завтра" : ` истекает через ${state.daysLeft} дн.`}
+            </span>
+            {date ? <span className="text-muted-foreground"> · {date}</span> : null}
+            {!canManageSubscription ? <span className="text-muted-foreground"> · владелец клуба уведомлён</span> : null}
+          </p>
+        </div>
+        {canManageSubscription && (
+          <Link href="/settings/subscription" className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-brand hover:underline sm:ml-auto">
+            {isTrial ? "Выбрать тариф" : "Продлить заранее"}<ArrowRight className="size-3.5" />
+          </Link>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export function AppShell({ clubId, clubName, plan, email, stats, permissions, planAccess, locale, currency, timezone, role, impersonating, lockReason, subscriptionState, canManageSubscription, productOnboarding, recoveryOnly = false, children }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -84,7 +156,10 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
 
   // Разрешённые при блокировке страницы: оплата (подписка) и поддержка — чтобы
   // владелец мог оплатить/написать. Остальное закрыто экраном блокировки.
-  const allowWhenLocked = pathname.startsWith("/settings") || pathname.startsWith("/support")
+  const subscriptionRoute = pathname === "/settings/subscription" || pathname.startsWith("/settings/subscription/")
+  const supportRoute = pathname === "/support" || pathname.startsWith("/support/")
+  const allowWhenLocked = supportRoute
+    || (lockReason !== "suspended" && canManageSubscription && subscriptionRoute)
   const showLock = !!lockReason && !allowWhenLocked
 
   // Route navigation is external state and closes the mobile overlay.
@@ -154,13 +229,23 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
     else setCollapsed((v) => !v)
   }
 
-  const sidebarProps = { clubId, clubName, plan, stats, permissions, planAccess, role }
+  const sidebarProps = {
+    clubId,
+    clubName,
+    plan,
+    stats,
+    permissions,
+    planAccess,
+    role,
+    subscriptionState,
+    bypassSubscriptionLock: Boolean(impersonating),
+  }
 
   if (showLock && lockReason) {
     return (
       <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess, locale, currency, timezone }}>
         <AppTranslationLayer locale={locale} />
-        <LockScreen reason={lockReason} clubName={clubName} />
+        <LockScreen reason={lockReason} clubName={clubName} plan={plan} canManageSubscription={canManageSubscription} />
       </ClubProvider>
     )
   }
@@ -168,7 +253,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
   return (
     <ClubProvider value={{ clubId, clubName, role, plan, permissions, planAccess, locale, currency, timezone }}>
       <AppTranslationLayer locale={locale} />
-      <PlanLimitUpgradeDialog />
+      {!recoveryOnly && <PlanLimitUpgradeDialog />}
       <div className="flex h-dvh flex-col overflow-hidden">
       {impersonating && (
         <div
@@ -191,7 +276,7 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
       )}
       <div className="flex min-h-0 flex-1 overflow-hidden gap-2 bg-white dark:bg-zinc-950">
 
-        <ProductOnboarding {...productOnboarding} onMobileSidebarChange={setMobileOpen} />
+        {!recoveryOnly && <ProductOnboarding {...productOnboarding} onMobileSidebarChange={setMobileOpen} />}
 
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
@@ -234,7 +319,10 @@ export function AppShell({ clubId, clubName, plan, email, stats, permissions, pl
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <TopBar email={email} clubName={clubName} initialNotificationCount={stats.notificationCount} onToggleSidebar={handleMenuToggle} />
+          <TopBar email={email} clubName={clubName} initialNotificationCount={stats.notificationCount} onToggleSidebar={handleMenuToggle} recoveryOnly={recoveryOnly} />
+          {!impersonating && (
+            <SubscriptionNotice state={subscriptionState} plan={plan} timeZone={timezone} canManageSubscription={canManageSubscription} />
+          )}
           <div className="flex-1 overflow-hidden p-2 lg:pl-0 lg:pt-0">
             <main className="h-full overflow-y-auto rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
               <div className="p-4 lg:p-5">{children}</div>

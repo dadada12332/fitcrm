@@ -1,4 +1,4 @@
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getReconciliationRows } from "@/lib/reconcile"
 import { createServiceClient } from "@/lib/supabase/service"
 import { ReconcileClient } from "@/components/app/ReconcileClient"
@@ -7,7 +7,7 @@ import { redirect } from "next/navigation"
 export const dynamic = "force-dynamic"
 
 export default async function ReconcilePage() {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.payments.view) redirect("/dashboard")
 

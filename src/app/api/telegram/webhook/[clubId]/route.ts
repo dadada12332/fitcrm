@@ -3,6 +3,7 @@ import { webhookCallback } from "grammy"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getClubBot } from "@/lib/telegram/bot"
 import { getTelegramWebhookSecret } from "@/lib/telegram/api"
+import { clubHasOperationalPlatformAccess } from "@/lib/platform-subscription-server"
 
 export const runtime = "nodejs"
 
@@ -34,6 +35,12 @@ export async function POST(req: Request, ctx: RouteContext<"/api/telegram/webhoo
 
   if (!secretsMatch(req.headers.get("X-Telegram-Bot-Api-Secret-Token"), expectedSecret)) {
     return new Response("Unauthorized", { status: 401 })
+  }
+
+  // Acknowledge Telegram without executing operational bot commands so the
+  // provider does not retry a deliberately skipped update indefinitely.
+  if (!(await clubHasOperationalPlatformAccess(clubId))) {
+    return new Response("OK", { status: 200 })
   }
 
   try {

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getPaymentsKPI, getPaymentsPage, PAYMENTS_PAGE_SIZE } from "@/lib/payments"
 import { getActiveMemberships } from "@/lib/memberships"
 import { PaymentsClient } from "@/components/app/PaymentsClient"
@@ -22,7 +22,7 @@ export default async function PaymentsPage({
   searchParams: Promise<Record<string, string | undefined>>
 }) {
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.payments.view) redirect("/dashboard")
 

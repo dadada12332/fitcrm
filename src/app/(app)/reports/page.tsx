@@ -1,9 +1,9 @@
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { ReportsShell } from "./ReportsShell"
 import { redirect } from "next/navigation"
 
 export default async function ReportsPage() {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.reports.view) redirect("/dashboard")
 

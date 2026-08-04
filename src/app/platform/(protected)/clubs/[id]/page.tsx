@@ -19,20 +19,22 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
   const [club, base, allPlans] = await Promise.all([getClubDetail(id), platformBase(), getPlans({ includeArchived: true })])
   if (!club) notFound()
 
-  const clubPlan = allPlans.find((p) => p.code === club.plan)
+  const clubPlan = allPlans.find((p) => p.id === club.planId) ?? allPlans.find((p) => p.code === club.plan)
+  const clubPlanCode = clubPlan?.code ?? club.plan
+  const isTrial = clubPlan?.is_trial ?? clubPlanCode === "trial"
   // Цена: зафиксированная за клубом (grandfather) → иначе актуальная цена тарифа.
   const planPrice = club.planPriceLocked ?? clubPlan?.price ?? 0
   const planCur = clubPlan?.currency ?? "UZS"
-  const priceLabel = club.plan === "trial" ? "Бесплатно" : `${fmtMoney(planPrice, planCur)}/${clubPlan?.period === "yearly" ? "год" : clubPlan?.period === "quarterly" ? "кв" : "мес"}`
+  const priceLabel = isTrial ? "Бесплатно" : `${fmtMoney(planPrice, planCur)}/${clubPlan?.period === "yearly" ? "год" : clubPlan?.period === "quarterly" ? "кв" : "мес"}`
 
-  const expiry = club.plan === "trial" ? club.trialExpiresAt : club.planExpiresAt
+  const expiry = isTrial ? club.trialExpiresAt : club.planExpiresAt
   const info = [
     { icon: <Mail className="w-4 h-4" />, label: "Email владельца", value: club.ownerEmail ?? "—" },
     { icon: <Users className="w-4 h-4" />, label: "Владелец", value: club.ownerName ?? "—" },
     { icon: <MapPin className="w-4 h-4" />, label: "Город", value: club.city ?? "—" },
     { icon: <Calendar className="w-4 h-4" />, label: "Регистрация", value: fmtDate(club.createdAt) },
     { icon: <CreditCard className="w-4 h-4" />, label: "Стоимость плана", value: priceLabel },
-    { icon: <Calendar className="w-4 h-4" />, label: club.plan === "trial" ? "Trial до" : "Оплачено до", value: fmtDate(expiry) },
+    { icon: <Calendar className="w-4 h-4" />, label: isTrial ? "Trial до" : "Оплачено до", value: fmtDate(expiry) },
   ]
 
   const usage = [
@@ -58,7 +60,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
           <div>
             <h1 className="text-2xl font-semibold text-foreground">{club.name}</h1>
             <div className="flex items-center gap-2 mt-2">
-              <PlanBadge plan={club.plan} />
+              <PlanBadge plan={clubPlanCode} />
               <StatusBadge status={club.status} />
               <HealthBadge score={club.health} />
             </div>
@@ -71,7 +73,7 @@ export default async function ClubDetailPage({ params }: { params: Promise<{ id:
         <ClubActions
           clubId={club.id}
           status={club.status}
-          plan={club.plan}
+          plan={clubPlanCode}
           plans={allPlans.filter((p) => p.is_active).map((p) => ({ code: p.code, name: p.name, price: p.price, currency: p.currency, is_trial: p.is_trial }))}
         />
       </Panel>

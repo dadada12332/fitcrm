@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation"
 import { RetentionCenter } from "@/components/app/RetentionCenter"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getClientsForExport } from "@/lib/clients"
 import { buildRetentionData } from "@/lib/retention"
 import { createClient } from "@/lib/supabase/server"
 import { planFeatureEnabled, planSectionEnabled } from "@/lib/plan-access"
 
 export default async function RetentionPage() {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.reports.view || !club.permissions.clients.view) redirect("/dashboard")
   if (!planSectionEnabled(club.planAccess, "retention") || !planFeatureEnabled(club.planAccess, "retention")) redirect("/dashboard")

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getClientsPage, CLIENTS_PAGE_SIZE } from "@/lib/clients"
 import { getActiveMemberships } from "@/lib/memberships"
 import { getTrainers } from "@/lib/staff"
@@ -17,7 +17,7 @@ export default async function ClientsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.clients.view) redirect("/dashboard")
 

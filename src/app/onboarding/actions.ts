@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 
 export type OnboardingState = { error?: string; ok?: boolean }
 
@@ -32,7 +33,14 @@ export async function saveClubInfoAction(_prev: OnboardingState, formData: FormD
   // Клуба нет — это нормально если при регистрации требовалось подтверждение email.
   // Создаём клуб сейчас через тот же RPC что и при обычной регистрации.
   if (!clubId) {
-    const { data, error: rpcError } = await supabase.rpc("create_club", { p_name: name, p_city: city || null })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: "Не авторизован" }
+    const { data, error: rpcError } = await createServiceClient().rpc("create_club_for_user", {
+      p_user_id: user.id,
+      p_user_email: user.email ?? null,
+      p_name: name,
+      p_city: city || null,
+    })
     if (rpcError) return { error: rpcError.message }
     clubId = data as string
     // Сразу обновляем настройки (адрес, телефон)

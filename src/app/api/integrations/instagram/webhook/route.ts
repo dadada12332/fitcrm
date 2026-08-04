@@ -1,6 +1,7 @@
 import crypto from "crypto"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getInstagramConfig, verifyMetaSignature } from "@/lib/instagram"
+import { clubHasOperationalPlatformAccess } from "@/lib/platform-subscription-server"
 
 export const dynamic = "force-dynamic"
 
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     const { data: connection } = await service.from("integration_connections").select("club_id")
       .eq("provider", "instagram").eq("external_account_id", entry.id).maybeSingle()
     if (!connection) continue
+    if (!(await clubHasOperationalPlatformAccess(connection.club_id, service))) continue
     const eventId = crypto.createHash("sha256").update(`${entry.id}:${raw}`).digest("hex")
     await service.from("integration_events").upsert({
       club_id: connection.club_id,

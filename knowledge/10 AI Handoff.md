@@ -1,7 +1,7 @@
 ---
 type: ai-handoff
 status: active
-updated: 2026-07-18
+updated: 2026-08-04
 tags: [zalkins, ai]
 ---
 
@@ -28,9 +28,26 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Нет активной задачи. Выберите следующую из [[05 Kanban]].
 <!-- AUTO:END current-task -->
 
+## Change set перед production deploy — 2026-08-04
+
+- Renewal lifecycle реализован и локально проверен: `active`/`expiring`/`expired`/`trial_*`/
+  `unlimited`/`suspended`, предупреждение за 7 дней, CRM + Telegram milestones 7/3/1/0/overdue,
+  recovery-shell «Подписка» + «Поддержка», продление того же тарифа и отдельный pending-state.
+- Коммерческие terms заявки неизменяемы; approval и связанные platform-операции атомарны;
+  app, RLS/DB triggers и Storage fail-closed блокируют операционный доступ после expiry.
+- Локально пройдены 213 тестов (1 skipped), TypeScript, production build, SQL parse/runtime
+  rollback-сценарии и security review без Critical/High/Medium замечаний.
+- Production пока не подтверждён. Выпускать только `expand` migration → совместимый app deploy →
+  `contract` migration. Expand временно замораживает billing approval; contract снимает freeze.
+  Не применять expand повторно после contract.
+- Полный flow, screenshots и evidence limits: [[UX/Subscription Renewal Audit 2026-08-04]].
+- Остаточный Low: Telegram reminders имеют at-least-once семантику и могут повториться в узком
+  окне «Telegram принял сообщение, запись статуса в БД не удалась».
+
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
 - `f20a71a` · 2026-07-30 · fix: align membership duration chevron
@@ -40,7 +57,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 - `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
-- `ae4f9c7` · 2026-07-29 · docs: record promo preview fix [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
@@ -48,6 +64,8 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы; cold latency остаётся под наблюдением.
 - Unit/integration и opt-in tenant isolation тесты существуют локально; автоматический GitHub CI пока не подключён.
 - SMS/email delivery и проверенный backup/restore отсутствуют.
+- Новый renewal lifecycle ещё не прошёл production rollout/QA; не считать его live до проверки
+  обеих миграций, deployment и recovery flow на основном alias.
 - Подробнее: [[08 Known Issues]].
 
 ## Нельзя нарушать
@@ -76,5 +94,5 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Production deploy, применённые миграции, регион Supabase, наличие провайдеров и точные пути из старых `FITCRM_*` документов.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-07-30 Asia/Tashkent
+2026-08-04 Asia/Tashkent
 <!-- AUTO:END updated-at -->

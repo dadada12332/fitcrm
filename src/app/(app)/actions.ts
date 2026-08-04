@@ -9,6 +9,7 @@ import {
   markPlatformAnnouncementRead,
   type PlatformAnnouncementCategory,
 } from "@/lib/platform-announcements"
+import { resolvePlatformSubscription } from "@/lib/platform-subscription"
 
 export type GlobalSearchResult = {
   id: string
@@ -20,7 +21,7 @@ export type GlobalSearchResult = {
 
 export type AppNotification = {
   id: string
-  type: "expiring" | "expired" | "pending" | "platform"
+  type: "expiring" | "expired" | "pending" | "platform" | "club_subscription"
   clientId: string | null
   clientName: string
   title: string
@@ -115,6 +116,44 @@ export async function getNotificationsAction(): Promise<AppNotification[]> {
     category: announcement.category,
     unread: announcement.readAt === null,
   }))
+
+  const platformSubscription = resolvePlatformSubscription({
+    plan: club.plan,
+    status: club.status,
+    trialExpiresAt: club.trialExpiresAt,
+    planExpiresAt: club.planExpiresAt,
+    now: now.getTime(),
+  })
+  if (club.permissions.settings.subscription && platformSubscription.needsAttention) {
+    const planLabel = PLAN_LABELS[club.plan] ?? club.plan
+    const dateLabel = platformSubscription.expiresAt
+      ? new Date(platformSubscription.expiresAt)
+        .toLocaleDateString("ru-RU", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: club.timezone,
+        })
+        .replace(/\.$/, "")
+      : null
+    result.unshift({
+      id: `club-subscription-${platformSubscription.expiresAt ?? club.plan}`,
+      type: "club_subscription",
+      clientId: null,
+      clientName: "Zalkins",
+      title: platformSubscription.isExpired
+        ? platformSubscription.isTrial ? "Пробный период завершён" : `Подписка ${planLabel} истекла`
+        : platformSubscription.isTrial ? "Пробный период скоро закончится" : `Подписка ${planLabel} скоро истечёт`,
+      detail: platformSubscription.isExpired
+        ? platformSubscription.isTrial ? "Выбрать тариф" : "Требуется продление"
+        : platformSubscription.daysLeft === 1 ? "Завтра" : `Через ${platformSubscription.daysLeft} дн.`,
+      membershipName: null,
+      eventDate: platformSubscription.expiresAt,
+      body: platformSubscription.isExpired
+        ? `Срок закончился${dateLabel ? ` ${dateLabel}` : ""}. Отправьте заявку, чтобы восстановить доступ к CRM.`
+        : `Срок закончится${dateLabel ? ` ${dateLabel}` : ""}. Продлите заранее, чтобы работа клуба не прерывалась.`,
+    })
+  }
 
   for (const sub of expiredRes.data ?? []) {
     const client = Array.isArray(sub.clients) ? sub.clients[0] : sub.clients

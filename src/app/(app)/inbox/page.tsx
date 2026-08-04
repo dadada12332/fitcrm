@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation"
 import { ClientInbox } from "@/components/app/ClientInbox"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getInboxBootstrapAction } from "./actions"
 
 export default async function InboxPage() {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.inbox.view) redirect("/dashboard")
 

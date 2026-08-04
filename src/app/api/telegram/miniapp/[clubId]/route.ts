@@ -6,6 +6,7 @@ import { loadMiniAppSupport, sendMiniAppSupportMessage } from "@/lib/telegram/cl
 import type { ClientConversationCategory } from "@/lib/client-inbox"
 import { resolveTelegramActor } from "@/lib/telegram/actor"
 import { buildTelegramStaffMiniApp } from "@/lib/telegram/staff-miniapp"
+import { clubHasOperationalPlatformAccess } from "@/lib/platform-subscription-server"
 
 export const dynamic = "force-dynamic"
 
@@ -71,6 +72,11 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
   const actor = await resolveTelegramActor(clubId, auth.user.id)
   if (!actor) return fail("Профиль не привязан или больше не активен. Откройте интеграцию Telegram в CRM и повторите привязку.", 403)
 
+  const recoveryAction = action === "preferences"
+  if (!recoveryAction && !(await clubHasOperationalPlatformAccess(clubId, service))) {
+    return fail("Подписка клуба истекла. Доступны только настройки уведомлений.", 402)
+  }
+
   if (actor.kind === "staff") {
     if (action !== "bootstrap") return fail("Это действие недоступно сотруднику", 403)
     await service.from("telegram_users").update({
@@ -91,6 +97,17 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
       metadata: { staff_id: actor.staffId, role: actor.role, platform: "web_app" },
     })
     return Response.json(staffMiniApp, { headers: { "Cache-Control": "no-store" } })
+  }
+
+  if (action === "preferences") {
+    const preferences = {
+      expiry_reminders: body.preferences?.expiry_reminders !== false,
+      schedule_reminders: body.preferences?.schedule_reminders !== false,
+    }
+    const { error } = await service.from("telegram_users").update({ preferences })
+      .eq("club_id", clubId).eq("telegram_id", auth.user.id).eq("client_id", actor.clientId)
+    if (error) return fail("Не удалось сохранить настройки", 500)
+    return Response.json({ ok: true, preferences })
   }
 
   const link = { client_id: actor.clientId }
@@ -143,17 +160,6 @@ export async function POST(request: Request, context: { params: Promise<{ clubId
       event_type: "miniapp_class_cancelled", status: "received", metadata: { booking_id: body.bookingId },
     })
     return Response.json({ ok: true })
-  }
-
-  if (action === "preferences") {
-    const preferences = {
-      expiry_reminders: body.preferences?.expiry_reminders !== false,
-      schedule_reminders: body.preferences?.schedule_reminders !== false,
-    }
-    const { error } = await service.from("telegram_users").update({ preferences })
-      .eq("club_id", clubId).eq("telegram_id", auth.user.id).eq("client_id", clientId)
-    if (error) return fail("Не удалось сохранить настройки", 500)
-    return Response.json({ ok: true, preferences })
   }
 
   if (action === "renew") {

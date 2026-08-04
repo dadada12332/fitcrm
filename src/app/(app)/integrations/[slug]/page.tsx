@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { IntegrationManage } from "@/components/app/IntegrationManage"
 import { DEFAULT_TG_SETTINGS, type TelegramSettings } from "@/app/(app)/integrations/types"
 import { resolveAudienceOptions, getRecipientsDataset, type AudienceOption, type Recipient } from "@/lib/broadcast"
@@ -53,7 +53,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
   if (slug === "click" || slug === "payme") redirect("/settings/finance")
 
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/login")
   if (!club.permissions.settings.integrations) redirect("/dashboard")
   if (isAccessControlProvider(slug) && !club.permissions.clients.view) redirect("/integrations")

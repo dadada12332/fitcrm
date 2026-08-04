@@ -48,9 +48,10 @@ export async function addStaffAction(data: {
   if (!(await canAssignRole(club.clubId, club.role, club.permissions, data.role))) {
     return { error: "Нельзя назначить роль с более широкими правами" }
   }
+  const checkedAt = new Date().toISOString()
   const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
     supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
-    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null).gt("expires_at", checkedAt),
   ])
   const limitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
   if (limitError) return { error: limitError }
@@ -280,6 +281,14 @@ export async function updateStaffRoleAction(staffId: string, roleKey: string): P
     .eq("club_id", club.clubId)
     .single()
   if (!current) return { error: "Сотрудник не найден" }
+  const { data: canonicalClub } = await createServiceClient()
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", club.clubId)
+    .maybeSingle()
+  if (canonicalClub?.owner_id === current.user_id && roleKey !== "owner") {
+    return { error: "Нельзя изменить роль основного владельца" }
+  }
   if (current.role === "owner" && club.role !== "owner") return { error: "Нельзя изменить роль владельца" }
   if (roleKey === "owner" && club.role !== "owner") return { error: "Только владелец может назначить владельца" }
   if (!(await canAssignRole(club.clubId, club.role, club.permissions, roleKey))) {

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getMembershipsData } from "@/lib/memberships"
 import { MembershipsStats } from "@/components/app/MembershipsStats"
 import { MembershipsCards } from "@/components/app/MembershipsCards"
@@ -8,7 +8,7 @@ import { redirect } from "next/navigation"
 
 export default async function MembershipsPage() {
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.memberships.view) redirect("/dashboard")
   const { rows, stats } = await getMembershipsData(supabase, club.clubId)

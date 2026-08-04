@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getInstagramConfig } from "@/lib/instagram"
 import { InstagramIntegration, type InstagramPageData } from "@/components/app/InstagramIntegration"
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 export const metadata = { title: "Instagram — Интеграции Zalkins" }
 
 export default async function InstagramPage({ searchParams }: { searchParams: Promise<{ oauth?: string }> }) {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/login")
   if (!club.permissions.settings.integrations) redirect("/dashboard")
   if (!planFeatureEnabled(club.planAccess, "instagram")) redirect("/integrations")

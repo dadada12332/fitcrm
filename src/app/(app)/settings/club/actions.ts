@@ -2,13 +2,21 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClub, getCurrentClubForRecovery } from "@/lib/club"
 import { getPlanByCode } from "@/lib/plans"
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { can } from "@/lib/permissions"
 import { requireIntegrationSlot, requirePlanFeature, requirePlanSection, requireRecordLimit } from "@/lib/plan-enforcement"
 import { APP_LOCALES, normalizeAppLocale, type AppLocale } from "@/lib/app-locale"
+import {
+  PLAN_CAPACITY_CHECK_ERROR,
+  PLAN_CAPACITY_LIMIT_KEYS,
+  readPlanCapacityUsage,
+  requiresPlanCapacityCheck,
+} from "@/lib/plan-capacity"
+import { LIMIT_LABELS } from "@/lib/plan-limits"
+import { resolvePlatformSubscription } from "@/lib/platform-subscription"
 
 export type SaveResult = { ok?: boolean; error?: string }
 export type PromoPreview = {
@@ -23,6 +31,34 @@ export type PromoPreview = {
 }
 export type PromoPreviewResult = { quote?: PromoPreview; error?: string }
 type WorkingDay = { open: string; close: string; closed: boolean }
+type ClubQuoteSnapshot = {
+  plan_id: string | null
+  plan: string
+  plan_price_locked: number | string | null
+  plan_currency_locked: string | null
+  plan_period_locked: string | null
+  plan_expires_at: string | null
+}
+type QuoteablePlan = {
+  id: string
+  code: string
+  price: number | string
+  currency: string
+  period: string
+}
+type QuoteTerms = {
+  unitPrice: number
+  currency: string
+  period: string
+}
+type PromoQuote = {
+  id: string
+  code: string
+  discountPct: number | null
+  discountAmount: number
+  finalAmount: number
+  freeDays: number
+}
 
 function permissionsAreSubset(target: unknown, actor: unknown): boolean {
   if (typeof target === "boolean") return target === false || actor === true
@@ -49,29 +85,122 @@ function promoErrorMessage(message: string): string {
   return "Не удалось проверить промокод"
 }
 
+function roundMoney(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100
+}
+
+function normalizeBillingMonths(value: unknown): number | null {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 1 && value <= 12
+    ? value
+    : null
+}
+
+function resolveQuoteTerms(plan: QuoteablePlan, club: ClubQuoteSnapshot): QuoteTerms | null {
+  const samePlan = !requiresPlanCapacityCheck(
+    { id: club.plan_id, code: club.plan },
+    { id: plan.id, code: plan.code },
+  )
+  const lockedPrice = club.plan_price_locked !== null
+  const lockedCurrency = Boolean(club.plan_currency_locked?.trim())
+  const lockedPeriod = Boolean(club.plan_period_locked?.trim())
+  const hasAnyLockedTerm = lockedPrice || lockedCurrency || lockedPeriod
+  const hasCompleteLockedTerms = lockedPrice && lockedCurrency && lockedPeriod
+  if (samePlan && hasAnyLockedTerm && !hasCompleteLockedTerms) return null
+
+  const useLockedTerms = samePlan && hasCompleteLockedTerms
+  const priceSource = useLockedTerms ? club.plan_price_locked : plan.price
+  const unitPrice = roundMoney(Number(priceSource))
+  const currency = useLockedTerms ? club.plan_currency_locked!.trim() : plan.currency.trim()
+  const period = useLockedTerms ? club.plan_period_locked!.trim() : plan.period.trim()
+
+  // Renewal terms and expiry are expressed in calendar months throughout the
+  // current CRM flow. Fail closed instead of misquoting quarterly/yearly plans.
+  if (!Number.isFinite(unitPrice) || unitPrice < 0 || !currency || period !== "monthly") return null
+  return { unitPrice, currency, period }
+}
+
+function parsePromoQuote(value: unknown, baseAmount: number): PromoQuote | null {
+  if (!value || typeof value !== "object") return null
+  const row = value as Record<string, unknown>
+  const id = typeof row.id === "string" ? row.id : ""
+  const code = typeof row.code === "string" ? row.code.trim() : ""
+  const discountPct = row.discount_pct === null ? null : Number(row.discount_pct)
+  const discountAmount = roundMoney(Number(row.discount_amount))
+  const finalAmount = roundMoney(Number(row.final_amount))
+  const freeDays = Number(row.free_days)
+  const expectedFinalAmount = roundMoney(Math.max(0, baseAmount - discountAmount))
+
+  if (!id || !code) return null
+  if (discountPct !== null && (!Number.isFinite(discountPct) || discountPct < 0 || discountPct > 100)) return null
+  if (!Number.isFinite(discountAmount) || discountAmount < 0 || discountAmount > baseAmount) return null
+  if (!Number.isFinite(finalAmount) || finalAmount !== expectedFinalAmount) return null
+  if (!Number.isSafeInteger(freeDays) || freeDays < 0 || freeDays > 365) return null
+
+  return { id, code, discountPct, discountAmount, finalAmount, freeDays }
+}
+
+async function readClubQuoteSnapshot(
+  service: ReturnType<typeof createServiceClient>,
+  clubId: string,
+): Promise<ClubQuoteSnapshot | null> {
+  const { data, error } = await service
+    .from("clubs")
+    .select("plan_id, plan, plan_price_locked, plan_currency_locked, plan_period_locked, plan_expires_at")
+    .eq("id", clubId)
+    .maybeSingle()
+  if (error || !data) return null
+  if (data.plan_id !== null && typeof data.plan_id !== "string") return null
+  if (typeof data.plan !== "string" || !data.plan.trim()) return null
+  if (data.plan_price_locked !== null && !["number", "string"].includes(typeof data.plan_price_locked)) return null
+  if (data.plan_currency_locked !== null && typeof data.plan_currency_locked !== "string") return null
+  if (data.plan_period_locked !== null && typeof data.plan_period_locked !== "string") return null
+  if (data.plan_expires_at !== null && typeof data.plan_expires_at !== "string") return null
+  return data as ClubQuoteSnapshot
+}
+
 /** Проверяет промокод и возвращает пересчитанные цены до создания заявки. */
 export async function quotePlanPromoAction(promoCode: string, months = 1): Promise<PromoPreviewResult> {
+  if (typeof promoCode !== "string") return { error: "Проверьте промокод" }
+  const normalizedMonths = normalizeBillingMonths(months)
+  if (normalizedMonths === null) return { error: "Выберите срок от 1 до 12 месяцев" }
   const code = promoCode.trim().toUpperCase().slice(0, 32)
   if (!code) return { error: "Введите промокод" }
 
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "settings", "subscription")) return { error: "Недостаточно прав" }
+  const subscription = resolvePlatformSubscription({
+    plan: club.plan,
+    status: club.status,
+    trialExpiresAt: club.trialExpiresAt,
+    planExpiresAt: club.planExpiresAt,
+  })
+  if ((!club.impersonating && club.status !== "active") || !subscription.canRenew) return { error: "Изменение подписки недоступно. Обратитесь в поддержку" }
 
   const service = createServiceClient()
-  const normalizedMonths = Math.max(1, Math.min(12, Math.floor(months)))
-  const { data: plans, error: plansError } = await service
-    .from("plans")
-    .select("code, price")
-    .eq("is_trial", false)
-    .eq("is_archived", false)
-    .eq("is_active", true)
-    .order("sort_order")
+  const [{ data: plans, error: plansError }, quoteSnapshot] = await Promise.all([
+    service
+      .from("plans")
+      .select("id, code, price, currency, period")
+      .eq("is_trial", false)
+      .eq("is_archived", false)
+      .eq("is_active", true)
+      .eq("period", "monthly")
+      .order("sort_order"),
+    readClubQuoteSnapshot(service, club.clubId),
+  ])
   if (plansError) return { error: "Не удалось загрузить тарифы" }
+  if (!quoteSnapshot) return { error: "Не удалось проверить условия тарифа" }
   if (!plans?.length) return { error: "Тарифы временно недоступны" }
 
-  const results = await Promise.all(plans.map(async (item) => {
-    const baseAmount = Number(item.price) * normalizedMonths
+  const pricedPlans = plans.map((item) => {
+    const terms = resolveQuoteTerms(item, quoteSnapshot)
+    return terms ? { item, baseAmount: roundMoney(terms.unitPrice * normalizedMonths) } : null
+  })
+  if (pricedPlans.some((item) => item === null)) return { error: "Не удалось проверить условия тарифа" }
+
+  const results = await Promise.all(pricedPlans.map(async (priced) => {
+    const { item, baseAmount } = priced!
     const { data, error } = await service.rpc("platform_quote_promo", {
       p_code: code,
       p_plan: item.code,
@@ -84,36 +213,34 @@ export async function quotePlanPromoAction(promoCode: string, months = 1): Promi
   const fatalError = results.find(({ error }) => error && !error.message.includes("promo_plan_mismatch"))?.error
   if (fatalError) return { error: promoErrorMessage(fatalError.message) }
 
-  type RpcQuote = {
-    code: string
-    discount_pct: number | null
-    discount_amount: number
-    free_days: number
-    final_amount: number
-  }
-  const validQuotes = results.filter((item) => !item.error && item.data) as Array<{
+  const parsedResults = results.map((item) => ({
+    ...item,
+    quote: item.error ? null : parsePromoQuote(item.data, item.baseAmount),
+  }))
+  if (parsedResults.some((item) => !item.error && !item.quote)) return { error: "Не удалось проверить промокод" }
+
+  const validQuotes = parsedResults.filter((item) => item.quote !== null) as Array<{
     plan: string
     baseAmount: number
-    data: RpcQuote
-    error: null
+    quote: PromoQuote
   }>
   if (!validQuotes.length) return { error: "Промокод не действует на доступные тарифы" }
 
-  const first = validQuotes[0].data
-  const prices = Object.fromEntries(validQuotes.map(({ plan, baseAmount, data }) => [
+  const first = validQuotes[0].quote
+  const prices = Object.fromEntries(validQuotes.map(({ plan, baseAmount, quote }) => [
     plan,
     {
       baseAmount,
-      discountAmount: Number(data.discount_amount),
-      finalAmount: Number(data.final_amount),
+      discountAmount: quote.discountAmount,
+      finalAmount: quote.finalAmount,
     },
   ]))
 
   return {
     quote: {
       code: first.code,
-      discountPct: first.discount_pct === null ? null : Number(first.discount_pct),
-      freeDays: Number(first.free_days),
+      discountPct: first.discountPct,
+      freeDays: first.freeDays,
       prices,
     },
   }
@@ -121,23 +248,68 @@ export async function quotePlanPromoAction(promoCode: string, months = 1): Promi
 
 /** Заявка клуба на оформление/продление тарифа. Подтверждает админ платформы. */
 export async function requestPlanAction(plan: string, months = 1, promoCode?: string): Promise<SaveResult> {
+  if (typeof plan !== "string" || !plan.trim()) return { error: "Неизвестный тариф" }
+  if (promoCode !== undefined && typeof promoCode !== "string") return { error: "Проверьте промокод" }
+  const normalizedMonths = normalizeBillingMonths(months)
+  if (normalizedMonths === null) return { error: "Выберите срок от 1 до 12 месяцев" }
   // Цена берётся из БД (раздел «Тарифы» в Platform Admin) — без хардкода.
   const planRow = await getPlanByCode(plan)
-  if (!planRow || planRow.is_trial || planRow.is_archived) return { error: "Неизвестный тариф" }
+  if (!planRow || planRow.is_trial || planRow.is_archived || !planRow.is_active) return { error: "Неизвестный тариф" }
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "settings", "subscription")) return { error: "Недостаточно прав" }
+  const subscription = resolvePlatformSubscription({
+    plan: club.plan,
+    status: club.status,
+    trialExpiresAt: club.trialExpiresAt,
+    planExpiresAt: club.planExpiresAt,
+  })
+  if ((!club.impersonating && club.status !== "active") || !subscription.canRenew) return { error: "Изменение подписки недоступно. Обратитесь в поддержку" }
 
   const { data: { user } } = await supabase.auth.getUser()
   const service = createServiceClient()
-  const normalizedMonths = Math.max(1, Math.min(12, Math.floor(months)))
-  const baseAmount = planRow.price * normalizedMonths
-  type PromoQuote = { id: string; code: string; discount_amount: number; final_amount: number }
+  const quoteSnapshot = await readClubQuoteSnapshot(service, club.clubId)
+  if (!quoteSnapshot) return { error: "Не удалось проверить условия тарифа" }
+  const quoteTerms = resolveQuoteTerms(planRow, quoteSnapshot)
+  if (!quoteTerms) return { error: "Не удалось проверить условия тарифа" }
+  const samePlan = !requiresPlanCapacityCheck(
+    { id: quoteSnapshot.plan_id, code: quoteSnapshot.plan },
+    { id: planRow.id, code: planRow.code },
+  )
+  if (samePlan && quoteSnapshot.plan_expires_at === null) {
+    return { error: "Текущий тариф действует бессрочно и не требует продления" }
+  }
+
+  // A downgrade must not create a plan that the club already exceeds. The
+  // UI explains the blockers, and this trusted server check prevents callers
+  // from bypassing it through a direct Server Action request. Same-plan
+  // renewal remains available so an existing overage cannot block recovery.
+  if (!samePlan) {
+    let usage
+    try {
+      usage = await readPlanCapacityUsage(club.clubId)
+    } catch {
+      return { error: PLAN_CAPACITY_CHECK_ERROR }
+    }
+
+    const blocker = PLAN_CAPACITY_LIMIT_KEYS.find((key) => {
+      const used = usage[key]
+      const limit = planRow.limits[key]
+      return limit != null && used > limit
+    })
+    if (blocker) {
+      const used = usage[blocker]
+      return { error: `${LIMIT_LABELS[blocker]}: сейчас ${used.toLocaleString("ru-RU")}, лимит тарифа — ${planRow.limits[blocker]?.toLocaleString("ru-RU")}. Сначала сократите использование.` }
+    }
+  }
+
+  const baseAmount = roundMoney(quoteTerms.unitPrice * normalizedMonths)
   let promo: PromoQuote | null = null
-  if (promoCode?.trim()) {
+  const normalizedPromoCode = promoCode?.trim().toUpperCase().slice(0, 32) ?? ""
+  if (normalizedPromoCode) {
     const { data, error: promoError } = await service.rpc("platform_quote_promo", {
-      p_code: promoCode.trim(),
+      p_code: normalizedPromoCode,
       p_plan: plan,
       p_months: normalizedMonths,
       p_base_amount: baseAmount,
@@ -145,44 +317,69 @@ export async function requestPlanAction(plan: string, months = 1, promoCode?: st
     if (promoError) {
       return { error: promoErrorMessage(promoError.message) }
     }
-    promo = data as PromoQuote
+    promo = parsePromoQuote(data, baseAmount)
+    if (!promo) return { error: "Не удалось проверить промокод" }
   }
 
-  const amountAfterPromo = promo?.final_amount ?? baseAmount
-  const { data: compensation } = await service.from("platform_club_compensations")
+  const amountAfterPromo = promo?.finalAmount ?? baseAmount
+  const quotedAt = new Date().toISOString()
+  const { data: compensation, error: compensationError } = await service.from("platform_club_compensations")
     .select("id, value")
     .eq("club_id", club.clubId)
     .eq("benefit_type", "discount_pct")
     .eq("status", "active")
-    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .or(`expires_at.is.null,expires_at.gt.${quotedAt}`)
     .order("value", { ascending: false })
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle()
-  const compensationDiscount = compensation
-    ? Math.round(amountAfterPromo * Number(compensation.value)) / 100
-    : 0
+  if (compensationError) return { error: "Не удалось проверить компенсацию клуба" }
 
-  // Одна активная заявка на клуб: старые pending отменяем.
-  await service.from("platform_billing_requests")
-    .update({ status: "cancelled", resolved_at: new Date().toISOString() })
-    .eq("club_id", club.clubId).eq("status", "pending")
+  const compensationPct = compensation ? Number(compensation.value) : 0
+  if (
+    compensation
+    && (typeof compensation.id !== "string" || !compensation.id || !Number.isSafeInteger(compensationPct) || compensationPct < 1 || compensationPct > 100)
+  ) return { error: "Не удалось проверить компенсацию клуба" }
+  const compensationDiscount = roundMoney(amountAfterPromo * compensationPct / 100)
+  const finalAmount = roundMoney(Math.max(0, baseAmount - (promo?.discountAmount ?? 0) - compensationDiscount))
+
+  // Replacement is explicit: the owner cancels the visible pending request
+  // first. This avoids a cancel-then-insert gap that could lose a valid request
+  // when the replacement insert fails.
+  const { data: existingRequest, error: existingRequestError } = await service
+    .from("platform_billing_requests")
+    .select("id")
+    .eq("club_id", club.clubId)
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle()
+  if (existingRequestError) return { error: "Не удалось проверить текущую заявку. Повторите попытку" }
+  if (existingRequest) return { error: "Сначала отмените текущую заявку на подписку" }
 
   const { error } = await service.from("platform_billing_requests").insert({
     club_id: club.clubId,
     plan,
+    quoted_plan_id: planRow.id,
     months: normalizedMonths,
-    amount: Math.max(0, amountAfterPromo - compensationDiscount),
+    amount: finalAmount,
     promo_code_id: promo?.id ?? null,
     promo_code: promo?.code ?? null,
-    discount_amount: promo?.discount_amount ?? 0,
+    discount_amount: promo?.discountAmount ?? 0,
+    promo_free_days: promo?.freeDays ?? 0,
     compensation_id: compensation?.id ?? null,
     compensation_discount_amount: compensationDiscount,
+    quoted_unit_price: quoteTerms.unitPrice,
+    quoted_currency: quoteTerms.currency,
+    quoted_period: quoteTerms.period,
+    quoted_at: quotedAt,
     status: "pending",
     requested_by: user?.id ?? null,
     requested_email: user?.email ?? null,
   })
-  if (error) return { error: error.message }
+  if (error?.code === "23505") {
+    return { error: "Другая заявка уже отправлена. Обновите страницу и проверьте её статус" }
+  }
+  if (error) return { error: "Не удалось отправить заявку. Повторите попытку" }
 
   revalidatePath("/settings")
   return { ok: true }
@@ -236,13 +433,24 @@ export async function cancelPaymentConnectionAction(provider: "click" | "payme")
 
 /** Отмена своей заявки (pending). */
 export async function cancelPlanRequestAction(): Promise<SaveResult> {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { error: "Не авторизован" }
   if (!can(club.permissions, "settings", "subscription")) return { error: "Недостаточно прав" }
+  const subscription = resolvePlatformSubscription({
+    plan: club.plan,
+    status: club.status,
+    trialExpiresAt: club.trialExpiresAt,
+    planExpiresAt: club.planExpiresAt,
+  })
+  if ((!club.impersonating && club.status !== "active") || !subscription.canRenew) return { error: "Изменение подписки недоступно. Обратитесь в поддержку" }
   const service = createServiceClient()
-  await service.from("platform_billing_requests")
-    .update({ status: "cancelled", resolved_at: new Date().toISOString() })
+  const { data: cancelled, error } = await service.from("platform_billing_requests")
+    .update({ status: "cancelled", resolved_at: new Date().toISOString(), resolution_reason: "cancelled_by_club" })
     .eq("club_id", club.clubId).eq("status", "pending")
+    .select("id")
+    .maybeSingle()
+  if (error) return { error: "Не удалось отменить заявку. Попробуйте ещё раз" }
+  if (!cancelled) return { error: "Заявка уже обработана" }
   revalidatePath("/settings")
   return { ok: true }
 }
@@ -312,7 +520,7 @@ export async function saveUserLocaleAction(locale: AppLocale): Promise<SaveResul
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Не авторизован" }
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForRecovery()
   if (!club) return { error: "Клуб не найден" }
 
   const service = createServiceClient()
@@ -390,9 +598,10 @@ export async function inviteStaffAction(data: { email: string; role: string }): 
   const supabase = await createClient()
   const service = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const checkedAt = new Date().toISOString()
   const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
     supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
-    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null).gt("expires_at", checkedAt),
   ])
   const staffLimitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
   if (staffLimitError) return { error: staffLimitError }
@@ -477,9 +686,10 @@ export async function createInviteLinkAction(data: { role: string }): Promise<{ 
   const supabase = await createClient()
   const service = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const checkedAt = new Date().toISOString()
   const [{ count: staffCount }, { count: inviteCount }] = await Promise.all([
     supabase.from("staff").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).eq("is_active", true),
-    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null),
+    service.from("staff_invitations").select("id", { count: "exact", head: true }).eq("club_id", club.clubId).is("accepted_at", null).gt("expires_at", checkedAt),
   ])
   const staffLimitError = requireRecordLimit(club, "staff", (staffCount ?? 0) + (inviteCount ?? 0))
   if (staffLimitError) return { error: staffLimitError }
@@ -563,41 +773,28 @@ export async function createBranchAction(data: {
   if (!data.name.trim()) return { error: "Укажите название филиала" }
   const branchFeatureError = requirePlanFeature(currentClub, "multi_branch")
   if (branchFeatureError) return { error: branchFeatureError }
-  const { count: branchCount } = await createServiceClient().from("staff")
-    .select("club_id", { count: "exact", head: true })
-    .eq("user_id", user.id).eq("role", "owner").eq("is_active", true)
+  const service = createServiceClient()
+  const { data: sourceClub } = await service.from("clubs")
+    .select("owner_id").eq("id", currentClub.clubId).maybeSingle()
+  if (!sourceClub?.owner_id) return { error: "Не удалось определить владельца сети" }
+  const { count: branchCount } = await service.from("clubs")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", sourceClub.owner_id).neq("status", "deleted")
   const branchLimitError = requireRecordLimit(currentClub, "branches", branchCount ?? 0)
   if (branchLimitError) return { error: branchLimitError }
 
-  const { data: clubId, error } = await supabase.rpc("create_club", {
+  const { data: clubId, error } = await service.rpc("create_branch_for_user", {
+    p_user_id: user.id,
+    p_source_club_id: currentClub.clubId,
     p_name: data.name.trim(),
     p_city: data.address?.trim() || null,
   })
 
-  if (error) return { error: error.message }
-
-  // Филиал входит в подписку текущего клуба и должен сразу получить тот же тариф,
-  // иначе create_club оставляет его на отдельном Trial и лимиты расходятся.
-  const service = createServiceClient()
-  const { data: parentPlan, error: parentPlanError } = await service.from("clubs")
-    .select("plan, plan_expires_at, plan_price_locked, plan_currency_locked, plan_period_locked")
-    .eq("id", currentClub.clubId).single()
-  if (parentPlanError || !parentPlan) {
-    await service.from("clubs").delete().eq("id", clubId as string)
-    return { error: "Не удалось получить тариф основного клуба" }
-  }
-  const { error: planError } = await service.from("clubs").update({
-    plan: parentPlan.plan,
-    trial_expires_at: currentClub.plan === "trial" ? currentClub.trialExpiresAt : null,
-    plan_expires_at: parentPlan.plan_expires_at,
-    plan_price_locked: parentPlan.plan_price_locked,
-    plan_currency_locked: parentPlan.plan_currency_locked,
-    plan_period_locked: parentPlan.plan_period_locked,
-    plan_assigned_at: new Date().toISOString(),
-  }).eq("id", clubId as string)
-  if (planError) {
-    await service.from("clubs").delete().eq("id", clubId as string)
-    return { error: "Не удалось применить тариф к филиалу" }
+  if (error) {
+    if (error.message.includes("branch_limit_reached")) return { error: branchLimitError ?? "Лимит филиалов исчерпан" }
+    if (error.message.includes("platform_subscription_locked")) return { error: "Сначала продлите подписку" }
+    if (error.message.includes("branch_feature_unavailable")) return { error: "Филиалы недоступны на текущем тарифе" }
+    return { error: "Не удалось создать филиал" }
   }
 
   revalidatePath("/settings/branches")

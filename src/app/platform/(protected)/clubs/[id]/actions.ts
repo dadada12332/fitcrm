@@ -5,7 +5,6 @@ import { cookies, headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { createServiceClient } from "@/lib/supabase/service"
 import { logPlatformAction, requirePlatformPermission } from "@/lib/platform"
-import { getPlanByCode } from "@/lib/plans"
 
 function cookieDomain(host: string): string | undefined {
   const h = host.split(":")[0]
@@ -47,52 +46,34 @@ export async function impersonateClub(clubId: string) {
 }
 
 export async function extendTrial(clubId: string, days: number) {
-  await requirePlatformPermission("clubs.manage")
+  const auth = await requirePlatformPermission("clubs.manage")
   if (!Number.isInteger(days) || days < 1 || days > 365) return { error: "Срок должен быть от 1 до 365 дней" }
   const service = createServiceClient()
-  const { data: club, error: clubError } = await service.from("clubs").select("trial_expires_at").eq("id", clubId).maybeSingle()
-  if (clubError || !club) return { error: "Клуб не найден" }
-  const base = club?.trial_expires_at && new Date(club.trial_expires_at) > new Date()
-    ? new Date(club.trial_expires_at)
-    : new Date()
-  base.setDate(base.getDate() + days)
-  const { data: updated, error } = await service.from("clubs")
-    .update({ trial_expires_at: base.toISOString(), plan: "trial" })
-    .eq("id", clubId)
-    .select("id")
-    .maybeSingle()
-  if (error || !updated) return { error: "Не удалось продлить Trial" }
-  await logPlatformAction({ action: "extend_trial", clubId, meta: { days } })
+  const { error } = await service.rpc("platform_extend_club_trial", {
+    p_club_id: clubId,
+    p_days: days,
+    p_admin_id: auth.userId,
+  })
+  if (error?.message.includes("platform_trial_only")) return { error: "Продлить можно только действующий или истёкший Trial" }
+  if (error) return { error: "Не удалось продлить Trial" }
   revalidatePath(`/platform/clubs/${clubId}`)
   return {}
 }
 
-const ENUM_PLAN_CODES = ["trial", "starter", "standard", "business"]
-
 export async function changePlan(clubId: string, planCode: string) {
-  await requirePlatformPermission("clubs.manage")
-  const planRow = await getPlanByCode(planCode)
-  if (!planRow) return { error: "Тариф не найден" }
+  const auth = await requirePlatformPermission("clubs.manage")
   const service = createServiceClient()
-
-  const update: Record<string, unknown> = {
-    plan_id: planRow.id,
-    // Снапшот цены на момент подключения (grandfather pricing): клуб сохраняет эту
-    // цену, даже если тариф позже подорожает. Меняется только через фазу 6 «применить ко всем».
-    plan_price_locked: planRow.is_trial ? null : planRow.price,
-    plan_currency_locked: planRow.currency,
-    plan_period_locked: planRow.period,
-    plan_assigned_at: new Date().toISOString(),
-  }
-  // enum-колонку clubs.plan обновляем только для базовых кодов (кастомные тарифы живут через plan_id).
-  if (ENUM_PLAN_CODES.includes(planCode)) update.plan = planCode
-  if (!planRow.is_trial) {
-    const exp = new Date(); exp.setDate(exp.getDate() + 30)
-    update.plan_expires_at = exp.toISOString()
-  }
-  const { data: updated, error } = await service.from("clubs").update(update).eq("id", clubId).select("id").maybeSingle()
-  if (error || !updated) return { error: "Не удалось изменить тариф" }
-  await logPlatformAction({ action: "change_plan", clubId, meta: { plan: planCode, price: planRow.price } })
+  const { error } = await service.rpc("platform_change_club_plan", {
+    p_club_id: clubId,
+    p_plan_code: planCode,
+    p_admin_id: auth.userId,
+  })
+  if (error?.message.includes("platform_plan_already_assigned")) return { error: "Этот тариф уже назначен клубу" }
+  if (error?.message.includes("platform_plan_capacity_exceeded")) return { error: "Текущие данные клуба превышают лимиты выбранного тарифа" }
+  if (error?.message.includes("platform_plan_capacity_unconfigured")) return { error: "У выбранного тарифа не настроены все лимиты" }
+  if (error?.message.includes("platform_plan_period_unsupported")) return { error: "Назначение поддерживает только помесячные платные тарифы" }
+  if (error?.message.includes("platform_trial_identity_invalid")) return { error: "Поддерживается только системный Trial" }
+  if (error) return { error: "Не удалось изменить тариф" }
   revalidatePath(`/platform/clubs/${clubId}`)
   return {}
 }

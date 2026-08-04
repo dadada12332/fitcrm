@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { GrowthCenter } from "@/components/app/GrowthCenter"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getClientsForExport } from "@/lib/clients"
 import { getDashboardData } from "@/lib/dashboard"
 import { buildGrowthData, mapGrowthExperimentRun, type GrowthExperimentRunRow } from "@/lib/growth"
@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server"
 import { planFeatureEnabled, planSectionEnabled } from "@/lib/plan-access"
 
 export default async function GrowthPage() {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.reports.view || !club.permissions.clients.view) redirect("/dashboard")
   if (!planSectionEnabled(club.planAccess, "growth") || !planFeatureEnabled(club.planAccess, "growth")) redirect("/dashboard")

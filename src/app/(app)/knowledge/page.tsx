@@ -1,11 +1,11 @@
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import { SupportClient } from "@/components/app/SupportClient"
 import { planFeatureEnabled, planSectionEnabled } from "@/lib/plan-access"
 
 export default async function KnowledgePage() {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!planSectionEnabled(club.planAccess, "knowledge") || !planFeatureEnabled(club.planAccess, "knowledge")) redirect("/dashboard")
   return (

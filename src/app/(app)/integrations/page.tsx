@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { redirect } from "next/navigation"
 import { IntegrationsCatalog, type IntegrationStatus } from "@/components/app/IntegrationsCatalog"
 import { planFeatureEnabled } from "@/lib/plan-access"
@@ -9,7 +9,7 @@ export const metadata = { title: "Интеграции — Zalkins" }
 
 export default async function IntegrationsPage() {
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.settings.integrations) redirect("/dashboard")
 

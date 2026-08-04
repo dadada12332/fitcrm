@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { DashboardBody, DashboardBodySkeleton } from "@/components/app/DashboardBody"
 import { DashboardExportButton } from "@/components/app/DashboardExportButton"
 
 export default async function DashboardPage() {
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.dashboard.view) redirect("/settings")
 

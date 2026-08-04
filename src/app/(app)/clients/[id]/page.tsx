@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { ArrowLeft, Phone } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentClub } from "@/lib/club"
+import { getCurrentClubForPage } from "@/lib/club"
 import { getClientProfile } from "@/lib/client-profile"
 import { getActiveMemberships } from "@/lib/memberships"
 import { ClientProfileCard } from "@/components/app/ClientProfileCard"
@@ -12,7 +12,7 @@ import { EditClientButton } from "@/components/app/EditClientButton"
 export default async function ClientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const club = await getCurrentClub()
+  const club = await getCurrentClubForPage()
   if (!club) redirect("/onboarding")
   if (!club.permissions.clients.view) redirect("/dashboard")
   const canViewPayments = club.permissions.payments.view

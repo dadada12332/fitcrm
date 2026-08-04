@@ -11,6 +11,7 @@ import {
   GitFork,
   HeartHandshake, Rocket,
   MessagesSquare,
+  Crown,
 } from "lucide-react"
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 import { QuickActionsMenu } from "@/components/app/QuickActionsMenu"
@@ -30,6 +31,7 @@ import type { RolePermissions } from "@/lib/permissions"
 import { planFeatureEnabled, planSectionEnabled, type PlanAccess } from "@/lib/plan-access"
 import { useAppLocale } from "./ClubContext"
 import { BrandLogo } from "@/components/brand/BrandLogo"
+import type { PlatformSubscriptionState } from "@/lib/platform-subscription"
 
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный",
@@ -228,11 +230,13 @@ type Props = {
   permissions: RolePermissions
   planAccess: PlanAccess | null
   role: string
+  subscriptionState: PlatformSubscriptionState
+  bypassSubscriptionLock?: boolean
   collapsed?: boolean
   mobile?: boolean
 }
 
-export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess, role, collapsed = false, mobile = false }: Props) {
+export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess, role, subscriptionState, bypassSubscriptionLock = false, collapsed = false, mobile = false }: Props) {
   const { t } = useAppLocale()
   const router = useRouter()
   const [branches, setBranches] = useState<Branch[]>([])
@@ -241,6 +245,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
 
   const isOwner = role === "owner"
   const p = permissions
+  const billingOnly = subscriptionState.isLocked && !bypassSubscriptionLock
   const canUseBranches = planFeatureEnabled(planAccess, "multi_branch")
 
   const loadBranches = async (open: boolean) => {
@@ -262,10 +267,20 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
 
   const isTrial = plan === "trial"
   const planLabel = plan === "trial" ? t("nav.trial") : PLAN_LABELS[plan] ?? plan
-  const clubSubtitle = isTrial && stats.trialDaysLeft !== null
-    ? `${t("nav.trial")} · ${t("nav.daysLeft", { count: stats.trialDaysLeft })}`
-    : planLabel
-  const statusColor = isTrial ? "#f59e0b" : "#22c55e"
+  const clubSubtitle = subscriptionState.kind === "suspended"
+    ? "Доступ приостановлен"
+    : subscriptionState.isExpired
+      ? `${planLabel} · подписка истекла`
+      : subscriptionState.isExpiring
+        ? `${planLabel} · ${t("nav.daysLeft", { count: subscriptionState.daysLeft ?? 0 })}`
+        : isTrial && stats.trialDaysLeft !== null
+          ? `${t("nav.trial")} · ${t("nav.daysLeft", { count: stats.trialDaysLeft })}`
+          : planLabel
+  const statusColor = subscriptionState.kind === "suspended" || subscriptionState.isExpired
+    ? "var(--destructive)"
+    : subscriptionState.isExpiring || isTrial
+      ? "var(--chart-4)"
+      : "var(--chart-2)"
 
   return (
     <aside className={`${mobile ? "flex" : "hidden md:flex"} flex-col h-full w-full overflow-hidden bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg`}
@@ -324,7 +339,7 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
-            {isOwner && canUseBranches && (
+            {isOwner && canUseBranches && !billingOnly && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/settings/branches")}>
@@ -338,14 +353,27 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
       </div>
 
       {/* ── Quick action ── */}
-      <div className="pt-2 flex-shrink-0" data-tour="quick-actions">
-        <QuickActionsMenu collapsed={collapsed} />
-      </div>
+      {!billingOnly && (
+        <div className="pt-2 flex-shrink-0" data-tour="quick-actions">
+          <QuickActionsMenu collapsed={collapsed} />
+        </div>
+      )}
 
       <Divider />
 
       {/* ── Nav ── */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2">
+      {billingOnly ? (
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2">
+          <div className="flex flex-col gap-0.5">
+            {subscriptionState.kind !== "suspended" && p.settings.subscription && (
+              <NavItem href="/settings/subscription" icon={Crown} label={t("settings.subscription")} collapsed={collapsed} />
+            )}
+            <NavItem href="/support" icon={HelpCircle} label={t("nav.support")} collapsed={collapsed} badge={stats.supportUnread > 0 ? stats.supportUnread : undefined} badgeType="warn" />
+          </div>
+        </nav>
+      ) : (
+        <>
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2">
         <div className="flex flex-col gap-0.5">
           <NavItem href="/dashboard" icon={LayoutDashboard} label={t("nav.dashboard")} collapsed={collapsed} />
           {p.clients.view && (
@@ -419,6 +447,8 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
           )}
         </div>
       </div>
+        </>
+      )}
 
       <Divider />
 
