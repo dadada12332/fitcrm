@@ -75,8 +75,10 @@ tags: [zalkins, releases]
   фактических лимитов переведены в атомарные service-only RPC. Операционные write/read/storage
   пути закрываются на уровне приложения и БД при истечении; `suspended` не снимается оплатой.
 
-- Изменения renewal lifecycle находятся в pre-deploy состоянии. Миграции должны выпускаться
-  строго в порядке `expand → совместимое приложение → contract`; production пока не заявлен.
+- Renewal lifecycle опубликован commit `0551fa5` в production deployment
+  `dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr` по схеме `expand → READY app → contract`. Основной alias,
+  DB contract, expired/pending/approve recovery-flow и desktop/mobile browser QA подтверждены;
+  временная approval freeze снята contract-миграцией.
 
 - Фильтры периода графика выручки снова находятся в строке заголовка на широком экране и
   переносятся вниз только на мобильной ширине. Tooltip и подписи осей используют общий шрифт
@@ -309,6 +311,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
@@ -338,5 +341,4 @@ tags: [zalkins, releases]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 - `f12f58b` · 2026-07-28 · fix: soften retention queue divider
-- `e71d856` · 2026-07-27 · feat: refine Zalkins brand and mobile layout
 <!-- AUTO:END changelog-candidates -->

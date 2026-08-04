@@ -1,6 +1,6 @@
 ---
 type: ux-audit
-status: pre-deploy
+status: production-verified
 updated: 2026-08-04
 tags: [zalkins, ux, subscription, billing, recovery]
 ---
@@ -13,12 +13,13 @@ tags: [zalkins, ux, subscription, billing, recovery]
 доступа после подтверждения оплаты. Главная задача пользователя: заранее понять дату окончания,
 не потерять данные, продлить текущий тариф без путаницы и видеть честный статус заявки.
 
-Аудит относится к локально собранному change set. Production deployment и применение миграций
-на момент документа не подтверждены.
+Аудит охватывает локальную сборку и production release `0551fa5` /
+`dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr`. Обе миграции и основной alias подтверждены.
 
 ## Overall health
 
-**Готов к контролируемому rollout после обязательной схемы `expand → app → contract`.**
+**Healthy — production verified.** Rollout выполнен по обязательной схеме
+`expand → READY app → contract`, временная approval freeze снята.
 
 Критический UX-дефект исходного экрана закрыт: назначенный Business больше не считается активным
 после истечения оплаченного периода, на карточке есть явный статус и действие продления. Данные
@@ -46,14 +47,14 @@ tags: [zalkins, ux, subscription, billing, recovery]
    Операционная CRM блокируется до рендера защищённых данных. Владелец видит название клуба,
    понятную причину, CTA «Продлить Business», поддержку и выход. Данные не удаляются.
 
-   ![Recovery lock после истечения](../../artifacts/subscription-renewal-lock-desktop-current.png)
+   ![Recovery lock после истечения](../../artifacts/subscription-production-lock-desktop.png)
 
 5. **Переход на экран подписки — Healthy.**
    Доступен узкий recovery shell только с «Подпиской» и «Поддержкой». Карточка Business явно
    показывает `Подписка истекла`, дату и `0 дн.`; бывший текущий тариф выделен expired-state,
    а не badge `Текущий`.
 
-   ![Исправленный expired экран desktop](../../artifacts/subscription-renewal-expired-desktop-current.png)
+   ![Исправленный expired экран desktop](../../artifacts/subscription-production-expired-desktop.png)
 
 6. **Выбор продления — Healthy.**
    Владелец может выбрать 1/3/12 месяцев и продлить Business либо перейти на другой допустимый
@@ -70,9 +71,9 @@ tags: [zalkins, ux, subscription, billing, recovery]
    называется активной подпиской. Ошибка отмены больше не скрывается. Mobile reflow сохраняет
    читаемость и следующую доступную операцию.
 
-   ![Pending-заявка mobile](../../artifacts/subscription-renewal-pending-mobile-current.png)
+   ![Pending-заявка mobile](../../artifacts/subscription-production-pending-mobile.png)
 
-9. **Одобрение Platform Admin — Healthy, rollout-sensitive.**
+9. **Одобрение Platform Admin — Healthy.**
    Atomic RPC блокирует заявку и клуб, повторно проверяет план и фактическую вместимость,
    применяет immutable quote, продлевает тот же план от `max(now, current_expiry)` или начинает
    смену плана от `now`, затем пишет audit. Оплата не снимает операционный `suspended`.
@@ -119,19 +120,19 @@ tags: [zalkins, ux, subscription, billing, recovery]
 Fitness CRM comparison, плюсы/минусы Zalkins и приоритеты automation/retention/PWA/lead pipeline
 сохранены в [[Research/Competitive CRM research 2026-07-19]].
 
-## Rollout contract
+## Rollout contract — completed
 
-1. Применить `20260804103933_platform_billing_renewal_hardening.sql` (**expand**). Она добавляет
+1. Применена `20260804103933_platform_billing_renewal_hardening.sql` (**expand**). Она добавила
    совместимые поля/RPC и временно блокирует billing approval ошибкой
    `billing_approval_contract_pending`.
-2. Опубликовать совместимое приложение и дождаться состояния deployment `READY`.
-3. Применить `20260804110824_platform_billing_renewal_contract.sql` (**contract**). Она включает
+2. Совместимое приложение `0551fa5` опубликовано; deployment дождался состояния `READY`.
+3. Применена `20260804110824_platform_billing_renewal_contract.sql` (**contract**). Она включила
    авторитетные DB lifecycle gates и снимает временную approval freeze.
 4. Не применять expand повторно после contract: это снова включит freeze.
-5. Проверить основной alias, expired recovery, pending/approve и отсутствие operational доступа
-   до продления; только после этого фиксировать production rollout как завершённый.
+5. Основной alias, expired recovery, pending/approve и отсутствие operational read/write до
+   продления проверены; synthetic QA club/user удалены.
 
-## Verification completed before deploy
+## Verification
 
 - `npm test`: **213 passed, 1 skipped**.
 - `npx tsc --noEmit`: passed.
@@ -141,8 +142,16 @@ Fitness CRM comparison, плюсы/минусы Zalkins и приоритеты 
 - Runtime rollback-сценарии подтвердили approval freeze, staff quota/invitation,
   same-plan renewal, plan change, Trial restrictions, stale permission reset и DB gates.
 - Security review: нет открытых Critical/High/Medium замечаний.
-- Local visual QA: desktop expired/recovery и mobile expiring/pending; screenshots выше являются
-  локальными доказательствами, не production evidence.
+- Production deployment `dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr` собрал commit `0551fa5` на
+  Next.js 16.2.12 и имеет статус `READY`; alias `fitcrm-three.vercel.app` обновлён.
+- HTTP smoke: `/api/health` и `/login` — 200, закрытая подписка — 307 на login,
+  cron без секрета — 401. Vercel error scan после E2E — clean.
+- DB probes: approval freeze отсутствует, quote/owner/lifecycle guards активны, approval RPC
+  доступен service role и недоступен authenticated.
+- Production E2E: expiring banner, pre-render lock без полного CRM nav/data, expired renewal,
+  immutable pending на 1/3 месяца, cancellation, atomic one-month approval и возврат dashboard.
+- Desktop `1898×1001` и mobile `390×844`: horizontal overflow 0, browser errors отсутствуют;
+  dashboard tooltip computed font — Onest.
 
 ## Residual risk
 
@@ -154,6 +163,12 @@ delivery semantics нужен outbox либо промежуточный ста�
 ## Evidence index
 
 - [Reference vs fixed, exact viewport](../../artifacts/subscription-renewal-comparison-exact-viewport-final.png)
+- [Production expired desktop](../../artifacts/subscription-production-expired-desktop.png)
+- [Production expired mobile](../../artifacts/subscription-production-expired-mobile.png)
+- [Production recovery lock](../../artifacts/subscription-production-lock-desktop.png)
+- [Production pending desktop](../../artifacts/subscription-production-pending-desktop.png)
+- [Production pending mobile](../../artifacts/subscription-production-pending-mobile.png)
+- [Production expiring dashboard](../../artifacts/subscription-production-expiring-dashboard-desktop.png)
 - [Expired desktop, current local build](../../artifacts/subscription-renewal-expired-desktop-current.png)
 - [Expired mobile, current local build](../../artifacts/subscription-renewal-expired-mobile-current.png)
 - [Recovery lock desktop](../../artifacts/subscription-renewal-lock-desktop-current.png)

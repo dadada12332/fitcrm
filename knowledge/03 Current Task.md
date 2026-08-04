@@ -27,13 +27,16 @@ tags: [zalkins, tasks, subscription, billing, recovery, ui]
   создание филиалов/сотрудников и принятие приглашений сериализуются на уровне Postgres.
 - Операционные Server Actions, REST/RLS и Storage закрыты при истёкшей подписке; выход через
   контроль доступа остаётся разрешённым, чтобы не запирать человека внутри объекта.
-- Локальный UX QA подтвердил desktop recovery, mobile `expiring`, `expired` и `pending` без
-  горизонтального overflow. Доказательства и ограничения: [[UX/Subscription Renewal Audit 2026-08-04]].
-- Проверки до deploy: 213 тестов пройдены, 1 skipped; `npx tsc --noEmit`, `npm run build` и
+- Local и production UX QA подтвердили desktop recovery, mobile `expiring`, `expired` и
+  `pending`, а также восстановление полной CRM после approval без horizontal overflow.
+  Доказательства и ограничения: [[UX/Subscription Renewal Audit 2026-08-04]].
+- Проверки: 213 тестов пройдены, 1 skipped; `npx tsc --noEmit`, scoped ESLint, `npm run build` и
   `git diff --check` успешны. Обе миграции проверены совместно и отдельными runtime-сценариями
   внутри транзакций с `ROLLBACK`.
-- Rollout ещё не выполнен: применять строго `expand → совместимое приложение → contract`.
-  До production-подтверждения не считать новый lifecycle опубликованным.
+- Rollout завершён строго `expand → READY app → contract`. Commit `0551fa5` опубликован в
+  deployment `dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr`; alias `fitcrm-three.vercel.app`, HTTP smoke,
+  DB freeze removal/ACL/trigger probes, end-to-end renewal approval и Vercel error scan чистые.
+  Synthetic QA club/user после проверки удалены.
 
 ## Адаптив фильтров и шрифт графика dashboard — 2026-08-03
 

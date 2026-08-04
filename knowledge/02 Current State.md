@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 508ac53 · 2026-07-30T16:07:00+05:00 · docs: record audit remediation release [skip ci].
+- Последний commit: 0551fa5 · 2026-08-04T18:18:27+05:00 · fix: harden subscription renewal lifecycle.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 111; последняя `20260804110824_platform_billing_renewal_contract.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -33,8 +33,8 @@ Platform Admin объединяет публичные промокоды и а�
 уменьшает следующую заявку на тариф и погашается атомарно при её подтверждении. Компенсации
 видны владельцу в подписке и сопровождаются внутренним CRM-уведомлением.
 
-Новый lifecycle подписки подготовлен локально, но ещё не опубликован в production. Назначенный
-план и состояние оплаченного периода теперь разделены: истёкший Business остаётся видимым как
+Новый lifecycle подписки опубликован и проверен в production. Назначенный план и состояние
+оплаченного периода разделены: истёкший Business остаётся видимым как
 истёкший, получает явное продление того же тарифа и не маскируется статусом «текущий». За 7 дней
 CRM показывает постоянный баннер; рубежи 7/3/1/0 дней и overdue обрабатывает идемпотентный Cron
 с CRM- и Telegram-уведомлениями. После окончания доступен recovery-контур «Подписка» +
@@ -80,9 +80,10 @@ FitCRM Bridge контроля доступа теперь поставляет�
 - `20260729054204_platform_club_compensations.sql` добавляет service-only адресные компенсации,
   мгновенное продление днями и атомарное погашение скидки при подтверждении биллинга.
 - Миграции `20260804103933_platform_billing_renewal_hardening.sql` и
-  `20260804110824_platform_billing_renewal_contract.sql` подготовлены и проверены локально, но
-  до rollout не считаются применёнными. Обязательный порядок: expand с временной заморозкой
-  approval → совместимый app deploy → contract, снимающий freeze и включающий DB lifecycle gates.
+  `20260804110824_platform_billing_renewal_contract.sql` применены в production в порядке
+  expand с временной заморозкой approval → совместимый app deployment `READY` → contract.
+  Contract снял freeze и включил авторитетные DB lifecycle/quote/capacity gates; повторно
+  применять expand после contract нельзя.
 - Bot tokens вынесены из публично читаемой `clubs` в service-only `telegram_integrations`; открытых `clubs.tg_token` в production — `0`.
 - Supabase Cron обрабатывает scheduled broadcasts каждые 5 минут; Vercel daily cron отвечает за reminders/report.
 - Supabase Cron каждые 10 минут повторяет pending/failed ответы клиентского inbox; сообщения остаются сохранёнными даже при временной недоступности Telegram.
@@ -91,7 +92,7 @@ FitCRM Bridge контроля доступа теперь поставляет�
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Внутренние CRM-уведомления Platform опубликованы в deployment `dpl_BjphKBXRiwTp5aQf6gTJnRhiqHFp` для commit `7c3a1b4`; alias `fitcrm-three.vercel.app`, HTTP smoke, runtime error scan и end-to-end delivery/read QA подтверждены. Полная локализация CRM ранее опубликована в deployment `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho`. Юридические маршруты и `/register` ранее прошли HTTP smoke. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе. Новый renewal lifecycle на 2026-08-04 находится в pre-deploy состоянии: локальные и rollback-проверки успешны, production deployment и применение двух новых миграций ещё не подтверждены.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Внутренние CRM-уведомления Platform опубликованы в deployment `dpl_BjphKBXRiwTp5aQf6gTJnRhiqHFp` для commit `7c3a1b4`; alias `fitcrm-three.vercel.app`, HTTP smoke, runtime error scan и end-to-end delivery/read QA подтверждены. Полная локализация CRM ранее опубликована в deployment `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho`. Юридические маршруты и `/register` ранее прошли HTTP smoke. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе. Renewal lifecycle опубликован commit `0551fa5` в production deployment `dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr`; основной alias, обе миграции, DB contract probes, expired/pending/approve recovery-flow, desktop/mobile overflow и Vercel error scan подтверждены.
 
 ## Риски и долг
 

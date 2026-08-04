@@ -28,17 +28,18 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Нет активной задачи. Выберите следующую из [[05 Kanban]].
 <!-- AUTO:END current-task -->
 
-## Change set перед production deploy — 2026-08-04
+## Production release — renewal lifecycle 2026-08-04
 
 - Renewal lifecycle реализован и локально проверен: `active`/`expiring`/`expired`/`trial_*`/
   `unlimited`/`suspended`, предупреждение за 7 дней, CRM + Telegram milestones 7/3/1/0/overdue,
   recovery-shell «Подписка» + «Поддержка», продление того же тарифа и отдельный pending-state.
 - Коммерческие terms заявки неизменяемы; approval и связанные platform-операции атомарны;
   app, RLS/DB triggers и Storage fail-closed блокируют операционный доступ после expiry.
-- Локально пройдены 213 тестов (1 skipped), TypeScript, production build, SQL parse/runtime
+- Пройдены 213 тестов (1 skipped), TypeScript, scoped ESLint, production build, SQL parse/runtime
   rollback-сценарии и security review без Critical/High/Medium замечаний.
-- Production пока не подтверждён. Выпускать только `expand` migration → совместимый app deploy →
-  `contract` migration. Expand временно замораживает billing approval; contract снимает freeze.
+- Production rollout завершён в порядке expand → app `READY` → contract. Commit `0551fa5`,
+  deployment `dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr`; alias, health/smoke, DB triggers/ACL,
+  expired/pending/approve recovery и Vercel error scan подтверждены. Approval freeze снята.
   Не применять expand повторно после contract.
 - Полный flow, screenshots и evidence limits: [[UX/Subscription Renewal Audit 2026-08-04]].
 - Остаточный Low: Telegram reminders имеют at-least-once семантику и могут повториться в узком
@@ -47,6 +48,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
@@ -56,7 +58,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
 - `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 - `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
-- `ae299d3` · 2026-07-30 · fix: simplify language switcher chrome
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
@@ -64,8 +65,8 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы; cold latency остаётся под наблюдением.
 - Unit/integration и opt-in tenant isolation тесты существуют локально; автоматический GitHub CI пока не подключён.
 - SMS/email delivery и проверенный backup/restore отсутствуют.
-- Новый renewal lifecycle ещё не прошёл production rollout/QA; не считать его live до проверки
-  обеих миграций, deployment и recovery flow на основном alias.
+- Renewal lifecycle live и production-проверен; при будущих изменениях сохранять rollout-contract
+  и не переустанавливать expand поверх действующего contract.
 - Подробнее: [[08 Known Issues]].
 
 ## Нельзя нарушать

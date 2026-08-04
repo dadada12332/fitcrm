@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
 - `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
 - `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
-- `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
