@@ -320,6 +320,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `6afe4ee` · 2026-08-07 · feat: add secure lead sales hub
 - `0175c90` · 2026-08-04 · docs: record subscription lifecycle release [skip ci]
 - `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
@@ -349,5 +350,4 @@ tags: [zalkins, releases]
 - `d158896` · 2026-07-28 · feat: localize the complete CRM interface
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
-- `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
 <!-- AUTO:END changelog-candidates -->

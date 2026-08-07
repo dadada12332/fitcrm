@@ -12,7 +12,7 @@ tags: [zalkins, operations]
 <!-- AUTO:START repository-state -->
 - Версия package: `0.1.0`.
 - Branch: `main`.
-- Последний commit: 0175c90 · 2026-08-04T18:31:38+05:00 · docs: record subscription lifecycle release [skip ci].
+- Последний commit: 6afe4ee · 2026-08-07T17:05:45+05:00 · feat: add secure lead sales hub.
 - Working tree: есть незакоммиченные изменения.
 - Миграции в Git: 113; последняя `20260807115921_lead_hub_client_integrity.sql`.
 - Последний production deploy: нет доступных подтверждённых данных.
@@ -96,7 +96,7 @@ FitCRM Bridge контроля доступа теперь поставляет�
 
 ## Окружения
 
-См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Внутренние CRM-уведомления Platform опубликованы в deployment `dpl_BjphKBXRiwTp5aQf6gTJnRhiqHFp` для commit `7c3a1b4`; alias `fitcrm-three.vercel.app`, HTTP smoke, runtime error scan и end-to-end delivery/read QA подтверждены. Полная локализация CRM ранее опубликована в deployment `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho`. Юридические маршруты и `/register` ранее прошли HTTP smoke. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе. Renewal lifecycle опубликован commit `0551fa5` в production deployment `dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr`; основной alias, обе миграции, DB contract probes, expired/pending/approve recovery-flow, desktop/mobile overflow и Vercel error scan подтверждены.
+См. [[Infrastructure/Environment Matrix]]. Vercel `syd1` и Supabase `ap-southeast-2` подтверждены как Sydney-регионы. Lead Hub опубликован commit `6afe4ee` в deployment `dpl_JEK2bkzdKGYgWQ8jWD2caLakAZ7r`; основной alias, health/database, auth redirect, desktop/mobile zero-overflow и runtime error scan подтверждены. Внутренние CRM-уведомления Platform опубликованы в deployment `dpl_BjphKBXRiwTp5aQf6gTJnRhiqHFp` для commit `7c3a1b4`; alias `fitcrm-three.vercel.app`, HTTP smoke, runtime error scan и end-to-end delivery/read QA подтверждены. Полная локализация CRM ранее опубликована в deployment `dpl_H4E9ZW9JoWAb6Xh33Q2aPm9Qz7Ho`. Юридические маршруты и `/register` ранее прошли HTTP smoke. Google Calendar workspace и переход к Google account chooser проверены в production без browser/server errors. Тарифная блокировка и upgrade dialog проверены на production mobile flow без overflow и browser errors. Актуализированный FAQ доступен на домене; Telegram KPI redesign, bot avatar release и binary preview repair также доступны в production. Template editor, импорт/экспорт и settings tabs ранее прошли production gate. Клиентский inbox проверен на localhost desktop/mobile и production delivery через реального клубного бота; `/growth` ранее проверен в синтетическом QA-клубе. Renewal lifecycle опубликован commit `0551fa5` в production deployment `dpl_DS1d4bbectKbM2hrWJNWDEDQqHpr`; основной alias, обе миграции, DB contract probes, expired/pending/approve recovery-flow, desktop/mobile overflow и Vercel error scan подтверждены.
 
 ## Риски и долг
 

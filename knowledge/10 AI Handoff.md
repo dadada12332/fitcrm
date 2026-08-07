@@ -28,7 +28,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Нет активной задачи. Выберите следующую из [[05 Kanban]].
 <!-- AUTO:END current-task -->
 
-## Lead Hub — local release candidate 2026-08-07
+## Production release — Lead Hub 2026-08-07
 
 - `/leads` реализует отдельный pre-client pipeline с источниками, этапами, owner, SLA,
   next action, trial, loss/reopen, immutable timeline/archive и атомарной конвертацией.
@@ -41,7 +41,9 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
   desktop/mobile, light/dark и отсутствие console/horizontal-overflow ошибок.
 - Финальный release gate 2026-08-07 чистый: TypeScript, scoped ESLint, 259 тестов
   (1 skipped), `git diff --check` и production build с 66/66 сгенерированными страницами.
-  Перед закрытием остаются commit/push, Vercel smoke и production visual QA.
+- Commit `6afe4ee`, deployment `dpl_JEK2bkzdKGYgWQ8jWD2caLakAZ7r`, основной alias
+  `fitcrm-three.vercel.app`. Health/database, auth redirect, authorized desktop/mobile browser QA,
+  zero-overflow, Onest, console и Vercel error/fatal/500 scan подтверждены.
 
 ## Production release — renewal lifecycle 2026-08-04
 
@@ -63,6 +65,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `6afe4ee` · 2026-08-07 · feat: add secure lead sales hub
 - `0175c90` · 2026-08-04 · docs: record subscription lifecycle release [skip ci]
 - `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
@@ -72,7 +75,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
 - `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
 - `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
-- `0791937` · 2026-07-30 · feat: configure membership freeze allowance
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы

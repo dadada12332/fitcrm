@@ -42,10 +42,16 @@ tags: [zalkins, tasks, leads, sales, crm, revenue, product]
   остаются в одной строке, на `1280px` список переходит в карточки, mobile `390px` складывает
   фильтры без horizontal overflow; light/dark и console проверены.
 - Финальный gate: 259 тестов прошли, 1 skipped; `npx tsc --noEmit`, scoped ESLint,
-  `npm run build` и `git diff --check` успешны. До закрытия задачи остаются commit/push и
-  production smoke/visual QA.
+  `npm run build` и `git diff --check` успешны.
 - Финальный review дополнительно закрыл назначение чужого тренера без `leads.assign`, мутации
   при platform impersonation, stale version-conflict и удаление клиента из immutable sales trail.
+- Commit `6afe4ee` опубликован в production deployment
+  `dpl_JEK2bkzdKGYgWQ8jWD2caLakAZ7r`; alias `fitcrm-three.vercel.app` отвечает, `/api/health`
+  возвращает `200` и `database: reachable`, `/leads` корректно требует авторизацию.
+- Авторизованный production browser QA подтвердил `/leads` на desktop `1920px` и mobile
+  `390px`: horizontal overflow отсутствует, Onest активен, framework overlay и console errors
+  отсутствуют. Скриншоты: `artifacts/lead-hub-final/lead-hub-production-desktop.png` и
+  `artifacts/lead-hub-final/lead-hub-production-mobile.png`; Vercel error/fatal/500 scan чистый.
 
 ## Benchmark fitness CRM и стратегия лидерства — 2026-08-05
 

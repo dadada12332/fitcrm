@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `6afe4ee` · 2026-08-07 · feat: add secure lead sales hub
 - `0175c90` · 2026-08-04 · docs: record subscription lifecycle release [skip ci]
 - `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `86e7cd6` · 2026-07-30 · docs: record membership chevron QA [skip ci]
 - `f20a71a` · 2026-07-30 · fix: align membership duration chevron
 - `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
-- `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
