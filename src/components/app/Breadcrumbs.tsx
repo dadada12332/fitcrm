@@ -7,7 +7,7 @@ import { useAppLocale } from "./ClubContext"
 import type { AppMessageKey } from "@/lib/app-locale"
 
 const LABEL_KEYS: Record<string, AppMessageKey> = {
-  dashboard: "nav.dashboard", inbox: "nav.inbox", clients: "nav.clients",
+  dashboard: "nav.dashboard", inbox: "nav.inbox", leads: "nav.leads", clients: "nav.clients",
   memberships: "nav.memberships", visits: "nav.visits", schedule: "nav.schedule",
   payments: "nav.payments", staff: "nav.staff", settings: "nav.settings",
   club: "settings.basic", branches: "settings.branches", finance: "settings.finance",

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { dateKeyInTimeZone, hourInTimeZone, rangeForDateKey, zonedDayRange } from "../../src/lib/timezone"
+import {
+  dateKeyInTimeZone,
+  dateTimeLocalToUtcIso,
+  dateTimeLocalValueInTimeZone,
+  hourInTimeZone,
+  rangeForDateKey,
+  zonedDayRange,
+} from "../../src/lib/timezone"
 
 describe("club timezone helpers", () => {
   it("builds Tashkent calendar-day boundaries in UTC", () => {
@@ -25,5 +32,16 @@ describe("club timezone helpers", () => {
       from: "2026-07-26T21:00:00.000Z",
       to: "2026-07-27T21:00:00.000Z",
     })
+  })
+
+  it("round-trips datetime-local values in the club timezone", () => {
+    const instant = new Date("2026-08-05T09:30:00.000Z")
+    expect(dateTimeLocalValueInTimeZone(instant, "Asia/Tashkent")).toBe("2026-08-05T14:30")
+    expect(dateTimeLocalToUtcIso("2026-08-05T14:30", "Asia/Tashkent")).toBe(instant.toISOString())
+  })
+
+  it("rejects invalid wall-clock values", () => {
+    expect(dateTimeLocalToUtcIso("2026-02-30T10:00", "Asia/Tashkent")).toBeNull()
+    expect(dateTimeLocalToUtcIso("not-a-date", "Asia/Tashkent")).toBeNull()
   })
 })

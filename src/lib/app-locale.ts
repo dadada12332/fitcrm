@@ -19,6 +19,7 @@ export function normalizeAppLocale(value: unknown): AppLocale {
 
 const RU = {
   "nav.dashboard": "Дашборд",
+  "nav.leads": "Лиды",
   "nav.clients": "Клиенты",
   "nav.memberships": "Абонементы",
   "nav.operations": "Операции",
@@ -105,6 +106,7 @@ type Messages = Record<AppMessageKey, string>
 
 const UZ: Messages = {
   "nav.dashboard": "Boshqaruv paneli",
+  "nav.leads": "Lidlar",
   "nav.clients": "Mijozlar",
   "nav.memberships": "Abonementlar",
   "nav.operations": "Operatsiyalar",
@@ -188,6 +190,7 @@ const UZ: Messages = {
 
 const EN: Messages = {
   "nav.dashboard": "Dashboard",
+  "nav.leads": "Leads",
   "nav.clients": "Clients",
   "nav.memberships": "Memberships",
   "nav.operations": "Operations",

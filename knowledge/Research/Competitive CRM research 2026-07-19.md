@@ -7,6 +7,11 @@ tags: [fitcrm, research, crm, retention, leads]
 
 # Competitive CRM research — 2026-07-19
 
+> Полный повторный code-backed benchmark от 5 августа 2026 года, включая фактическую карту
+> Zalkins, региональных и международных конкурентов, feature gaps и phased roadmap:
+> [[Research/Fitness CRM benchmark and leadership roadmap 2026-08-05]]. Этот документ сохраняет
+> историю ранних решений Growth OS; при расхождении текущим источником считается новый benchmark.
+
 ## Цель
 
 Сравнить FitCRM с доступными fitness CRM и региональными CRM, выделить повторяющиеся продуктовые паттерны и выбрать безопасную для локального прототипа функцию.

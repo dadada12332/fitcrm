@@ -6,6 +6,12 @@ import { describe, expect, it } from "vitest"
 const criticalMutations: Record<string, string[]> = {
   "clients/actions.ts": ["createClientAction", "deleteClientAction", "updateClientAction", "toggleFreezeAction", "renewSubscriptionAction"],
   "clients/import-actions.ts": ["batchImportClientsAction"],
+  "leads/actions.ts": [
+    "createLeadAction", "updateLeadAction", "assignLeadAction", "moveLeadStageAction",
+    "createLeadTaskAction", "completeLeadTaskAction", "recordLeadActivityAction",
+    "scheduleLeadTrialAction", "markLeadTrialOutcomeAction", "convertLeadAction",
+    "archiveLeadAction", "duplicateLeadAction",
+  ],
   "memberships/actions.ts": ["createMembershipAction", "updateMembershipAction", "duplicateMembershipAction", "setMembershipActiveAction", "setMembershipArchivedAction", "deleteMembershipAction"],
   "payments/actions.ts": ["createPaymentAction", "createOnlinePaymentAction", "sendPaymentLinkTelegramAction"],
   "visits/actions.ts": ["markVisitAction", "manualVisitAction"],

@@ -30,6 +30,32 @@ describe("role permissions", () => {
     expect(can(trainer, "visits", "checkin")).toBe(true)
   })
 
+  it("assigns lead capabilities by operational role", () => {
+    const admin = getDefaultPermissions("admin")
+    const manager = getDefaultPermissions("manager")
+    const cashier = getDefaultPermissions("cashier")
+
+    expect(admin.leads).toEqual({
+      view: true,
+      create: true,
+      edit: true,
+      assign: true,
+      convert: true,
+      archive: false,
+    })
+    expect(manager.leads).toEqual(admin.leads)
+    expect(cashier.leads).toEqual({
+      view: true,
+      create: true,
+      edit: true,
+      assign: false,
+      convert: true,
+      archive: false,
+    })
+    expect(allPermissionValues(getDefaultPermissions("trainer").leads)).not.toContain(true)
+    expect(allPermissionValues(getDefaultPermissions("accountant").leads)).not.toContain(true)
+  })
+
   it("merges a custom role without mutating its base", () => {
     const base = getDefaultPermissions("trainer")
     const result = mergePermissions(base, { clients: { ...base.clients, create: true } })
@@ -55,6 +81,7 @@ describe("role permissions", () => {
     expect(allPermissionValues(restricted.clients)).not.toContain(true)
     expect(allPermissionValues(restricted.visits)).not.toContain(true)
     expect(allPermissionValues(restricted.payments)).not.toContain(true)
+    expect(restricted.leads).not.toBe(manager.leads)
     expect(manager.clients.view).toBe(true)
   })
 

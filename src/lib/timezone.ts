@@ -54,6 +54,63 @@ function zonedDateTimeToUtc(parts: ZonedDateParts, timeZone: string): Date {
   return new Date(utc)
 }
 
+/** Formats an instant for a `<input type="datetime-local">` in the club timezone. */
+export function dateTimeLocalValueInTimeZone(date: Date, timeZone: string): string {
+  const parts = zonedParts(date, timeZone)
+  return [
+    String(parts.year).padStart(4, "0"),
+    "-",
+    String(parts.month).padStart(2, "0"),
+    "-",
+    String(parts.day).padStart(2, "0"),
+    "T",
+    String(parts.hour).padStart(2, "0"),
+    ":",
+    String(parts.minute).padStart(2, "0"),
+  ].join("")
+}
+
+/** Converts a timezone-less form value into the matching UTC instant. */
+export function dateTimeLocalToUtcIso(value: string, timeZone: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value)
+  if (!match) return null
+  const parts: ZonedDateParts = {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3]),
+    hour: Number(match[4]),
+    minute: Number(match[5]),
+    second: Number(match[6] ?? 0),
+  }
+  const calendarCheck = new Date(Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  ))
+  if (
+    calendarCheck.getUTCFullYear() !== parts.year
+    || calendarCheck.getUTCMonth() + 1 !== parts.month
+    || calendarCheck.getUTCDate() !== parts.day
+    || calendarCheck.getUTCHours() !== parts.hour
+    || calendarCheck.getUTCMinutes() !== parts.minute
+    || calendarCheck.getUTCSeconds() !== parts.second
+  ) return null
+
+  try {
+    const instant = zonedDateTimeToUtc(parts, timeZone)
+    const rendered = zonedParts(instant, timeZone)
+    if (Object.keys(parts).some((key) => parts[key as keyof ZonedDateParts] !== rendered[key as keyof ZonedDateParts])) {
+      return null
+    }
+    return instant.toISOString()
+  } catch {
+    return null
+  }
+}
+
 export function dateKeyInTimeZone(date: Date, timeZone: string): string {
   const parts = zonedParts(date, timeZone)
   return [

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Trash2, Check, ShieldCheck, Users, ChevronRight, X, UserCheck } from "lucide-react"
+import { Plus, Trash2, Check, ShieldCheck, Users, ChevronRight, X, UserCheck, Target, type LucideIcon } from "lucide-react"
 import {
   saveRoleAction, createRoleAction, deleteRoleAction,
   type RoleRow,
@@ -86,7 +86,8 @@ function Checkbox({ checked, onChange, label, description }: { checked: boolean;
 type ModuleCfg = {
   key: keyof RolePermissions
   label: string
-  emoji: string
+  emoji?: string
+  icon?: LucideIcon
   actions: { key: string; label: string; description?: string }[]
 }
 
@@ -96,6 +97,17 @@ const MODULES: ModuleCfg[] = [
     actions: [
       { key: "view",         label: "Просмотр" },
       { key: "view_finance", label: "Просмотр финансов", description: "Выручка и доходы" },
+    ],
+  },
+  {
+    key: "leads", label: "Лиды", icon: Target,
+    actions: [
+      { key: "view",    label: "Просмотр" },
+      { key: "create",  label: "Создание" },
+      { key: "edit",    label: "Редактирование" },
+      { key: "assign",  label: "Назначение менеджеров" },
+      { key: "convert", label: "Конвертация в клиента" },
+      { key: "archive", label: "Архивирование" },
     ],
   },
   {
@@ -233,6 +245,7 @@ function PermissionModule({
   disabled: boolean
 }) {
   const modPerms = permissions[mod.key] as Record<string, boolean>
+  const ModuleIcon = mod.icon
 
   const allChecked = mod.actions.every((a) => modPerms[a.key])
   const toggleAll = () => {
@@ -248,7 +261,7 @@ function PermissionModule({
         onClick={disabled ? undefined : toggleAll}
       >
         <div className="flex items-center gap-2">
-          <span style={{ fontSize: 16 }}>{mod.emoji}</span>
+          {ModuleIcon ? <ModuleIcon className="size-4 text-muted-foreground" /> : <span style={{ fontSize: 16 }}>{mod.emoji}</span>}
           <span className="text-sm font-medium" style={{ color: "var(--on-dark)" }}>{mod.label}</span>
         </div>
         {!disabled && (

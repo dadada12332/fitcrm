@@ -1,5 +1,6 @@
 export type RolePermissions = {
   dashboard:   { view: boolean; view_finance: boolean }
+  leads:       { view: boolean; create: boolean; edit: boolean; assign: boolean; convert: boolean; archive: boolean }
   clients:     { view: boolean; create: boolean; edit: boolean; delete: boolean; freeze: boolean; extend: boolean; export: boolean }
   memberships: { view: boolean; sell: boolean; create: boolean; edit: boolean; delete: boolean; change_price: boolean }
   payments:    { view: boolean; create: boolean; refund: boolean; view_revenue: boolean; export: boolean }
@@ -35,6 +36,7 @@ export type StaffPermissionOverrides = {
 
 const ALL_TRUE_PERMS: RolePermissions = {
   dashboard:   { view: true,  view_finance: true  },
+  leads:       { view: true,  create: true,  edit: true,  assign: true,  convert: true,  archive: true  },
   clients:     { view: true,  create: true,  edit: true,  delete: true,  freeze: true,  extend: true,  export: true  },
   memberships: { view: true,  sell: true,    create: true,  edit: true,  delete: true,  change_price: true  },
   payments:    { view: true,  create: true,  refund: true,  view_revenue: true,  export: true  },
@@ -51,6 +53,7 @@ const ALL_TRUE_PERMS: RolePermissions = {
 
 const ALL_FALSE_PERMS: RolePermissions = {
   dashboard:   { view: false, view_finance: false },
+  leads:       { view: false, create: false, edit: false, assign: false, convert: false, archive: false },
   clients:     { view: false, create: false, edit: false, delete: false, freeze: false, extend: false, export: false },
   memberships: { view: false, sell: false,   create: false, edit: false, delete: false, change_price: false },
   payments:    { view: false, create: false, refund: false, view_revenue: false, export: false },
@@ -70,6 +73,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, RolePermissions> = {
   admin: {
     ...ALL_FALSE_PERMS,
     dashboard:   { view: true,  view_finance: false },
+    leads:       { view: true,  create: true,  edit: true,  assign: true,  convert: true,  archive: false },
     clients:     { view: true,  create: true,  edit: true,  delete: false, freeze: true,  extend: true,  export: true  },
     memberships: { view: true,  sell: true,    create: true,  edit: true,  delete: false, change_price: false },
     payments:    { view: true,  create: true,  refund: true,  view_revenue: false, export: false },
@@ -86,6 +90,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, RolePermissions> = {
   manager: {
     ...ALL_FALSE_PERMS,
     dashboard:   { view: true,  view_finance: false },
+    leads:       { view: true,  create: true,  edit: true,  assign: true,  convert: true,  archive: false },
     clients:     { view: true,  create: true,  edit: true,  delete: false, freeze: true,  extend: true,  export: true  },
     memberships: { view: true,  sell: true,    create: false, edit: false, delete: false, change_price: false },
     payments:    { view: true,  create: true,  refund: false, view_revenue: false, export: false },
@@ -119,6 +124,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, RolePermissions> = {
   cashier: {
     ...ALL_FALSE_PERMS,
     dashboard:   { view: true,  view_finance: false },
+    leads:       { view: true,  create: true,  edit: true,  assign: false, convert: true,  archive: false },
     clients:     { view: true,  create: true,  edit: false, delete: false, freeze: false, extend: true,  export: false },
     memberships: { view: true,  sell: true,    create: false, edit: false, delete: false, change_price: false },
     payments:    { view: true,  create: true,  refund: false, view_revenue: false, export: false },
@@ -159,6 +165,7 @@ export function applyStaffPermissionOverrides(
   const result: RolePermissions = {
     ...base,
     dashboard: { ...base.dashboard },
+    leads: { ...base.leads },
     clients: { ...base.clients },
     memberships: { ...base.memberships },
     payments: { ...base.payments },

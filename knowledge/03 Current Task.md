@@ -1,11 +1,74 @@
 ---
 type: current-task
-status: complete
-updated: 2026-08-04
-tags: [zalkins, tasks, subscription, billing, recovery, ui]
+status: active
+updated: 2026-08-07
+tags: [zalkins, tasks, leads, sales, crm, revenue, product]
 ---
 
 # Current Task
+
+## Lead Hub — 2026-08-05
+
+- Реализовать отдельный pre-client контур `лид → контакт → квалификация → пробное →
+  конвертация`, не загрязняя клиентскую базу временными карточками.
+- Начать со списка-очереди и detail sheet: KPI, SLA первого ответа и следующего действия,
+  ответственный, источник, задачи, пробное занятие, история, потеря с причиной и восстановление.
+- Конвертация в клиента должна быть атомарной и идемпотентной, учитывать дубли и существующий
+  лимит клиентов; продажа абонемента остаётся отдельным permission-checked действием.
+- Добавить отдельные права `leads`, тарифный доступ, навигацию и tenant-safe таблицы с RLS,
+  явными Data API grants, индексами и service-only мутациями.
+- Новый интерфейс строить только на текущих semantic tokens и shadcn primitives; desktop-фильтры
+  держать в одной строке, перенос включать только на адаптиве. Визуальные ориентиры — текущие
+  Retention, Inbox и Clients без копирования legacy raw colors.
+- Перед релизом пройти security/code review, unit/security проверки, TypeScript/build и живой
+  browser QA на desktop/mobile, light/dark и основных состояниях.
+
+### Реализовано 2026-08-07
+
+- Добавлен production-контур `/leads`: рабочая очередь, KPI, быстрые/расширенные фильтры,
+  поиск, пагинация, responsive cards/table и детальная карточка лида.
+- Поддержаны этапы `new → contacted → qualified → trial_booked → trial_completed → offer → won`,
+  восстановимый `lost`, обязательная причина потери, задачи, SLA, пробные, история, архив и
+  атомарная конвертация в нового или существующего клиента.
+- Миграция `20260805075601_lead_hub_foundation.sql` применена: 10 tenant-scoped таблиц,
+  immutable audit/history/conversion, RLS/Data API grants, индексы и 11 service-only RPC.
+  Release-hardening `20260807115921_lead_hub_client_integrity.sql` также применён: связь
+  конверсии с клиентом обязательна, обе FK используют `ON DELETE RESTRICT`.
+- Права `leads` добавлены в роли, тарифы, sidebar, breadcrumbs и локализацию. Каждая мутация
+  проверяет permission; service-role операции вручную ограничены `club_id`; дубли и квота
+  клиента защищены транзакционно и advisory locks.
+- Browser QA в синтетическом клубе подтвердил создание и дубли, переходы этапов, задачи,
+  `no answer → follow-up`, пробные, потерю/возврат, конвертацию и архив. На `1600px` фильтры
+  остаются в одной строке, на `1280px` список переходит в карточки, mobile `390px` складывает
+  фильтры без horizontal overflow; light/dark и console проверены.
+- Финальный gate: 259 тестов прошли, 1 skipped; `npx tsc --noEmit`, scoped ESLint,
+  `npm run build` и `git diff --check` успешны. До закрытия задачи остаются commit/push и
+  production smoke/visual QA.
+- Финальный review дополнительно закрыл назначение чужого тренера без `leads.assign`, мутации
+  при platform impersonation, stale version-conflict и удаление клиента из immutable sales trail.
+
+## Benchmark fitness CRM и стратегия лидерства — 2026-08-05
+
+- Проведен code-backed аудит фактической функциональности Zalkins с разделением
+  `Production / Partial-Beta / Absent`; старые внутренние утверждения не принимались без
+  проверки в коде.
+- По официальным материалам сравнены прямые региональные продукты FitBase, UZFIT, LuckyFit,
+  Mobifitness, 1С/БИТ.Фитнес, Umai CRM и YCLIENTS, а также Mindbody, ABC Glofox, PushPress,
+  GymMaster, Virtuagym, PerfectGym, Gymdesk, Zen Planner и Mariana Tek.
+- Главные подтвержденные пробелы Zalkins: lead pipeline, универсальный automation builder,
+  recurring member billing/dunning, HQ-контур сетей, полноценный payroll, omnichannel inbox,
+  public API/outbound webhooks и production-сертификация СКУД/платежных интеграций.
+- Сильная сторона уточнена: Telegram Mini App уже является полноценным клиентским кабинетом с
+  записью/отменой занятий, динамическим QR, продлением через Payme/Click, настройками и support;
+  строить второй кабинет с нуля не требуется.
+- Рекомендуемое позиционирование: `Revenue & Retention OS для фитнес-клубов Центральной Азии`.
+  North Star — подтвержденная дополнительная выручка, сохраненная или возвращенная Zalkins на
+  активный клуб за месяц.
+- Приоритет: сначала operational trust и честный маркетинг, затем Lead Hub + Automation Studio,
+  booking completion и Mini App 2.0; после этого member billing/dunning, omnichannel, payroll,
+  HQ, API и анонимные benchmarks.
+- Полная матрица, источники, идеи и phased roadmap сохранены в
+  [[Research/Fitness CRM benchmark and leadership roadmap 2026-08-05]].
 
 ## Lifecycle продления подписки Zalkins — 2026-08-04
 

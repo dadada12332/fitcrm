@@ -7,7 +7,7 @@ export type { LimitKey }
 
 // ── Справочники ключей (единственное место, где перечислены доступные фичи/лимиты/разделы) ──
 export const FEATURE_KEYS = [
-  "crm", "reports", "finance", "warehouse", "telegram", "broadcasts",
+  "crm", "leads", "reports", "finance", "warehouse", "telegram", "broadcasts",
   "email", "sms", "push", "ai", "knowledge", "import", "export",
   "multi_branch", "instagram", "api", "platform_api", "white_label",
   "retention", "growth", "inbox", "telegram_automation",
@@ -16,7 +16,7 @@ export const FEATURE_KEYS = [
 export type FeatureKey = typeof FEATURE_KEYS[number]
 
 export const FEATURE_LABELS: Record<string, string> = {
-  crm: "CRM", reports: "Отчёты", finance: "Финансы", warehouse: "Склад",
+  crm: "CRM", leads: "Лиды", reports: "Отчёты", finance: "Финансы", warehouse: "Склад",
   telegram: "Telegram", broadcasts: "Рассылки", email: "Email", sms: "SMS",
   push: "Push", ai: "AI", knowledge: "База знаний", import: "Импорт",
   export: "Экспорт", multi_branch: "Мультифилиальность", instagram: "Instagram",
@@ -27,14 +27,14 @@ export const FEATURE_LABELS: Record<string, string> = {
 }
 
 export const SECTION_KEYS = [
-  "dashboard", "clients", "visits", "payments", "memberships", "schedule",
+  "dashboard", "leads", "clients", "visits", "payments", "memberships", "schedule",
   "warehouse", "reports", "staff", "integrations", "broadcasts", "ai",
   "knowledge", "settings", "retention", "growth", "inbox",
 ] as const
 export type SectionKey = typeof SECTION_KEYS[number]
 
 export const SECTION_LABELS: Record<string, string> = {
-  dashboard: "Дашборд", clients: "Клиенты", visits: "Посещения", payments: "Оплаты",
+  dashboard: "Дашборд", leads: "Лиды", clients: "Клиенты", visits: "Посещения", payments: "Оплаты",
   memberships: "Абонементы", schedule: "Расписание", warehouse: "Склад",
   reports: "Отчёты", staff: "Сотрудники", integrations: "Интеграции",
   broadcasts: "Рассылки", ai: "AI", knowledge: "База знаний", settings: "Настройки",

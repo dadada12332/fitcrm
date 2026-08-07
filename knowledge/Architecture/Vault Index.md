@@ -28,6 +28,8 @@ updated: 2026-07-18
 - [[Daily/2026-07-30]]
 - [[Daily/2026-08-03]]
 - [[Daily/2026-08-04]]
+- [[Daily/2026-08-05]]
+- [[Daily/2026-08-07]]
 
 ## Database
 
@@ -73,6 +75,7 @@ updated: 2026-07-18
 
 - [[Research/AI Analytics References]]
 - [[Research/Competitive CRM research 2026-07-19]]
+- [[Research/Fitness CRM benchmark and leadership roadmap 2026-08-05]]
 
 ## Tasks
 

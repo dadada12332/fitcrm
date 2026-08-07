@@ -165,6 +165,18 @@ export async function deleteClientAction(clientId: string): Promise<{ error?: st
   // в базе, а UI ошибочно рапортовал успех). Финансовую историю сохраняем — просто
   // снимаем привязку к удаляемому клиенту и его абонементам.
   const service = createServiceClient()
+  const { data: leadConversion, error: leadConversionError } = await service
+    .from("lead_conversions")
+    .select("lead_id")
+    .eq("club_id", club.clubId)
+    .eq("client_id", clientId)
+    .limit(1)
+    .maybeSingle()
+  if (leadConversionError) return { error: "Не удалось проверить историю продаж клиента" }
+  if (leadConversion) {
+    return { error: "Клиент связан с конвертированным лидом и историей продаж. Удаление недоступно." }
+  }
+
   const { error: detachError } = await service
     .from("payments")
     .update({ client_id: null, subscription_id: null })

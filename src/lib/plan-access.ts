@@ -32,7 +32,7 @@ export function applyPlanToPermissions(source: RolePermissions, plan: PlanAccess
   if (!plan) return source
   const result = structuredClone(source)
   const sectionModules: Array<[SectionKey, keyof RolePermissions]> = [
-    ["dashboard", "dashboard"], ["clients", "clients"], ["memberships", "memberships"],
+    ["dashboard", "dashboard"], ["leads", "leads"], ["clients", "clients"], ["memberships", "memberships"],
     ["payments", "payments"], ["visits", "visits"], ["schedule", "schedule"],
     ["warehouse", "warehouse"], ["reports", "reports"], ["staff", "staff"],
     ["inbox", "inbox"], ["ai", "ai"],
@@ -41,10 +41,11 @@ export function applyPlanToPermissions(source: RolePermissions, plan: PlanAccess
     if (!planSectionEnabled(plan, section)) result[permissionModule] = disabled(result[permissionModule]) as never
   }
   if (!planFeatureEnabled(plan, "crm")) {
-    for (const permissionModule of ["clients", "memberships", "payments", "visits", "schedule"] as const) {
+    for (const permissionModule of ["leads", "clients", "memberships", "payments", "visits", "schedule"] as const) {
       result[permissionModule] = disabled(result[permissionModule]) as never
     }
   }
+  if (!planFeatureEnabled(plan, "leads")) result.leads = disabled(result.leads)
   if (!planFeatureEnabled(plan, "reports")) result.reports = disabled(result.reports)
   if (!planFeatureEnabled(plan, "warehouse")) result.warehouse = disabled(result.warehouse)
   if (!planFeatureEnabled(plan, "inbox")) result.inbox = disabled(result.inbox)

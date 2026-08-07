@@ -1,6 +1,6 @@
 ---
 type: changelog
-updated: 2026-08-04
+updated: 2026-08-06
 tags: [zalkins, releases]
 ---
 
@@ -38,6 +38,15 @@ tags: [zalkins, releases]
 ## Unreleased
 
 ### Added
+
+- В CRM появился отдельный Lead Hub: источники, этапы воронки, ответственный, SLA первого
+  ответа, следующие действия, пробные занятия, причина потери, история и архив. Лид безопасно
+  конвертируется в нового или существующего клиента; система проверяет дубли и лимит тарифа.
+- Рабочая очередь лидов получила KPI, поиск, быстрые и расширенные фильтры, desktop-таблицу,
+  адаптивные карточки и детальный sheet. На широком экране фильтры сохраняют одну строку, а на
+  планшете и телефоне складываются без горизонтального переполнения.
+- Конверсия лида теперь сохраняет обязательную неизменяемую связь с клиентом; связанного с
+  историей продаж клиента нельзя удалить, а platform impersonation остаётся строго read-only.
 
 - Подготовлен полный recovery lifecycle подписки Zalkins: постоянное предупреждение за 7 дней,
   CRM- и Telegram-напоминания на рубежах 7/3/1/0 дней и после окончания, отдельные состояния
@@ -311,6 +320,7 @@ tags: [zalkins, releases]
 <!-- AUTO:START changelog-candidates -->
 Кандидаты для ручного отбора; не все commits должны попасть в пользовательский changelog.
 
+- `0175c90` · 2026-08-04 · docs: record subscription lifecycle release [skip ci]
 - `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
@@ -340,5 +350,4 @@ tags: [zalkins, releases]
 - `1438b4f` · 2026-07-28 · docs: record retention drawer release [skip ci]
 - `afccf5e` · 2026-07-28 · feat: process expiring memberships in drawer
 - `9980d99` · 2026-07-28 · docs: record retention divider release [skip ci]
-- `f12f58b` · 2026-07-28 · fix: soften retention queue divider
 <!-- AUTO:END changelog-candidates -->

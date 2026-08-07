@@ -1,7 +1,7 @@
 ---
 type: ai-handoff
 status: active
-updated: 2026-08-04
+updated: 2026-08-07
 tags: [zalkins, ai]
 ---
 
@@ -28,6 +28,21 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Нет активной задачи. Выберите следующую из [[05 Kanban]].
 <!-- AUTO:END current-task -->
 
+## Lead Hub — local release candidate 2026-08-07
+
+- `/leads` реализует отдельный pre-client pipeline с источниками, этапами, owner, SLA,
+  next action, trial, loss/reopen, immutable timeline/archive и атомарной конвертацией.
+- Миграции `20260805075601_lead_hub_foundation.sql` и
+  `20260807115921_lead_hub_client_integrity.sql` применены; tenant isolation строится на
+  `club_id`, мутации service-only и дополнительно permission-checked в Server Actions.
+- Конвертированный клиент защищён `NOT NULL` + `ON DELETE RESTRICT`, а клиентский delete action
+  заранее возвращает понятную ошибку. Impersonation на мутациях закрыт fail-closed.
+- Локальный browser QA подтвердил основной lifecycle, duplicate/quota guards, responsive
+  desktop/mobile, light/dark и отсутствие console/horizontal-overflow ошибок.
+- Финальный release gate 2026-08-07 чистый: TypeScript, scoped ESLint, 259 тестов
+  (1 skipped), `git diff --check` и production build с 66/66 сгенерированными страницами.
+  Перед закрытием остаются commit/push, Vercel smoke и production visual QA.
+
 ## Production release — renewal lifecycle 2026-08-04
 
 - Renewal lifecycle реализован и локально проверен: `active`/`expiring`/`expired`/`trial_*`/
@@ -48,6 +63,7 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 ## Последние существенные изменения
 
 <!-- AUTO:START recent-changes -->
+- `0175c90` · 2026-08-04 · docs: record subscription lifecycle release [skip ci]
 - `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
@@ -57,7 +73,6 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 - `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
 - `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
 - `0791937` · 2026-07-30 · feat: configure membership freeze allowance
-- `86287ca` · 2026-07-30 · docs: record language switcher release [skip ci]
 <!-- AUTO:END recent-changes -->
 
 ## Известные проблемы
@@ -95,5 +110,5 @@ Auth, RLS, Realtime и Storage находятся в Supabase; приложен�
 Production deploy, применённые миграции, регион Supabase, наличие провайдеров и точные пути из старых `FITCRM_*` документов.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-08-04 Asia/Tashkent
+2026-08-07 Asia/Tashkent
 <!-- AUTO:END updated-at -->

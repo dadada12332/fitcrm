@@ -12,6 +12,7 @@ import {
   HeartHandshake, Rocket,
   MessagesSquare,
   Crown,
+  Target,
 } from "lucide-react"
 import { getBranchesAction, switchBranchAction, type Branch } from "@/app/(app)/actions"
 import { QuickActionsMenu } from "@/components/app/QuickActionsMenu"
@@ -376,6 +377,9 @@ export function Sidebar({ clubId, clubName, plan, stats, permissions, planAccess
         <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2">
         <div className="flex flex-col gap-0.5">
           <NavItem href="/dashboard" icon={LayoutDashboard} label={t("nav.dashboard")} collapsed={collapsed} />
+          {p.leads.view && (
+            <NavItem href="/leads" icon={Target} label={t("nav.leads")} collapsed={collapsed} tour="nav-leads" />
+          )}
           {p.clients.view && (
             <NavItem href="/clients" icon={Users} label={t("nav.clients")} collapsed={collapsed} tour="nav-clients" badge={stats.clientCount > 0 ? stats.clientCount : undefined} badgeType="count" />
           )}

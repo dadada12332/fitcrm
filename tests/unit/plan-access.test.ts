@@ -3,12 +3,18 @@ import { applyPlanToPermissions, planLimitError, type PlanAccess } from "../../s
 import { getDefaultPermissions } from "../../src/lib/permissions"
 import { formatPlanLimitError, LIMIT_KEYS, parsePlanLimitError } from "../../src/lib/plan-limits"
 
+function allPermissionValues(value: object): boolean[] {
+  return Object.values(value).flatMap((entry) =>
+    typeof entry === "object" && entry !== null ? allPermissionValues(entry) : [entry === true],
+  )
+}
+
 function access(overrides: Partial<PlanAccess> = {}): PlanAccess {
   return {
     code: "starter",
     name: "Starter",
-    features: { crm: true, reports: true, warehouse: true, inbox: true, ai: false, telegram: true, finance: true, export: true },
-    sections: { dashboard: true, clients: true, payments: true, reports: true, staff: false, integrations: true, ai: true },
+    features: { crm: true, leads: true, reports: true, warehouse: true, inbox: true, ai: false, telegram: true, finance: true, export: true },
+    sections: { dashboard: true, leads: true, clients: true, payments: true, reports: true, staff: false, integrations: true, ai: true },
     limits: { clients: 1000 },
     ...overrides,
   }
@@ -31,6 +37,36 @@ describe("plan access", () => {
 
     expect(result.ai.use).toBe(false)
     expect(result.clients.create).toBe(false)
+  })
+
+  it("requires the Leads section, Leads feature and CRM feature together", () => {
+    const owner = getDefaultPermissions("owner")
+    const withoutSection = applyPlanToPermissions(owner, access({
+      sections: { dashboard: true, leads: false, clients: true },
+    }))
+    const withoutFeature = applyPlanToPermissions(owner, access({
+      features: { crm: true, leads: false, export: true },
+    }))
+    const withoutCrm = applyPlanToPermissions(owner, access({
+      features: { crm: false, leads: true, export: true },
+    }))
+
+    expect(allPermissionValues(withoutSection.leads)).not.toContain(true)
+    expect(allPermissionValues(withoutFeature.leads)).not.toContain(true)
+    expect(allPermissionValues(withoutCrm.leads)).not.toContain(true)
+  })
+
+  it("keeps Lead Hub enabled while export entitlements gate supported exports", () => {
+    const owner = getDefaultPermissions("owner")
+    const result = applyPlanToPermissions(owner, access({
+      features: { crm: true, leads: true, export: false },
+    }))
+
+    expect(result.leads.view).toBe(true)
+    expect(result.leads.convert).toBe(true)
+    expect(result.clients.export).toBe(false)
+    expect(result.payments.export).toBe(false)
+    expect(result.reports.export).toBe(false)
   })
 
   it("enforces finite limits and treats null as unlimited", () => {

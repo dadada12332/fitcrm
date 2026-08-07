@@ -1,6 +1,6 @@
 ---
 type: dashboard
-updated: 2026-08-04
+updated: 2026-08-07
 tags: [fitcrm, operations]
 ---
 
@@ -41,6 +41,7 @@ tags: [fitcrm, operations]
 ## Последние завершённые изменения
 
 <!-- AUTO:START recent-commits -->
+- `0175c90` · 2026-08-04 · docs: record subscription lifecycle release [skip ci]
 - `0551fa5` · 2026-08-04 · fix: harden subscription renewal lifecycle
 - `508ac53` · 2026-07-30 · docs: record audit remediation release [skip ci]
 - `0470167` · 2026-07-30 · fix: harden platform billing and access flows
@@ -48,7 +49,6 @@ tags: [fitcrm, operations]
 - `f20a71a` · 2026-07-30 · fix: align membership duration chevron
 - `8f514a4` · 2026-07-30 · docs: record dashboard border QA [skip ci]
 - `933fafe` · 2026-07-30 · fix: remove doubled dashboard chart border
-- `6466723` · 2026-07-30 · docs: record membership freeze release [skip ci]
 <!-- AUTO:END recent-commits -->
 
 ## Последние решения и деплои
@@ -57,5 +57,5 @@ tags: [fitcrm, operations]
 - Deploy: нет доступных подтверждённых данных о времени последнего production deploy.
 
 Последнее автоматическое обновление: <!-- AUTO:START updated-at -->
-2026-08-04 Asia/Tashkent
+2026-08-07 Asia/Tashkent
 <!-- AUTO:END updated-at -->
